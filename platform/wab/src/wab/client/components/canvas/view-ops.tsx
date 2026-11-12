@@ -1715,9 +1715,6 @@ export class ViewOps {
       exact: boolean;
     },
   ) {
-    if (this.studioCtx().showStackOfParents) {
-      return;
-    }
     if (!obj) {
       this.lastHoverDom = undefined;
       this.viewCtx().setViewCtxHoverBySelectable(null);

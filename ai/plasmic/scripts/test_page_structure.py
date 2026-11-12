@@ -103,7 +103,7 @@ class PageStructureTests(unittest.TestCase):
                 'sizing': 'Fluid width', 'scrolling': 'Host owns document scrolling', 'actions': 'None'},
             'templates': [], 'templatesNotApplicable': 'Static editorial prose has no admin region',
             'wireframe': {'notApplicable': 'Source is prose only'}, 'feedback': [],
-            'bindings': [], 'bindingsNotApplicable': 'Static content', 'runtimeCases': [],
+            'bindings': [], 'bindingsNotApplicable': 'Static content', 'runtimeCases': [], 'visualScenarios': [],
             'copy': {'source': 'REQ §Brand introduction', 'excluded': [], 'entries': [
                 {'nodeName': 'Introduction', 'at': '/text', 'text': '手作咖啡', 'kind': 'value'}]}}
         original = {'pages': [page]}

@@ -15,6 +15,8 @@ If preparation is incomplete, continue independent discovery and record the miss
 
 ## Working set
 
+Plan and verify [visual scenarios](../visual-scenarios.md) across variants, hidden regions, conditional entries and panels. Reconcile source cases with the saved-model inventory before accepting coverage. Retain a screenshot, concrete analysis and any repair/retest history for each required state in the existing rule review.
+
 Sketch in-scope Pages and flows; detail one Page at a time. Keep local edits scoped. Read `mustRead` and applicable [sections](../context-reading.md); retain evidence on disk. Structure-only requests end with reviewed drafts and contract gaps, not composition readiness.
 
 ## Existing prototype changes

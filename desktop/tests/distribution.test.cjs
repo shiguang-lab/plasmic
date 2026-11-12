@@ -61,6 +61,26 @@ test("release JSON and image files publish complete, verified native installers"
     "https://studio.example.com/desktop-updates",
     notes,
   );
+  const manifestsOutput = path.join(root, "manifests-only");
+  assert.deepEqual(
+    await buildDistribution(
+      input,
+      manifestsOutput,
+      version,
+      "https://studio.example.com/desktop-updates",
+      notes,
+      { manifestsOnly: true },
+    ),
+    manifest,
+  );
+  for (const { platform, arch } of releaseTargets) {
+    const name = manifestNames[platform];
+    assert.deepEqual(await fs.readdir(path.join(manifestsOutput, platform, arch)), [name]);
+    assert.equal(
+      await fs.readFile(path.join(manifestsOutput, platform, arch, name), "utf8"),
+      await fs.readFile(path.join(output, platform, arch, name), "utf8"),
+    );
+  }
   assert.equal(manifest.installers.length, 4);
   assert.deepEqual(
     manifest.installers.map((file) => file.id),

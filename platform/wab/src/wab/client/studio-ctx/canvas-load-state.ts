@@ -10,11 +10,12 @@ import { useStore } from "zustand";
  */
 export interface CanvasLoadSnapshot {
   readonly error: string | undefined;
+  readonly frameErrors: ReadonlyMap<string, string>;
 }
 
 export function createCanvasLoadStore() {
   return createStudioStore<CanvasLoadSnapshot>(
-    () => ({ error: undefined }),
+    () => ({ error: undefined, frameErrors: new Map() }),
     { name: "studio-canvas-load" },
   );
 }

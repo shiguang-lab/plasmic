@@ -152,9 +152,6 @@ test("entry names its owner and keeps a visible generic exit independent of the 
   label.className = "node-outline-tag";
   label.setAttribute("role", "toolbar");
   label.getBoundingClientRect = () => new DOMRect(640, 60, 240, 28);
-  const tree = label.appendChild(document.createElement("div"));
-  tree.setAttribute("data-canvas-node-tree", "");
-  tree.getBoundingClientRect = () => new DOMRect(640, 40, 240, 200);
   await act(async () => { mode.parentElement?.appendChild(label); });
   expect(mode.style.left).toBe("640px");
   expect(mode.style.top).toBe("60px");

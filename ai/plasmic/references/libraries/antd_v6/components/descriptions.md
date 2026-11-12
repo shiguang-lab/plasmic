@@ -15,7 +15,7 @@ Library: [Ant Design v6](../index.md).
 - Default to `layout="horizontal"` (label and value side by side). Use `vertical` only when explicitly required by the user or source; a template or aesthetic preference does not justify it. See [Layout direction](#layout-direction).
 - Short parallel facts (status, check results, owner, dates) fill the columns side by side; never stack them in one column inside a wide region.
 - A long value takes a larger `span`; it does not lower the whole group's `column`.
-- Give each region one heading owner. Use the real title Slot for a Descriptions group heading; do not clear it and imitate the heading with separate native text. A containing Card may own the region heading without repeating it on Descriptions; intentionally untitled groups remain valid. See [Composition](#composition).
+- Give each region one heading owner. Use the real title Slot for a Descriptions group heading; do not clear it and imitate the heading with separate native text. A containing Card may own the region heading without repeating it on Descriptions; intentionally untitled groups remain valid. An owning Tab that identifies its single information group supplies that heading under [panel heading ownership](tabs.md#panel-heading-ownership). See [Composition](#composition).
 
 ## Plan decisions
 
@@ -121,7 +121,7 @@ Check the plan, saved/reopened native `layout` prop and Preview against the hori
 
 ### Heading ownership
 
-Review the group's surrounding content and native title Slot against its source purpose. Reject a separate native heading substituting for an empty Descriptions title, and duplicate Card/Descriptions headings for the same region. Keep legitimate Card-owned headings, unrelated help text and intentionally untitled groups. Do not classify arbitrary adjacent text as a heading solely from its tag or position; the static inventory checker compares the expected title, not its semantic ownership.
+Review the group's surrounding content and native title Slot against its source purpose. Reject a separate native heading substituting for an empty Descriptions title, and duplicate Card/Descriptions headings for the same region. Keep legitimate Card-owned headings, unrelated help text and intentionally untitled groups, including one information group already identified by its Tab. Do not classify arbitrary adjacent text as a heading solely from its tag or position; the static inventory checker compares the expected title, not its semantic ownership.
 
 ### Native code generation
 

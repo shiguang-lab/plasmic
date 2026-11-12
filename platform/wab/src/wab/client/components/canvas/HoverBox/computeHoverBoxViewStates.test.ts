@@ -146,7 +146,7 @@ it("outlines the protected part's fixed DOM bounds without resize or spacing con
     .toMatchObject({ width: 1000, height: 800 });
   const part = { tpl: owner.tpl, name: "brand", displayName: "Product name", selector: "[data-brand]", props: ["productName"], element: brand };
   expect(computeHoverBoxViewState(vc, target, false, false, part).displayProps)
-    .toMatchObject({ left: 120, top: 210, width: 166, height: 64, tagName: "Product name", isComponentPart: true, edgeControls: { top: [], right: [], bottom: [], left: [] } });
+    .toMatchObject({ left: 120, top: 210, width: 166, height: 64, isComponentPart: true, edgeControls: { top: [], right: [], bottom: [], left: [] } });
 });
 
 it("uses the common dashed border while keeping the real text node selected", () => {

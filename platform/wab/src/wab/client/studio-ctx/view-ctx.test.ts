@@ -495,7 +495,6 @@ test("canvas hover and click share authored layout levels; Enter and parent navi
     studioCtx: {
       dbCtx: () => ({ site }),
       canEditComponent: () => true,
-      showStackOfParents: false,
     },
     tplMgr: () => tplMgr,
     valState: () => valState,

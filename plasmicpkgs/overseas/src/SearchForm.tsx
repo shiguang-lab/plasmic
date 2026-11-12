@@ -120,51 +120,49 @@ export function collectSearchItems(
 function normalizedSpan(span: number) {
   return Math.min(24, Math.max(1, Math.round(span) || 6));
 }
-export function searchGrid(spans: number[]) {
-  let rows = 1,
-    lastRowSpan = 0;
-  for (const rawSpan of spans) {
-    const span = normalizedSpan(rawSpan);
-    if (lastRowSpan + span > 24) {
-      rows++;
-      lastRowSpan = span;
-    } else {
-      lastRowSpan += span;
+function measureSearchGrid(spans: number[], rowLimit = Infinity) {
+  let rows = 1;
+  let lastRowSpan = 0;
+  let count = 0;
+  for (; count < spans.length; count++) {
+    const span = normalizedSpan(spans[count]);
+    const startsRow = lastRowSpan + span > 24;
+    const nextRows = startsRow ? rows + 1 : rows;
+    const nextSpan = startsRow ? span : lastRowSpan + span;
+    if (nextRows + Number(nextSpan === 24) > rowLimit) {
+      // Keep the first field visible even if the actions need another row.
+      if (!count) {
+        count = 1;
+        lastRowSpan = nextSpan;
+      }
+      break;
     }
+    rows = nextRows;
+    lastRowSpan = nextSpan;
   }
+  return { count, rows, lastRowSpan };
+}
+
+export function searchGrid(spans: number[]) {
+  const { rows, lastRowSpan } = measureSearchGrid(spans);
   return {
     rows,
     lastRowSpan,
-    rowsWithActions: rows + (lastRowSpan === 24 ? 1 : 0),
-    actionSpan: lastRowSpan === 24 ? 24 : 24 - lastRowSpan,
+    rowsWithActions: rows + Number(lastRowSpan === 24),
+    actionSpan: 24 - lastRowSpan || 24,
   };
 }
 
-export function searchLayout(
-  spans: number[],
-  minRows: number,
-  collapsed: boolean,
-) {
-  const all = searchGrid(spans);
-  const showExpand = all.rowsWithActions > Math.max(1, minRows);
-  let visibleCount = spans.length;
-  if (collapsed && showExpand) {
-    visibleCount = 0;
-    while (
-      visibleCount < spans.length &&
-      searchGrid(spans.slice(0, visibleCount + 1)).rowsWithActions <=
-        Math.max(1, minRows)
-    ) {
-      visibleCount++;
-    }
-    if (spans.length && visibleCount === 0) {
-      visibleCount = 1;
-    }
-  }
+export function searchLayout(spans: number[], minRows: number, collapsed: boolean) {
+  const rowLimit = Math.max(1, minRows);
+  const { count, rows, lastRowSpan } = measureSearchGrid(
+    spans,
+    collapsed ? rowLimit : undefined,
+  );
   return {
-    showExpand,
-    visibleCount,
-    actionSpan: searchGrid(spans.slice(0, visibleCount)).actionSpan,
+    showExpand: count < spans.length || rows + Number(lastRowSpan === 24) > rowLimit,
+    visibleCount: count,
+    actionSpan: 24 - lastRowSpan || 24,
   };
 }
 
@@ -263,18 +261,21 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
       [items, initialValues],
     );
     const defaultKey = JSON.stringify(defaults.initialValues);
-    const names = items.flatMap((item) =>
-      item.props.name ? [item.props.name] : [],
-    );
-    const namesKey = JSON.stringify(names);
+    const { names, namesKey } = useMemo(() => {
+      const fieldNames = items.flatMap((item) =>
+        item.props.name ? [item.props.name] : [],
+      );
+      return { names: fieldNames, namesKey: JSON.stringify(fieldNames) };
+    }, [items]);
     const previousNames = useRef(new Set<string>());
     const getValues = () => form.getFieldsValue(names) as SearchValues;
     useEffect(() => {
+      const nextNames = new Set(names);
       if (editing) {
         form.resetFields();
       } else {
         previousNames.current.forEach((name) => {
-          if (!names.includes(name)) {
+          if (!nextNames.has(name)) {
             form.setFieldValue(name, undefined);
           }
         });
@@ -286,7 +287,7 @@ export const SearchForm = React.forwardRef<SearchFormActions, SearchFormProps>(
         }
         form.setFieldsValue(addedValues);
       }
-      previousNames.current = new Set(names);
+      previousNames.current = nextNames;
       onValuesChange?.(getValues());
     }, [form, editing, defaultKey, namesKey]);
     const layout = searchLayout(

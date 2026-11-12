@@ -1,7 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
 import { ValTag } from "@/wab/shared/core/val-nodes";
-import { ensure } from "@/wab/shared/common";
 import { HoverVariantInputs, useHoverVariantInputs } from "@/wab/client/components/canvas/HoverBox/hover-variant-inputs";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -29,15 +27,12 @@ it("changes hover-owner tint classification for native target variant names and 
   const view = mock<ViewCtx>(); Object.defineProperty(view, "studioCtx", { value: studio });
   const manager = mock<ReturnType<ViewCtx["variantTplMgr"]>>();
   manager.getContainingFrame.mockReturnValue(new RootComponentVariantFrame(frame)); view.variantTplMgr.mockImplementation(() => { throw new Error("Hover must not use editing frames"); });
-  Object.defineProperties(view, { disposeSignal: { value: signal.signal }, site: { value: site }, styleInputs: { value: new ViewStyleInputs(() => models, signal.signal) } });
+  Object.defineProperties(view, { disposeSignal: { value: signal.signal }, site: { value: site } });
   view.hoverVariantTplMgr.mockReturnValue(manager);
   const selectable = new ValTag({ tpl: root, children: [], className: "", key: "hover-owner[1]", fullKey: "hover-owner[1]", frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
   const variants = {};
   const hook = renderHook(() => useHoverVariantInputs(view, selectable, variants, 0));
   expect(view.hoverVariantTplMgr).toHaveBeenCalledWith(selectable);
-  const native = ensure(hook.result.current.provider, "Hover native source").getNativeStyleSource();
-  expect(native.kind).toBe("tpl");
-  if (native.kind === "tpl") { expect(native.source.component).toBe(component); expect(native.source.contextKey).toContain("hover-owner[1]"); }
   expect(view.variantTplMgr).not.toHaveBeenCalled();
   const source = new HoverVariantInputs({ view, models, signal: signal.signal }, root, manager);
   const publish = vi.fn(), stop = source.subscribe(publish); publish.mockClear();
@@ -47,10 +42,6 @@ it("changes hover-owner tint classification for native target variant names and 
     expect(source.getSnapshot().targeting).toBe(false); expect(publish).toHaveBeenCalledOnce(); publish.mockClear();
     act(() => { models.sync(recorder.withRecording(() => { selected.name = "Active again"; }).changes); });
     expect(source.getSnapshot().targeting).toBe(true); expect(publish).toHaveBeenCalledOnce();
-    publish.mockClear();
-    const before = hook.result.current.fields;
-    act(() => { models.sync(recorder.withRecording(() => { ensure(root.vsettings[0], "Hover base setting").rs.values = { display: "flex" }; }).changes); });
-    expect(hook.result.current.fields).not.toBe(before); expect(publish).toHaveBeenCalledOnce();
     Object.defineProperty(studio, "modelSnapshots", { value: next, writable: true });
     const calls = view.hoverVariantTplMgr.mock.calls.length;
     hook.rerender();

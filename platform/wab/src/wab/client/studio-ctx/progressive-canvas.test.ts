@@ -1,6 +1,6 @@
 import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
-import { requestIdleCallbackAsync } from "@/wab/client/requestidlecallback";
+import { requestIdleCallback, requestIdleCallbackAsync } from "@/wab/client/requestidlecallback";
 import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
@@ -16,6 +16,8 @@ import { ok } from "neverthrow";
 import { mock } from "vitest-mock-extended";
 
 vi.mock("@/wab/client/requestidlecallback", () => ({
+  requestIdleCallback: vi.fn((callback) => window.setTimeout(() => callback({ didTimeout: false, timeRemaining: () => 50 }), 0)),
+  clearIdleCallback: (id: number) => window.clearTimeout(id),
   requestIdleCallbackAsync: vi.fn(async (callback) => callback()),
 }));
 
@@ -280,7 +282,7 @@ it("prioritizes the target ahead of earlier requests, starts it without idle, an
   try {
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
     vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(target);
-    vi.mocked(requestIdleCallbackAsync).mockClear();
+    vi.mocked(requestIdleCallback).mockClear();
     for (const frame of arena.children) {
       studioCtx.queueCanvasFrame({
         arena,
@@ -293,7 +295,7 @@ it("prioritizes the target ahead of earlier requests, starts it without idle, an
       });
     }
     await waitFor(() => expect(started).toEqual([target.uuid]));
-    expect(requestIdleCallbackAsync).not.toHaveBeenCalled();
+    expect(requestIdleCallback).not.toHaveBeenCalled();
     releases[0]();
     await new Promise((resolve) => setTimeout(resolve, 40));
     expect(started).toEqual([target.uuid]);
@@ -312,7 +314,7 @@ it("prioritizes the target ahead of earlier requests, starts it without idle, an
       target.uuid,
       ...arena.children.slice(0, 3).map((frame) => frame.uuid),
     ]);
-    expect(requestIdleCallbackAsync).toHaveBeenCalledTimes(3);
+    expect(requestIdleCallback).toHaveBeenCalledTimes(3);
     expect(studioCtx.focusedFrame()).toBe(target);
   } finally {
     releases.forEach((release) => release());
@@ -380,6 +382,7 @@ it("continues loading the new arena when navigation hides an in-flight target", 
       arena,
       frame: arena.children[0],
       name: "old",
+      cancel: () => { started.push("cancelled"); finishOld(); },
       load: () => {
         started.push("old");
         return new Promise<void>((resolve) => {
@@ -399,7 +402,7 @@ it("continues loading the new arena when navigation hides an in-flight target", 
       },
     });
     await vi.advanceTimersByTimeAsync(150);
-    expect(started).toEqual(["old", "next"]);
+    expect(started).toEqual(["old", "cancelled", "next"]);
     expect(studioCtx.activeCanvasFrame).toBe(nextFrame);
     expect(studioCtx.activeCanvasReady).toBe(false);
     finishOld();
@@ -422,10 +425,9 @@ it("reveals the target before remaining contexts, comparing with the previous al
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
     vi.useFakeTimers();
     vi.spyOn(performance, "now").mockImplementation(() => Date.now());
-    vi.mocked(requestIdleCallbackAsync).mockImplementation(async (callback) => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      await callback({ didTimeout: false, timeRemaining: () => 50 });
-    });
+    vi.mocked(requestIdleCallback).mockImplementation((callback) =>
+      window.setTimeout(() => callback({ didTimeout: false, timeRemaining: () => 50 }), 50),
+    );
     const target = arena.children[3];
     vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(target);
     vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockImplementation((frame) =>

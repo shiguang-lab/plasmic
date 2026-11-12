@@ -6,7 +6,7 @@ Rows marked with an owner link are maintained in that document; the value is rep
 
 **Hard constraints** (always delivered with any section):
 
-- Without a stated value, use the values in this document. Gaps, gutters and margins between siblings are 8, 12, 16 or 24px; surface insets (padding) are 16, 20 or 24px per the Surfaces table; never an in-between value such as 10px, 14px or 18px.
+- Without a stated value, use the values in this document. Nonzero gaps, gutters and margins between siblings are 8, 12, 16 or 24px; surface insets (padding) are 16, 20 or 24px per the Surfaces table; never an in-between value such as 10px, 14px or 18px. Tabs panel entry defaults to 0px under the Spacing table.
 - Spacing comes from the parent's gap/gutter and the surface's padding, never from margins added to children, blank nodes or fixed heights.
 - Top-level regions in the content area are 16px apart; buttons in one group are 8px apart; form fields share a 16px column gutter; every surface keeps the same 20px horizontal inset so content and action edges align.
 - Controls in one region use consistent effective sizes from the Component sizes table unless the requirement or approved design specifies otherwise. Native defaults and supported context inheritance are valid; set an instance's `size` only when an override is needed, and verify the rendered result.
@@ -19,6 +19,7 @@ Rows marked with an owner link are maintained in that document; the value is rep
 | Shell content padding | 16px, owned by AppShell; the business root adds none | [AppShell](../libraries/overseas/components/app-shell.md) |
 | Between top-level regions (SearchForm, Cards, completion bar) | 16px gap on the content root (Flex gap 16 with direction from the Page structure, or Row gutter 16) | This document |
 | Between stacked blocks inside one surface (editor, feedback, table, group) | 16px gap on the surface's inner Flex | This document |
+| Tab-bar bottom to first panel content, including nested Tabs | 0px; only an explicitly required nonzero value with its source is an exception | [Tabs panel entry](../libraries/antd_v6/components/tabs.md#panel-entry-spacing) |
 | Buttons and inline actions in one group, including overlay footers | 8px (Space) | [Action bars](../libraries/antd_v6/compositions/action-bars.md#placement-and-ordering) |
 | A toolbar above the filters (only when the current user requests it) to the filter row | 16px | [Query and list](../libraries/overseas/compositions/search-table.md#query-and-list-structure) |
 | Form field columns | 16px Row gutter | [Form layout](../libraries/antd_v6/compositions/form-layout.md#page-form-structure) |
@@ -27,7 +28,7 @@ Rows marked with an owner link are maintained in that document; the value is rep
 | Metric label to value; metric siblings | 8px; 16px | [Metrics](../libraries/antd_v6/compositions/summary-metrics.md#overview-metrics-and-information-cards) |
 | Form Modal to viewport edge | At least 24px; Drawers retain their native edge attachment | [Overlays](../libraries/antd_v6/compositions/modal-drawer.md#structure-and-close-behavior) |
 
-Component-internal spacing stays native. A component's own theme spacing (Form.Item margin, pagination margin, Tabs bar) counts as that boundary's spacing; do not add a second value on the same edge.
+Component-internal spacing stays native unless its owning rule explicitly overrides it. A component's own theme spacing (Form.Item margin, pagination margin) counts as that boundary's spacing; do not add a second value on the same edge. Tabs bar-to-panel spacing is the explicit exception above: clear that boundary to 0px through its verified styling contract, while preserving tab-label click areas and indicator geometry.
 
 ## Surfaces
 

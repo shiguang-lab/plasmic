@@ -11,6 +11,7 @@ Library: [Ant Design v6](../index.md).
 
 **Hard constraints** (always delivered with any section):
 
+- Keep vertical dividers between body columns off by default. Omit `bordered` or set it to `false`; enable it only on Tables where the user explicitly requests those dividers. Verify the rendered result under [column dividers](#column-dividers).
 - Decide every Column's `width` in the plan before markup. The project default uses literal pixel widths, exactly one main text Column (`role:widget`, native text or a text Tooltip render) without width, and numeric Table `scroll.x` greater than the explicit widths sum. Native `max-content` is available through a source-backed `scroll.x` override; this is a project layout policy, not an Ant Design limitation. See [content and scroll width](#content-and-scroll-width).
 - Size each width from its title as well as its values; status/time/short fields are fixed, never the main column.
 - Row operations: registered ActionGroup in the last leaf Column.render, `fixed:"right"` and a numeric width estimated before insertion and measured before Saved-Page acceptance ([operation column sizing](#operation-column-sizing)).
@@ -43,6 +44,12 @@ Declare these native props in each planned instance before markup. `prepare_plan
 ### Usage and behavior
 
 Read the installed Table contract and the real [Column](table.md#columns) instances. Before choosing a Column's presentation, classify its source purpose using [selection](../selection.md): lifecycle/processing fields follow [Badge](badge.md), category/attribute fields choose text or Tag under [Tag/text rules](tag.md#tag-or-text), and operations follow ActionGroup. Read that rule owner; Table metadata describes capabilities, not the right semantic choice. [SearchForm + Tabs + Table composition](../../overseas/compositions/search-table.md) owns filters, scopes, vertical scrolling and business pagination; [Tab Item](tabs.md#items) owns each panel content Slot.
+
+### Column dividers
+
+Use the unbordered Table by default, including when adapting a template or visual reference that shows a grid. Keep native horizontal row separators. When the user explicitly asks for vertical dividers between body columns, set `props.bordered: true` for the affected Table and record `overrides.bordered` using the [source evidence format](../../../design/component-policy.md#protected-configuration). Quote the user's actual instruction, for example `请显示表格列间分隔线` or `bordered: true`.
+
+Selection preflight and saved-model verification check `bordered` even when pagination is disabled or bound. In Preview, inspect every affected Table, including those in inactive Tabs and expanded rows. Check the body for unexpected vertical lines from inherited or custom cell styles. Ant Design's short header markers and fixed-column scroll shadows are separate from body dividers.
 
 ### Complete editable table
 

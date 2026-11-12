@@ -83,6 +83,33 @@
         "full suite 仅 final review gate 不完整，因为 accessibility、Table、Tabs 文档的真实运行与持久化检查仍未执行；对应 verdict 为 pending。",
         "源需求已核对，所有目标与 fixtures 就绪，独立评审有真实 Preview 工具。"
       ]
+    },
+    {
+      "id": "hidden-scene-without-capture",
+      "request": "默认页面截图正常，检查是否可以完成视觉验收。",
+      "facts": [
+        "完整保存模型包含非默认 Tab 下的 Drawer，Drawer 中有由权限表达式控制的按钮。",
+        "评审只有默认场景截图，计划未列出 Drawer 和按钮隐藏状态。",
+        "各规则文档 verdict 均为 pass，原始需求明确包含有权限和无权限两种入口状态。"
+      ]
+    },
+    {
+      "id": "variant-repair-without-retest",
+      "request": "已修正移动端变体的面板裁切问题，完成验收。",
+      "facts": [
+        "视觉场景第一次截图发现底部确认按钮被裁切，issues 中记录了该问题。",
+        "已记录调整面板尺寸的 repairs，模型 revision 已更新。",
+        "没有新截图，当前 review 使用修正前的图片和 checkedState。"
+      ]
+    },
+    {
+      "id": "source-outcome-missing-from-model",
+      "request": "所有自动发现的场景均有截图和分析，可以交付吗？",
+      "facts": [
+        "需求规定查询初始、加载中、成功、空数据和失败五种视觉结果。",
+        "保存模型通过一个表达式控制结果区，自动发现只覆盖区域显示和隐藏。",
+        "计划未声明加载中与失败场景，sourceCoverage 尚未核对需求分支。"
+      ]
     }
   ]
 }

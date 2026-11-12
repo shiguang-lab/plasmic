@@ -4,12 +4,14 @@ const {EventEmitter} = require('node:events');
 const Module = require('node:module');
 const original = Module._load;
 let nextId = 0;
+const runningPids = new Set();
 class View {
   constructor() {
     const contents = this.webContents = new EventEmitter();
     contents.id = ++nextId;
     contents.url = '';
     contents.getURL = () => contents.url;
+    contents.getOSProcessId = () => contents.id;
     contents.isDestroyed = () => !!contents.destroyed;
     contents.close = options => {assert.deepEqual(options,{waitForBeforeUnload:false});contents.destroyed=true;contents.emit('destroyed');};
     contents.loads = [];
@@ -23,7 +25,7 @@ class View {
   setBounds(bounds) {this.bounds=bounds;}
   setBackgroundColor(color) {this.color=color;}
 }
-Module._load = function(name,...args) {return name==='electron'?{WebContentsView:View}:original.call(this,name,...args)};
+Module._load = function(name,...args) {return name==='electron'?{app:{getAppMetrics:()=>[...runningPids].map(pid=>({pid}))},WebContentsView:View}:original.call(this,name,...args)};
 const {StudioWindow}=require('../src/studio-window.cjs');
 Module._load=original;
 function fixture(beforeNavigate=async()=>{}) {
@@ -42,6 +44,34 @@ test('keeps the Dashboard runtime and destroys only project renderers',async()=>
   await studio.loadURL('https://studio.test/projects');assert.equal(editor.isDestroyed(),true);
   assert.equal(studio.webContents,dashboard);assert.equal(dashboard.loads.length,1);
   assert.equal(studio.window,window);assert.equal(children.length,1);assert.deepEqual(studio.view.bounds,{x:0,y:0,width:1200,height:800});
+});
+test('shows the retained Dashboard while thumbnail admission waits for retired editor processes', async () => {
+  const {studio} = fixture();
+  await studio.loadURL('https://studio.test/projects');
+  const dashboard = studio.webContents;
+  await studio.loadURL('https://studio.test/projects/first');
+  const first = studio.webContents;
+  runningPids.add(first.id);
+  await studio.loadURL('https://studio.test/projects/second');
+  const second = studio.webContents;
+  runningPids.add(second.id);
+  await studio.loadURL('https://studio.test/projects');
+  assert.equal(studio.webContents, dashboard);
+  assert(first.isDestroyed() && second.isDestroyed());
+  try {
+    const controller = new AbortController();
+    let admitted = false;
+    const wait = studio.waitForEditorExit(controller.signal).then(() => { admitted = true; });
+    runningPids.delete(first.id);
+    await new Promise(setImmediate);
+    assert.equal(admitted, false);
+    controller.abort();
+    await assert.rejects(wait, {name:'AbortError'});
+    runningPids.delete(second.id);
+    await studio.waitForEditorExit();
+  } finally {
+    runningPids.clear();
+  }
 });
 test('a pending or failed draft backup keeps the current renderer intact',async()=>{
   let release;let protect=async()=>{};

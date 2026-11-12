@@ -75,7 +75,7 @@ test.describe("routing", () => {
     await models.studio.focusFrameRoot(mainFrame);
 
     await models.studio.leftPanel.insertNode("Text");
-    await models.studio.renameSelectionTag("text");
+    await models.studio.renameTreeNode("text");
 
     await setCanvasText(mainFrame, "Main");
     await models.studio.leftPanel.switchToTreeTab();

@@ -466,7 +466,6 @@ export class CanvasContentEditor {
           });
     this.cleanup?.();
     this.cleanup = undefined;
-    this.vc.studioCtx.setShowStackOfParents(false);
     this.vc.studioCtx.viewCtxs.forEach((vc) => {
       vc.setViewCtxHoverBySelectable(null);
       vc.setMeasureToolDomElt(null);

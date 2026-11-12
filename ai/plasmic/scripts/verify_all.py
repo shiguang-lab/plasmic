@@ -125,7 +125,7 @@ def context_identity(context):
 
 
 EVIDENCE_FILES = ("overview.json", "pages.json", "layouts.json")
-OVERVIEW_FIELDS = ["__type", "id", "components", "canvases", "pageFrames", "devicePresets"]
+OVERVIEW_FIELDS = ["__type", "id", "components", "canvases", "pageFrames", "devicePresets", "globalVariantGroups", "screenBreakpoints"]
 
 
 def read_capture(directory):
@@ -173,6 +173,10 @@ def capture_errors(directory, project_id, capture, overview, models, loaded_hash
     if projects[0].get("id") != project_id:
         errors.append("Overview Project identity differs from requested project")
     before, after = capture.get("before"), capture.get("after")
+    try:
+        verify_review.project_model(overview, after)
+    except ValueError as error:
+        errors.append(str(error))
     if not valid_identity(before) or not valid_identity(after) or before != after:
         errors.append("Complete stable project/branch/session/revision/changeCounter identity required")
     if (capture.get("projectId") != project_id or not isinstance(before, dict) or not isinstance(after, dict)
@@ -191,7 +195,7 @@ def capture_errors(directory, project_id, capture, overview, models, loaded_hash
         if (page.get("type") != "page" or page.get("pageMeta", {}).get("path") != expected.get(page.get("uuid"))
                 or not isinstance(page.get("baseVariantTplTree"), str) or not page["baseVariantTplTree"].strip()
                 or "<plasmic-node-ref" in page.get("baseVariantTplTree", "")
-                or any(not isinstance(page.get(key), list) for key in ("props", "states", "interactions", "variants", "variantGroups"))):
+                or any(not isinstance(page.get(key), list) for key in ("props", "states", "interactions", "variants", "variantGroups", "variantSettings"))):
             errors.append("Full Page markup, state, prop, variant and interaction readbacks required")
     return errors
 
@@ -259,7 +263,7 @@ def collect(desktop, project_id, destination, reuse=None, page_path=None):
         for offset in range(0, len(pages), 30):
             result = desktop.execute("read", {"componentUuids": [page["uuid"] for page in pages[offset:offset + 30]], "view": "full", "depth": "all"})
             projection = result.get("read", {})
-            required = {"baseVariantTplTree", "props", "states", "variants", "variantGroups", "interactions"}
+            required = {"baseVariantTplTree", "props", "states", "variants", "variantGroups", "variantSettings", "interactions"}
             if projection.get("depth") != "all" or not required.issubset(projection.get("fields", [])):
                 raise ValueError("Verification requires explicit complete model reads (view=full, depth=all)")
             readback["results"].extend(result["results"])
@@ -500,7 +504,7 @@ def run_suite(config, base, evidence, project_id, page_path=None):
         pages = [p for p in plan.get("pages", []) if page_path is None or p.get("path") == page_path]
         # Bind the review to the complete editor/model identity, including unsaved edits.
         return verify_review.check(pages, ledger, json.loads(read_input(base / spec["results"])),
-                                   capture_state=capture.get("after"), project=page_path is None, root=plan)
+                                   capture_state=capture.get("after"), project=page_path is None, root=plan, readback=readback, overview=overview)
 
     for name in GATES:
         spec = config.get(name, {} if name in ("model", "rendering", "page_layout") else None)

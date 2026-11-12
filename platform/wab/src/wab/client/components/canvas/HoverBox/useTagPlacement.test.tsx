@@ -197,21 +197,3 @@ it("repositions the label after the toolbar moves without another selection chan
   expect(screen.getByTestId("placement").style.left).toBe("0px");
   expect(screen.getByTestId("placement").style.top).toBe("-25px");
 });
-
-it("moves an expanded parent tree together with its label so neither covers the toolbar", async () => {
-  toolbar(new DOMRect(350, 275, 240, 28));
-  const { vc, selectNode } = setup(false);
-  vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(undefined);
-  selectNode({ top: 300 });
-  const container = screen.getByTestId("placement");
-  container.getBoundingClientRect = () => new DOMRect(300, 275, 80, 25);
-  await act(async () => {
-    const tree = document.createElement("div");
-    tree.setAttribute("data-canvas-node-tree", "");
-    tree.getBoundingClientRect = () => new DOMRect(300, 230, 120, 45);
-    container.prepend(tree);
-  });
-  expect(container.style.left).toBe("0px");
-  expect(container.style.top).toBe("-58px");
-  expect(container.style.visibility).toBe("visible");
-});

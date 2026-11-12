@@ -96,18 +96,19 @@ function getColumns(
   headerCell: React.ElementType,
   isEditing: boolean,
 ): (ColumnType<any> | ColumnGroupType<any>)[] {
+  const columns: (ColumnType<any> | ColumnGroupType<any>)[] = [];
   // Preserve authored keys; toArray() invents keys that mask native dataIndex keys.
-  const elements: React.ReactNode[] = [];
-  React.Children.forEach(children, (child) => elements.push(child));
-  return elements.flatMap((child) => {
+  const visit = (child: React.ReactNode) => {
     if (!React.isValidElement<AntdColumnProps>(child)) {
-      return [];
+      return;
     }
     if (child.type === React.Fragment) {
-      return getColumns(child.props.children, bodyCell, headerCell, isEditing);
+      React.Children.forEach(child.props.children, visit);
+      return;
     }
     if (child.type === AntdExpandColumn) {
-      return [Table.EXPAND_COLUMN];
+      columns.push(Table.EXPAND_COLUMN);
+      return;
     }
     const {
       onCellClick: _click,
@@ -125,64 +126,63 @@ function getColumns(
       (child.type as { __ANT_TABLE_COLUMN_GROUP?: boolean })
         .__ANT_TABLE_COLUMN_GROUP
     ) {
-      return [
-        {
-          ...column,
-          key: child.key ?? column.key,
-          onHeaderCell,
-          children: getColumns(nested, bodyCell, headerCell, isEditing),
-        },
-      ];
-    }
-    return [
-      {
-        ...column,
-        key: child.key ?? column.key,
-        // Preview initial sorting edits without controlling sorting at runtime.
-        ...(isEditing && column.sortOrder === undefined
-          ? { sortOrder: column.defaultSortOrder ?? null }
-          : {}),
-        // Reflect initial filter edits on the canvas without controlling runtime filters.
-        ...(isEditing && column.filteredValue === undefined &&
-        (column.filters || column.filterDropdown || column.onFilter)
-          ? { filteredValue: column.defaultFilteredValue ?? null }
-          : {}),
-        onHeaderCell,
-        onCell: (row: any, index?: number) => {
-          const cellProps = column.onCell?.(row, index);
-          return {
-            ...cellProps,
-            ...(render && !isEditing && child.props.onCellClick
-              ? {
-                  onClick: (event: React.MouseEvent<HTMLElement>) => {
-                    cellProps?.onClick?.(event);
-                    const action = (event.target as Element).closest?.(
-                      "button, a[href], .ant-avatar",
-                    );
-                    if (
-                      !action ||
-                      !event.currentTarget.contains(action) ||
-                      action.matches(":disabled, [aria-disabled=true]")
-                    ) {
-                      return;
-                    }
-                    const path = asArray(column.dataIndex ?? []);
-                    child.props.onCellClick?.(
-                      path.reduce((value: any, field) => value?.[field], row),
-                      row,
-                      index ?? 0,
-                    );
-                  },
-                }
-              : {}),
-            __plasmic_column__: { element: child, type: bodyCell },
-          };
-        },
-        // Without a render slot, Ant Design renders the field value natively.
-        ...(render ? { render } : {}),
+      columns.push({
+      ...column,
+      key: child.key ?? column.key,
+      onHeaderCell,
+      children: getColumns(nested, bodyCell, headerCell, isEditing),
+    });
+    return;
+  }
+  columns.push({
+      ...column,
+      key: child.key ?? column.key,
+      // Preview initial sorting edits without controlling sorting at runtime.
+      ...(isEditing && column.sortOrder === undefined
+        ? { sortOrder: column.defaultSortOrder ?? null }
+        : {}),
+      // Reflect initial filter edits on the canvas without controlling runtime filters.
+      ...(isEditing && column.filteredValue === undefined &&
+      (column.filters || column.filterDropdown || column.onFilter)
+        ? { filteredValue: column.defaultFilteredValue ?? null }
+        : {}),
+      onHeaderCell,
+      onCell: (row: any, index?: number) => {
+        const cellProps = column.onCell?.(row, index);
+        return {
+          ...cellProps,
+          ...(render && !isEditing && child.props.onCellClick
+            ? {
+                onClick: (event: React.MouseEvent<HTMLElement>) => {
+                  cellProps?.onClick?.(event);
+                  const action = (event.target as Element).closest?.(
+                    "button, a[href], .ant-avatar",
+                  );
+                  if (
+                    !action ||
+                    !event.currentTarget.contains(action) ||
+                    action.matches(":disabled, [aria-disabled=true]")
+                  ) {
+                    return;
+                  }
+                  const path = asArray(column.dataIndex ?? []);
+                  child.props.onCellClick?.(
+                    path.reduce((value: any, field) => value?.[field], row),
+                    row,
+                    index ?? 0,
+                  );
+                },
+              }
+            : {}),
+          __plasmic_column__: { element: child, type: bodyCell },
+        };
       },
-    ];
-  });
+      // Without a render slot, Ant Design renders the field value natively.
+      ...(render ? { render } : {}),
+    });
+  };
+  React.Children.forEach(children, visit);
+  return columns;
 }
 
 function TableWithColumns({

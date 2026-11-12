@@ -54,8 +54,9 @@ test.describe("components", () => {
     await models.studio.focusFrameRoot(framed);
     await models.studio.leftPanel.insertNode("Widget");
 
-    const selectionTag = models.studio.frame.locator(".node-outline-tag");
-    await expect(selectionTag).toContainText("Widget");
+    await expect(models.studio.leftPanel.focusedTreeNode).toContainText("Widget");
+    await expect(models.studio.frame.locator(".node-outline-tag")).toHaveCount(0);
+    await expect(models.studio.frame.locator(".HoverBox__Dims")).toBeVisible();
 
     await models.studio.rightPanel.switchToDesignTab();
     await models.studio.rightPanel.setPosition("top", 100);

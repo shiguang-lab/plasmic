@@ -26,7 +26,7 @@ test.describe("host-app", () => {
     const artboardBody = artboardFrame.locator("body");
 
     await models.studio.leftPanel.insertNode("Badge");
-    await models.studio.renameSelectionTag("badge");
+    await models.studio.renameTreeNode("badge");
 
     await expect(artboardBody.getByText("Happy 2022!")).toBeVisible();
     await expect(artboardBody.getByText("Hello Plasmic!")).toBeVisible();

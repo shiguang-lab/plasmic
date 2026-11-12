@@ -1,0 +1,36 @@
+name: Restore Desktop native runtime
+description: Share the verified runtime and index for an exact set of build inputs
+inputs:
+  runner:
+    required: true
+    description: Runner image label
+  target:
+    required: true
+    description: Target platform and architecture
+  lookup-only:
+    default: "false"
+    description: Check for a cache without downloading it
+outputs:
+  hit:
+    value: ${{ steps.restore.outputs.cache-hit }}
+    description: Whether the exact cache key exists
+  key:
+    value: ${{ steps.restore.outputs.cache-primary-key }}
+    description: Cache key for this runtime
+  path:
+    value: ${{ steps.inputs.outputs.path }}
+    description: Directory containing the runtime
+runs:
+  using: composite
+  steps:
+    - id: inputs
+      shell: bash
+      env:
+        TARGET: ${{ inputs.target }}
+      run: echo "path=desktop/component-reuse-runtime/$TARGET" >> "$GITHUB_OUTPUT"
+    - id: restore
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: ${{ steps.inputs.outputs.path }}
+        key: desktop-runtime-v1-${{ inputs.runner }}-${{ inputs.target }}-${{ hashFiles('desktop/scripts/prepare-component-reuse*.mjs', 'desktop/scripts/component-reuse-runtime.mjs', 'desktop/src/component-embedding.cjs', 'desktop/src/component-reuse.cjs', 'desktop/src/component-reuse-public-documents.json') }}
+        lookup-only: ${{ inputs.lookup-only }}

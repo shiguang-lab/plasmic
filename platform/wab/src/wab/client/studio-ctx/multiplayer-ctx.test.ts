@@ -78,6 +78,7 @@ it("fetches each missing user once and handles reconnects with a changed identit
   ]);
   expect(f.api.getUsersById).toHaveBeenCalledExactlyOnceWith([userId]);
   expect(f.ctx.store.getState().playerIds).toEqual([2, 3]);
+  expect(f.ctx.store.getState().avatars.size).toBe(1);
   const identity = f.ctx.store.getState().players.get(3)?.user;
   expect(f.ctx.store.getState().players.get(2)?.user).toBe(identity);
   await f.ctx.updateSessions([
@@ -170,6 +171,27 @@ it("uses the current connection identity when user lookup finishes after initSer
   await fetching;
   expect(f.ctx.store.getState()).toBe(current);
   expect(f.ctx.getPlayerDataById(2)).toBeUndefined();
+});
+
+it("removes a disconnected player even while another player's profile is loading", async () => {
+  const f = fixture();
+  await f.ctx.updateSessions([player()]);
+  let finish: (users: ApiUser[]) => void = vi.fn();
+  f.api.getUsersById.mockImplementationOnce(async () => ({
+    users: await new Promise<ApiUser[]>((resolve) => {
+      finish = resolve;
+    }),
+  }));
+  const fetching = f.ctx.updateSessions([
+    { type: "NormalUser", playerId: 3, userId: "first" as UserId },
+  ]);
+  expect(f.ctx.getPlayerDataById(2)).toBeUndefined();
+  expect(f.ctx.store.getState().avatars.size).toBe(1);
+  f.ctx.clearSessions();
+  finish([mock<ApiUser>({ id: "first" as UserId })]);
+  await fetching;
+  expect(f.ctx.store.getState().playerIds).toEqual([]);
+  expect(f.ctx.store.getState().avatars.size).toBe(0);
 });
 
 it("keeps follow selection independent of session packets, equal writes and other editors", async () => {

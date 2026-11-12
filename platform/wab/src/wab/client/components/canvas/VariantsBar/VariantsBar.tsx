@@ -149,7 +149,6 @@ function useFloatingBarForFocusedFrame({
   const { studioCtx } = usePlasmicCtx();
   const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
   useStudioSelection(studioCtx, useShallow((state) => [state.view, state.frames]));
-  const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
   const geometry = useCanvasGeometry(studioCtx);
   const contentScope = useContentEditorScope(studioCtx);
   const ownFrame = viewCtx.arenaFrame();
@@ -307,7 +306,7 @@ function useFloatingBarForFocusedFrame({
   useLayoutEffect(updatePosition, [updatePosition, heights, contentScope]);
 
   return {
-    showPanel: showPanel && (contained || !stackOfParents),
+    showPanel,
     panelRef,
   };
 }

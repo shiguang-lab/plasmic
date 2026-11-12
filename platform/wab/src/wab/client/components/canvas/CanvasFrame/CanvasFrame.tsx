@@ -35,13 +35,12 @@ import {
   cx,
   ensure,
   spawn,
-  spawnWrapper,
   tuple,
 } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { Pt } from "@/wab/shared/geom";
 import { ArenaFrame } from "@/wab/shared/model/classes";
-import { Skeleton } from "antd";
+import { Button, Skeleton } from "antd";
 import $ from "jquery";
 import { useStore } from "zustand";
 import { useCanvasComponentInputs, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
@@ -96,6 +95,7 @@ export const CanvasFrame = React.memo(function CanvasFrame({
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const canvasName = `Canvas[${getArenaName(arena)}][${arenaFrame.uid}]`;
   const [toggleTrailingSlash, setToggleTrailingSlash] = useState(false);
+  const frameError = useStore(studioCtx.canvasLoadStore, (state) => state.frameErrors.get(arenaFrame.uuid));
 
   // We want to only load one CanvasFrame at a time, so we let StudioCtx
   // help us coordinate.  The load states are:
@@ -161,6 +161,13 @@ export const CanvasFrame = React.memo(function CanvasFrame({
               setLoadState("ready-to-load");
             }
           }),
+        cancel: (restart) => {
+          if (!load.isActive()) { return; }
+          load.cancel();
+          if (restart) {
+            setIFrameKey((key) => key + 1);
+          }
+        },
         arena,
         frame: arenaFrame,
         name: canvasName,
@@ -265,7 +272,6 @@ export const CanvasFrame = React.memo(function CanvasFrame({
           return;
         }
         load.fail(e);
-        studioCtx.reportCanvasLoadError(e);
         return;
       }
 
@@ -629,22 +635,20 @@ export const CanvasFrame = React.memo(function CanvasFrame({
             await handleLoad(viewport, load);
           } else {
             let releaseListener: () => void = () => undefined;
-            const listener = spawnWrapper(async () => {
+            const listener = () => {
               if (doc.readyState === "complete") {
                 doc.removeEventListener("readystatechange", listener);
                 releaseListener();
                 if (!load.isActive()) { return; }
                 hostDone();
-                await handleLoad(viewport, load);
+                void handleLoad(viewport, load).catch((error) => load.fail(error));
               }
-            });
+            };
             doc.addEventListener("readystatechange", listener);
             releaseListener = load.own(() => doc.removeEventListener("readystatechange", listener));
           }
         })().catch(error => {
-          if (!load.isActive()) { return; }
           load.fail(error);
-          studioCtx.reportCanvasLoadError(error);
         }),
       );
     }
@@ -685,7 +689,21 @@ export const CanvasFrame = React.memo(function CanvasFrame({
         }}
         data-frame-id={`${arenaFrame.uid}`}
       >
-        {(!initialRenderReady ||
+        {frameError ? (
+          <div className={styles.loadingOverlay} role="alert">
+            <div>
+              <p>{frameError}</p>
+              <Button onClick={() => {
+                loadRef.current?.cancel();
+                const view = maybeViewCtx();
+                if (view) { studioCtx.disposeViewCtx(view); }
+                studioCtx.clearCanvasFrameError(arenaFrame);
+                setCreatedVc(false);
+                setIFrameKey((key) => key + 1);
+              }}>{studioUiT("Retry")}</Button>
+            </div>
+          </div>
+        ) : (!initialRenderReady ||
           packagesLoading) && (
           <div
             className={styles.loadingOverlay}

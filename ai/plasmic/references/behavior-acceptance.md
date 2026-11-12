@@ -23,6 +23,8 @@ At delivery reconcile the original rule inventory with the actual evidence: repo
 
 ## Record and verify execution
 
+For each distinct visible state, follow [visual scenario coverage](visual-scenarios.md). Reuse the runtime case ID for its visual scene where applicable. Retain the actual screenshot and analysis, including conditional entry availability, hidden panels and variant outcomes. A native assertion pass still needs the scene's visual review and any required repair verification.
+
 The monitor retains each native Preview call as a JSONL record with `input` and `result`. Prepare the existing manifest from the frozen plan and stable saved capture without calculating hashes or copying case IDs by hand:
 
 ```sh

@@ -35,6 +35,7 @@ import json
 from pathlib import Path, PureWindowsPath
 
 import rules_manifest
+import verify_visual_scenarios
 from verify_selection import coverage_errors, load_ledger, pending_pointers, project_reads, read_coverage_errors, required_reads
 
 RULE = "references/review-mode.md#rule-review"
@@ -163,9 +164,60 @@ def header_errors(review, capture_state):
     return errors
 
 
-def check(pages, ledger, review, capture_state=None, project=True, root=None):
+def page_models(readback):
+    """Require complete public Page models, including hidden markup and variants."""
+    if not isinstance(readback, dict) or not isinstance(readback.get("results"), list):
+        raise ValueError("Saved Page readbacks are required for visual scenario coverage")
+    models = {}
+    for model in readback["results"]:
+        if not isinstance(model, dict) or model.get("type") != "page":
+            raise ValueError("Visual scenario readbacks must contain full Page models")
+        metadata = model.get("pageMeta")
+        path = metadata.get("path") if isinstance(metadata, dict) else None
+        if (not isinstance(path, str) or not path.startswith("/") or path in models
+                or not isinstance(model.get("baseVariantTplTree"), str) or not model["baseVariantTplTree"].strip()
+                or "<plasmic-node-ref" in model["baseVariantTplTree"]
+                or any(not isinstance(model.get(key), list) for key in
+                       ("props", "states", "interactions", "variants", "variantGroups", "variantSettings"))):
+            raise ValueError("Unique routes and complete Page markup, props, states, interactions and variants required")
+        models[path] = model
+    return models
+
+
+def captured_file(capture, path, name):
+    if (not isinstance(capture, dict) or not valid_state(capture.get("after"))
+            or capture.get("before") != capture["after"]):
+        raise ValueError("Visual review requires a stable capture before/after identity")
+    raw = path.read_bytes()
+    files = capture.get("files")
+    if not isinstance(files, dict) or files.get(name) != hashlib.sha256(raw).hexdigest():
+        raise ValueError(f"Saved {name.removesuffix('.json')} bytes differ from capture.files[{name!r}]; collect current evidence")
+    return json.loads(raw)
+
+
+def project_model(overview, state):
+    records = overview.get("results") if isinstance(overview, dict) else None
+    if not isinstance(records, list):
+        raise ValueError("Saved project overview is required for global variant coverage")
+    projects = [item for item in records if isinstance(item, dict) and item.get("__type") == "Project"]
+    if len(projects) != 1:
+        raise ValueError("Exactly one public Project overview is required")
+    project = projects[0]
+    projection = overview.get("read")
+    fields = projection.get("fields", []) if isinstance(projection, dict) else []
+    # The public exporter omits this optional property when no screen group exists.
+    # Only an explicit field projection distinguishes that case from an old capture.
+    if "screenBreakpoints" not in project and isinstance(fields, list) and "screenBreakpoints" in fields:
+        project = {**project, "screenBreakpoints": []}
+    if (not isinstance(state, dict) or project.get("id") != state.get("projectId")
+            or any(not isinstance(project.get(key), list) for key in ("globalVariantGroups", "screenBreakpoints"))):
+        raise ValueError("Matching project identity and explicit globalVariantGroups/screenBreakpoints required")
+    return project
+
+
+def check(pages, ledger, review, capture_state=None, project=True, root=None, readback=None, overview=None):
     """`capture_state` is the final capture's after identity; `project` requires the project card;
-    `root` is the whole structure plan (navigation decides conditional AppShell rules)."""
+    `root` is the whole structure plan; `readback` supplies complete saved Page models."""
     if root is None:
         root = {"pages": pages}
     errors = []
@@ -178,6 +230,18 @@ def check(pages, ledger, review, capture_state=None, project=True, root=None):
         errors.append({"check": "ruleReview", "pointer": pointer, "rule": RULE,
                        "message": "Replace every __DECIDE__ value with the actual review result"})
     errors.extend(header_errors(review, capture_state))
+    if capture_state is None:
+        errors.append({"check": "checkedState", "rule": RULE, "message": "Final review requires a captured saved model identity"})
+    try:
+        project_data = project_model(overview, capture_state)
+    except (ValueError, TypeError, AttributeError) as error:
+        project_data = None
+        errors.append({"check": "visualScenarios", "rule": RULE, "message": str(error)})
+    try:
+        models = page_models(readback)
+    except (ValueError, TypeError, AttributeError) as error:
+        models = {}
+        errors.append({"check": "visualScenarios", "rule": RULE, "message": str(error)})
     if review.get('checkedPlanSha256') != plan_digest(root):
         errors.append({"check": "checkedPlan", "rule": RULE,
                        "message": "The reviewed plan changed or its digest is missing; regenerate the skeleton and review the current plan"})
@@ -223,6 +287,13 @@ def check(pages, ledger, review, capture_state=None, project=True, root=None):
                            "message": "Record one verdict per accept-card rule for this Page", "required": required})
             continue
         errors.extend(verdict_errors(entry["rules"], required, {"page": path}, pointer))
+        model = models.get(path)
+        if model is None:
+            errors.append({"page": path, "check": "visualScenarios", "rule": RULE,
+                           "message": "Scoped Page has no complete saved model for scenario discovery"})
+        else:
+            errors.extend({"page": path, **error} for error in
+                          verify_visual_scenarios.check(page, entry, model, capture_state, project_data))
     return {"passed": not errors, "reviewMode": review.get("reviewMode"), "reviewer": review.get("reviewer"),
             "reviewedPages": [p.get("path") for p in pages], "errors": errors,
             "notChecked": ["correctness of each reviewer judgement", "runtime cases", "save/reopen persistence"]
@@ -234,21 +305,26 @@ def main():
     parser.add_argument("plan", type=Path)
     parser.add_argument("--ledger", type=Path, required=True)
     parser.add_argument("--review", type=Path, required=True)
-    parser.add_argument("--capture", type=Path, help="Final capture.json from suite or focused MCP collection; binds checkedState to its after identity")
+    parser.add_argument("--pages", type=Path, required=True, help="Complete pages.json bound by capture.files")
+    parser.add_argument("--overview", type=Path, required=True, help="Project overview.json bound by capture.files")
+    parser.add_argument("--capture", type=Path, required=True, help="Final capture.json from suite or focused MCP collection; binds checkedState to its after identity")
     parser.add_argument("--page", help="Check shared project rules and one route; omit for every planned Page")
     args = parser.parse_args()
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     pages = [p for p in plan.get("pages", []) if args.page is None or p.get("path") == args.page]
     review = json.loads(args.review.read_text(encoding="utf-8"))
-    capture = None
-    if args.capture:
-        document = json.loads(args.capture.read_text(encoding="utf-8"))
-        capture = document.get("after") if isinstance(document, dict) else None
-        if not valid_state(capture):
-            parser.error("--capture requires a valid after identity: projectId, branchId, sessionId and nonnegative integer revision/changeCounter")
-        if document.get('pagePath') is not None and document['pagePath'] != args.page:
-            parser.error("Capture Page scope must match --page; a scoped capture cannot establish full-project review")
-    result = check(pages, load_ledger(args.ledger), review, capture, root=plan)
+    document = json.loads(args.capture.read_text(encoding="utf-8"))
+    capture = document.get("after") if isinstance(document, dict) else None
+    if not valid_state(capture):
+        parser.error("--capture requires a valid after identity: projectId, branchId, sessionId and nonnegative integer revision/changeCounter")
+    if document.get('pagePath') is not None and document['pagePath'] != args.page:
+        parser.error("Capture Page scope must match --page; a scoped capture cannot establish full-project review")
+    try:
+        readback = captured_file(document, args.pages, "pages.json")
+        overview = captured_file(document, args.overview, "overview.json")
+    except (OSError, ValueError, TypeError) as error:
+        parser.error(str(error))
+    result = check(pages, load_ledger(args.ledger), review, capture, root=plan, readback=readback, overview=overview)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     raise SystemExit(0 if result["passed"] else 1)
 

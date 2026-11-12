@@ -377,7 +377,7 @@ async function startDesktop() {
     controller?.cancelPending(contents, "Desktop view deactivated");
     controller?.browser?.hide();
     drafts?.reset();
-    dashboardPreviews?.cancelQueuedFor(contents);
+    dashboardPreviews?.cancelFor(contents);
   });
   studio.on("contents-released", contents => {
     controller?.cancelPending(contents, "Desktop view closed");
@@ -547,7 +547,8 @@ async function startDesktop() {
     dashboardPreviews = createDashboardPreviews({
       session: desktopSession,
       studioOrigin: config.studioOrigin,
-      trustedSender: trustedAuthSender,
+      trustedSender: (event) => trustedAuthSender(event) && event.sender === studioWindow.dashboard?.webContents,
+      waitForEditorExit: (signal) => studioWindow.waitForEditorExit(signal),
     });
     app.once("will-quit", () => dashboardPreviews.dispose());
     presentation = createIsland({ getWindow: () => mainWindow, getStudio: () => studioWindow, controller, identity: desktopIdentity, isQuitting: () => quitting,

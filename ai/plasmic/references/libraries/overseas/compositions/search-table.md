@@ -16,6 +16,8 @@ Select [Tabs](../../antd_v6/components/tabs.md) for content scopes such as All/M
 
 For a source-defined creation menu, follow [Dropdown grouping](../../antd_v6/components/dropdown.md) and place that Dropdown in Tabs `tabBarExtraContentRight` when it is the shared action. Bind each menu choice to its intended destination. Pin its native component identity and `owner:{nodeName:"ScopeTabs",slot:"tabBarExtraContentRight"}` in the source inventory before markup. Pin the trigger Button's owner as that Dropdown's `children` Slot. Verify the visible menu and each destination in Preview, including after switching Tabs.
 
+Apply [panel heading ownership](../../antd_v6/components/tabs.md#panel-heading-ownership) to both independent and shared Tables: a Tab identifying its single list does not need another list title. Supporting filters, toolbar, scope help and pagination remain part of that list.
+
 ### Pagination and scrolling
 
 Default page size 20 with options 20/50/100 unless the requirement says otherwise. Prepare each scope's initial dataset and verify its actual records/total under [Table paging data and acceptance](../../antd_v6/components/table.md#pagination-data-and-acceptance); a few copied draft rows are insufficient. Let the Table grow naturally; scroll the AppShell content region to reach pagination. For a Table inside a Modal, bound and scroll the Modal content region instead of the Table body, keeping the title and footer reachable. Verify the configured page sizes, filter collapse when available and the actual content scopes: the whole business region moves vertically while shell navigation stays fixed, with no second Table body scrollbar. Do not force a tall empty card; leave bottom spacing 16px once.
@@ -25,6 +27,8 @@ Keep current/pageSize/total under one pagination owner. Prefer the Table's pagin
 ## Acceptance checks
 
 ### Region acceptance
+
+Switch through every affected list scope and check [Tabs heading acceptance](../../antd_v6/components/tabs.md#acceptance-checks): no repeated list title or empty title row, with useful scope help and functional controls preserved.
 
 Verify the Card contains Tabs and the source-defined Table owners: each independent Tab owns its Table, or a single shared Table follows Tabs with scope binding and page reset. Measure Card edges, including zero external top/bottom padding. Verify row operations against one current user and source-defined record access; role simulation controls do not belong in the business page.
 

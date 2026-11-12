@@ -20,7 +20,7 @@ import {
   Menu,
   theme,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AppSourceSelect } from "./AppSourceSelect";
 import { menuItemType, sidebarMenuItemType } from "./menuItemType";
 import {
@@ -77,6 +77,36 @@ export const DEFAULT_MENU_ITEMS = [
 // state in the current window, scoped to the navigation tree, outside the canvas.
 const menuOpenKeysByWindow = new WeakMap<Window, Map<string, string[]>>();
 
+function LocalClock({ language, timeZone, color }: {
+  language: string;
+  timeZone: string;
+  color: string;
+}) {
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const formatter = useMemo(() => new Intl.DateTimeFormat(language, {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }), [language, timeZone]);
+  const { year, month, day, hour, minute, second } = Object.fromEntries(
+    formatter.formatToParts(now).map(({ type, value }) => [type, value]),
+  );
+  return (
+    <time style={{ color, whiteSpace: "nowrap", fontSize: 14 }}>
+      当地时间：{`${year}-${month}-${day} ${hour}:${minute}:${second}`}
+    </time>
+  );
+}
+
 export function AppShell({
   className,
   productName = "增长管理平台",
@@ -112,7 +142,6 @@ export function AppShell({
   const [localSource, setSource] = useState<string>();
   const [localMenu, setMenu] = useState<string>();
   const [localDirection, setDirection] = useState<"ltr" | "rtl">("ltr");
-  const [now, setNow] = useState(() => new Date());
   const brandRef = React.useRef<HTMLDivElement>(null);
   const [brandText, setBrandText] = useState("");
   useEffect(() => {
@@ -135,10 +164,6 @@ export function AppShell({
       contentRef.current.scrollTop = initialContentScrollTop;
     }
   }, [initialContentScrollTop]);
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
   const isCollapsed = collapsed ?? localCollapsed;
   const currentLanguage =
     language || localLanguage || languages[0]?.value || "en";
@@ -204,22 +229,6 @@ export function AppShell({
           ),
       })),
   ];
-  const timeParts = Object.fromEntries(
-    new Intl.DateTimeFormat(currentLanguage, {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hourCycle: "h23",
-    })
-      .formatToParts(now)
-      .map(({ type, value }) => [type, value]),
-  );
-  const clock =
-    `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
   const linkedMenu = (items: ShellMenuItem[]): React.ComponentProps<typeof Menu>["items"] =>
     items.map(
       (item) =>
@@ -388,15 +397,11 @@ export function AppShell({
                   minWidth: 0,
                 }}
               >
-                <time
-                  style={{
-                    color: token.colorTextSecondary,
-                    whiteSpace: "nowrap",
-                    fontSize: 14,
-                  }}
-                >
-                  当地时间：{clock}
-                </time>
+                <LocalClock
+                  language={currentLanguage}
+                  timeZone={timeZone}
+                  color={token.colorTextSecondary}
+                />
                 {appSources.length > 0 && (
                   <AppSourceSelect
                     value={currentSource}

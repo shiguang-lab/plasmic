@@ -122,6 +122,7 @@ def source_text(evidence):
 
 
 DESCRIPTIONS_ITEMS_RULE = 'references/libraries/antd_v6/components/descriptions.md#composition'
+TABLE_DIVIDERS_RULE = 'references/libraries/antd_v6/components/table.md#column-dividers'
 
 
 def descriptions_children_problem(items, child_keys):
@@ -179,6 +180,12 @@ def approved_override(spec, key):
     # layout decision. Merely requiring the field is not a layout exception.
     quote = override['evidence']['quote']
     value = at(spec.get('props', {}), key)
+    if key == 'bordered':
+        return value is True and bool(re.fullmatch(
+            r'(?:["\']?bordered["\']?\s*[:=]\s*true'
+            r'|(?:请\s*)?(?:显示|启用|添加)\s*(?:表格)?(?:表体)?(?:列间|列)(?:的)?(?:竖向)?分隔线'
+            r'|(?:please\s+)?(?:show|enable|add)\s+(?:the\s+)?(?:vertical\s+)?(?:table\s+)?column\s+dividers)[。.!]?',
+            quote.strip(), re.I))
     rendered = json.dumps(value, ensure_ascii=False, separators=(',', ':'))
     literal = re.escape(rendered) if not isinstance(value, str) else r'(?:["\x27])?' + re.escape(value) + r'(?:["\x27])?'
     direct = bool(re.search(r'(?<![\w.])' + re.escape(key) + r'["\x27]?\s*[:=]\s*' + literal + r'(?![\w.])', quote, re.I))
@@ -252,9 +259,17 @@ def policy_errors(spec, values, inherited_span=6):
         if problem:
             errors.append({'check': 'componentPolicy', 'node': spec.get('nodeName'), 'property': 'items',
                            'message': problem, 'rule': DESCRIPTIONS_ITEMS_RULE})
-    pagination = at(values, 'pagination')
-    if key == 'plasmicantd6table' and (pagination is False or isinstance(pagination, str) and '{{' in pagination):
-        return errors  # Disabled or dynamically owned pagination has no static density to compare.
+    if key == 'plasmicantd6table':
+        bordered = at(values, 'bordered', False)
+        dynamic_props = spec.get('dynamicProps', [])
+        if (isinstance(dynamic_props, list) and 'bordered' in dynamic_props
+                or bordered is not False and not (bordered is True and approved_override(spec, 'bordered'))):
+            errors.append({'check': 'componentPolicy', 'node': spec.get('nodeName'), 'property': 'bordered',
+                           'requiredDefault': False, 'rule': TABLE_DIVIDERS_RULE,
+                           'message': 'Omit bordered or set it to false. Enable it only with a literal true and a source-backed override explicitly requesting vertical column dividers.'})
+        pagination = at(values, 'pagination')
+        if pagination is False or isinstance(pagination, str) and '{{' in pagination:
+            return errors  # Disabled or dynamically owned pagination has no static density to compare.
     for prop, default in BASELINES.get(key, {}).items():
         if key == 'plasmicantd6table' and prop == 'pagination.defaultPageSize' and at(values, 'pagination.pageSize') is not None:
             prop = 'pagination.pageSize'  # Controlled pageSize takes precedence over defaultPageSize.

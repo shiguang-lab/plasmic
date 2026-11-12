@@ -1,0 +1,32 @@
+{
+  "scope": "Offline codegen visual-acceptance decision probes. Read the supplied skill references and answer each fixture independently. Do not access live apps, edit repository files or claim screenshots were executed. State acceptance status, missing evidence, next actions and mechanical versus visual-review limits.",
+  "cases": [
+    {
+      "id": "missing-paired-hidden-states",
+      "request": "代码生成完成，默认页和构建都通过，可以验收了吗？",
+      "facts": [
+        "原型有移动端变体、非活动 Tab、关闭 Drawer，以及按权限显示的入口。",
+        "当前只有默认桌面页的一张实现截图，没有对应设计图。",
+        "实现方原型清单未列出隐藏状态，但完整设计采集和原始需求都可读。"
+      ]
+    },
+    {
+      "id": "repair-with-stale-code-capture",
+      "request": "面板裁切修了，复用之前截图交付吧。",
+      "facts": [
+        "已记录设计与实现成对截图及 footer-clipped 差异，修正改动未提交。",
+        "旧截图的 sourceSha256 对应修改前源码，git HEAD 保持不变。",
+        "设计版本未变；没有修改后的实现截图，也没有新源码快照。"
+      ]
+    },
+    {
+      "id": "mechanical-pass-with-missing-business-outcomes",
+      "request": "截图门禁 passed=true，整页视觉验收直接通过吧。",
+      "facts": [
+        "自动发现的场景都有截图，文件、哈希、上下文声明均通过结构检查。",
+        "原始需求还有无权限和空数据结果，未纳入来源场景；源码范围只列页面文件，漏了共享样式。",
+        "评审者还没有打开两端图片，也未核实实际应用运行的是哪个版本。"
+      ]
+    }
+  ]
+}

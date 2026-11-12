@@ -1,0 +1,289 @@
+{
+  "date": "2026-11-12",
+  "decision": "Do not ship: the observed opening gain depends on preexisting exact snapshots and is lost after repeated interactive frame replacement in the natural-memory replay.",
+  "runtime": {
+    "electron": "45.2.1",
+    "platform": "macOS 26.6.2 arm64",
+    "rendererHash": "d6b98314ba64d185d65dba2b4aa9a77db7aee1897127cc149045d0d3298ec64c",
+    "prototypeSourceSha256": "2551eef3b25e6394284e12606e8a2ddfd1818b5777f4429a57f07ae5549e060c"
+  },
+  "method": {
+    "fixture": "Ten artboards cloned from the same business artboard, exact project data and component-library versions. Thumbnail work disabled, no live service writes.",
+    "snapshots": {
+      "count": 10,
+      "jpegBytes": 113070,
+      "provenance": "Captured beforehand from the actual artboards in a separate native run, checked against project, revision and project bundle hash. Does not measure or implement a production snapshot producer."
+    },
+    "comparison": "Same compiled Studio and exact fixture for both arms. ABBA, three opens per independent process; warm medians use the last two per process. Overview readiness is observed after the active canvas is ready and all ten boards are either rendered live or decoded. Target promotion is observed after the real frame is ready and focused; the selected root DOM is checked separately. Not OS input latency.",
+    "memory": "RSS is a process working set. Sampled after overview readiness plus 800 ms. Natural replay has no forced GC; the separate diagnosis uses two CDP GC calls at each point."
+  },
+  "comparison": [
+    {
+      "id": "a1",
+      "variant": "all-live",
+      "samples": [
+        {
+          "warm": false,
+          "firstCanvasRevealMs": 2012.8,
+          "overviewReadyObservedMs": 4607.4,
+          "targetEditableObservedMs": 219.8,
+          "editorRssMiB": 828.8,
+          "totalWorkingSetMiB": 1271.8,
+          "liveBoards": 10,
+          "decodedSnapshots": 0,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1636.5,
+          "overviewReadyObservedMs": 4024.3,
+          "targetEditableObservedMs": 221.8,
+          "editorRssMiB": 979.4,
+          "totalWorkingSetMiB": 1507.1,
+          "liveBoards": 10,
+          "decodedSnapshots": 0,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1960.5,
+          "overviewReadyObservedMs": 4262,
+          "targetEditableObservedMs": 211.1,
+          "editorRssMiB": 992.2,
+          "totalWorkingSetMiB": 1524.1,
+          "liveBoards": 10,
+          "decodedSnapshots": 0,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "variant": "one-live-with-preexisting-snapshots",
+      "samples": [
+        {
+          "warm": false,
+          "firstCanvasRevealMs": 1807.5,
+          "overviewReadyObservedMs": 2067,
+          "targetEditableObservedMs": 446.4,
+          "editorRssMiB": 695.8,
+          "totalWorkingSetMiB": 1403.3,
+          "liveBoards": 1,
+          "decodedSnapshots": 9,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1746.1,
+          "overviewReadyObservedMs": 1998.7,
+          "targetEditableObservedMs": 574.2,
+          "editorRssMiB": 664.4,
+          "totalWorkingSetMiB": 1346.5,
+          "liveBoards": 1,
+          "decodedSnapshots": 9,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1482.7,
+          "overviewReadyObservedMs": 1719.8,
+          "targetEditableObservedMs": 437,
+          "editorRssMiB": 656.2,
+          "totalWorkingSetMiB": 1263.5,
+          "liveBoards": 1,
+          "decodedSnapshots": 9,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        }
+      ]
+    },
+    {
+      "id": "b2",
+      "variant": "one-live-with-preexisting-snapshots",
+      "samples": [
+        {
+          "warm": false,
+          "firstCanvasRevealMs": 1476.6,
+          "overviewReadyObservedMs": 1523.9,
+          "targetEditableObservedMs": 423.9,
+          "editorRssMiB": 672.8,
+          "totalWorkingSetMiB": 1396.5,
+          "liveBoards": 1,
+          "decodedSnapshots": 9,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1431.9,
+          "overviewReadyObservedMs": 1476.4,
+          "targetEditableObservedMs": 396.4,
+          "editorRssMiB": 661.1,
+          "totalWorkingSetMiB": 1365.6,
+          "liveBoards": 1,
+          "decodedSnapshots": 9,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1588.5,
+          "overviewReadyObservedMs": 1825.4,
+          "targetEditableObservedMs": 455.7,
+          "editorRssMiB": 664.3,
+          "totalWorkingSetMiB": 1395.6,
+          "liveBoards": 1,
+          "decodedSnapshots": 9,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        }
+      ]
+    },
+    {
+      "id": "a2",
+      "variant": "all-live",
+      "samples": [
+        {
+          "warm": false,
+          "firstCanvasRevealMs": 1563.6,
+          "overviewReadyObservedMs": 3651.6,
+          "targetEditableObservedMs": 216.4,
+          "editorRssMiB": 978.7,
+          "totalWorkingSetMiB": 1672.7,
+          "liveBoards": 10,
+          "decodedSnapshots": 0,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1595.6,
+          "overviewReadyObservedMs": 3957.8,
+          "targetEditableObservedMs": 216,
+          "editorRssMiB": 981.3,
+          "totalWorkingSetMiB": 1748.2,
+          "liveBoards": 10,
+          "decodedSnapshots": 0,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        },
+        {
+          "warm": true,
+          "firstCanvasRevealMs": 1622.2,
+          "overviewReadyObservedMs": 3745.1,
+          "targetEditableObservedMs": 218.5,
+          "editorRssMiB": 976.2,
+          "totalWorkingSetMiB": 1687.2,
+          "liveBoards": 10,
+          "decodedSnapshots": 0,
+          "zoomPercent": 18.7,
+          "focusedRootDomVerified": true
+        }
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "missing",
+      "liveBoardsBefore": 10,
+      "decodedSnapshotsBefore": 0
+    },
+    {
+      "id": "stale",
+      "liveBoardsBefore": 10,
+      "decodedSnapshotsBefore": 0
+    },
+    {
+      "id": "validation",
+      "liveBoardsBefore": 1,
+      "decodedSnapshotsBefore": 9,
+      "liveBoardsAfterEdit": 10,
+      "snapshotsAfterEdit": 0,
+      "inspection": {
+        "matched": true,
+        "readable": true,
+        "released": true,
+        "unchangedFocus": true
+      },
+      "focusedRootDomVerified": true
+    },
+    {
+      "id": "validation-a",
+      "liveBoardsBefore": 10,
+      "decodedSnapshotsBefore": 0,
+      "liveBoardsAfterEdit": 10,
+      "snapshotsAfterEdit": 0,
+      "inspection": {
+        "matched": true,
+        "readable": true,
+        "released": true,
+        "unchangedFocus": true
+      },
+      "focusedRootDomVerified": true
+    }
+  ],
+  "switches": {
+    "count": 9,
+    "readyEachReturn": {
+      "live": 1,
+      "snapshot": 9
+    },
+    "initialEditorRssMiB": 681.7,
+    "editorRssAfterEachMiB": [
+      716.4,
+      779,
+      890.9,
+      1005.7,
+      1124.5,
+      1237,
+      1347.7,
+      1292.8,
+      1317.2
+    ],
+    "editorRssAfterAdditionalWaitMiB": 1317.3,
+    "gcDiagnosis": [
+      {
+        "label": "before",
+        "rssBeforeMiB": 676.5,
+        "rssAfterMiB": 548.1,
+        "jsHeapBeforeMiB": 230.4,
+        "jsHeapAfterMiB": 166.1,
+        "documentsBefore": 10,
+        "documentsAfter": 7,
+        "nodesAfter": 5952
+      },
+      {
+        "label": "after",
+        "rssBeforeMiB": 1203.7,
+        "rssAfterMiB": 720.5,
+        "jsHeapBeforeMiB": 423.4,
+        "jsHeapAfterMiB": 197.6,
+        "documentsBefore": 26,
+        "documentsAfter": 9,
+        "nodesAfter": 8078
+      },
+      {
+        "label": "settled",
+        "rssBeforeMiB": 722.5,
+        "rssAfterMiB": 722.1,
+        "jsHeapBeforeMiB": 199.3,
+        "jsHeapAfterMiB": 198.5,
+        "documentsBefore": 9,
+        "documentsAfter": 9,
+        "nodesAfter": 8078
+      }
+    ]
+  },
+  "verification": {
+    "isolatedProductionModeBuild": true,
+    "typeCheck": true,
+    "formalRendererErrors": 0,
+    "formalPreviewErrors": 0,
+    "liveWrites": 0
+  }
+}

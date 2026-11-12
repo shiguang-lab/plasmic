@@ -703,7 +703,8 @@ app.whenReady().then(async () => {
   elapsed+=600_001;
   await until(async()=>await inspect("document.getElementById('shell').dataset.expanded==='false'"),"idle before background update");
   const checking=updates.command("check");
-  await until(async()=>await inspect("!document.getElementById('capsule-update').hidden && document.getElementById('capsule-update').dataset.phase==='downloading'"),"capsule download ring");
+  await until(async()=>await inspect("!document.getElementById('capsule-update').hidden && document.getElementById('capsule-update').dataset.phase==='downloading'"),"capsule download button");
+  assert.equal(await inspect("document.getElementById('capsule-update').dataset.glyph"),"download");
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"),"false","downloads never force expansion");
   assert.ok(await inspect("document.getElementById('capsule-update').title.includes('42%')"));
   await delay(550);
@@ -784,7 +785,7 @@ app.whenReady().then(async () => {
   assert.equal(updates.state.phase,"installing");
   assert.equal(main.isVisible(),false);
   assert.equal(checks,1);assert.equal(downloads,1);
-  passed.push("shared update manager across standard/island modes; background ring, fixed-size confirmation/progress, Later and no main-window reveal; install drains MCP, closes Preview and saves before restart");
+  passed.push("shared update manager across standard/island modes; download button, fixed-size confirmation/progress, Later and no main-window reveal; install drains MCP, closes Preview and saves before restart");
   await presentation.setMode("window");
   await main.loadURL(origin + "/login");
   await presentation.setMode("island");

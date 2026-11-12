@@ -6,13 +6,10 @@ import { useHoveredViewCtx, useStudioSelection, useViewSelection } from "@/wab/c
 import { useShallow } from "zustand/react/shallow";
 import { useCanvasTransforming } from "@/wab/client/studio-ctx/viewport-state";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
-import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
 import { getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { isFixedRootSlot, isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
-import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { computeScalerVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
-import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import {
   BASE_VARIANT_COLOR,
   NON_BASE_VARIANT_COLOR,
@@ -24,22 +21,16 @@ import {
   cssPropsForInvertTransform,
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";
 import { ensure } from "@/wab/shared/common";
 import {
   SQ,
   Selectable,
   makeSelectableFullKey,
 } from "@/wab/shared/core/selection";
-import { isTplTagOrComponent } from "@/wab/shared/core/tpls";
 import { SlotSelection } from "@/wab/shared/core/slots";
-import cn from "classnames";
 import $ from "jquery";
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
-import { useParentStackItemInputs } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
 import { useHoverVariantInputs } from "@/wab/client/components/canvas/HoverBox/hover-variant-inputs";
-import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
-import type { NativeStyleProvider } from "@/wab/client/studio-ctx/style-inputs";
 import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
 import React from "react";
 
@@ -51,9 +42,15 @@ function PreselectBoxes_() {
   const ancestorsHoverBoxes = useStudioOverlayState(studioCtx, (state) => state.ancestorsHoverBoxes);
 
   const viewCtx = useHoveredViewCtx(studioCtx);
-  useViewSelection(viewCtx, useShallow((state) => [state.hover, state.hoverDom]));
+  const hoveredTarget = useViewSelection(viewCtx, (state) => state.hover);
   const alive = usePreselectLifetime(viewCtx);
-  useCanvasRenderCount(viewCtx);
+  const renderCount = useCanvasRenderCount(viewCtx);
+  const hoveredSelectable = React.useMemo(
+    () => alive && viewCtx && hoveredTarget
+      ? viewCtx.selection.resolveTarget(hoveredTarget)
+      : undefined,
+    [alive, viewCtx, hoveredTarget, renderCount],
+  );
   const doc = alive ? viewCtx?.canvasCtx.$doc()[0] : undefined;
   const subscribeModal = React.useCallback((listener: () => void) => {
     if (!doc?.body) { return () => undefined; }
@@ -68,7 +65,6 @@ function PreselectBoxes_() {
     return null;
   }
 
-  const hoveredSelectable = viewCtx?.hoveredSelectable();
   const cloneKey = hoveredSelectable
     ? viewCtx?.sel2cloneKey(hoveredSelectable)
     : undefined;
@@ -118,20 +114,24 @@ function PreselectBox_(props: {
   useContentEditorScope(studioCtx);
   const draggingObject = useStore(studioCtx.draggingObjectStore);
   const screenshotting = useStudioOverlayState(studioCtx, (state) => state.screenshotting);
-  const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
-  useStudioSelection(studioCtx, (state) => state.view);
+  const focusedView = useStudioSelection(studioCtx, (state) => state.view);
   useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
-  useCanvasRenderCount(viewCtx);
+  const renderCount = useCanvasRenderCount(viewCtx);
   const alive = usePreselectLifetime(viewCtx);
-  useViewSelection(viewCtx, useShallow((state) => [state.doms, state.hoverDom]));
+  const [focusedElements, hoveredElements] = useViewSelection(
+    viewCtx,
+    useShallow((state) => [state.doms[0], state.hoverDom] as const),
+  );
 
-  const $selection = alive ? viewCtx?.selectionDom(selectable, cloneKey) ?? undefined : undefined;
-  const $hovered = alive ? viewCtx?.$hoveredDomElt() : undefined;
+  const $selection = React.useMemo(
+    () => alive ? viewCtx?.selectionDom(selectable, cloneKey) ?? undefined : undefined,
+    [alive, viewCtx, selectable, cloneKey, renderCount],
+  );
   // Portals keep model ancestors whose DOM remains behind the overlay. Only
   // outline ancestor roots that actually contain the hovered foreground DOM.
-  const $ancestors = !isHoveredElt && $hovered?.length
+  const $ancestors = !isHoveredElt && hoveredElements?.length
     ? $selection?.filter((_, element) =>
-        $hovered.toArray().some((hovered) => element.contains(hovered)),
+        hoveredElements.some((hovered) => element.contains(hovered)),
       )
     : $selection;
   // Opening a modal can cover the last hover target before another mousemove.
@@ -142,8 +142,8 @@ function PreselectBox_(props: {
     ? $(modal) : modal
     ? $ancestors?.filter((_, element) => modal.contains(element))
     : $ancestors;
-  const $focused =
-    alive && viewCtx === studioCtx.focusedViewCtx() && viewCtx?.focusedDomElt();
+  const isFocused = viewCtx === focusedView && !!focusedElements?.length &&
+    $element?.toArray().some((element) => focusedElements.includes(element));
 
   const shouldShow =
     alive && viewCtx &&
@@ -154,7 +154,7 @@ function PreselectBox_(props: {
     $element?.length &&
     $element?.get(0).isConnected &&
     $element?.toArray().filter(hasLayoutBox)?.length > 0 &&
-    (stackOfParents || !$focused || !$element.is($focused));
+    !isFocused;
 
   if (!shouldShow || !viewCtx) {
     return null;
@@ -167,7 +167,6 @@ function PreselectBox_(props: {
       viewCtx={viewCtx}
       isHoveredElt={isHoveredElt}
       $element={$element}
-      $focused={$focused}
     />
   );
 }
@@ -178,37 +177,14 @@ function PreselectBoxInner(props: {
   viewCtx: ViewCtx;
   isHoveredElt: boolean;
   $element: JQuery | undefined;
-  $focused: false | JQuery<HTMLElement> | null | undefined;
 }) {
   const { selectable, viewCtx } = props;
   const variants = useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
   const renderCount = useCanvasRenderCount(viewCtx);
-  const metadataAlive = useParentStackItemInputs(viewCtx, selectable, false);
   const hover = useHoverVariantInputs(viewCtx, selectable, variants, renderCount);
-  if (!metadataAlive || !hover.alive) { return null; }
-  return <PreselectBoxStyled {...props} hover={hover} />;
-}
-
-function PreselectBoxStyled(props: Parameters<typeof PreselectBoxInner>[0] & {
-  hover: ReturnType<typeof useHoverVariantInputs>;
-}) {
-  // Keep the hover manager's unthemed label and themed icon reads unchanged.
-  return props.hover.provider
-    ? <PreselectBoxStyleSubscriber {...props} provider={props.hover.provider} />
-    : <PreselectBoxGeometry {...props} />;
-}
-
-function PreselectBoxStyleSubscriber(props: Parameters<typeof PreselectBoxStyled>[0] & { provider: NativeStyleProvider }) {
-  useStyleCells(props.provider, ["display", "flex-direction"]);
-  return <PreselectBoxGeometry {...props} />;
-}
-
-function PreselectBoxGeometry(props: Parameters<typeof PreselectBoxStyled>[0]) {
-  const { selectable, studioCtx, viewCtx, isHoveredElt, $element, $focused, hover } = props;
+  const { studioCtx, isHoveredElt, $element } = props;
   const viewportZoom = useCanvasZoom(studioCtx);
-  const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
   const alive = usePreselectLifetime(viewCtx);
-  const hoverTagRef = React.useRef<HTMLDivElement>(null);
   const forceUpdate = useFrameForceUpdate(viewCtx.disposeSignal);
   const elements = useShallow((nodes: Element[]) => nodes)($element?.toArray() ?? []);
   React.useEffect(() => {
@@ -222,48 +198,20 @@ function PreselectBoxGeometry(props: Parameters<typeof PreselectBoxStyled>[0]) {
     return () => { resize.disconnect(); doc.removeEventListener("scroll", forceUpdate, true); styleSignal.detach(); frames.detach(); };
   }, [elements, viewCtx, studioCtx, forceUpdate, hover.alive, alive]);
 
-  const tpl = selectable.tpl;
-
-  const shouldShowHoverTag =
-    isHoveredElt && $element && (!$focused || !$element.is($focused));
-
   // Hover outlines show only what the user can see of the element.
-  const scalerRect = alive ? computeScalerVisibility(
+  const scalerRect = alive && hover.alive ? computeScalerVisibility(
     ensure($element, "PreselectBoxInner requires a hovered element"),
     viewCtx,
   ).visible : undefined;
   const cssProps = cssPropsForInvertTransform(viewportZoom, scalerRect);
 
-  const tagPlacement = useTagPlacement(
-    hoverTagRef,
-    scalerRect?.width ?? 0,
-    viewportZoom,
-    alive ? viewCtx : undefined,
-  );
-
-  if (!alive || !scalerRect) {
+  if (!scalerRect) {
     return null;
   }
 
-  const hoverVtm = hover.manager;
-  const isTargetingSomeNonBaseVariant =
-    hover.targeting;
-
-  const effectiveVariantSetting =
-    shouldShowHoverTag && isTplTagOrComponent(tpl)
-      ? hoverVtm?.effectiveVariantSetting(tpl)
-      : undefined;
-  const tagName = shouldShowHoverTag
-    ? summarizeFocusObj(selectable, viewCtx, effectiveVariantSetting)
-    : undefined;
-  const tagIcon =
-    shouldShowHoverTag && createNodeIcon(tpl!, effectiveVariantSetting);
-
   return (
     <div
-      className={cn("PreselectBox", {
-        [styles.hoveringParentStack]: stackOfParents,
-      })}
+      className="PreselectBox"
       data-original-width={scalerRect.width}
       data-original-height={scalerRect.height}
       style={{
@@ -275,8 +223,8 @@ function PreselectBoxGeometry(props: Parameters<typeof PreselectBoxStyled>[0]) {
       <div
         className={styles.preselectBoxBorder}
         style={{
-          borderStyle: isFixedSlotRoot(viewCtx, tpl) ? "dashed" : undefined,
-          borderColor: isTargetingSomeNonBaseVariant
+          borderStyle: isFixedSlotRoot(viewCtx, selectable.tpl) ? "dashed" : undefined,
+          borderColor: hover.targeting
             ? NON_BASE_VARIANT_COLOR
             : BASE_VARIANT_COLOR,
           ...(!isHoveredElt && {
@@ -285,19 +233,6 @@ function PreselectBoxGeometry(props: Parameters<typeof PreselectBoxStyled>[0]) {
           }),
         }}
       />
-      {shouldShowHoverTag && (
-        <div className={styles.hoverBoxTagContainer} style={tagPlacement}>
-          <div ref={hoverTagRef} className="node-outline-tag">
-            {tagName && (
-              <EditableNodeLabel
-                studioCtx={studioCtx}
-                displayName={tagName}
-                icon={tagIcon}
-              />
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -113,6 +113,7 @@ function setup() {
   }
   const ctx = mock<StudioCtx>();
   Object.defineProperties(ctx, { site: { value: site }, modelSnapshots: { value: models }, arenaState: { value: arenaState }, currentArena: { get: () => arenaState.currentArena() }, selectionStore: { value: focus.store } });
+  Object.defineProperty(ctx, "renamingOnPanelStore", { value: createStore(() => false) });
   ctx.subscribeModelChanges.mockImplementation(() => () => undefined);
   ctx.focusedViewCtx.mockImplementation(() => focus.current().view);
   ctx.focusedOrFirstViewCtx.mockImplementation(
@@ -200,6 +201,9 @@ it("reveals the next selection while retaining existing expansion and explicit c
 
 it("publishes the complete selected ancestor chain once and skips repeated expansion", () => {
   const f = setup();
+  f.select(f.frames[0], f.branchA);
+  expect(f.outline.isExpanded(makeNodeKey(f.branchA))).toBe(false);
+  f.deselect();
   const snapshots: ReturnType<typeof f.outline.stateStore.getState>[] = [];
   const stop = f.outline.stateStore.subscribe((state) => snapshots.push(state));
   try {
@@ -208,7 +212,8 @@ it("publishes the complete selected ancestor chain once and skips repeated expan
     const selected = snapshots[0];
     expect(selected.lastViewedArtboard?.frame).toBe(f.frames[0]);
     expect(selected.expandedFrames.get(f.frames[0])).toBe(true);
-    for (const key of f.outline.focusedNodeKeyPath()) {
+    expect(selected.expanded.has(makeNodeKey(f.leafA))).toBe(false);
+    for (const key of f.outline.focusedNodeKeyPath().slice(1)) {
       expect(selected.expanded.get(key)).toBe(true);
     }
     f.outline.setFrameExpanded(f.frames[0], true);

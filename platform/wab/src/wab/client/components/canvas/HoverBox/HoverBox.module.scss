@@ -1,7 +1,5 @@
 @import "src/wab/styles/css-variables";
 
-$parent-stack-hover-color: #f60;
-
 .hoverBoxTagContainer {
   position: absolute;
   top: 0;
@@ -27,10 +25,6 @@ $parent-stack-hover-color: #f60;
   & > * {
     display: inline-flex;
   }
-}
-
-.hoveringParentStack {
-  filter: hue-rotate(180deg);
 }
 
 .preselectBoxBorder {

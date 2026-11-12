@@ -13,7 +13,7 @@ Library: [Ant Design v6](../index.md).
 - Use Card only for an independently justified business surface (record `condition`); never around SearchForm, AppShell, Steps or every section, and avoid nested Cards.
 - Initial data-props: `{"variant":"outlined","styles":{"body":{...}}}`; never the legacy `bordered` prop or a padded native wrapper.
 - A title is not required. Decide `header` per [Card headers](#card-headers): `none`, `title` or `title+extra`. A header always has its title; an `extra`-only header (empty title, filled extra) is never valid.
-- A headerless Card supplies explicit empty `title` and `extra` Slots in the initial markup. Card-scoped actions make a `title+extra` header (rule 2), unless the content already owns the heading (rule 1): then they go in Tabs extra for a Tabs-first Card, otherwise in a right-aligned body toolbar.
+- A headerless Card supplies explicit empty `title` and `extra` Slots in the initial markup. Card-scoped actions make a `title+extra` header (rule 2), unless the content or owning Tab already identifies the region (rule 1): then they go in Tabs extra for a Tabs-first Card, otherwise in a right-aligned body toolbar.
 - Body padding keeps 20px left and right; each vertical edge has one owner. Information, metric or outcome (Result) content: `16px 20px`. Content ending in a paginated Table: `16px 20px 0` (the pagination's 16px margin is the bottom). Tabs first: `0 20px` (the tab bar owns the top). A Form: `24px 20px 0` with the Form's own padding 0 (the last Form.Item's 24px margin is the bottom). See [Card ownership](#card-ownership).
 
 ## Plan decisions
@@ -32,7 +32,7 @@ Declare these native props in each planned instance before markup. `prepare_plan
 
 A Card does not need a title. Decide whether it needs a header, in this order; the first match wins:
 
-1. **Its content already owns the heading → `none`.** Tabs as first content (the tab bar is the header; card-scoped actions go in Tabs extra), a titled Descriptions (one heading owner per region), a metric card (the Statistic label is the heading), Card.Meta.
+1. **Its content or owning Tab already identifies the region → `none`.** Tabs as first content (the tab bar is the header; card-scoped actions go in Tabs extra), the only business block in a Tab that identifies its scope ([panel heading ownership](tabs.md#panel-heading-ownership)), a titled Descriptions (one heading owner per region), a metric card (the Statistic label is the heading), Card.Meta. For a Card inside a Tab, keep panel-scoped actions in a body toolbar; actions do not override this heading ownership.
 2. **It needs a header for an interaction → a header.** Card-scoped actions, collapse/expand, or a count/status shown in the header (`headerReason`: `actions`, `collapse` or `count`). With actions use `title+extra`; otherwise `title`.
 3. **Two or more comparable Cards on the Page cannot be told apart without titles → `title`** (`headerReason`: `distinguish`), for example two Tables or two groups of the same kind.
 4. **Otherwise → `none`.** Content that explains itself (a group of form fields, a single Table) and a title that would only repeat the breadcrumb or Page name do not justify a header; the [admin content-entry](../../../design/layout.md#admin-content-entry) rule applies.
@@ -63,6 +63,8 @@ Write this padding explicitly in the Card's initial data-props, including in ad 
 
 For Cards containing mixed Tab panels, assign bottom spacing per panel. A Table panel may rely on its pagination margin, but a Descriptions/form/text panel has no such owner: when Card body paddingBottom is 0, give that panel one 16px bottom padding. Put this padding outside conditional sections so hiding a type-specific section does not remove the gap. Do not add padding to Descriptions internals or increase the Card padding globally, which would double the spacing on Table panels. Check every panel and relevant visibility state, including a missing pagination footer, by measuring its final visible content to the Card inner bottom.
 
+The zero Card-body top inset above Tabs does not establish the space below the tab bar. Separately apply [Tabs panel entry](tabs.md#panel-entry-spacing): bar-to-first-content defaults to 0px at each Tabs level, including through any panel Card or wrapper. Keep this boundary separate from bottom padding and title-to-content spacing.
+
 ### Card.Meta, Card.Grid and action Slots
 
 Meta owns its title/description/avatar inside the Card. Grid is a real Card subregion with its children/hoverable contract; it is not Row/Col Grid or a reason to nest another surface around every item. Use either structure only for the actual content arrangement and keep complete labels/values in their supported Slots.
@@ -72,6 +74,8 @@ Card actions are editable Slot children converted by this wrapper to the native 
 ## Acceptance checks
 
 ### Card surface acceptance
+
+For a Card identified by its owning Tab, apply [Tabs heading acceptance](tabs.md#acceptance-checks). Verify both empty header Slots and the absence of a substitute plain-text heading in its body or surrounding wrappers; preserve distinct record labels and useful help.
 
 After save/reopen, measure Card inner body → every wrapper → Tabs top and Table bottom → wrappers → Card inner bottom. Top offsets must be 0 when Tabs owns top spacing, and external bottom offsets must be 0 when Table owns bottom spacing. With the current bordered Card, the outer 1px border is not body padding. Check the pagination's own bottom gap separately (currently 16px). Reject an extra 16px outer gap even when total spacing looks balanced; verify both model padding and rendered geometry.
 

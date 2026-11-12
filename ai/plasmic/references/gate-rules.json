@@ -47,6 +47,7 @@
     "referenceReads": "references/planning.md#rules-card-and-read-ledger",
     "requirement": "references/requirement-alignment.md#source-and-scope",
     "runtimePlan": "references/design/component-policy.md#case-planning-order",
+    "visualScenarios": "references/visual-scenarios.md",
     "pageBody": "references/design/scale.md#spacing",
     "selectionCoverage": "references/libraries/antd_v6/selection.md#existing-inventory-independent-expectations",
     "selectionIdentity": "references/libraries/antd_v6/selection.md#decision-routes",
@@ -71,6 +72,7 @@
     "bindings": "references/requirement-alignment.md#structural-gate",
     "feedback": "references/libraries/antd_v6/selection.md#existing-inventory-independent-expectations",
     "runtimeCases": "references/design/component-policy.md#native-runtime-evidence",
+    "visualScenarios": "references/visual-scenarios.md#discover-the-scenes",
     "appContext": "references/design/component-policy.md#app-context-inventory",
     "rowActions": "references/requirement-alignment.md#structural-gate",
     "actionContracts": "references/design/component-policy.md#business-actions-and-transitions"
@@ -81,7 +83,8 @@
     "references/design/layout.md",
     "references/design/naming.md",
     "references/design/content-review.md",
-    "references/design/accessibility.md"
+    "references/design/accessibility.md",
+    "references/visual-scenarios.md"
   ],
   "projectRulesWhen": {
     "recordPage": [

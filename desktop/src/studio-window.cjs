@@ -1,5 +1,6 @@
-const { WebContentsView } = require("electron");
+const { app, WebContentsView } = require("electron");
 const { EventEmitter } = require("node:events");
+const { setTimeout: delay } = require("node:timers/promises");
 
 // Keep the lightweight browser warm; only project renderers are disposable.
 class StudioWindow extends EventEmitter {
@@ -12,6 +13,7 @@ class StudioWindow extends EventEmitter {
     this.beforeNavigate = beforeNavigate;
     this.backgroundColor = backgroundColor;
     this.navigation = Promise.resolve();
+    this.retiredEditorPids = new Set();
     this.dashboard = this.createContents("dashboard");
     this.view = this.dashboard;
     window.contentView.addChildView(this.view, 0);
@@ -78,6 +80,31 @@ class StudioWindow extends EventEmitter {
     if (!this.window.isDestroyed()) this.window.contentView.removeChildView(view);
     if (!view.webContents.isDestroyed()) view.webContents.close({ waitForBeforeUnload: false });
   }
+  releaseEditor(view) {
+    if (!view) return;
+    this.pruneRetiredEditors();
+    if (!view.webContents.isDestroyed()) {
+      const pid = view.webContents.getOSProcessId();
+      if (pid) this.retiredEditorPids.add(pid);
+    }
+    this.release(view);
+  }
+  pruneRetiredEditors() {
+    if (!this.retiredEditorPids.size) return;
+    const running = new Set(app.getAppMetrics().map(process => process.pid));
+    for (const pid of this.retiredEditorPids) {
+      if (!running.has(pid)) this.retiredEditorPids.delete(pid);
+    }
+  }
+  // WebContents destruction can precede OS process exit. Only thumbnail
+  // admission waits for that exit; Dashboard activation stays immediate.
+  async waitForEditorExit(signal) {
+    this.pruneRetiredEditors();
+    while (this.retiredEditorPids.size) {
+      await delay(25, undefined, { signal });
+      this.pruneRetiredEditors();
+    }
+  }
   invalidateDashboard() {
     // Never reveal a previous account's cached UI after session replacement.
     if (this.dashboard && this.dashboard !== this.view) this.release(this.dashboard);
@@ -122,7 +149,7 @@ class StudioWindow extends EventEmitter {
           const retired = this.editor;
           this.editor = this.createContents("editor");
           this.activate(this.editor);
-          this.release(retired);
+          this.releaseEditor(retired);
         }
         const [, restoredUrl] = await Promise.all([
           this.editor.webContents.loadURL(url),
@@ -150,7 +177,7 @@ class StudioWindow extends EventEmitter {
         } else if (this.dashboardLoad) await this.dashboardLoad;
         const retired = this.editor;
         this.activate(this.dashboard, url);
-        this.release(retired);
+        this.releaseEditor(retired);
       }
       if (this.window.isFocused()) this.webContents.focus();
     };

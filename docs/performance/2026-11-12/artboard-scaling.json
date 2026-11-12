@@ -1,0 +1,481 @@
+{
+  "date": "2026-11-12",
+  "renderer": "packaged Plasmic 0.8.3, web 0.8.2",
+  "electron": "45.2.1",
+  "machine": "macOS 26.6.2 arm64",
+  "method": {
+    "workload": "Same frozen business model, same artboard component and dependency versions; vary only how many of 10 fixture-cloned artboards the mixed arena references. Dashboard thumbnails disabled to isolate editor cost. All authored boards confirmed loaded and visible in fit overview; 5 and 10 use the same scale.",
+    "timing": "Six fresh processes, 1/5/10/10/5/1 boards, three opens per process. First open recorded but excluded from warm medians. Timings are internal Studio marks; background frame marks are not click-to-edit measurements.",
+    "rss": "Natural working set after fitting and 800 ms settle, no debugger or forced GC. The process sum may double count shared pages.",
+    "diagnostic": "One separate cold process per size, same data. Two CDP GC calls precede JS heap/DOM and macOS footprint. GPU and IOSurface readings are process totals, not per-board attribution. Focus test observes warm target and transform completion, not OS input latency."
+  },
+  "results": [
+    {
+      "boardCount": 1,
+      "groups": [
+        {
+          "arm": "first",
+          "samples": [
+            {
+              "warm": false,
+              "firstRevealMs": 1781.6,
+              "allBoardsRenderedMs": 1701.9,
+              "liveBoards": 1,
+              "visibleBoards": 1,
+              "zoom": 71.5,
+              "boardDomElements": 226,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 671.6,
+              "gpuRssMiB": 121,
+              "allProcessesWorkingSetMiB": 1454.4,
+              "backgroundBoardLoadToRenderedMs": [],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1746.8,
+              "allBoardsRenderedMs": 1646.6,
+              "liveBoards": 1,
+              "visibleBoards": 1,
+              "zoom": 71.5,
+              "boardDomElements": 226,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 667.9,
+              "gpuRssMiB": 124.3,
+              "allProcessesWorkingSetMiB": 1446,
+              "backgroundBoardLoadToRenderedMs": [],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1773.3,
+              "allBoardsRenderedMs": 1682.4,
+              "liveBoards": 1,
+              "visibleBoards": 1,
+              "zoom": 71.5,
+              "boardDomElements": 226,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 657.3,
+              "gpuRssMiB": 125.5,
+              "allProcessesWorkingSetMiB": 1450.2,
+              "backgroundBoardLoadToRenderedMs": [],
+              "changes": 0
+            }
+          ]
+        },
+        {
+          "arm": "second",
+          "samples": [
+            {
+              "warm": false,
+              "firstRevealMs": 1730,
+              "allBoardsRenderedMs": 1662.8,
+              "liveBoards": 1,
+              "visibleBoards": 1,
+              "zoom": 71.5,
+              "boardDomElements": 226,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 672.9,
+              "gpuRssMiB": 124.9,
+              "allProcessesWorkingSetMiB": 1464.5,
+              "backgroundBoardLoadToRenderedMs": [],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1693.4,
+              "allBoardsRenderedMs": 1580.2,
+              "liveBoards": 1,
+              "visibleBoards": 1,
+              "zoom": 71.5,
+              "boardDomElements": 226,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 661,
+              "gpuRssMiB": 128.4,
+              "allProcessesWorkingSetMiB": 1468.6,
+              "backgroundBoardLoadToRenderedMs": [],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1820,
+              "allBoardsRenderedMs": 1718.2,
+              "liveBoards": 1,
+              "visibleBoards": 1,
+              "zoom": 71.5,
+              "boardDomElements": 226,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 667.2,
+              "gpuRssMiB": 129.6,
+              "allProcessesWorkingSetMiB": 1479.2,
+              "backgroundBoardLoadToRenderedMs": [],
+              "changes": 0
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "heapUsedAfterGcMiB": 166.5,
+        "documentCount": 7,
+        "domNodeCount": 5927,
+        "rendererFootprint": {
+          "totalMiB": 392
+        },
+        "gpuFootprint": {
+          "totalMiB": 536.8,
+          "iosurfaceMiB": 264.3
+        }
+      }
+    },
+    {
+      "boardCount": 5,
+      "groups": [
+        {
+          "arm": "first",
+          "samples": [
+            {
+              "warm": false,
+              "firstRevealMs": 1728.6,
+              "allBoardsRenderedMs": 2940,
+              "liveBoards": 5,
+              "visibleBoards": 5,
+              "zoom": 14.6,
+              "boardDomElements": 1130,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 756.3,
+              "gpuRssMiB": 117,
+              "allProcessesWorkingSetMiB": 1545.5,
+              "backgroundBoardLoadToRenderedMs": [
+                370.4,
+                223.3,
+                209.8,
+                229.1
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1776.2,
+              "allBoardsRenderedMs": 2990.5,
+              "liveBoards": 5,
+              "visibleBoards": 5,
+              "zoom": 14.6,
+              "boardDomElements": 1130,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 764.4,
+              "gpuRssMiB": 123.5,
+              "allProcessesWorkingSetMiB": 1542.5,
+              "backgroundBoardLoadToRenderedMs": [
+                453.6,
+                220.8,
+                224.4,
+                223.4
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1787.8,
+              "allBoardsRenderedMs": 2958.7,
+              "liveBoards": 5,
+              "visibleBoards": 5,
+              "zoom": 14.6,
+              "boardDomElements": 1130,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 763.9,
+              "gpuRssMiB": 125.4,
+              "allProcessesWorkingSetMiB": 1529.9,
+              "backgroundBoardLoadToRenderedMs": [
+                426.2,
+                214.2,
+                223.5,
+                221.6
+              ],
+              "changes": 0
+            }
+          ]
+        },
+        {
+          "arm": "second",
+          "samples": [
+            {
+              "warm": false,
+              "firstRevealMs": 1765.1,
+              "allBoardsRenderedMs": 2939.8,
+              "liveBoards": 5,
+              "visibleBoards": 5,
+              "zoom": 14.6,
+              "boardDomElements": 1130,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 753.5,
+              "gpuRssMiB": 116.9,
+              "allProcessesWorkingSetMiB": 1531.6,
+              "backgroundBoardLoadToRenderedMs": [
+                434.3,
+                207.3,
+                189.9,
+                217.4
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1780.1,
+              "allBoardsRenderedMs": 3036.1,
+              "liveBoards": 5,
+              "visibleBoards": 5,
+              "zoom": 14.6,
+              "boardDomElements": 1130,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 762.4,
+              "gpuRssMiB": 123.2,
+              "allProcessesWorkingSetMiB": 1585.1,
+              "backgroundBoardLoadToRenderedMs": [
+                400.9,
+                232.3,
+                219.5,
+                223
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1862.2,
+              "allBoardsRenderedMs": 3026.7,
+              "liveBoards": 5,
+              "visibleBoards": 5,
+              "zoom": 14.6,
+              "boardDomElements": 1130,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 764.2,
+              "gpuRssMiB": 125.7,
+              "allProcessesWorkingSetMiB": 1557.7,
+              "backgroundBoardLoadToRenderedMs": [
+                270.2,
+                210.2,
+                230.1,
+                203.6
+              ],
+              "changes": 0
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "heapUsedAfterGcMiB": 235.2,
+        "documentCount": 11,
+        "domNodeCount": 7631,
+        "rendererFootprint": {
+          "totalMiB": 499.8
+        },
+        "gpuFootprint": {
+          "totalMiB": 462.2,
+          "iosurfaceMiB": 250.7
+        }
+      }
+    },
+    {
+      "boardCount": 10,
+      "groups": [
+        {
+          "arm": "first",
+          "samples": [
+            {
+              "warm": false,
+              "firstRevealMs": 1728.9,
+              "allBoardsRenderedMs": 4119.8,
+              "liveBoards": 10,
+              "visibleBoards": 10,
+              "zoom": 14.6,
+              "boardDomElements": 2260,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 991.8,
+              "gpuRssMiB": 116.5,
+              "allProcessesWorkingSetMiB": 1761.9,
+              "backgroundBoardLoadToRenderedMs": [
+                457.6,
+                222.8,
+                221.1,
+                242.8,
+                227.4,
+                232.8,
+                234.3,
+                215,
+                199.2
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1783.5,
+              "allBoardsRenderedMs": 4114.2,
+              "liveBoards": 10,
+              "visibleBoards": 10,
+              "zoom": 14.6,
+              "boardDomElements": 2260,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 1028.4,
+              "gpuRssMiB": 123.9,
+              "allProcessesWorkingSetMiB": 1803.6,
+              "backgroundBoardLoadToRenderedMs": [
+                274,
+                215,
+                223.7,
+                214.8,
+                200.9,
+                223.6,
+                206.5,
+                246.9,
+                227
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1814.9,
+              "allBoardsRenderedMs": 4270.1,
+              "liveBoards": 10,
+              "visibleBoards": 10,
+              "zoom": 14.6,
+              "boardDomElements": 2260,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 997.5,
+              "gpuRssMiB": 126.1,
+              "allProcessesWorkingSetMiB": 1781.9,
+              "backgroundBoardLoadToRenderedMs": [
+                482.9,
+                241.8,
+                229,
+                260,
+                232.9,
+                231.5,
+                233.1,
+                219.9,
+                205
+              ],
+              "changes": 0
+            }
+          ]
+        },
+        {
+          "arm": "second",
+          "samples": [
+            {
+              "warm": false,
+              "firstRevealMs": 1727.6,
+              "allBoardsRenderedMs": 4029.5,
+              "liveBoards": 10,
+              "visibleBoards": 10,
+              "zoom": 14.6,
+              "boardDomElements": 2260,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 992.5,
+              "gpuRssMiB": 119.5,
+              "allProcessesWorkingSetMiB": 1780.1,
+              "backgroundBoardLoadToRenderedMs": [
+                490.9,
+                225.1,
+                218.6,
+                206.6,
+                195.1,
+                196.1,
+                209.9,
+                229.8,
+                230.9
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1846.5,
+              "allBoardsRenderedMs": 4181.1,
+              "liveBoards": 10,
+              "visibleBoards": 10,
+              "zoom": 14.6,
+              "boardDomElements": 2260,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 1002.4,
+              "gpuRssMiB": 125,
+              "allProcessesWorkingSetMiB": 1799.9,
+              "backgroundBoardLoadToRenderedMs": [
+                454.6,
+                227.9,
+                211.6,
+                213.6,
+                221.7,
+                223.5,
+                225.2,
+                230.9,
+                215.2
+              ],
+              "changes": 0
+            },
+            {
+              "warm": true,
+              "firstRevealMs": 1811.8,
+              "allBoardsRenderedMs": 4127.2,
+              "liveBoards": 10,
+              "visibleBoards": 10,
+              "zoom": 14.6,
+              "boardDomElements": 2260,
+              "uniqueCanvasProcesses": 1,
+              "boardsShareEditorProcess": true,
+              "editorRssMiB": 997.6,
+              "gpuRssMiB": 127.9,
+              "allProcessesWorkingSetMiB": 1798.2,
+              "backgroundBoardLoadToRenderedMs": [
+                416.5,
+                207,
+                223.3,
+                209.6,
+                218.7,
+                214.2,
+                229.3,
+                258.2,
+                232
+              ],
+              "changes": 0
+            }
+          ]
+        }
+      ],
+      "diagnostic": {
+        "heapUsedAfterGcMiB": 323.1,
+        "documentCount": 16,
+        "domNodeCount": 9761,
+        "rendererFootprint": {
+          "totalMiB": 656.8
+        },
+        "gpuFootprint": {
+          "totalMiB": 484.8,
+          "iosurfaceMiB": 242
+        },
+        "warmFocus": {
+          "observedMs": 288.5,
+          "liveBoards": 10,
+          "visibleBoards": 2,
+          "restoredLiveBoards": 10,
+          "restoredVisibleBoards": 10,
+          "changes": 0
+        }
+      }
+    }
+  ]
+}

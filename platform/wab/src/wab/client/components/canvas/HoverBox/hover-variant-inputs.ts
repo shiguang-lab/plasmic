@@ -1,14 +1,12 @@
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { arrayEq } from "@/wab/shared/common";
-import type { RuleSet, ObjInst } from "@/wab/shared/model/classes";
+import type { ObjInst } from "@/wab/shared/model/classes";
 import { isBaseVariant } from "@/wab/shared/Variants";
 import { isTplVariantable } from "@/wab/shared/core/tpls";
 import type { TplNode } from "@/wab/shared/model/classes";
 import type { Selectable } from "@/wab/shared/core/selection";
 import type { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
-import type { NativeStyleProvider } from "@/wab/client/studio-ctx/style-inputs";
-import { makeSelectableFullKey } from "@/wab/shared/core/selection";
 import * as React from "react";
 
 interface Scope { readonly view: ViewCtx; readonly models: ModelSnapshots; readonly signal: AbortSignal; }
@@ -31,22 +29,9 @@ export class HoverVariantInputs {
     const { models } = this.scope;
     const used = new Set<ModelFieldStore<unknown>>();
     const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(models.declaredField(model, key)));
-    // Label uses rsh(), icon uses rshWithTheme(); themed StyleCells alone cannot
-    // publish a raw label change masked by a theme or parent style value.
-    const visited = new Set<RuleSet>();
-    const ruleSet = (rs: RuleSet) => {
-      if (visited.has(rs)) { return; }
-      visited.add(rs); field(rs, "values", "mixins");
-      rs.mixins.forEach((mixin) => {
-        field(mixin, "rs", "variantedRs"); ruleSet(mixin.rs);
-        mixin.variantedRs.forEach((setting) => { field(setting, "variants", "rs"); ruleSet(setting.rs); });
-      });
-    };
     let targeting = false;
     if (this.tpl && isTplVariantable(this.tpl)) {
       for (let ancestor: TplNode | null | undefined = this.tpl; ancestor; ancestor = ancestor.parent) { used.add(models.field(ancestor, "parent")); }
-      field(this.tpl, "vsettings");
-      this.tpl.vsettings.forEach((setting) => { field(setting, "variants", "rs"); ruleSet(setting.rs); });
       const frame = this.manager.getContainingFrame(this.tpl);
       if (frame) {
         field(frame.component, "variants", "tplTree");
@@ -78,24 +63,7 @@ export function useHoverVariantInputs(view: ViewCtx, selectable: Selectable, var
   const manager = React.useMemo(() => alive ? view.hoverVariantTplMgr(selectable) : undefined, [scope, alive, view, selectable, variants, renderCount]);
   const source = React.useMemo(() => manager ? new HoverVariantInputs(scope, selectable.tpl, manager) : undefined, [scope, selectable, manager]);
   const snapshot = React.useSyncExternalStore(source?.subscribe ?? emptySubscribe, source?.getSnapshot ?? inactiveSnapshot, source?.getSnapshot ?? inactiveSnapshot);
-  const provider = React.useMemo<NativeStyleProvider | undefined>(() => {
-    const tpl = selectable.tpl;
-    if (!manager || !snapshot.alive || !tpl || !isTplVariantable(tpl)) { return undefined; }
-    const frame = manager.getContainingFrame(tpl);
-    if (!frame) { return undefined; }
-    const site = view.site, inputs = view.styleInputs;
-    return { getNativeStyleSource: () => ({ kind: "tpl", inputs, source: {
-      kind: "tpl", tpl, site, component: frame.component,
-      contextKey: "hover:" + makeSelectableFullKey(selectable),
-      readContext: () => {
-        const activeVariantCombo = manager.getEffectiveVariantComboForNode(tpl);
-        return { activeVariantCombo, targetVariantCombo: manager.getTargetVariantComboForNode(tpl),
-          targetIndicatorCombo: manager.getTargetIndicatorComboForNode(tpl),
-          effectiveVariantSetting: manager.effectiveVariantSetting(tpl, activeVariantCombo) };
-      },
-    } }) };
-  }, [view, selectable, manager, snapshot.alive]);
-  return { ...snapshot, manager, provider };
+  return snapshot;
 }
 const emptySubscribe = () => () => undefined;
 const inactiveSnapshot = () => inactive;

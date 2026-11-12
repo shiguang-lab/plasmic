@@ -49,6 +49,8 @@ export function beginCanvasInspection(
               viewCtx.scheduleSync({ eval: true, styles: false, asap: true });
             }
             await viewCtx.awaitSync();
+            const loadError = studio.canvasFrameError(viewCtx.arenaFrame());
+            if (loadError) { throw new Error(loadError); }
             const root = viewCtx.canvasCtx.doc().documentElement;
             const previousId = root.getAttribute(
               "data-plasmic-canvas-inspection",

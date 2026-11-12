@@ -1,0 +1,516 @@
+{
+  "date": "2026-11-12",
+  "baselineDesktopRevision": "9b674edda",
+  "electron": "45.2.1",
+  "platform": "macOS 26.6.2 arm64",
+  "method": {
+    "A": "Existing Desktop preview queue; already-running thumbnail may complete after Dashboard deactivates.",
+    "B": "Cancel deactivated Dashboard jobs; admit new thumbnails after retired editor main renderer exits.",
+    "assets": "A and B share the exact Plasmic 0.8.3 packaged renderer (web 0.8.2). Separate native functional runs use the rebuilt candidate Studio with the same compatible local preview engine and runtime assets.",
+    "workload": "Frozen business projects, fresh profiles, one cold open per sample, followed by return until thumbnail display; serial execution. No live API, authentication or forced GC. The production release package was not replaced.",
+    "units": "Electron app process working-set sum, sampled every 100 ms, includes the offline replay backend and can double count shared pages. It is not the OS physical footprint. Return times are polling observations. Thumbnail polling starts about 0.6 s after return."
+  },
+  "complex": {
+    "modelObjects": 10746,
+    "initialArtboards": 2,
+    "samples": [
+      {
+        "arm": "A1",
+        "opens": 1,
+        "firstRevealMs": 1567.8,
+        "openPeakWorkingSetSumMiB": 2066.1,
+        "thumbnailRendererRSSAtOpenPeakMiB": 629.4,
+        "scenarioPeakWorkingSetSumMiB": 2066.1,
+        "scenarioPeakPhase": "first-list-open",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          103.7
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 607.7,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "B1",
+        "opens": 1,
+        "firstRevealMs": 1487.5,
+        "openPeakWorkingSetSumMiB": 1515.4,
+        "thumbnailRendererRSSAtOpenPeakMiB": 0,
+        "scenarioPeakWorkingSetSumMiB": 1578.2,
+        "scenarioPeakPhase": "return-list-0",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          102.7
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 3329.4,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "B2",
+        "opens": 1,
+        "firstRevealMs": 1450.4,
+        "openPeakWorkingSetSumMiB": 1502.3,
+        "thumbnailRendererRSSAtOpenPeakMiB": 0,
+        "scenarioPeakWorkingSetSumMiB": 1502.3,
+        "scenarioPeakPhase": "first-list-open",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          103.3
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 3332.6,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "A2",
+        "opens": 1,
+        "firstRevealMs": 1513.1,
+        "openPeakWorkingSetSumMiB": 2010.2,
+        "thumbnailRendererRSSAtOpenPeakMiB": 608.3,
+        "scenarioPeakWorkingSetSumMiB": 2010.2,
+        "scenarioPeakPhase": "first-list-open",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          104.1
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 608.2,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "A3",
+        "opens": 1,
+        "firstRevealMs": 1587.7,
+        "openPeakWorkingSetSumMiB": 2072.4,
+        "thumbnailRendererRSSAtOpenPeakMiB": 631.1,
+        "scenarioPeakWorkingSetSumMiB": 2072.4,
+        "scenarioPeakPhase": "first-list-open",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          102.8
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 605.9,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "B3",
+        "opens": 1,
+        "firstRevealMs": 1473,
+        "openPeakWorkingSetSumMiB": 1489.8,
+        "thumbnailRendererRSSAtOpenPeakMiB": 0,
+        "scenarioPeakWorkingSetSumMiB": 1489.8,
+        "scenarioPeakPhase": "first-list-open",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          102.6
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 3345.5,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      }
+    ],
+    "candidateFunctional": {
+      "arm": "native",
+      "opens": 3,
+      "firstRevealMs": 1564.3,
+      "openPeakWorkingSetSumMiB": 1408.5,
+      "thumbnailRendererRSSAtOpenPeakMiB": 0,
+      "scenarioPeakWorkingSetSumMiB": 1494,
+      "scenarioPeakPhase": "warm-list-open-1",
+      "returnSamplesWithThumbnailAndRetiredEditor": 0,
+      "cardObservedAfterReturnMs": [
+        102.3,
+        102.5,
+        103.1
+      ],
+      "thumbnailObservedAfterFinalReturnMs": 3528.1,
+      "editorProcessesExited": true,
+      "dashboardProcessPreserved": true
+    }
+  },
+  "small": {
+    "modelObjects": 1420,
+    "initialArtboards": 1,
+    "samples": [
+      {
+        "arm": "A1",
+        "opens": 1,
+        "firstRevealMs": 1461.2,
+        "openPeakWorkingSetSumMiB": 1364.1,
+        "thumbnailRendererRSSAtOpenPeakMiB": 0,
+        "scenarioPeakWorkingSetSumMiB": 1418.1,
+        "scenarioPeakPhase": "return-list-0",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          103
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 605.9,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "B1",
+        "opens": 1,
+        "firstRevealMs": 1452.2,
+        "openPeakWorkingSetSumMiB": 1388.9,
+        "thumbnailRendererRSSAtOpenPeakMiB": 0,
+        "scenarioPeakWorkingSetSumMiB": 1391.3,
+        "scenarioPeakPhase": "return-list-0",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          103.6
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 1916.1,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "B2",
+        "opens": 1,
+        "firstRevealMs": 1435.2,
+        "openPeakWorkingSetSumMiB": 1392.8,
+        "thumbnailRendererRSSAtOpenPeakMiB": 0,
+        "scenarioPeakWorkingSetSumMiB": 1392.8,
+        "scenarioPeakPhase": "first-list-open",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          102.9
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 1921.1,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      },
+      {
+        "arm": "A2",
+        "opens": 1,
+        "firstRevealMs": 1462.7,
+        "openPeakWorkingSetSumMiB": 1372.4,
+        "thumbnailRendererRSSAtOpenPeakMiB": 433.2,
+        "scenarioPeakWorkingSetSumMiB": 1383.3,
+        "scenarioPeakPhase": "return-list-0",
+        "returnSamplesWithThumbnailAndRetiredEditor": 0,
+        "cardObservedAfterReturnMs": [
+          102.3
+        ],
+        "thumbnailObservedAfterFinalReturnMs": 607.7,
+        "editorProcessesExited": true,
+        "dashboardProcessPreserved": true
+      }
+    ],
+    "candidateFunctional": {
+      "arm": "native",
+      "opens": 3,
+      "firstRevealMs": 1425.8,
+      "openPeakWorkingSetSumMiB": 1376.3,
+      "thumbnailRendererRSSAtOpenPeakMiB": 0,
+      "scenarioPeakWorkingSetSumMiB": 1397.9,
+      "scenarioPeakPhase": "return-list-2",
+      "returnSamplesWithThumbnailAndRetiredEditor": 0,
+      "cardObservedAfterReturnMs": [
+        103.2,
+        103,
+        103
+      ],
+      "thumbnailObservedAfterFinalReturnMs": 1918.3,
+      "editorProcessesExited": true,
+      "dashboardProcessPreserved": true
+    }
+  },
+  "exportClip": {
+    "scope": "Native Electron fixture with text, canvas, gradients and fixed 260×120 element; ABBA per viewport. Two separate prototypes, neither retained.",
+    "hiddenWindow": [
+      {
+        "side": "A",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 102.6,
+        "peakWorkingSetSumMiB": 484.5,
+        "pixelSha256": "7d0e6c1b6ea962d808d98a2686477a220bcff12482cffef9e9107eacd1c6bde9"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 520,
+          "height": 240
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 140.5,
+        "peakWorkingSetSumMiB": 488.9,
+        "pixelSha256": "cc78ff9f4c6938ad222e2788941475fb2bc455e00c6a5d545198391a01df0b20"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 520,
+          "height": 240
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 131.1,
+        "peakWorkingSetSumMiB": 492.7,
+        "pixelSha256": "cc78ff9f4c6938ad222e2788941475fb2bc455e00c6a5d545198391a01df0b20"
+      },
+      {
+        "side": "A",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 90.9,
+        "peakWorkingSetSumMiB": 496.1,
+        "pixelSha256": "7d0e6c1b6ea962d808d98a2686477a220bcff12482cffef9e9107eacd1c6bde9"
+      },
+      {
+        "side": "A",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 130.4,
+        "peakWorkingSetSumMiB": 632.3,
+        "pixelSha256": "96e8c55ba64480f3471be74d1b024c7138106124f661e225876caad5de230136"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 520,
+          "height": 240
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 132,
+        "peakWorkingSetSumMiB": 586.3,
+        "pixelSha256": "0930608797adc446461cea7aad17479d4a98b2d1ab66209fa625f8d16ae06745"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 520,
+          "height": 240
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 121.1,
+        "peakWorkingSetSumMiB": 586.2,
+        "pixelSha256": "0930608797adc446461cea7aad17479d4a98b2d1ab66209fa625f8d16ae06745"
+      },
+      {
+        "side": "A",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 112.4,
+        "peakWorkingSetSumMiB": 676.1,
+        "pixelSha256": "96e8c55ba64480f3471be74d1b024c7138106124f661e225876caad5de230136"
+      }
+    ],
+    "stoppedOffscreenPainting": [
+      {
+        "side": "A",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 92.5,
+        "peakWorkingSetSumMiB": 484.4,
+        "pixelSha256": "7d0e6c1b6ea962d808d98a2686477a220bcff12482cffef9e9107eacd1c6bde9"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 190.2,
+        "peakWorkingSetSumMiB": 489.3,
+        "pixelSha256": "81d7d2290c7eb49f5d0346e3d8cffdc50b5b89b14731d0a6d6801a089897486e"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 186.5,
+        "peakWorkingSetSumMiB": 492.1,
+        "pixelSha256": "81d7d2290c7eb49f5d0346e3d8cffdc50b5b89b14731d0a6d6801a089897486e"
+      },
+      {
+        "side": "A",
+        "viewport": [
+          800,
+          600
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 111.9,
+        "peakWorkingSetSumMiB": 493.8,
+        "pixelSha256": "7d0e6c1b6ea962d808d98a2686477a220bcff12482cffef9e9107eacd1c6bde9"
+      },
+      {
+        "side": "A",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 123.5,
+        "peakWorkingSetSumMiB": 494.6,
+        "pixelSha256": "96e8c55ba64480f3471be74d1b024c7138106124f661e225876caad5de230136"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 171.9,
+        "peakWorkingSetSumMiB": 584.3,
+        "pixelSha256": "7d10bb4ceb9e28fcd6eada0f3eeebf716dfe901dff9299ad3014454b51c9d713"
+      },
+      {
+        "side": "B",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 184.2,
+        "peakWorkingSetSumMiB": 585,
+        "pixelSha256": "7d10bb4ceb9e28fcd6eada0f3eeebf716dfe901dff9299ad3014454b51c9d713"
+      },
+      {
+        "side": "A",
+        "viewport": [
+          3000,
+          4000
+        ],
+        "outputSize": {
+          "width": 260,
+          "height": 120
+        },
+        "declared": [
+          260,
+          120
+        ],
+        "elapsedMs": 112.5,
+        "peakWorkingSetSumMiB": 674.3,
+        "pixelSha256": "96e8c55ba64480f3471be74d1b024c7138106124f661e225876caad5de230136"
+      }
+    ]
+  }
+}

@@ -259,9 +259,6 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
         const sc = studioCtx;
         if (sc.app.isDragging()) {
           // Let the drag handlers handle the escape event.
-        } else if (sc.showStackOfParents) {
-          // Just hide the parent stack
-          sc.setShowStackOfParents(false);
         } else {
           await sc.changeUnsafe(() => {
             if (sc.freestyleState()) {

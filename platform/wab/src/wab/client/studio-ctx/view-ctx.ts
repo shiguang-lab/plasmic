@@ -1612,7 +1612,7 @@ export class ViewCtx extends WithDbCtx {
         await this.syncInternal(args);
       } catch (error) {
         if (!this.isDisposed && this.studioCtx.arenaState.isCurrentLifetime(this.modelLifetime)) {
-          this.studioCtx.reportCanvasLoadError(error);
+          this.studioCtx.reportCanvasFrameError(this.arenaFrame(), error);
         }
       }
     }),

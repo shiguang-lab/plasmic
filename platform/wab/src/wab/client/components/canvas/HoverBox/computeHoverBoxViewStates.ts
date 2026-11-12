@@ -13,13 +13,11 @@ import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root"
 import type { StudioSelectionSnapshot } from "@/wab/client/studio-ctx/studio-selection";
 import type { ViewSelectionSnapshot } from "@/wab/client/studio-ctx/view-selection";
 import { isCodeComponentMissingPositionClass } from "@/wab/client/components/sidebar-tabs/Sections";
-import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { frameToScalerRect } from "@/wab/client/coords";
 import { hasLayoutBox } from "@/wab/client/dom";
 import { COMPONENT_ICON, PAGE_ICON } from "@/wab/client/icons";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";
 import { isTokenRef } from "@/wab/commons/StyleToken";
 import {
   FrameViewMode,
@@ -43,7 +41,6 @@ import {
   isTplComponent,
   isTplImage,
   isTplInput,
-  isTplTagOrComponent,
   isTplVariantable,
 } from "@/wab/shared/core/tpls";
 import { ValComponent, ValNode, ValSlot } from "@/wab/shared/core/val-nodes";
@@ -80,13 +77,12 @@ export interface HoverBoxViewDisplayProps {
   top: number;
   left: number;
   // The visible part of the element after overflow-ancestor and artboard
-  // viewport clipping, in scaler coordinates. The outline, edge handles, name
-  // tag and other controls are drawn on this box.
+  // viewport clipping, in scaler coordinates. The outline, edge handles and other controls are drawn on this box.
   visibleBox: Rect;
   // Sides whose real edge is clipped away; they get no outline or handles.
   clippedSides: Record<Side, boolean>;
-  tagName: string;
-  tagUid?: number;
+  tagName?: string;
+  targetUid?: number;
   tagIcon?: React.ReactNode;
   autoWidth?: boolean;
   autoHeight?: boolean;
@@ -97,7 +93,6 @@ export interface HoverBoxViewDisplayProps {
   edgeControls: Record<Side, SpaceEdgeType[]>;
   containerChildAlignment: Record<Orient, ContainerChildAlignment | undefined>;
   dashedBorder?: boolean;
-  isRepeated?: boolean;
   isComponentPart?: boolean;
 }
 
@@ -210,7 +205,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
           height: getFrameHeight(target),
         },
         clippedSides: { ...NO_CLIPPED_SIDES },
-        tagUid: target.uid,
+        targetUid: target.uid,
         tagName: studioCtx.tplMgr().describeArenaFrame(target),
         tagIcon: isFrameComponent(component)
           ? undefined
@@ -235,8 +230,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
     return { display: "none" };
   }
 
-  // Hide if no vc is selected, or if we are dragging the object (not the
-  // HoverBox label).
+  // Hide the selection chrome during a canvas drag.
   if (draggingObject || transformingObject) {
     return { display: "none" };
   }
@@ -255,10 +249,6 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
   const tpl = isKnownTplNode(tplOrSlot) ? tplOrSlot : undefined;
   const fixedRoot = !!tpl && isFixedSlotRoot(vc, tpl);
 
-  const effectiveVariantSetting = isTplTagOrComponent(tplOrSlot)
-    ? vc.effectiveCurrentVariantSetting(tplOrSlot)
-    : undefined;
-
   return {
     display: "unset",
     displayProps: {
@@ -266,10 +256,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
       ...boxInScaler.posRect(),
       visibleBox: Box.fromRect(visibleBox).posRect(),
       clippedSides: visibility.clippedSides,
-      isRepeated: !!effectiveVariantSetting?.dataRep,
-      tagName: part?.displayName ?? summarizeFocusObj(focusObj, vc, effectiveVariantSetting),
-      tagIcon: createNodeIcon(tplOrSlot, effectiveVariantSetting),
-      tagUid: tpl?.uid,
+      targetUid: tpl?.uid,
       ...(part || fixedRoot ? {
         isComponentPart: true,
         dashedBorder: fixedRoot,

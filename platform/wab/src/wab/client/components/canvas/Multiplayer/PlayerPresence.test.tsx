@@ -18,13 +18,15 @@ import { FollowingPlayer } from "@/wab/client/components/canvas/Multiplayer/Foll
 import { createStudioModeFixture } from "@/wab/client/__testonly__/studio-mode";
 import { PlayerBoxes } from "@/wab/client/components/canvas/Multiplayer/PlayerBoxes";
 import { PlayerCursors } from "@/wab/client/components/canvas/Multiplayer/PlayerCursors";
+import { OnlineCollaborators } from "@/wab/client/components/studio/OnlineCollaborators";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
 import { MultiplayerCtx } from "@/wab/client/studio-ctx/multiplayer-ctx";
-import { ServerPlayerInfo } from "@/wab/shared/ApiSchema";
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { ApiUser, ServerPlayerInfo, UserId } from "@/wab/shared/ApiSchema";
+import { ensure } from "@/wab/shared/common";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import React from "react";
-import { mock } from "vitest-mock-extended";
+import { mock, mockDeep } from "vitest-mock-extended";
 
 let studio: StudioCtx;
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
@@ -209,6 +211,96 @@ it("hides and restores cursor rows when the current branch changes without a pla
   expect(container.querySelector(".PlayerCursor")).toBeNull();
   act(() => { environment.setState({ branchId: null }); });
   expect(container.querySelector(".PlayerCursor")).toBeTruthy();
+});
+
+it("removes disconnected cursors immediately and keeps the same avatar through a quick rejoin", async () => {
+  const { multiplayer, session, site } = await fixture();
+  const arena = mkMixedArena("Canvas");
+  site.arenas.push(arena);
+  studio.currentArena = arena;
+  studio.arenaState.setCurrent(arena);
+  vi.mocked(studio.maybeCanvasClipper).mockReturnValue(document.createElement("div"));
+  const appCtx = mockDeep<StudioCtx["appCtx"]>();
+  Object.defineProperty(studio, "appCtx", { value: appCtx });
+  const userId = "remote" as UserId;
+  appCtx.api.getUsersById.mockResolvedValue({
+    users: [
+      mock<ApiUser>({
+        id: userId,
+        displayName: "Remote",
+        email: "remote@example.com",
+      }),
+    ],
+  });
+  const remote: ServerPlayerInfo = {
+    type: "NormalUser",
+    playerId: 3,
+    userId,
+    viewInfo: {
+      cursorInfo: { left: 10, top: 20 },
+      arenaInfo: { type: "custom", uuidOrName: "Canvas", focused: false },
+    },
+  };
+  await multiplayer.updateSessions([session, remote]);
+  const { container, getByText } = render(
+    <>
+      <OnlineCollaborators studioCtx={studio} />
+      <PlayerCursors />
+    </>,
+  );
+  const avatar = getByText("RE");
+  const color = ensure(multiplayer.getPlayerDataById(3), "Remote player").color;
+  const avatarStyle = avatar.getAttribute("style");
+  expect(container.querySelectorAll(".AvatarPlayer")[1]).toBe(avatar);
+  expect(container.querySelector(".PlayerCursor")).toBeTruthy();
+
+  vi.useFakeTimers();
+  try {
+    await act(() => multiplayer.updateSessions([session]));
+    expect(container.querySelector(".PlayerCursor")).toBeNull();
+    expect(container.querySelectorAll(".AvatarPlayer")[1]).toBe(avatar);
+    expect(avatar.getAttribute("style")).toBe(avatarStyle);
+    fireEvent.click(avatar);
+    expect(studio.setWatchPlayerId).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(4_999);
+    });
+    const rejoined = { ...remote, playerId: 4, viewInfo: undefined };
+    await act(() => multiplayer.updateSessions([session, rejoined]));
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(container.querySelectorAll(".AvatarPlayer")[1]).toBe(avatar);
+    expect(avatar.getAttribute("style")).toBe(avatarStyle);
+    expect(multiplayer.getPlayerDataById(4)?.color).toBe(color);
+    expect(container.querySelector(".PlayerCursor")).toBeNull();
+    fireEvent.click(avatar);
+    expect(studio.setWatchPlayerId).toHaveBeenCalledWith(4);
+
+    const active = { ...remote, playerId: 4 };
+    const secondWindow = { ...remote, playerId: 5 };
+    await act(() => multiplayer.updateSessions([session, active, secondWindow]));
+    expect(container.querySelector(".PlayerCursor")).toBeTruthy();
+    expect(container.querySelectorAll(".AvatarPlayer")).toHaveLength(2);
+    await act(() => multiplayer.updateSessions([session, secondWindow]));
+    expect(container.querySelectorAll(".AvatarPlayer")[1]).toBe(avatar);
+    fireEvent.click(avatar);
+    expect(studio.setWatchPlayerId).toHaveBeenLastCalledWith(5);
+
+    await act(() => multiplayer.updateSessions([session]));
+    act(() => {
+      vi.advanceTimersByTime(4_999);
+    });
+    expect(container.querySelectorAll(".AvatarPlayer")[1]).toBe(avatar);
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(container.contains(avatar)).toBe(false);
+  } finally {
+    act(() => multiplayer.clearSessions());
+    vi.useRealTimers();
+  }
 });
 
 

@@ -146,7 +146,7 @@ it("reuses lazy branches across expansion and selection and refreshes their inhe
     outline.collapseAll();
     view.setStudioFocusByTpl(leaf);
     expect(outline.focusedNodeKeyPath()[0]).toBe(makeNodeKey(leaf));
-    for (const key of outline.focusedNodeKeyPath()) { expect(outline.isExpanded(key)).toBe(true); }
+    for (const key of outline.focusedNodeKeyPath().slice(1)) { expect(outline.isExpanded(key)).toBe(true); }
     expect(source.getTreeState()).toBe(treeInput);
     expect(outline.rootTreeNode()).toBe(tree);
 

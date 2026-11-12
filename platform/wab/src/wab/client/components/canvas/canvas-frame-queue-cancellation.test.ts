@@ -10,31 +10,71 @@ async function fixture() {
   const component = mkComponent({ name: "Queued page", type: ComponentType.Plain, tplTree: mkTplTag("div") });
   site.components.push(component);
   const frame = mkArenaFrame({ site, component, name: "Queued frame", width: 800, height: 600, left: 0, top: 0 });
+  const target = mkArenaFrame({ site, component, name: "Selected frame", width: 800, height: 600, left: 0, top: 0 });
   const empty = mkMixedArena("Empty");
-  const arena = mkMixedArena("Loading", [frame]);
-  site.arenas.push(empty, arena);
+  const arena = mkMixedArena("Loading", [frame, target]);
+  const other = mkMixedArena("Other");
+  site.arenas.push(empty, arena, other);
   const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Empty" });
   // This exercises the real queue and Arena lifetime, without a host renderer.
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(undefined);
   await vi.waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-  return { studioCtx, arena, frame };
+  return { studioCtx, arena, frame, target, other };
 }
 
 afterEach(() => vi.restoreAllMocks());
 
-it("reports a background load rejection through the real idle scheduler and releases the serial queue", async () => {
-  const { studioCtx, arena, frame } = await fixture();
+it("isolates a failed background load and still opens the selected artboard", async () => {
+  const { studioCtx, arena, frame, target } = await fixture();
   studioCtx.currentArena = arena;
   vi.spyOn(studioCtx, "activeCanvasFrame", "get").mockReturnValue(undefined);
   vi.spyOn(studioCtx, "activeCanvasReady", "get").mockReturnValue(true);
   const error = new Error("Background component library unavailable");
   const load = vi.fn(async () => { throw error; });
   try {
+    const waiting = expect(studioCtx.awaitViewCtxForFrame(frame)).rejects.toThrow(error.message);
     studioCtx.queueCanvasFrame({ arena, frame, name: "Background", load });
-    await vi.waitFor(() => expect(studioCtx.canvasLoadStore.getState().error).toBe(error.message));
+    await waiting;
+    expect(studioCtx.canvasFrameError(frame)).toBe(error.message);
+    expect(studioCtx.canvasLoadStore.getState().error).toBeUndefined();
+    studioCtx.setStudioFocusOnFrame({ frame: target });
+    vi.spyOn(studioCtx, "activeCanvasFrame", "get").mockReturnValue(target);
+    const selected = vi.fn(async () => undefined);
+    studioCtx.queueCanvasFrame({ arena, frame: target, name: "Selected", load: selected });
+    await vi.waitFor(() => expect(selected).toHaveBeenCalledOnce());
     await vi.waitFor(() => expect(studioCtx["canvasLoadQueue"].idle()).toBe(true));
     expect(load).toHaveBeenCalledOnce();
   } finally { studioCtx.dispose(); }
+});
+
+it.each(["same arena", "different arena"])("cancels a slow attempt before starting the selected target in a %s", async (location) => {
+  const { studioCtx, arena, frame, target, other } = await fixture();
+  studioCtx.currentArena = arena;
+  vi.spyOn(studioCtx, "activeCanvasReady", "get").mockReturnValue(true);
+  const lease = new CanvasFrameLoad(studioCtx.arenaState.lifetime(), () => true);
+  const order: string[] = [];
+  const slow = vi.fn(() => new Promise<void>((resolve, reject) => {
+    order.push("slow started");
+    lease.begin(resolve, reject);
+    lease.own(() => order.push("slow released"));
+  }));
+  try {
+    studioCtx.queueCanvasFrame({ arena, frame, name: "Slow", load: slow, cancel: () => lease.cancel() });
+    await vi.waitFor(() => expect(slow).toHaveBeenCalledOnce());
+    if (location === "different arena") {
+      await studioCtx.changeUnsafe(() => {
+        arena.children.splice(arena.children.indexOf(target), 1);
+        other.children.push(target);
+      });
+      studioCtx.currentArena = other;
+    }
+    studioCtx.setStudioFocusOnFrame({ frame: target });
+    const selected = vi.fn(async () => { order.push("selected started"); });
+    studioCtx.queueCanvasFrame({ arena: studioCtx.currentArena ?? arena, frame: target, name: "Selected", load: selected });
+    await vi.waitFor(() => expect(selected).toHaveBeenCalledOnce());
+    expect(order).toEqual(["slow started", "slow released", "selected started"]);
+    expect(studioCtx.canvasLoadStore.getState().error).toBeUndefined();
+  } finally { lease.cancel(); studioCtx.dispose(); }
 });
 
 it("releases the real dequeued request on owner abort without removing it twice or reporting a load failure", async () => {

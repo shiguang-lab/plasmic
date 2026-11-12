@@ -945,12 +945,9 @@ export function makeTplMenu(
         <Menu.Item
           key="rename-element"
           onClick={() => {
-            viewCtx.change(() => viewCtx.setStudioFocusByTpl(tpl));
-            if (isFromTplTreePanel) {
-              viewCtx.studioCtx.startRenamingOnPanel();
-            } else {
-              viewCtx.studioCtx.tryStartRenamingFocused();
-            }
+            void viewCtx.studioCtx.changeUnsafe(() => {
+              viewCtx.setStudioFocusByTpl(tpl);
+            }).then(() => viewCtx.studioCtx.tryStartRenamingFocused());
           }}
         >
           <MenuItemContent

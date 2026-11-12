@@ -4,7 +4,7 @@ Applies to the supported Overseas/Antd6 admin prototype workflow. Registered def
 
 ## Protected configuration
 
-Before composition, use the owning references: [SearchForm](../libraries/overseas/components/search-form.md#page-generation), [ActionGroup](../libraries/react_ui/components/action-group.md), [Dropdown](../libraries/antd_v6/components/dropdown.md), and [AppShell context](../libraries/overseas/components/app-shell.md#app-context).
+Before composition, use the owning references: [SearchForm](../libraries/overseas/components/search-form.md#page-generation), [ActionGroup](../libraries/react_ui/components/action-group.md), [Dropdown](../libraries/antd_v6/components/dropdown.md), [Table column dividers](../libraries/antd_v6/components/table.md#column-dividers), and [AppShell context](../libraries/overseas/components/app-shell.md#app-context).
 
 Keep their protected layout/interaction defaults unless the owning reference defines another supported mode or the current user/authoritative source explicitly requires an exception. Interpret visual evidence through [visual sources and component rules](../requirement-alignment.md#visual-sources-and-component-rules); a draft's appearance alone is not an explicit override. Do not optimize them to fit available space, a long placeholder, the number of actions, a screenshot inspection or the current generated output. Data, labels, enum options, permissions, routes and measured labelWidth still follow the requirement; they are not frozen to example defaults. Existing scene rules such as headerless Tabs/Card composition also remain mandatory even when a component has default demo Slot content.
 

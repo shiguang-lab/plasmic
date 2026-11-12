@@ -6,7 +6,6 @@ import { createStore } from "zustand/vanilla";
 
 export interface StudioOverlaySnapshot {
   readonly commentsOverlay: boolean;
-  readonly stackOfParents: boolean;
   readonly multiplayerSelections: boolean;
   readonly ancestorsHoverBoxes: boolean;
   readonly screenshotting: boolean;
@@ -18,7 +17,7 @@ export interface StudioOverlaySnapshot {
 }
 
 const initialOverlay: StudioOverlaySnapshot = Object.freeze({
-  commentsOverlay: true, stackOfParents: false, multiplayerSelections: true,
+  commentsOverlay: true, multiplayerSelections: true,
   ancestorsHoverBoxes: true, screenshotting: false, resizeDragging: false,
   variantsDrawer: false,
   commentsPanel: false,
@@ -57,8 +56,6 @@ export class StudioOverlayState {
 
   get commentsOverlay() { return this.values.commentsOverlay; }
   set commentsOverlay(value: boolean) { this.update("commentsOverlay", value); }
-  get stackOfParents() { return this.values.stackOfParents; }
-  set stackOfParents(value: boolean) { this.update("stackOfParents", value); }
   get multiplayerSelections() { return this.values.multiplayerSelections; }
   set multiplayerSelections(value: boolean) { this.update("multiplayerSelections", value); }
   get ancestorsHoverBoxes() { return this.values.ancestorsHoverBoxes; }

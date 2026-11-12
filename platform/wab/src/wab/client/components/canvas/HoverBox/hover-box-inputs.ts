@@ -2,7 +2,7 @@ import type { CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canva
 import { canvasVariantChromeFields } from "@/wab/client/components/canvas/canvas-variant-chrome-inputs";
 import type { HoverBoxTarget } from "@/wab/client/components/canvas/HoverBox/computeHoverBoxViewStates";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { isTplNamable, isTplVariantable } from "@/wab/shared/core/tpls";
+import { isTplVariantable } from "@/wab/shared/core/tpls";
 import { isKnownArenaFrame, isKnownTplComponent, isKnownTplTag, isKnownTplSlot, type RuleSet, type TplNode } from "@/wab/shared/model/classes";
 
 /** Authored chrome inputs; themed/resolved CSS stays with the native style owner. */
@@ -22,16 +22,15 @@ export function hoverBoxModelFields(view: ViewCtx, target: HoverBoxTarget, field
   };
   for (let node: TplNode | null | undefined = tpl; node; node = node.parent) {
     field(node, "parent", "locked");
-    if (isTplNamable(node)) { field(node, "name"); }
     if (isKnownTplTag(node)) { field(node, "tag", "type", "columnsSetting"); }
     if (isKnownTplComponent(node)) {
       field(node, "component"); field(node.component, "name", "type", "tplTree", "codeComponentMeta");
-      if (node.component.codeComponentMeta) { field(node.component.codeComponentMeta, "displayName", "defaultStyles"); }
+      if (node.component.codeComponentMeta) { field(node.component.codeComponentMeta, "defaultStyles"); }
     }
     if (isKnownTplSlot(node)) { field(node, "param"); field(node.param, "variable"); field(node.param.variable, "name"); }
     if (isTplVariantable(node)) {
       field(node, "vsettings");
-      node.vsettings.forEach((setting) => { field(setting, "variants", "rs", "dataRep", "attrs"); rules(setting.rs); });
+      node.vsettings.forEach((setting) => { field(setting, "variants", "rs", "attrs"); rules(setting.rs); });
     }
   }
 }

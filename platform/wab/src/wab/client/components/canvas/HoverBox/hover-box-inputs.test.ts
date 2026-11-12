@@ -18,7 +18,7 @@ import { mkTplInlinedText, mkTplTagX } from "@/wab/shared/core/tpls";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import { mock } from "vitest-mock-extended";
 
-it("keeps hover labels, ancestor lock/layout and frame inputs finite and seals retired runtime reads", () => {
+it("keeps ancestor lock/layout and frame selection inputs finite and seals retired runtime reads", () => {
   const base = mkBaseVariant();
   const target = mkTplTagX("div", { baseVariant: base }), sibling = mkTplTagX("div", { baseVariant: base });
   const root = mkTplTagX("div", { baseVariant: base }, [target, sibling]);

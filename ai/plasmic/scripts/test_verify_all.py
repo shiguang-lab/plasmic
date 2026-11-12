@@ -33,13 +33,13 @@ class SuiteTests(unittest.TestCase):
         form.html = ('<plasmic-component data-plasmic-component="plasmic-antd6-card" data-plasmic-name="FormCard" data-props=\'' + card_props
                      + '\'><slot name="title"></slot><slot name="extra"></slot><slot name="children">' + form.html + '</slot></plasmic-component>')
         self.model.update(uuid="page", name="记录列表", pageMeta={"path": "/records"},
-                          props=[], states=[], interactions=[], variants=[], variantGroups=[])
+                          props=[], states=[], interactions=[], variants=[], variantGroups=[], variantSettings=[])
         menu = [{"key": "records", "label": "Records", "href": "/records"}]
         self.model["baseVariantTplTree"] = self.model["baseVariantTplTree"].replace('data-plasmic-component="plasmicOverseasAppShell"',
             'data-plasmic-component="plasmicOverseasAppShell" data-plasmic-name="AppShell" data-props=\'' + json.dumps({"menuItems": menu}) + '\'').replace(
                 '</plasmic-component>', '<slot name="children">' + form.html + '</slot></plasmic-component>')
-        self.overview = {"results": [{"__type": "Project", "id": "project", "components": [self.model], "devicePresets": [{"name": "Desktop", "width": 1440, "height": 1024}], "pageFrames": [{"componentUuid": "page", "width": 1440, "height": 1024}], "canvases": [{"name": "页面总览", "frames": [{"uuid": "frame", "componentUuid": "page", "x": 0, "y": 0, "width": 1440, "height": 1024}]}]}]}
-        self.readback = {"results": [self.model], "read": {"depth": "all", "fields": ["baseVariantTplTree", "props", "states", "variants", "variantGroups", "interactions"]}}
+        self.overview = {"results": [{"__type": "Project", "id": "project", "globalVariantGroups": [], "screenBreakpoints": [], "components": [self.model], "devicePresets": [{"name": "Desktop", "width": 1440, "height": 1024}], "pageFrames": [{"componentUuid": "page", "width": 1440, "height": 1024}], "canvases": [{"name": "页面总览", "frames": [{"uuid": "frame", "componentUuid": "page", "x": 0, "y": 0, "width": 1440, "height": 1024}]}]}]}
+        self.readback = {"results": [self.model], "read": {"depth": "all", "fields": ["baseVariantTplTree", "props", "states", "variants", "variantGroups", "variantSettings", "interactions"]}}
         self.snapshot = shell.snapshot
         self.snapshot["checked"] = ["horizontal-overflow", "table-cell-control-overflow", "image-load"]
         self.snapshot["frames"][0].update(frameUuid="frame", width=1440, read={"view": "full"}, images=[], problems=[])
@@ -111,7 +111,12 @@ class SuiteTests(unittest.TestCase):
         ledger.unlink(missing_ok=True)
         for read in rules(plan, "/records", ledger, "accept")["reads"] + project_rules(ledger, "accept", plan=plan)["reads"]:
             subprocess.run(read["args"], check=True, capture_output=True)
-        review = review_skeleton(plan, self.capture, "independent")
+        review = review_skeleton(plan, self.capture, "independent", readback=self.readback, overview=self.overview)
+        from test_verify_review import resolve_visual_review, write_image
+        screenshot = self.root / "fixture.png"
+        write_image(screenshot)
+        for page_review in review["pages"]:
+            resolve_visual_review(page_review, screenshot, self.context)
         review["reviewer"] = "review-child"
         for entry in review["project"]["rules"] + review["pages"][0]["rules"]:
             entry.update(verdict="pass", evidence=["Reviewed against the saved fixture model"])
@@ -129,6 +134,15 @@ class SuiteTests(unittest.TestCase):
 
     def run_suite(self):
         return run_suite(self.config, self.root, self.root, "project")
+
+    def test_old_overview_without_global_variant_inventory_cannot_be_reused(self):
+        self.overview['results'][0].pop('globalVariantGroups')
+        write_json(self.root / 'overview.json', self.overview)
+        self.write_capture()
+        result = self.run_suite()
+        self.assertFalse(result['passed'])
+        evidence = next(item for item in result['checks'] if item['gate'] == 'evidence')
+        self.assertIn('globalVariantGroups', json.dumps(evidence))
 
     def test_saved_output_requires_current_compose_reads(self):
         original = dict(self.config["structure"])
@@ -591,7 +605,7 @@ class SuiteTests(unittest.TestCase):
         self.write_capture()
         report = self.run_suite()
         self.assertFalse(report['passed'])
-        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] not in ('passed', 'not_applicable')], ['evidence'])
+        self.assertEqual([item['gate'] for item in report['checks'] if item['status'] not in ('passed', 'not_applicable')], ['evidence', 'review'])
 
     def test_manifest_hash_mismatch_is_the_only_failing_gate(self):
         path = self.root / 'pages.json'
@@ -680,7 +694,7 @@ class SuiteTests(unittest.TestCase):
     def test_hashed_partial_models_cannot_pass_or_be_reused(self):
         original = copy.deepcopy(self.model)
         state = {"version": "test", "buildId": "fixture-build", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
-        for field in ["props", "states", "interactions", "variants", "variantGroups"]:
+        for field in ["props", "states", "interactions", "variants", "variantGroups", "variantSettings"]:
             broken = copy.deepcopy(original)
             del broken[field]
             write_json(self.root / "pages.json", {"results": [broken]})

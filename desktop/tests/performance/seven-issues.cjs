@@ -121,7 +121,7 @@ async function dashboard() {
   await parent.loadURL("data:text/html,Dashboard diagnostic");
   let invoke;const handle=ipcMain.handle.bind(ipcMain);
   ipcMain.handle=(name,fn)=>{if(name==="desktop:dashboard-preview")invoke=fn;return handle(name,fn);};
-  const previews=require(root+"/src/dashboard-preview.cjs").createDashboardPreviews({session:ses,studioOrigin,trustedSender:e=>e.sender===parent.webContents});
+  const previews=require(root+"/src/dashboard-preview.cjs").createDashboardPreviews({session:ses,studioOrigin,trustedSender:e=>e.sender===parent.webContents,waitForEditorExit:()=>{}});
   ipcMain.handle=handle;
   const request={projectId:startup.projectId,revision:opening.rev.revision,flags:startup.appConfig.config,staticBaseUrl:studioOrigin+"/static"};
   const src=studioOrigin+"/canvas-preview/index.html#live=true&origin="+encodeURIComponent(studioOrigin)+"&staticBaseUrl="+encodeURIComponent(request.staticBaseUrl);

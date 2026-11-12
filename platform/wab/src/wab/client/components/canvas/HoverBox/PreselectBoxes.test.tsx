@@ -7,7 +7,6 @@ import { RootComponentVariantFrame, GlobalVariantFrame } from "@/wab/shared/comp
 import * as Signals from "signals";
 import { CanvasContentEditorIndex } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { ensure } from "@/wab/shared/common";
-import { StackOfParents } from "@/wab/client/components/canvas/HoverBox/StackOfParents";
 import { mock } from "vitest-mock-extended";
 import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { createViewVariantFixture } from "@/wab/client/__testonly__/view-variants";
@@ -44,18 +43,6 @@ vi.mock("@/wab/client/contexts/StudioContexts", async (original) => ({
 vi.mock("@/wab/shared/core/selection", async (original) => ({
   ...await original<typeof import("@/wab/shared/core/selection")>(),
   SQ: vi.fn(),
-}));
-vi.mock("@/wab/client/components/canvas/EditableNodeLabel", () => ({
-  EditableNodeLabel: () => null,
-}));
-vi.mock("@/wab/client/utils/tpl-client-utils", () => ({
-  summarizeFocusObj: () => "Field",
-}));
-vi.mock("@/wab/client/components/sidebar-tabs/tpl-tree", () => ({
-  createNodeIcon: () => undefined,
-}));
-vi.mock("@/wab/client/components/canvas/HoverBox/useTagPlacement", () => ({
-  useTagPlacement: () => ({}),
 }));
 vi.mock("@/wab/client/components/canvas/HoverBox/visible-bounds", () => ({
   computeScalerVisibility: vi.fn(() => ({
@@ -101,7 +88,8 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
   const styleInputs = new ViewStyleInputs(() => models, signal.signal);
   const manager = new VariantTplMgr([new RootComponentVariantFrame(frame)], site, new TplMgr({ site }), new GlobalVariantFrame(site, frame));
   disposeFixtures.push(() => signal.abort());
-  const value = new ValTag({ tpl, children: [], className: "", key: "hover", fullKey: "hover", frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
+  const makeValue = (key: string) => new ValTag({ tpl, children: [], className: "", key, fullKey: key, frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
+  const value = makeValue("hover");
   let selectable: ValTag | SlotSelection = value;
   if (fixedSlot) {
     const shell = mkCodeComponent("Shell", { name: "Shell", importPath: "./Shell", props: {} }, {});
@@ -116,9 +104,11 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
   }
   deepTrackComponents(site);
   selection.setHover(selectable, $(hovered));
+  const rootsBySelectable = new Map([[selectable, roots]]);
   disposeFixtures.push(() => { arenaState.dispose(); overlayState.dispose(); studioSelection.dispose(); selection.dispose(); variants.dispose(); models.dispose(); });
   const viewCtx = {
     selectionStore: selection.store,
+    selection,
     variantStore: variants.store,
     disposeSignal: signal.signal,
     styleInputs, site,
@@ -126,8 +116,7 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     canvasCtx: { $doc: () => $(document) },
     dom2focusObj: () => undefined,
     getCodeComponentMeta: () => ({ props: { brand: { type: "slot", fixedRoot: true } } }),
-    selectionDom: () => $(roots),
-    $hoveredDomElt: () => selection.hoverDom(),
+    selectionDom: (target: ValTag | SlotSelection) => $(rootsBySelectable.get(target) ?? []),
     contentEditor: { contains: () => true },
     hoverVariantTplMgr: () => manager,
   } as unknown as ViewCtx;
@@ -139,7 +128,6 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     focusedViewCtx: () => studioSelection.current().view,
     isDraggingObject: () => dragging.getState(),
     get screenshotting() { return overlayState.screenshotting; },
-    get showStackOfParents() { return overlayState.stackOfParents; },
     zoom: 1,
     ...createViewportFixture(),
   } as unknown as StudioCtx;
@@ -153,7 +141,6 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
       modelLifetime: arenaState.lifetime(),
       isDisposed: false,
       initialRenderReadyStore: createStore<boolean>(() => false),
-      hoveredSelectable: () => selection.hover(),
       sel2cloneKey: () => undefined,
       valState: () => undefined,
     });
@@ -163,21 +150,27 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
       showAncestorsHoverBoxes: () => overlayState.ancestorsHoverBoxes,
     });
     arenaState.viewRegistry.register(viewCtx);
-    vi.mocked(SQ).mockReturnValue({
-      ancestors: () => ({ toArray: () => [selectable] }),
-    } as unknown as ReturnType<typeof SQ>);
+    vi.mocked(SQ).mockImplementation((target) => ({
+      ancestors: () => ({ toArray: () => [target] }),
+    } as unknown as ReturnType<typeof SQ>));
     vi.mocked(useStudioCtx).mockReturnValue(studioCtx);
-    return Object.assign(render(<PreselectBoxes />), { retire: () => signal.abort() });
   }
   return Object.assign(render(
-    <PreselectBox
+    live ? <PreselectBoxes /> : <PreselectBox
       selectable={selectable}
       cloneKey={undefined}
       studioCtx={studioCtx}
       viewCtx={viewCtx}
       isHoveredElt={isHoveredElt}
     />,
-  ), { retire: () => signal.abort() });
+  ), {
+    retire: () => signal.abort(),
+    hoverAnotherNode: (target: HTMLElement) => {
+      const next = makeValue("other");
+      rootsBySelectable.set(next, [target]);
+      selection.setHover(next, $(target));
+    },
+  });
 }
 
 it("uses a dashed hover outline for fixed slot content", () => {
@@ -303,65 +296,6 @@ it("hides and restores an existing outline through the real native screenshot he
 });
 
 
-it("cancels the actual parent-stack auto-hide producer when its view boundary unmounts", () => {
-  vi.useFakeTimers();
-  const models = new ModelSnapshots(), selection = new StudioSelection(() => models);
-  const overlayState = new StudioOverlayState(), studio = mock<StudioCtx>();
-  Object.defineProperties(studio, {
-    overlayState: { value: overlayState }, selectionStore: { value: selection.store },
-    setShowStackOfParents: { value: StudioCtx.prototype.setShowStackOfParents },
-  });
-  installContentScope(studio);
-  studio.focusedViewCtx.mockReturnValue(undefined);
-  vi.mocked(useStudioCtx).mockReturnValue(studio);
-  const command = vi.spyOn(overlayState, "stackOfParents", "set");
-  const mounted = render(<StackOfParents hoverTagRef={React.createRef<HTMLDivElement>()} />);
-  try {
-    const before = vi.getTimerCount();
-    act(() => { overlayState.stackOfParents = true; });
-    expect(vi.getTimerCount()).toBe(before + 1);
-    mounted.unmount(); command.mockClear();
-    act(() => { vi.runAllTimers(); });
-    expect(command).not.toHaveBeenCalled();
-  } finally {
-    mounted.unmount(); command.mockRestore(); overlayState.dispose(); selection.dispose(); models.dispose(); vi.useRealTimers();
-  }
-});
-
-
-it("rebinds parent-stack timers and hover listeners to a replacement Studio owner", async () => {
-  const contexts = await vi.importActual<typeof import("@/wab/client/contexts/StudioContexts")>("@/wab/client/contexts/StudioContexts");
-  vi.mocked(useStudioCtx).mockImplementation(contexts.useStudioCtx);
-  vi.useFakeTimers();
-  const models = new ModelSnapshots(), selection = new StudioSelection(() => models);
-  const previous = new StudioOverlayState(), next = new StudioOverlayState();
-  const studioFor = (overlayState: StudioOverlayState) => {
-    const studio = mock<StudioCtx>();
-    Object.defineProperties(studio, {
-      overlayState: { value: overlayState }, selectionStore: { value: selection.store },
-      setShowStackOfParents: { value: StudioCtx.prototype.setShowStackOfParents },
-    });
-    installContentScope(studio);
-  studio.focusedViewCtx.mockReturnValue(undefined);
-    return studio;
-  };
-  previous.stackOfParents = true; next.stackOfParents = true;
-  const oldCommand = vi.spyOn(previous, "stackOfParents", "set"), nextCommand = vi.spyOn(next, "stackOfParents", "set");
-  const tag = element(), hoverTagRef = { current: tag };
-  const mounted = render(<contexts.StudioCtxContext.Provider value={studioFor(previous)}><StackOfParents hoverTagRef={hoverTagRef} /></contexts.StudioCtxContext.Provider>);
-  try {
-    mounted.rerender(<contexts.StudioCtxContext.Provider value={studioFor(next)}><StackOfParents hoverTagRef={hoverTagRef} /></contexts.StudioCtxContext.Provider>);
-    oldCommand.mockClear(); nextCommand.mockClear();
-    tag.dispatchEvent(new MouseEvent("mouseenter"));
-    tag.dispatchEvent(new MouseEvent("mouseleave"));
-    act(() => { vi.advanceTimersByTime(2000); });
-    expect(oldCommand).not.toHaveBeenCalled();
-    expect(nextCommand).toHaveBeenCalledExactlyOnceWith(false);
-  } finally {
-    mounted.unmount(); oldCommand.mockRestore(); nextCommand.mockRestore(); previous.dispose(); next.dispose(); selection.dispose(); models.dispose(); vi.useRealTimers(); vi.mocked(useStudioCtx).mockReset();
-  }
-});
-
 it("retires the existing hover outline without touching its runtime geometry again", () => {
   const field = element();
   const mounted = outline([field], field, true);
@@ -370,4 +304,18 @@ it("retires the existing hover outline without touching its runtime geometry aga
   act(() => mounted.retire());
   expect(mounted.container.querySelector(".PreselectBox")).toBeNull();
   expect(computeScalerVisibility).not.toHaveBeenCalled();
+});
+
+it("replaces the previous hover outline when the pointer moves within the same view", () => {
+  const first = element(), second = element();
+  const overlayState = new StudioOverlayState();
+  const mounted = outline([first], first, true, true, undefined, overlayState);
+  expect(mounted.container.querySelector(".PreselectBox")).not.toBeNull();
+  expect(vi.mocked(computeScalerVisibility).mock.lastCall?.[0].toArray()).toEqual([first]);
+
+  vi.mocked(computeScalerVisibility).mockClear();
+  act(() => mounted.hoverAnotherNode(second));
+
+  expect(mounted.container.querySelectorAll(".PreselectBox")).toHaveLength(1);
+  expect(vi.mocked(computeScalerVisibility).mock.lastCall?.[0].toArray()).toEqual([second]);
 });

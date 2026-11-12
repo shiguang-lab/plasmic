@@ -12,8 +12,12 @@ export async function prepareComponentReuseIndex(directory) {
   const documents = JSON.parse(await readFile(new URL("../src/component-reuse-public-documents.json", import.meta.url), "utf8"));
   const inputSha256 = hash(JSON.stringify([MODEL.signature, documents]));
   const manifestPath = path.join(directory, "runtime.json"); const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  if (manifest.seedInputSha256 === inputSha256 && manifest.seedSignature === MODEL.signature) return;
+  if (manifest.seedInputSha256 === inputSha256 && manifest.seedSignature === MODEL.signature) {
+    console.log("Reusing the prepared public vector index");
+    return;
+  }
   if (manifest.platform !== process.platform || manifest.arch !== process.arch) throw new Error("Prepare the updated public vector seeds on the native runtime's target host before packaging");
+  console.time("Generate public vector index");
   const temporary = await mkdtemp(path.join(os.tmpdir(), "component-public-seeds-"));
   const embedding = new ComponentEmbedding(directory); const account = hash("public-library-build-inputs");
   const service = new ComponentReuse({ directory: temporary, embedding, backgroundDelayMs: 0, idlePauseMs: 0 });
@@ -39,6 +43,7 @@ export async function prepareComponentReuseIndex(directory) {
     Object.assign(manifest, { seedInputSha256: inputSha256, seedSignature: MODEL.signature, seedComponents: documents.length, seedVectors: keys.length });
     const output = manifestPath + ".tmp";
     await writeFile(output, JSON.stringify(manifest, null, 2) + "\n"); await rename(output, manifestPath);
+    console.timeEnd("Generate public vector index");
     console.log(JSON.stringify({ publicSeedComponents: documents.length, publicSeedVectors: keys.length, computedVectors: service.stats.documentEmbeddings }));
   } finally { await service.close(); await rm(temporary, { recursive: true, force: true }); }
 }

@@ -89,10 +89,9 @@ export function ProjectPreview({
             }
           },
         );
-      } else if (offscreenDesktop && running) {
-        // Keep the one running offscreen job through either visibility or
-        // Desktop activation event order. It writes its PNG before release.
-        // Queued work and ordinary browser hiding still cancel.
+      } else if (offscreenDesktop && running && isDesktopViewActive()) {
+        // Minimizing or scrolling the active Dashboard does not compete
+        // with an editor. Let its running job finish and cache the image.
         releaseImage();
       } else {
         release();

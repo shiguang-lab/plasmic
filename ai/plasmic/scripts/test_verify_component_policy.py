@@ -74,6 +74,43 @@ class PolicyTests(unittest.TestCase):
         self.path.write_text('Requirement changed after planning', encoding="utf-8")
         self.assertTrue(policy_errors(spec, {'max': 5, **hover}))
 
+    def test_table_divider_defaults_apply_in_plan_and_saved_model_regardless_of_paging(self):
+        table = 'plasmic-antd6-table'
+        for pagination in (False, '{{ $state.pagination }}'):
+            spec = {'nodeName': 'Results', 'component': table, 'props': {'pagination': pagination}}
+            plan = {'components': [spec]}
+            for bordered, expected in (
+                ({}, []),
+                ({'bordered': False}, []),
+                ({'bordered': True}, ['bordered']),
+                ({'bordered': '{{ $state.showGrid }}'}, ['bordered']),
+            ):
+                with self.subTest(pagination=pagination, bordered=bordered):
+                    values = {'pagination': pagination, **bordered}
+                    self.assertEqual([e['property'] for e in plan_errors({'components': [{**spec, 'props': values}]})], expected)
+                    page = self.page(node('Results', table, values))
+                    self.assertEqual([e['property'] for e in check_page(plan, page)], expected)
+        dynamic = {**spec, 'dynamicProps': ['bordered']}
+        self.assertEqual([e['property'] for e in plan_errors({'components': [dynamic]})], ['bordered'])
+
+    def test_table_dividers_require_an_affirmative_current_user_quote(self):
+        table = 'plasmic-antd6-table'
+        values = {'pagination': False, 'bordered': True}
+        spec = {'nodeName': 'Results', 'component': table, 'props': values}
+        plan = {'components': [spec]}
+        page = self.page(node('Results', table, values))
+        for quote, expected in (
+            ('请显示表格列间分隔线。', []),
+            ('bordered: true', []),
+            ('不要显示表格列间分隔线。', ['bordered']),
+            ('禁止设置 bordered: true。', ['bordered']),
+            ('参考图中有列间分隔线。', ['bordered']),
+        ):
+            with self.subTest(quote=quote):
+                spec['overrides'] = {'bordered': {'reason': 'User specifies the table style', 'evidence': self.evidence(quote)}}
+                self.assertEqual([e['property'] for e in plan_errors(plan)], expected)
+                self.assertEqual([e['property'] for e in check_page(plan, page)], expected)
+
     def test_reviewed_three_column_mode_does_not_need_a_requirement_override(self):
         spec = {'nodeName': 'Filters', 'component': 'plasmic-overseas-search-form',
                 'source': 'Original visual frame: multiple rows aligned to three field columns',

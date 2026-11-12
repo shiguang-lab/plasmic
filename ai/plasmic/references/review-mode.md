@@ -51,6 +51,8 @@ A checkpoint records a decision, not automatic proof of semantic correctness. De
 
 ## Rule review
 
+Final review includes [visual scenario coverage and repair evidence](visual-scenarios.md). Supply the captured full Page models through `--pages` when preparing and checking the review. Each Page's source reconciliation and scene records are required alongside its rule verdicts. Keep earlier failing attempts when merging a newly generated skeleton.
+
 Rules without a deterministic gate need explicit review. Compute the project and current Page accept cards with the reviewer’s own context-local ledger, run the missing reader commands, then check their rules and hard constraints against the source, saved model and opened pixels. Review [copy economy](design/content-review.md#copy-economy) by meaning and placement even when length budgets pass. Global project rules still apply to a scoped Page; unrelated sibling component contracts do not become review work.
 
 At Saved-Page review, read the missing accept-card sections and assess their static/visual portions; retain required runtime/persistence checks as pending in the checkpoint. Acceptance documents mix these evidence types: a static pass cannot pass the whole document. Do not require the final rule-review verifier before Preview.
@@ -60,7 +62,7 @@ After applicable Preview and persistence checks are complete, prepare the final 
 ```sh
 python3 RESOURCE_ROOT/scripts/prepare_plan.py rules PLAN --project --stage accept --ledger ACCEPT_READS
 python3 RESOURCE_ROOT/scripts/prepare_plan.py rules PLAN --page ROUTE --stage accept --ledger ACCEPT_READS
-python3 RESOURCE_ROOT/scripts/prepare_plan.py review-skeleton PLAN --page ROUTE --capture RUN/capture.json --mode independent --output PAGE_REVIEW
+python3 RESOURCE_ROOT/scripts/prepare_plan.py review-skeleton PLAN --page ROUTE --capture RUN/capture.json --pages RUN/pages.json --overview RUN/overview.json --mode independent --output PAGE_REVIEW
 ```
 
 Execute the reader commands emitted by the cards. In the same retained review context, reuse its ledger from Saved-Page review; same-context fallback may also reuse its compose ledger and point `suite.review.ledger` to it. A fresh independent reviewer uses its own ledger and reads all applicable sections, even if the generator supplied a completed ledger. Lost context requires rereading with a fresh ledger. Use `--mode fallback` when appropriate. The skeleton leaves reviewer/reason and every verdict pending. It includes the shared project rules and selected Page rules, binds `checkedState` to the capture's projectId/branchId/sessionId/revision/changeCounter, `checkedPlanSha256` to the complete plan, and each rule's `sha256` to current bytes. Fill only observed results: `pass` needs evidence, `fail` preserves its finding, and `notApplicable` needs a specific scope reason. Preserve each hard constraint’s exact text/order and record its verdict. For claims already established by applicable gates on the same inputs, cite the existing report path and check identifier rather than rewriting its evidence or recapturing it. Review remaining source, semantic, visual and runtime obligations directly; a gate covers only its declared checks. A document exemption cannot dismiss a failed or pending constraint supplied under it.
@@ -68,7 +70,7 @@ Execute the reader commands emitted by the cards. In the same retained review co
 Then validate the completed review against the same capture:
 
 ```sh
-python3 RESOURCE_ROOT/scripts/verify_review.py PLAN --page ROUTE --capture RUN/capture.json --ledger ACCEPT_READS --review PAGE_REVIEW
+python3 RESOURCE_ROOT/scripts/verify_review.py PLAN --page ROUTE --capture RUN/capture.json --pages RUN/pages.json --overview RUN/overview.json --ledger ACCEPT_READS --review PAGE_REVIEW
 ```
 
 `verify_all.py --page` runs automatic prerequisites and skips its integrated review gate. The Saved-Page checkpoint still requires the static/visual review above before advancing. The separate command validates final single-Page acceptance after runtime/persistence checks; it cannot validate a partial review. Do not remove sibling Pages from the source plan to prepare a scoped review. A scoped review-skeleton omits sibling verdicts while retaining the complete plan digest. Unresolved placeholders, unknown/duplicate Pages or rules, missing verdicts, failed findings and stale inputs fail validation. `--page` still checks the shared project rules; it does not require sibling Page verdicts.

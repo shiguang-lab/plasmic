@@ -4,8 +4,9 @@ import {
   ApiUser,
   PlayerViewInfo,
   ServerPlayerInfo,
+  UserId,
 } from "@/wab/shared/ApiSchema";
-import { asyncOneAtATime, ensure } from "@/wab/shared/common";
+import { asyncOneAtATime, simpleHash } from "@/wab/shared/common";
 import { isEqual } from "lodash";
 import { subscribeWithSelector } from "zustand/middleware";
 import { shallow } from "zustand/shallow";
@@ -24,10 +25,25 @@ interface AnonPlayerData extends PlayerDataBase {
   readonly user?: undefined;
 }
 export type PlayerData = NormalPlayerData | AnonPlayerData;
+export interface CollaboratorAvatar {
+  // Absent during the grace period, when there is no live player to follow.
+  readonly playerId?: number;
+  readonly user?: Readonly<ApiUser>;
+  readonly color: PlayerData["color"];
+  readonly focused: boolean;
+}
+
 interface MultiplayerState {
   readonly selfId: number;
   readonly playerIds: readonly number[];
   readonly players: ReadonlyMap<number, PlayerData>;
+  readonly avatars: ReadonlyMap<string, CollaboratorAvatar>;
+}
+
+const AVATAR_GRACE_MS = 5_000;
+
+function avatarKey(playerId: number, userId?: UserId) {
+  return userId === undefined ? `anonymous:${playerId}` : `user:${userId}`;
 }
 
 function mergeViewInfo(
@@ -73,12 +89,21 @@ export class MultiplayerCtx {
       selfId: -1,
       playerIds: [],
       players: new Map(),
+      avatars: new Map(),
     })),
   );
   readonly store: Pick<
     typeof this.state,
     "getState" | "getInitialState" | "subscribe"
   > = this.state;
+  private sessions: readonly ServerPlayerInfo[] = [];
+  private readonly users = new Map<UserId, ApiUser>();
+  private readonly avatarTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >();
+  private sessionGeneration = 0;
+
   constructor(private studioCtx: StudioCtx) {}
 
   updateSelfId(id: number) {
@@ -86,15 +111,22 @@ export class MultiplayerCtx {
       if (id === previous.selfId && !previous.players.has(id)) {
         return previous;
       }
-      if (!previous.players.has(id)) {
+      const self = previous.players.get(id);
+      if (!self) {
         return { ...previous, selfId: id };
       }
       const players = new Map(previous.players);
       players.delete(id);
       return {
+        ...previous,
         selfId: id,
         players,
         playerIds: previous.playerIds.filter((playerId) => playerId !== id),
+        avatars: this.updateAvatars(
+          previous.avatars,
+          players,
+          avatarKey(id, self.user?.id),
+        ),
       };
     }, true);
   }
@@ -119,43 +151,80 @@ export class MultiplayerCtx {
     );
   }
 
-  updateSessions = asyncOneAtATime(async (sessions: ServerPlayerInfo[]) => {
-    const initial = this.store.getState();
-    const users = new Map(
-      [...initial.players.values()].flatMap((player) =>
-        player.type === "NormalUser"
-          ? [[player.user.id, player.user] as const]
-          : [],
-      ),
+  async updateSessions(sessions: ServerPlayerInfo[]) {
+    this.sessions = sessions;
+    this.publishSessions();
+    if (sessions.some((player) => this.needsUser(player))) {
+      await this.loadUsers();
+    }
+  }
+
+  clearSessions() {
+    this.sessionGeneration++;
+    this.sessions = [];
+    this.users.clear();
+    this.avatarTimers.forEach((timer) => clearTimeout(timer));
+    this.avatarTimers.clear();
+    this.state.setState(
+      (previous) =>
+        previous.players.size || previous.avatars.size
+          ? {
+              ...previous,
+              playerIds: [],
+              players: new Map(),
+              avatars: new Map(),
+            }
+          : previous,
+      true,
     );
+  }
+
+  private needsUser(player: ServerPlayerInfo) {
+    return (
+      player.type === "NormalUser" &&
+      player.playerId !== this.store.getState().selfId &&
+      !this.users.has(player.userId)
+    );
+  }
+
+  private readonly loadUsers = asyncOneAtATime(async () => {
+    const generation = this.sessionGeneration;
     const missing = [
       ...new Set(
-        sessions.flatMap((player) =>
-          player.playerId !== initial.selfId &&
-          player.type === "NormalUser" &&
-          !users.has(player.userId)
+        this.sessions.flatMap((player) =>
+          player.type === "NormalUser" && this.needsUser(player)
             ? [player.userId]
             : [],
         ),
       ),
     ];
-    if (missing.length) {
-      const response = await this.studioCtx.appCtx.api.getUsersById(missing);
-      response.users.forEach((user) => users.set(user.id, user));
+    if (!missing.length) {
+      return;
     }
+    const response = await this.studioCtx.appCtx.api.getUsersById(missing);
+    if (generation === this.sessionGeneration) {
+      response.users.forEach((user) => this.users.set(user.id, user));
+      this.publishSessions();
+    }
+  }, undefined);
+
+  private publishSessions() {
+    const sessions = this.sessions;
     this.state.setState((previous) => {
       let changed: Map<number, PlayerData> | undefined;
-      const ids = new Set(sessions.map((player) => player.playerId));
+      let avatarsChanged = false;
+      const activeIds = new Set(sessions.map((player) => player.playerId));
       const remove = (id: number) => {
         changed ??= new Map(previous.players);
         changed.delete(id);
+        avatarsChanged = true;
       };
       const put = (id: number, player: PlayerData) => {
         changed ??= new Map(previous.players);
         changed.set(id, player);
       };
       for (const id of previous.playerIds) {
-        if (id === previous.selfId || !ids.has(id)) {
+        if (id === previous.selfId || !activeIds.has(id)) {
           remove(id);
         }
       }
@@ -168,28 +237,42 @@ export class MultiplayerCtx {
           existing?.type === player.type &&
           existing?.user?.id === player.userId;
         if (!sameUser || !existing) {
+          const user =
+            player.type === "NormalUser"
+              ? this.users.get(player.userId)
+              : undefined;
+          if (player.type === "NormalUser" && !user) {
+            // Profile lookup must not delay removal of disconnected cursors.
+            if (existing) {
+              remove(player.playerId);
+            }
+            continue;
+          }
+          const avatar = previous.avatars.get(
+            avatarKey(player.playerId, user?.id),
+          );
+          const colorIndex = user
+            ? Math.abs(simpleHash(user.id)) % PLAYER_COLORS.length
+            : Math.floor(Math.random() * PLAYER_COLORS.length);
           const common = {
-            color:
-              PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
+            color: avatar?.color ?? PLAYER_COLORS[colorIndex],
             viewInfo: mergeViewInfo(undefined, player.viewInfo),
           };
           put(
             player.playerId,
-            player.type === "AnonUser"
-              ? { type: "AnonUser", ...common }
-              : {
-                  type: "NormalUser",
-                  user: ensure(
-                    users.get(player.userId),
-                    "Should have fetched all missing data",
-                  ),
-                  ...common,
-                },
+            user
+              ? { type: "NormalUser", user, ...common }
+              : { type: "AnonUser", ...common },
           );
+          avatarsChanged = true;
         } else {
           const viewInfo = mergeViewInfo(existing.viewInfo, player.viewInfo);
           if (viewInfo !== existing.viewInfo) {
             put(player.playerId, { ...existing, viewInfo });
+            avatarsChanged ||=
+              !!existing.viewInfo !== !!viewInfo ||
+              existing.viewInfo?.arenaInfo?.focused !==
+                viewInfo?.arenaInfo?.focused;
           }
         }
       }
@@ -200,10 +283,67 @@ export class MultiplayerCtx {
       return {
         ...previous,
         players: changed,
+        avatars: avatarsChanged
+          ? this.updateAvatars(previous.avatars, changed)
+          : previous.avatars,
         playerIds: shallow(previous.playerIds, playerIds)
           ? previous.playerIds
           : playerIds,
       };
     }, true);
-  }, undefined);
+  }
+
+  private updateAvatars(
+    previous: MultiplayerState["avatars"],
+    players: MultiplayerState["players"],
+    excludedKey?: string,
+  ): MultiplayerState["avatars"] {
+    // Updating an existing account keeps its position in the toolbar.
+    let changed: Map<string, CollaboratorAvatar> | undefined;
+    const edit = () => (changed ??= new Map(previous));
+    const active = new Set<string>();
+    for (const [playerId, player] of players) {
+      const key = avatarKey(playerId, player.user?.id);
+      if (active.has(key)) {
+        continue;
+      }
+      active.add(key);
+      const avatar = previous.get(key);
+      const focused = player.viewInfo
+        ? !!player.viewInfo.arenaInfo?.focused
+        : (avatar?.focused ?? false);
+      if (avatar?.playerId !== playerId || avatar.focused !== focused) {
+        edit().set(key, {
+          playerId,
+          user: player.user,
+          color: player.color,
+          focused,
+        });
+        clearTimeout(this.avatarTimers.get(key));
+        this.avatarTimers.delete(key);
+      }
+    }
+    for (const [key, avatar] of previous) {
+      if (active.has(key)) {
+        continue;
+      }
+      if (key === excludedKey) {
+        edit().delete(key);
+      } else if (avatar.playerId !== undefined) {
+        edit().set(key, { ...avatar, playerId: undefined });
+        this.avatarTimers.set(
+          key,
+          setTimeout(() => {
+            this.avatarTimers.delete(key);
+            this.state.setState((state) => {
+              const avatars = new Map(state.avatars);
+              avatars.delete(key);
+              return { ...state, avatars };
+            }, true);
+          }, AVATAR_GRACE_MS),
+        );
+      }
+    }
+    return changed ?? previous;
+  }
 }

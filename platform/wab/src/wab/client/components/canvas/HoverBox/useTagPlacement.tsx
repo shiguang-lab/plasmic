@@ -72,32 +72,6 @@ export function useTagPlacement(
       const w = tag.offsetWidth;
       const h = tag.offsetHeight + 5;
       const left = Math.min(0, width * zoom - w);
-      const labelBox = container.getBoundingClientRect();
-      const treeBounds = toolbarBounds.length
-        ? Array.from(
-            container.querySelectorAll<HTMLElement>("[data-canvas-node-tree]"),
-          )
-            .map((element) => {
-              resize.observe(element);
-              return element.getBoundingClientRect();
-            })
-            .filter((rect) => rect.width > 0 && rect.height > 0)
-        : [];
-      const group = {
-        left: Math.min(
-          0,
-          ...treeBounds.map((rect) => rect.left - labelBox.left),
-        ),
-        right: Math.max(
-          w,
-          ...treeBounds.map((rect) => rect.right - labelBox.left),
-        ),
-        top: Math.min(0, ...treeBounds.map((rect) => rect.top - labelBox.top)),
-        bottom: Math.max(
-          h,
-          ...treeBounds.map((rect) => rect.bottom - labelBox.top),
-        ),
-      };
       const candidates = toolbarBounds.length
         ? [
             { left, top: -h },
@@ -105,10 +79,10 @@ export function useTagPlacement(
             // content toolbar overlaps it, stack the label above the toolbar.
             ...toolbarBounds.map((rect) => ({
               left: Math.max(
-                safeBounds.left - bounds.left - group.left,
-                Math.min(left, safeBounds.right - bounds.left - group.right),
+                safeBounds.left - bounds.left,
+                Math.min(left, safeBounds.right - bounds.left - w),
               ),
-              top: rect.top - bounds.top - group.bottom - 8,
+              top: rect.top - bounds.top - h - 8,
             })),
           ]
         : [
@@ -121,16 +95,16 @@ export function useTagPlacement(
         const x = bounds.left + candidate.left;
         const y = bounds.top + candidate.top;
         if (
-          x + group.left < safeBounds.left ||
-          y + group.top < safeBounds.top ||
-          x + group.right > safeBounds.right ||
-          y + group.bottom > safeBounds.bottom ||
+          x < safeBounds.left ||
+          y < safeBounds.top ||
+          x + w > safeBounds.right ||
+          y + h > safeBounds.bottom ||
           toolbarBounds.some((rect) =>
             Box.fromRect({
-              left: x + group.left,
-              top: y + group.top,
-              width: group.right - group.left,
-              height: group.bottom - group.top,
+              left: x,
+              top: y,
+              width: w,
+              height: h,
             }).intersects(
               Box.fromRect({
                 left: rect.left - 4,

@@ -278,10 +278,11 @@ app.whenReady().then(async () => {
     return win.loadURL(url);
   });
   if(isolatedSessions) {
-    win.on("contents-deactivated",contents=>previews?.cancelQueuedFor(contents));
+    win.on("contents-deactivated",contents=>previews?.cancelFor(contents));
     win.on("contents-released",contents=>previews?.cancelFor(contents));
   }
-  previews = createDashboardPreviews({session:ses,studioOrigin:origin,trustedSender:event=>event.sender===win.webContents});
+  previews = createDashboardPreviews({session:ses,studioOrigin:origin,trustedSender:event=>event.sender===win.webContents && (!isolatedSessions || event.sender===win.dashboard?.webContents),
+    waitForEditorExit: signal => isolatedSessions ? win.waitForEditorExit(signal) : undefined});
   await win.loadURL(origin+"/projects");
   report.card = await dashboard();
   const initialDashboard = win.webContents;

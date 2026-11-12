@@ -11,9 +11,9 @@ it("installs nested overlay commands synchronously and preserves the published i
   const changed = vi.fn(); owner.store.subscribe(changed);
   const before = owner.store.getState();
   owner.deferPublication(() => {
-    owner.stackOfParents = true;
-    expect(owner.store.getState().stackOfParents).toBe(true);
-    owner.deferPublication(() => { owner.stackOfParents = false; });
+    owner.commentsOverlay = false;
+    expect(owner.store.getState().commentsOverlay).toBe(false);
+    owner.deferPublication(() => { owner.commentsOverlay = true; });
     expect(changed).not.toHaveBeenCalled();
   });
   expect(owner.store.getState()).toBe(before);
@@ -21,20 +21,18 @@ it("installs nested overlay commands synchronously and preserves the published i
   owner.dispose();
 });
 
-it("publishes actual Studio stack/resize changes after completed model inputs while retaining same-value app effects", async () => {
+it("publishes actual Studio resize changes after completed model inputs while retaining same-value app effects", async () => {
   const { studioCtx: studio } = fakeStudioCtx();
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   const arena = await studio.changeUnsafe(() => studio.addArena("Overlay inputs"));
-  studio.setShowStackOfParents(true);
   const name = studio.modelSnapshots.field(arena, "name");
   const read = vi.fn(() => {
     expect(name.getState()).toBe("Completed overlay inputs");
-    expect(studio.overlayState.store.getState()).toMatchObject({ stackOfParents: false, resizeDragging: true });
+    expect(studio.overlayState.store.getState()).toMatchObject({ resizeDragging: true });
   });
   const stops = [name.subscribe(read), studio.overlayState.store.subscribe(read)];
   try {
     await studio.changeUnsafe(() => {
-      studio.setShowStackOfParents(false);
       studio.isResizeDragging = true;
       arena.name = "Completed overlay inputs";
     });

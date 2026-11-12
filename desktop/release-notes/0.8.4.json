@@ -1,0 +1,7 @@
+{
+  "en": "- Keep the canvas clear of layer name tags. Moving the pointer away from a layer clears its hover outline, and selecting its parent with Shift+Enter reveals the parent in the Layers panel.\n- Make large canvases, project previews and collaboration indicators more responsive.\n- Improve table and search form rendering and expand visual checks for AI-generated designs and code.",
+  "zh-CN": "- 画布不再遮挡图层内容。鼠标移出图层时清除悬停描边，按 Shift+Enter 选择父级时在图层面板中定位父级。\n- 改善大型画布、项目预览和协作状态提示的响应速度。\n- 改进表格和搜索表单的渲染，并扩展 AI 生成设计和代码的视觉检查。",
+  "zh-TW": "- 畫布不再遮擋圖層內容。游標移出圖層時清除懸停外框，按 Shift+Enter 選取上層時在圖層面板中定位。\n- 改善大型畫布、專案預覽和協作狀態提示的回應速度。\n- 改進表格和搜尋表單的繪製，並擴充 AI 產生設計和程式碼的視覺檢查。",
+  "ja": "- キャンバス上のレイヤー名ラベルを非表示にしました。ポインターをレイヤーから外すと枠線が消え、Shift+Enter で親を選択するとレイヤーパネルに表示されます。\n- 大規模なキャンバス、プロジェクトプレビュー、共同編集の表示がよりすばやく反応します。\n- テーブルと検索フォームの描画を改善し、AI が生成したデザインとコードの視覚チェックを拡充しました。",
+  "ko": "- 캔버스의 레이어 이름 태그를 숨겼습니다. 포인터를 레이어 밖으로 옮기면 강조 테두리가 사라지며, Shift+Enter로 상위 레이어를 선택하면 레이어 패널에서 해당 항목을 표시합니다.\n- 대규모 캔버스, 프로젝트 미리보기 및 공동 작업 표시의 응답 속도를 개선했습니다.\n- 표와 검색 양식의 렌더링을 개선하고 AI가 생성한 디자인과 코드의 시각 검사를 확대했습니다."
+}

@@ -48,7 +48,7 @@ Add `references` only for supplied Pen sources (see [Pen evidence](design-refere
 | `model` | Automatic: fresh native validate must return literal valid:true, no errors and exact scoped Page IDs. Retain warnings for review. |
 | `rendering` | Automatic: each Page has a ready, complete full snapshot. Overflow, sticky-cell control overflow/excess width and unloaded images fail; supported horizontal Table scrolling itself is valid. See [rendered inspection](desktop-inspection.md#geometry-and-static-screenshots). |
 | `references` | Required for supplied Pen references: actual MCP layout/image evidence and native-node mappings under [Pen evidence](design-references.md). |
-| `review` | Final full runs integrate this gate; final single-Page acceptance uses separate `verify_review.py --page --capture` after runtime/persistence checks: project and Page accept-card reads, one verdict per rule and per hard constraint, the actual `reviewMode`, current plan/rule digests, and `checkedState` equal to this run's captured projectId/branchId/sessionId/revision/changeCounter; a `fail` or missing verdict fails. The report's `acceptance.ruleReview` states whether the review was independent. See [rule review](review-mode.md#rule-review). |
+| `review` | Final full runs integrate this gate; final single-Page acceptance uses separate `verify_review.py --page --capture --pages --overview` after runtime/persistence checks: project and Page accept-card reads, one verdict per rule and per hard constraint, the actual `reviewMode`, current plan/rule digests, and `checkedState` equal to this run's captured projectId/branchId/sessionId/revision/changeCounter; a `fail` or missing verdict fails. The report's `acceptance.ruleReview` states whether the review was independent. See [rule review](review-mode.md#rule-review). |
 | `shell_height` | Every routed supported shell Page's shell/Layout viewport width and shell/Layout/sidebar viewport height. AppShell owns sizing. See [geometry acceptance](design/layout.md#viewport-shell-height-acceptance). |
 
 Full suites cover every route in the Form, Descriptions and overlay inventories, including empty lists; project-wide `notApplicable` cannot replace them. Model, rendering, structure, page_layout and review cannot be exempted. `shell_height` permits `{"notApplicable":"Reviewed reason and scope"}` only without supported shells. Unsupported libraries/layouts use focused checks and report coverage limits. Page selectors are an exact `path`, unique `name` or `componentUuid`; supplied selectors must agree, with no fuzzy matching or silent fallback.
@@ -70,6 +70,8 @@ Static passes report `acceptance.status:"unverified"`; failures report `"failed"
 For role/state navigation, declare `navigation.roleQuery` (reviewed `state`, `query` and `default`) beside the literal `items`; the structure gate proves only that recognized transform against the inventory, with literal hrefs that have no query or fragment. Other dynamic menus stay statically unverified: report the expression and verify rendered menus and links in Preview.
 
 ## Evidence integrity
+
+The final review checks [visual scenarios](visual-scenarios.md) against the captured full Page models and the plan. Each discovered or declared scene requires its own screenshot analysis and completed issue/repair/retest history. Supply `--pages RUN/pages.json --overview RUN/overview.json` with `--capture` to the review CLI and skeleton generator. The capture binds the exact Page bytes used for scene discovery.
 
 These rules apply to every gate, preflight and review.
 

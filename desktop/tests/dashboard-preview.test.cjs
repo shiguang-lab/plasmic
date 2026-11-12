@@ -15,8 +15,11 @@ const load=Module._load;
 Module._load=function(name,...args){return name==='electron'?{BrowserWindow,app:{isPackaged:false},ipcMain}:load.call(this,name,...args);};
 const {createDashboardPreviews}=require('../src/dashboard-preview.cjs');
 Module._load=load;
+const createPreviews = options => createDashboardPreviews({
+  session: {}, studioOrigin: 'https://studio.test', trustedSender: () => true, waitForEditorExit: () => {}, ...options,
+});
 test('retiring a Dashboard cancels its running and queued previews without cancelling another owner',async()=>{
-  const previews=createDashboardPreviews({session:{},studioOrigin:'https://studio.test',trustedSender:()=>true});
+  const previews=createPreviews();
   const owner=new EventEmitter(),other=new EventEmitter();
   const render=(sender,id)=>handlers.get('desktop:dashboard-preview')({sender},id,'https://studio.test/canvas-preview/index.html',{projectId:'fixture',revision:1},1);
   const first=render(owner,'first'),queued=render(owner,'queued'),next=render(other,'other');
@@ -35,39 +38,42 @@ test('retiring a Dashboard cancels its running and queued previews without cance
   previews.dispose();assert.equal(handlers.size,0);
 });
 
-test('deactivation cancels queued jobs immediately and lets only the running preview finish',async()=>{
+test('opening an editor cancels pending thumbnail admission; returning can try again',async()=>{
   const offset=windows.length;
-  const previews=createDashboardPreviews({session:{},studioOrigin:'https://studio.test',trustedSender:()=>true});
-  const owner=new EventEmitter(),other=new EventEmitter();
-  const render=(sender,id)=>handlers.get('desktop:dashboard-preview')({sender},id,'https://studio.test/canvas-preview/index.html',{projectId:'fixture',revision:1},1);
-  const first=render(owner,'running'),queued=render(owner,'waiting'),next=render(other,'different-owner');
-  const rejectedQueued=assert.rejects(queued,{name:'AbortError'});
+  let admission;
+  const previews = createPreviews({waitForEditorExit: signal => new Promise((resolve, reject) => {
+    admission = {signal, resolve};
+    signal.addEventListener('abort', () => reject(signal.reason), {once: true});
+  })});
+  const owner = new EventEmitter();
+  const render = id => handlers.get('desktop:dashboard-preview')({sender:owner},id,'https://studio.test/canvas-preview/index.html',{projectId:'fixture',revision:1},1);
+  const cancelled = assert.rejects(render('first-return'), {name:'AbortError'});
   await new Promise(setImmediate);
-  assert.equal(windows.length,offset+1);
-  previews.cancelQueuedFor(owner);
-  await rejectedQueued;
-  assert.equal(windows[offset].isDestroyed(),false);
-  assert.equal(windows.length,offset+1);
-  ipcMain.emit('desktop:preview-host-result',{sender:windows[offset].webContents},Buffer.from('cached-image'));
-  assert.deepEqual(await first,new Uint8Array(Buffer.from('cached-image')));
+  assert.equal(windows.length, offset);
+  const first = admission;
+  previews.cancelFor(owner);
+  await cancelled;
+  assert(first.signal.aborted);
+  const result = render('second-return');
   await new Promise(setImmediate);
-  assert.equal(windows[offset].isDestroyed(),true);
-  assert.equal(windows.length,offset+2);
-  ipcMain.emit('desktop:preview-host-result',{sender:windows[offset+1].webContents},Buffer.from('other'));
-  await next;
-  assert.equal(owner.listenerCount('destroyed'),0);
+  assert.notEqual(admission, first);
+  assert.equal(windows.length, offset);
+  admission.resolve();
+  await new Promise(setImmediate);
+  assert.equal(windows.length, offset+1);
+  ipcMain.emit('desktop:preview-host-result',{sender:windows[offset].webContents},Buffer.from('image'));
+  assert.deepEqual(await result, new Uint8Array(Buffer.from('image')));
   previews.dispose();
 });
 
-for(const action of ['destroyed','navigation','account-invalidation']) {test(`hidden running work cancels on ${action}`,async()=>{
+for(const action of ['destroyed','navigation','account-invalidation']) {test(`owned work cancels on ${action}`,async()=>{
   const offset=windows.length;
-  const previews=createDashboardPreviews({session:{},studioOrigin:'https://studio.test',trustedSender:()=>true});
+  const previews=createPreviews();
   const owner=new EventEmitter();
   const render=id=>handlers.get('desktop:dashboard-preview')({sender:owner},id,'https://studio.test/canvas-preview/index.html',{projectId:'fixture',revision:1},1);
   const running=render('retire-running'),queued=render('retire-queued');
   const stopped=Promise.all([assert.rejects(running,{name:'AbortError'}),assert.rejects(queued,{name:'AbortError'})]);
   await new Promise(setImmediate);
-  previews.cancelQueuedFor(owner);
   if(action==='destroyed'){owner.emit('destroyed');}
   else if(action==='navigation'){owner.emit('did-start-navigation',{},'https://studio.test/desktop/sign-in',false,true);}
   else {previews.cancelFor(owner);}
@@ -82,10 +88,10 @@ for(const action of ['destroyed','navigation','account-invalidation']) {test(`hi
 test('a hidden owner can release only its own registered job from its main frame',async()=>{
   const offset=windows.length;
   const owner=new EventEmitter(),other=new EventEmitter();owner.mainFrame={};other.mainFrame={};let active=owner;
-  const previews=createDashboardPreviews({session:{},studioOrigin:'https://studio.test',trustedSender:event=>event.sender===active});
+  const previews=createPreviews({trustedSender:event=>event.sender===active});
   const pending=handlers.get('desktop:dashboard-preview')({sender:owner},'owned-job','https://studio.test/canvas-preview/index.html',{projectId:'fixture',revision:1},1);
   const stopped=assert.rejects(pending,{name:'AbortError'});
-  await new Promise(setImmediate);active=other;previews.cancelQueuedFor(owner);
+  await new Promise(setImmediate);active=other;
   ipcMain.emit('desktop:dashboard-preview-cancel',{sender:other,senderFrame:other.mainFrame},'owned-job');
   ipcMain.emit('desktop:dashboard-preview-cancel',{sender:owner,senderFrame:{}},'owned-job');
   assert.equal(windows[offset].isDestroyed(),false);

@@ -57,7 +57,6 @@ import {
 } from "@/wab/client/utils/tpl-client-utils";
 import {
   swallowingClick,
-  useChanged,
   useConstant,
 } from "@/wab/commons/components/ReactUtil";
 import {
@@ -1849,11 +1848,24 @@ export const ArenaTree = React.memo(function ArenaTree(props: {
     outlineCtx,
   );
 
-  const getKeyIndex = React.useCallback(
-    (key: string) => visibleNodes.findIndex((row) => row.key === key),
-    [visibleNodes],
-  );
-  useRevealOnFocus({ listRef, getKeyIndex, focusedKey });
+  const renaming = useStore(studioCtx.renamingOnPanelStore);
+  const focusedIndex = visibleNodes.findIndex((row) => row.key === focusedKey);
+  const lastRevealedKey = React.useRef<string | undefined>(undefined);
+  React.useLayoutEffect(() => {
+    if (lastRevealedKey.current !== focusedKey) {
+      lastRevealedKey.current = undefined;
+    }
+    const list = listRef.current;
+    if (
+      height > 0 &&
+      list &&
+      focusedIndex >= 0 &&
+      (renaming || lastRevealedKey.current !== focusedKey)
+    ) {
+      list.scrollToItem(focusedIndex, "smart");
+      lastRevealedKey.current = focusedKey;
+    }
+  }, [focusedKey, focusedIndex, height, renaming]);
 
   const itemData: TreeRowItemData = React.useMemo(
     () => ({
@@ -1920,7 +1932,7 @@ class OutlineRowsInput {
     this.metadata = new CanvasViewInputs({ studio, models: world.models, signal: world.lifetime }, (field) => outlineTabFields(world.site, arena, field));
   }
   private sources() {
-    const sources = new Set<CanvasObserverInput | CanvasViewInputs>([this.studio.arenaState.store, this.metadata, this.outline.stateStore, this.studio.selectionStore, this.studio.hoveredViewStore, this.studio.arenaState.viewRegistry.store]);
+    const sources = new Set<CanvasObserverInput | CanvasViewInputs>([this.studio.arenaState.store, this.metadata, this.outline.stateStore, this.studio.selectionStore, this.studio.arenaState.viewRegistry.store]);
     this.outlineSources.clear(); this.outlineSources.add(this.outline.stateStore);
     const mixed = isMixedArena(this.arena);
     const contexts = mixed ? getArenaFrames(this.arena).map((frame) => ({ context: this.outline.getFrameOutline(frame), expanded: this.outline.isFrameExpanded(frame) })) : [{ context: this.outline, expanded: true }];
@@ -2032,35 +2044,6 @@ export function buildVisibleOutlineRows(
     }
   }
   return rows;
-}
-
-/**
- * When a new object is focused, "reveals" it by scrolling to it
- */
-function useRevealOnFocus(opts: {
-  listRef: React.MutableRefObject<FixedSizeList | null>;
-  focusedKey: string | undefined;
-  getKeyIndex: (key: string) => number;
-}) {
-  const { listRef, getKeyIndex, focusedKey } = opts;
-
-  const scrollToKey = React.useCallback(
-    (key: string | undefined) => {
-      if (!key) {
-        return;
-      }
-      if (listRef.current) {
-        const index = getKeyIndex(key);
-        if (index >= 0) {
-          // Ideally we would scroll to "center", but "center" is buggy :-/
-          listRef.current.scrollToItem(index, "smart");
-        }
-      }
-    },
-    [listRef, getKeyIndex],
-  );
-
-  useChanged(focusedKey, scrollToKey);
 }
 
 const TplVisibilityToggle = function TplVisibilityToggle(props: {

@@ -1,4 +1,6 @@
 import copy
+import base64
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -7,8 +9,8 @@ import tempfile
 import unittest
 
 import rules_manifest
-from prepare_plan import project_rules, review_skeleton, rules
-from verify_review import check, plan_digest, rule_digest
+from prepare_plan import project_rules, review_skeleton as native_review_skeleton, rules
+from verify_review import check as native_check, plan_digest, rule_digest
 
 CARD = 'references/libraries/antd_v6/components/card.md'
 STATE = {'projectId': 'project', 'branchId': None, 'sessionId': 's', 'revision': 3, 'changeCounter': 0}
@@ -20,6 +22,51 @@ def plan():
          'purpose': 'SQL editing', 'source': 'PRD SQL 编辑卡'},
         {'nodeName': 'Checks', 'component': 'plasmic-antd6-descriptions', 'role': 'read-only-group',
          'rule': 'references/libraries/antd_v6/components/descriptions.md', 'purpose': 'Check results', 'source': 'PRD 校验规则'}]}
+
+
+def model_readback(root=None):
+    pages = (root or {'pages': [plan()]})['pages']
+    return {'results': [{'type': 'page', 'uuid': 'page-' + str(index), 'name': page['path'],
+                         'pageMeta': {'path': page['path']}, 'baseVariantTplTree': '<div>Static fixture</div>',
+                         'props': [], 'states': [], 'interactions': [], 'variants': [], 'variantGroups': [], 'variantSettings': []}
+                        for index, page in enumerate(pages)]}
+
+
+def project_overview():
+    return {'results': [{'__type': 'Project', 'id': 'project', 'globalVariantGroups': [], 'screenBreakpoints': []}]}
+
+
+def check(pages, ledger, review, capture_state=None, project=True, root=None, readback=None, overview=None):
+    return native_check(pages, ledger, review, capture_state, project, root,
+                        readback if readback is not None else model_readback(root),
+                        overview if overview is not None else project_overview())
+
+
+def review_skeleton(root, capture, mode, page_path=None):
+    return native_review_skeleton(root, capture, mode, page_path, readback=model_readback(root), overview=project_overview())
+
+
+def resolve_visual_review(entry, screenshot, state):
+    entry['sourceCoverage'] = {'reviewed': True, 'sources': ['Fixture requirement'],
+                               'notes': 'The fixture has one static surface and no conditional branches.'}
+    for scenario in entry['visualScenarios']:
+        scenario.update(given='The fixture is loaded', steps=['Open the fixture page'],
+                        expected='The fixture content is visible', attempts=[{
+                            'checkedState': dict(state),
+                            'screenshot': {'path': str(screenshot), 'sha256': hashlib.sha256(screenshot.read_bytes()).hexdigest()},
+                            'analysis': {'layout': 'Content fits the viewport', 'content': 'Required fixture content is visible',
+                                         'controls': 'The fixture has no interactive controls'},
+                            'issues': [], 'repairs': []}])
+
+
+def write_image(path):
+    path.write_bytes(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='))
+
+
+def capture_document(state=STATE, **extra):
+    return {'before': state, 'after': state,
+            'files': {'pages.json': hashlib.sha256(json.dumps(model_readback()).encode()).hexdigest(),
+                      'overview.json': hashlib.sha256(json.dumps(project_overview()).encode()).hexdigest()}, **extra}
 
 
 def constraints(rule, evidence):
@@ -37,8 +84,12 @@ class RuleReviewTests(unittest.TestCase):
         self.project = [read['rule'] for read in project['reads']]
         for read in card['reads'] + project['reads']:
             subprocess.run(read['args'], check=True, capture_output=True)
-        self.screenshot = self.root / 'selector.webp'
-        self.screenshot.write_bytes(b'webp')
+        self.screenshot = self.root / 'selector.png'
+        write_image(self.screenshot)
+        self.pages_path = self.root / 'pages.json'
+        self.pages_path.write_text(json.dumps(model_readback()))
+        self.overview_path = self.root / "overview.json"
+        self.overview_path.write_text(json.dumps(project_overview()))
 
     def test_missing_windows_absolute_evidence_is_not_observed_prose(self):
         from verify_review import evidence_problem
@@ -58,13 +109,14 @@ class RuleReviewTests(unittest.TestCase):
         verdicts = [self.verdict(rule) for rule in self.required]
         for index, change in overrides.items():
             verdicts[int(index)] = {**verdicts[int(index)], **change} if change else None
-        return {'reviewMode': 'independent', 'reviewer': 'review-child-1', 'checkedState': dict(STATE),
-                'checkedPlanSha256': plan_digest({'pages': [plan()]}),
-                'project': {'rules': [self.verdict(rule) for rule in self.project]},
-                'pages': [{'path': '/selector', 'rules': [v for v in verdicts if v]}]}
+        result = review_skeleton({'pages': [plan()]}, capture_document(), 'independent')
+        result.update(reviewer='review-child-1', project={'rules': [self.verdict(rule) for rule in self.project]})
+        result['pages'][0]['rules'] = [v for v in verdicts if v]
+        resolve_visual_review(result['pages'][0], self.screenshot, STATE)
+        return result
 
     def resolved_skeleton(self, mode='independent', root=None, page_path=None):
-        review = review_skeleton(root or {'pages': [plan()]}, {'after': STATE}, mode, page_path)
+        review = review_skeleton(root or {'pages': [plan()]}, capture_document(), mode, page_path)
         review['reviewer' if mode == 'independent' else 'fallbackReason'] = (
             'review-child-1' if mode == 'independent' else 'No delegation tool')
         for scope in [review['project'], *review['pages']]:
@@ -72,6 +124,8 @@ class RuleReviewTests(unittest.TestCase):
                 item.update(verdict='pass', evidence=[str(self.screenshot), 'Observed saved model values'])
                 for constraint in item.get('constraints', []):
                     constraint.update(verdict='pass', evidence='Observed constraint-specific model values')
+        for entry in review['pages']:
+            resolve_visual_review(entry, self.screenshot, STATE)
         return review
 
     def test_complete_review_passes(self):
@@ -81,6 +135,75 @@ class RuleReviewTests(unittest.TestCase):
         result = check([plan()], self.ledger(), self.review(), STATE)
         self.assertTrue(result['passed'], result)
         self.assertEqual(result['reviewMode'], 'independent')
+
+    def test_final_review_requires_saved_models_and_every_hidden_scene(self):
+        review = self.review()
+        missing_model = native_check([plan()], self.ledger(), review, STATE)
+        self.assertFalse(missing_model['passed'])
+        self.assertIn('Saved Page readbacks', json.dumps(missing_model['errors']))
+        readback = model_readback()
+        readback['results'][0]['baseVariantTplTree'] = (
+            '<div id="condition" data-plasmic-name="ConditionalPanel" '
+            'data-visible-if="{{ $state.allowed }}">Restricted details</div>')
+        result = native_check([plan()], self.ledger(), review, STATE, readback=readback)
+        self.assertFalse(result['passed'])
+        self.assertIn('visibility:condition', json.dumps(result['errors']))
+        skeleton = native_review_skeleton({'pages': [plan()]}, capture_document(),
+                                          'independent', readback=readback, overview=project_overview())
+        self.assertEqual({scene['state'] for scene in skeleton['pages'][0]['visualScenarios']},
+                         {'default', 'visible', 'hidden'})
+
+    def test_global_variant_discovery_requires_complete_project_overview(self):
+        review = self.review()
+        result = native_check([plan()], self.ledger(), review, STATE, readback=model_readback())
+        self.assertFalse(result['passed'])
+        self.assertIn('project overview', json.dumps(result['errors']))
+        overview = project_overview()
+        overview['results'][0]['globalVariantGroups'] = [
+            {'__type': 'GlobalVariantGroup', 'uuid': 'theme', 'name': 'Theme',
+             'variants': [{'__type': 'Variant', 'uuid': 'dark', 'name': 'Dark'}]}]
+        result = check([plan()], self.ledger(), review, STATE, overview=overview)
+        self.assertFalse(result['passed'])
+        self.assertIn('dark', json.dumps(result['errors']))
+        overview['results'][0].pop('screenBreakpoints')
+        result = check([plan()], self.ledger(), review, STATE, overview=overview)
+        self.assertFalse(result['passed'])
+        self.assertIn('screenBreakpoints', json.dumps(result['errors']))
+
+    def test_explicit_screen_projection_certifies_a_project_without_breakpoints(self):
+        overview = project_overview()
+        overview['results'][0].pop('screenBreakpoints')
+        overview['read'] = {'fields': ['globalVariantGroups', 'screenBreakpoints']}
+        result = check([plan()], self.ledger(), self.review(), STATE, overview=overview)
+        self.assertTrue(result['passed'], result)
+        overview['read']['fields'] = ['globalVariantGroups']
+        result = check([plan()], self.ledger(), self.review(), STATE, overview=overview)
+        self.assertFalse(result['passed'])
+
+    def test_cli_rejects_changed_page_bytes_for_review_and_skeleton(self):
+        for name, value in (('plan', {'pages': [plan()]}), ('capture', capture_document()),
+                            ('review', self.review())):
+            (self.root / (name + '.json')).write_text(json.dumps(value))
+        changed = model_readback()
+        changed['results'][0]['baseVariantTplTree'] = '<div>Changed after capture</div>'
+        self.pages_path.write_text(json.dumps(changed))
+        common = ['--capture', str(self.root / 'capture.json'), '--pages', str(self.pages_path), '--overview', str(self.overview_path)]
+        commands = [
+            [sys.executable, str(Path(__file__).with_name('verify_review.py')), str(self.root / 'plan.json'),
+             '--ledger', str(self.ledger_path), '--review', str(self.root / 'review.json'), *common],
+            [sys.executable, str(Path(__file__).with_name('prepare_plan.py')), 'review-skeleton',
+             str(self.root / 'plan.json'), '--mode', 'independent', '--output', str(self.root / 'new-review.json'), *common],
+        ]
+        for command in commands:
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('pages bytes differ', result.stdout + result.stderr)
+        self.pages_path.write_text(json.dumps(model_readback()))
+        self.overview_path.write_text(json.dumps({'results': []}))
+        for command in commands:
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('overview bytes differ', result.stdout + result.stderr)
 
     def test_review_cannot_be_reused_after_plan_changes_with_same_rules_and_model(self):
         changed = plan()
@@ -259,7 +382,7 @@ class RuleReviewTests(unittest.TestCase):
         root = {'pages': [plan(), {'path': '/draft', 'pageStructure': '__DECIDE__'}]}
         for mode in ('independent', 'fallback'):
             with self.subTest(mode=mode):
-                skeleton = review_skeleton(root, {'after': STATE, 'pagePath': '/selector'}, mode, '/selector')
+                skeleton = review_skeleton(root, capture_document(pagePath='/selector'), mode, '/selector')
                 self.assertEqual([p['path'] for p in skeleton['pages']], ['/selector'])
                 self.assertEqual(skeleton['checkedPlanSha256'], plan_digest(root))
                 self.assertIn('references/design/layout.md', [r['rule'] for r in skeleton['project']['rules']])
@@ -268,25 +391,25 @@ class RuleReviewTests(unittest.TestCase):
                 self.assertFalse(check(root['pages'], self.ledger(), review, STATE, root=root)['passed'])
         for route in (None, '/draft', '/missing'):
             with self.subTest(route=route), self.assertRaisesRegex(ValueError, 'scope'):
-                review_skeleton(root, {'after': STATE, 'pagePath': '/selector'}, 'independent', route)
+                review_skeleton(root, capture_document(pagePath='/selector'), 'independent', route)
         with self.assertRaisesRegex(ValueError, 'Exactly one'):
-            review_skeleton(root, {'after': STATE}, 'independent', '/missing')
+            review_skeleton(root, capture_document(), 'independent', '/missing')
         with self.assertRaisesRegex(ValueError, 'at least one'):
-            review_skeleton({'pages': []}, {'after': STATE}, 'independent')
+            review_skeleton({'pages': []}, capture_document(), 'independent')
 
     def test_single_page_cli_checks_shared_rules_and_capture_scope(self):
         root = {'pages': [plan(), {'path': '/draft'}]}
-        for name, value in (('plan', root), ('capture', {'after': STATE, 'pagePath': '/selector'})):
+        for name, value in (('plan', root), ('capture', capture_document(pagePath='/selector'))):
             (self.root / (name + '.json')).write_text(json.dumps(value))
         review_path = self.root / 'scoped-review.json'
         prepare = subprocess.run([sys.executable, str(Path(__file__).with_name('prepare_plan.py')),
                                   'review-skeleton', str(self.root / 'plan.json'), '--page', '/selector',
-                                  '--capture', str(self.root / 'capture.json'), '--mode', 'independent',
+                                  '--capture', str(self.root / 'capture.json'), '--pages', str(self.pages_path), '--overview', str(self.overview_path), '--mode', 'independent',
                                   '--output', str(review_path)], capture_output=True, text=True)
         self.assertEqual(prepare.returncode, 0, prepare.stderr)
         self.assertEqual([p['path'] for p in json.loads(review_path.read_text())['pages']], ['/selector'])
         command = [sys.executable, str(Path(__file__).with_name('verify_review.py')), str(self.root / 'plan.json'),
-                   '--ledger', str(self.ledger_path), '--review', str(review_path),
+                   '--ledger', str(self.ledger_path), '--pages', str(self.pages_path), '--overview', str(self.overview_path), '--review', str(review_path),
                    '--capture', str(self.root / 'capture.json')]
         review = self.resolved_skeleton(root=root, page_path='/selector')
         review_path.write_text(json.dumps(review))
@@ -353,12 +476,12 @@ class RuleReviewTests(unittest.TestCase):
                 result = check([], self.ledger(), review, STATE, project=project, root={'pages': [plan()]})
                 self.assertFalse(result['passed'], result)
                 self.assertTrue(any('selected scope is empty' in error['message'] for error in result['errors']))
-        inputs = {'plan': {'pages': [plan()]}, 'review': review, 'capture': {'after': STATE}}
+        inputs = {'plan': {'pages': [plan()]}, 'review': review, 'capture': capture_document()}
         for name, content in inputs.items():
             (self.root / f'{name}.json').write_text(json.dumps(content))
         cli = subprocess.run([sys.executable, str(Path(__file__).with_name('verify_review.py')),
                               str(self.root / 'plan.json'), '--ledger', str(self.ledger_path),
-                              '--review', str(self.root / 'review.json'), '--capture', str(self.root / 'capture.json'),
+                              '--review', str(self.root / 'review.json'), '--pages', str(self.pages_path), '--overview', str(self.overview_path), '--capture', str(self.root / 'capture.json'),
                               '--page', '/not-in-plan'], capture_output=True, text=True)
         self.assertEqual(cli.returncode, 1, cli.stderr)
         self.assertFalse(json.loads(cli.stdout)['passed'])
@@ -369,10 +492,10 @@ class RuleReviewTests(unittest.TestCase):
         (self.root / 'review.json').write_text(json.dumps(review))
         command = [sys.executable, str(Path(__file__).with_name('verify_review.py')),
                    str(self.root / 'plan.json'), '--ledger', str(self.ledger_path),
-                   '--review', str(self.root / 'review.json')]
+                   '--review', str(self.root / 'review.json'), '--pages', str(self.pages_path), '--overview', str(self.overview_path)]
         unbound = subprocess.run(command, capture_output=True, text=True)
-        self.assertEqual(unbound.returncode, 0, unbound.stderr)
-        self.assertIn('no capture supplied', ' '.join(json.loads(unbound.stdout)['notChecked']))
+        self.assertNotEqual(unbound.returncode, 0)
+        self.assertIn('--capture', unbound.stderr)
         for state in (None, {}, {**STATE, 'projectId': ''}, {**STATE, 'branchId': 1},
                       {**STATE, 'revision': True}, {**STATE, 'revision': -1},
                       {**STATE, 'sessionId': ''}, {**STATE, 'changeCounter': True}, {**STATE, 'changeCounter': -1},
@@ -388,7 +511,7 @@ class RuleReviewTests(unittest.TestCase):
                     review_skeleton({'pages': [plan()]}, {'after': state}, 'independent')
         (self.root / 'capture.json').write_text('{}')
         self.assertNotEqual(subprocess.run(command + ['--capture', str(self.root / 'capture.json')], capture_output=True).returncode, 0)
-        (self.root / 'capture.json').write_text(json.dumps({'after': STATE}))
+        (self.root / 'capture.json').write_text(json.dumps(capture_document()))
         bound = subprocess.run(command + ['--capture', str(self.root / 'capture.json')], capture_output=True, text=True)
         self.assertEqual(bound.returncode, 0, bound.stderr)
         self.assertNotIn('no capture supplied', ' '.join(json.loads(bound.stdout)['notChecked']))

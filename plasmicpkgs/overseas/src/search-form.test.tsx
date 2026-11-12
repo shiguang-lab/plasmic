@@ -99,6 +99,16 @@ test("grid reserves actions, respects variable spans and keeps a full-width firs
   });
   assert.equal(searchGrid([12, 18, 6]).rows, 2);
   assert.equal(searchGrid([0, 30, -1]).rows, 3);
+  assert.deepEqual(searchLayout([12, 18, 6], 2, true), {
+    showExpand: true,
+    visibleCount: 2,
+    actionSpan: 6,
+  });
+  assert.deepEqual(searchLayout([0, 30, -1], 2, false), {
+    showExpand: true,
+    visibleCount: 3,
+    actionSpan: 23,
+  });
 });
 
 test("default four-column form keeps three fields and actions on one row; explicit three-column layout remains supported", () => {

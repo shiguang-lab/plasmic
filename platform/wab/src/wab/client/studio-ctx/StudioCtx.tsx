@@ -115,7 +115,7 @@ import {
   postInsertableTemplate,
 } from "@/wab/client/insertable-templates";
 import { PLATFORM } from "@/wab/client/platform";
-import { requestIdleCallbackAsync } from "@/wab/client/requestidlecallback";
+import { clearIdleCallback, requestIdleCallback } from "@/wab/client/requestidlecallback";
 import { plasmicExtensionAvailable } from "@/wab/client/screenshot-util";
 import { scriptExec } from "@/wab/client/script-exec";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
@@ -1618,7 +1618,7 @@ export class StudioCtx extends WithDbCtx {
   private pendingArenaRoute: (() => void) | undefined;
   private readonly pendingArenaViewDisposals: ViewCtx[] = [];
   private readonly pendingNativeFrameResolutions: [ViewCtx, (view: ViewCtx) => void][] = [];
-  private readonly nativeFramePromiseJournal: [ArenaFrame, [Promise<ViewCtx>, (view: ViewCtx) => void]][] = [];
+  private readonly nativeFramePromiseJournal: [ArenaFrame, FrameViewWaiter][] = [];
 
   private runNativeArenaCommand<Result>(command: () => Result): Result {
     const viewport = this.viewportCtx;
@@ -2029,11 +2029,15 @@ export class StudioCtx extends WithDbCtx {
     // to the current viewCtx is not cleared when current viewCtx is being
     // evaluated
     this.viewCtxs.forEach((vc) => {
-      vc.scheduleSync({
-        eval: shouldEvaluate(vc),
-        styles: shouldRestyle(vc),
-        asap: vc === focusedVC,
-      });
+      const needsEval = shouldEvaluate(vc);
+      const needsStyles = shouldRestyle(vc);
+      if (needsEval || needsStyles) {
+        vc.scheduleSync({
+          eval: needsEval,
+          styles: needsStyles,
+          asap: vc === focusedVC,
+        });
+      }
     });
 
     return ok();
@@ -2173,7 +2177,7 @@ export class StudioCtx extends WithDbCtx {
       (async () => {
         // eslint-disable-next-line no-constant-condition
         while (true) {
-          const error = this.canvasLoadStore.getState().error;
+          const error = this.canvasLoadStore.getState().error ?? this.canvasFrameError(this.activeCanvasFrame);
           if (error) { throw new Error(error); }
           if (!this.initialViewportReady) {
             await asyncTimeout(100);
@@ -2184,7 +2188,7 @@ export class StudioCtx extends WithDbCtx {
             while (viewCtx.isStale() && !viewCtx.isDisposed) {
               await asyncTimeout(50);
               await viewCtx.awaitSync();
-              const syncError = this.canvasLoadStore.getState().error;
+              const syncError = this.canvasLoadStore.getState().error ?? this.canvasFrameError(viewCtx.arenaFrame());
               if (syncError) { throw new Error(syncError); }
             }
             if (!viewCtx.isDisposed) {
@@ -2251,11 +2255,10 @@ export class StudioCtx extends WithDbCtx {
     return this.arenaState.viewRegistry.forFrame(frame)?.view;
   }
 
-  private frameToViewCtxPromise = new Map<
-    ArenaFrame,
-    [Promise<ViewCtx>, (vc: ViewCtx) => void]
-  >();
+  private frameToViewCtxPromise = new Map<ArenaFrame, FrameViewWaiter>();
   async awaitViewCtxForFrame(frame: ArenaFrame) {
+    const error = this.canvasFrameError(frame);
+    if (error) { throw new Error(error); }
     const vc = this.tryGetViewCtxForFrame(frame);
     if (vc && !this.nativeArenaDepth) {
       return vc;
@@ -2268,9 +2271,13 @@ export class StudioCtx extends WithDbCtx {
       )[0];
     }
 
-    let resolve;
-    const promise = new Promise<ViewCtx>((res) => (resolve = res));
-    this.frameToViewCtxPromise.set(frame, tuple(promise, resolve));
+    let resolve: (view: ViewCtx) => void = () => undefined;
+    let reject: (error: unknown) => void = () => undefined;
+    const promise = new Promise<ViewCtx>((onResolve, onReject) => {
+      resolve = onResolve;
+      reject = onReject;
+    });
+    this.frameToViewCtxPromise.set(frame, [promise, resolve, reject]);
     return promise;
   }
 
@@ -2401,6 +2408,10 @@ export class StudioCtx extends WithDbCtx {
       clearTimeout(this.selectionPaintTask); this.selectionPaintTask = undefined;
       this.commentsCtx.resetViewSessions();
       this.canvasLoadRequests = [];
+      if (this.canvasLoadStore.getState().frameErrors.size) {
+        this.canvasLoadStore.setState({ frameErrors: new Map() });
+      }
+      this.wakeCanvasLoad?.();
       this.pendingArenaRoute = undefined;
       this.withContentEditorPublication(() => departingViews.forEach((view) => view.contentEditor.exit(false)));
       departingViews.forEach((view) => { if (!view.isDisposed) { view.selection.clear(); } });
@@ -4245,17 +4256,6 @@ export class StudioCtx extends WithDbCtx {
     this.showCommentsOverlay = !this.showCommentsOverlay;
   }
 
-  //
-  // Manage parent stack display
-  //
-  setShowStackOfParents(value: boolean) {
-    this.overlayState.stackOfParents = value;
-  }
-
-  get showStackOfParents() {
-    return this.overlayState.stackOfParents;
-  }
-
   shouldShowArenaFrame = (arenaChild: ArenaChild) => {
     if (!this.isDevMode) {
       return false;
@@ -5728,8 +5728,11 @@ export class StudioCtx extends WithDbCtx {
           this.pendingSavedRevisionNum = undefined;
         }
       },
-      players: (data) =>
-        this.isAtTip && this.multiplayerCtx.updateSessions(data.sessions),
+      players: (data) => {
+        if (this.isAtTip) {
+          spawn(this.multiplayerCtx.updateSessions(data.sessions));
+        }
+      },
       error: (e) => {
         console.log("Error received from socket", e);
       },
@@ -5742,8 +5745,9 @@ export class StudioCtx extends WithDbCtx {
           reason === "io client disconnect"
         ) {
           await this.stopListeningForSocketEvents();
+        } else {
+          await this.multiplayerCtx.updateSessions([]);
         }
-        await this.multiplayerCtx.updateSessions([]);
       },
       publish: async (data: PkgVersionInfoMeta) => {
         if (this.releases.length === 0 || this.releases[0].id !== data.id) {
@@ -5781,6 +5785,7 @@ export class StudioCtx extends WithDbCtx {
     this.viewInfoObserverDispose = undefined;
     this.watchPlayerDispose?.();
     this.watchPlayerDispose = undefined;
+    this.multiplayerCtx.clearSessions();
     await this.appCtx.api.closeSocket();
   }
 
@@ -6874,7 +6879,6 @@ export class StudioCtx extends WithDbCtx {
   private observeSaveInputs() {
     this.saveState.bindTipEffects(() => {
       if (this.alertBannerState.get() !== AlertSpec.Watch) { createDarkMask(this); }
-      spawn(this.multiplayerCtx.updateSessions([]));
       spawn(this.stopListeningForSocketEvents());
     });
     return this.dbCtx().subscribeVersionInputs(() => this.uiEnvironment.sync());
@@ -8682,20 +8686,30 @@ export class StudioCtx extends WithDbCtx {
   }
 
   //
-  // Managing renaming a TPL element (when user presses ctrl+R)
+  // Renaming an artboard or the selected row in Layers.
   //
   readonly renamingFocusedStore = createStore<boolean>(() => false);
   renamingFocused() {
     return this.renamingFocusedStore.getState();
   }
   tryStartRenamingFocused() {
-    if (this.focusedFrame()) {
+    if (
+      this.focusedFrame() ||
+      (isMixedArena(this.currentArena) && isKnownArenaFrame(this.hoverBoxControlledObj))
+    ) {
       this.renamingFocusedStore.setState(true, true);
-    } else {
-      const focusedTpl = this.focusedViewCtx()?.focusedTpl();
-      if (focusedTpl && (isTplNamable(focusedTpl) || isTplSlot(focusedTpl))) {
-        this.renamingFocusedStore.setState(true, true);
-      }
+      return;
+    }
+    const view = this.focusedViewCtx();
+    const focusedTpl = view?.focusedTpl();
+    if (
+      view &&
+      view.focusedTpls().length === 1 &&
+      focusedTpl &&
+      (isTplNamable(focusedTpl) || isTplSlot(focusedTpl))
+    ) {
+      this.switchToTreeTab();
+      this.startRenamingOnPanel();
     }
   }
   endRenamingFocused() {
@@ -8703,7 +8717,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   //
-  // Managing renaming a TPL element (when users uses context menu on tpl-tree panel)
+  // Inline editing in Layers.
   //
   readonly renamingOnPanelStore = createStore<boolean>(() => false);
   renamingOnPanel() {
@@ -9016,21 +9030,6 @@ export class StudioCtx extends WithDbCtx {
     return arena;
   }
 
-  /**
-   * We want to load canvas frames one at a time.  This avoids making the
-   * studio unusable while an arena with lots of artboards first loads,
-   * and also avoids freezing up Chrome when the artboards are app-hosted
-   * on very noisy hosts (like vite, downloading a ton of files per artboard).
-   * Note that when an arena is hidden, Chrome may pause loading those iframes
-   * or running javascript, so we only bother attempting to load artboards
-   * that are for the current arena.
-   *
-   * We are using asynclib.queue a bit differently.  Because
-   * asynclib.queue doesn't let us look through the queue to pick out requests
-   * for the current arena, we keep the requests in a transparent array, and use
-   * the queue just as a mechanism to call our canvas-loading callback whenever a
-   * frame needs to be loaded.
-   */
   readonly canvasLoadStore = createCanvasLoadStore();
 
   reportCanvasLoadError(error: unknown) {
@@ -9040,120 +9039,125 @@ export class StudioCtx extends WithDbCtx {
     this.canvasLoadStore.setState({ error: errorMessage });
   }
 
+  canvasFrameError(frame: ArenaFrame | undefined) {
+    return frame ? this.canvasLoadStore.getState().frameErrors.get(frame.uuid) : undefined;
+  }
+
+  reportCanvasFrameError(frame: ArenaFrame, error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (this.canvasFrameError(frame) === message) { return; }
+    const frameErrors = new Map(this.canvasLoadStore.getState().frameErrors);
+    frameErrors.set(frame.uuid, message);
+    this.canvasLoadStore.setState({ frameErrors });
+    const waiter = this.frameToViewCtxPromise.get(frame);
+    if (waiter) {
+      this.frameToViewCtxPromise.delete(frame);
+      waiter[2](error);
+    }
+    if (this.activeCanvasFrame === frame && !this.loadTimings.has("canvas-revealed")) {
+      this.reportCanvasLoadError(error);
+    } else {
+      logError(error, "Artboard loading failed");
+    }
+  }
+
+  clearCanvasFrameError(frame: ArenaFrame) {
+    const previous = this.canvasLoadStore.getState().frameErrors;
+    if (!previous.has(frame.uuid)) { return; }
+    const frameErrors = new Map(previous);
+    frameErrors.delete(frame.uuid);
+    this.canvasLoadStore.setState({ frameErrors });
+  }
+
   private canvasLoadRequests: CanvasLoadRequest[] = [];
   private canvasLoadingDisposed = false;
+  private wakeCanvasLoad: (() => void) | undefined;
 
+  private requestedActiveCanvas() {
+    const target = this.activeCanvasFrame;
+    return this.canvasLoadRequests.find(
+      (request) => request.arena === this.currentArena && request.frame === target,
+    );
+  }
+
+  // Keep iframe initialization serial. Idle waits and running background
+  // attempts both yield when the user requests a different target.
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   private canvasLoadQueue = asynclib.queue(
     safeCallbackify(async (_: {}) => {
+      const stopped = () => this.canvasLoadingDisposed || !!this.canvasLoadStore.getState().error;
       let waitDone: (() => void) | undefined;
-      while (
-        !this.canvasLoadingDisposed &&
-        !this.canvasLoadStore.getState().error &&
-        this.initialRouteReady &&
+      while (!stopped() && this.initialRouteReady &&
         (!this.activeCanvasReady || !this.initialViewportReady) &&
-        !this.canvasLoadRequests.some(
-          (r) =>
-            r.arena === this.currentArena && r.frame === this.activeCanvasFrame,
-        )
-      ) {
+        !this.canvasFrameError(this.activeCanvasFrame) &&
+        !this.requestedActiveCanvas()) {
         waitDone ??= this.loadTimings.begin("background-canvas-wait");
-        // Recheck the active frame so navigation can load its new target.
         await asyncTimeout(16);
       }
       waitDone?.();
-      if (this.canvasLoadingDisposed || this.canvasLoadStore.getState().error) {
-        return;
-      }
-      const loadNext = async () => {
-        const targetFrame = this.activeCanvasFrame;
-        // Find a request to load for the current arena, or a background arena.
-        // If none, bail; even if there are outstanding load requests, if they are
-        // for other arenas, then their iframes are display:none, and Chrome
-        // may not load them anyway. We will get back to them later when we
-        // switch back to that arena (see switchArena()).
-        const nextRequest =
-          this.canvasLoadRequests.find(
-            (r) => r.arena === this.currentArena && r.frame === targetFrame,
-          ) ??
-          this.canvasLoadRequests.find((r) => r.arena === this.currentArena) ??
-          this.canvasLoadRequests.find(
-            (r) => this.getArenaStatus(r.arena) === "background",
-          );
-        if (!nextRequest) {
-          return;
-        }
-        arrayRemove(this.canvasLoadRequests, nextRequest);
-        const loadDone = this.loadTimings.begin(
-          "frame-initialization",
-          nextRequest.frame.uuid,
-        );
-        this.loadTimings.mark("frame-load-start", nextRequest.frame.uuid);
+      if (stopped()) { return; }
 
-        // We load the canvas frame.  However, it is possible that in the middle
-        // of loading, we switch to a different arena, thus making this iframe
-        // invisible.  When that happens, Chrome may choose to pause loading
-        // the iframe, which means if we `await` the load, we may never finish
-        // (for exampe, load() includes waiting for the wab_body, which may never
-        // come if javascript isn't running!).  Therefore, we kick off a load, but
-        // we also kick of a race between the loading and another promise that keeps
-        // checking if the current request is for a different arena.  If so, then
-        // we have switched arena since loading, and we should just bail on this request.
-        let done = false;
-        await Promise.race([
-          withTimeout(
-            nextRequest.load(),
-            `Unable to load artboard: ${nextRequest.name}`,
-            180_000,
-          )
-            .finally(() => {
-              done = true;
-            })
-            .then(() => {
-              loadDone();
-            }),
-          (async () => {
-            // eslint-disable-next-line no-constant-condition
-            while (true) {
-              await asyncTimeout(100);
-              if (done) {
-                // Great!
-                return "done";
-              }
-              const arenaStatus = this.getArenaStatus(nextRequest.arena);
-              if (arenaStatus !== "visible" && arenaStatus !== "background") {
-                // nextRequest may never finish loading because its iframe is
-                // no longer visible.  Resolve this promise, so that we don't
-                // wait for it forever.
-                console.log(
-                  `StudioCtx: Bailing out of loading ${nextRequest.name}; different arena now`,
-                );
-                return "timeout";
-              }
-            }
-          })(),
-        ]);
-      };
+      const onPriorityChange = () => this.wakeCanvasLoad?.();
+      const stopSelection = this.selectionStore.subscribe(onPriorityChange);
+      const stopArena = this.arenaState.store.subscribe(onPriorityChange);
+      const lifetime = this.arenaState.lifetime();
+      lifetime.addEventListener("abort", onPriorityChange, { once: true });
       try {
-        const targetFrame = this.activeCanvasFrame;
-        if (
-          this.canvasLoadRequests.some(
-            (r) => r.arena === this.currentArena && r.frame === targetFrame,
-          )
-        ) {
-          await loadNext();
-        } else {
-          await requestIdleCallbackAsync(loadNext);
+        if (!this.requestedActiveCanvas()) {
+          await new Promise<void>((resolve) => {
+            const idle = requestIdleCallback(() => resolve());
+            this.wakeCanvasLoad = () => {
+              if (stopped() || lifetime.aborted || this.requestedActiveCanvas()) {
+                clearIdleCallback(idle);
+                resolve();
+              }
+            };
+          });
         }
-      } catch (error) {
-        this.reportCanvasLoadError(error);
+        if (stopped() || lifetime.aborted) { return; }
+        const request = this.requestedActiveCanvas() ??
+          this.canvasLoadRequests.find((item) => item.arena === this.currentArena) ??
+          this.canvasLoadRequests.find((item) => this.getArenaStatus(item.arena) === "background");
+        if (!request) { return; }
+
+        arrayRemove(this.canvasLoadRequests, request);
+        const finish = this.loadTimings.begin("frame-initialization", request.frame.uuid);
+        this.loadTimings.mark("frame-load-start", request.frame.uuid);
+        let cancelled = false;
+        const stopStatus = this.arenaState.statusStore(request.arena).subscribe(onPriorityChange);
+        this.wakeCanvasLoad = () => {
+          if (cancelled || !request.cancel || this.activeCanvasFrame === request.frame) { return; }
+          const status = this.getArenaStatus(request.arena);
+          if (status === "visible" || status === "background") {
+            if (!this.requestedActiveCanvas()) { return; }
+          }
+          cancelled = true;
+          request.cancel(true);
+        };
+        try {
+          await withTimeout(request.load(), `Unable to load artboard: ${request.name}`, 180_000);
+        } catch (error) {
+          if (!cancelled && !lifetime.aborted && !this.canvasLoadingDisposed) {
+            request.cancel?.(false);
+            this.reportCanvasFrameError(request.frame, error);
+          }
+        } finally {
+          finish();
+          stopStatus();
+        }
+      } finally {
+        this.wakeCanvasLoad = undefined;
+        stopSelection();
+        stopArena();
+        lifetime.removeEventListener("abort", onPriorityChange);
       }
     }),
     1,
   );
+
   queueCanvasFrame(request: CanvasLoadRequest) {
     this.canvasLoadRequests.push(request);
-    // Don't care about what we actually store into the canvasLoadQueue
+    this.wakeCanvasLoad?.();
     spawn(this.canvasLoadQueue.push({}));
     return () => {
       const index = this.canvasLoadRequests.indexOf(request);
@@ -9162,14 +9166,11 @@ export class StudioCtx extends WithDbCtx {
       }
     };
   }
+
   drainCanvasFrameForArena(arena: AnyArena) {
-    const canvasRequests = this.canvasLoadRequests.filter(
-      (r) => r.arena === arena,
-    );
+    const canvasRequests = this.canvasLoadRequests.filter((request) => request.arena === arena);
     if (canvasRequests.length > 0) {
-      defer(() => {
-        spawn(this.canvasLoadQueue.push(canvasRequests.map((_) => ({}))));
-      });
+      defer(() => spawn(this.canvasLoadQueue.push(canvasRequests.map(() => ({})))));
     }
   }
 
@@ -9428,10 +9429,13 @@ export interface CopilotInteraction<T = unknown> {
   displayMessage?: string;
 }
 
+type FrameViewWaiter = [Promise<ViewCtx>, (view: ViewCtx) => void, (error: unknown) => void];
+
 interface CanvasLoadRequest {
   arena: AnyArena;
   frame: ArenaFrame;
   load: () => Promise<void>;
+  cancel?: (restart: boolean) => void;
   name: string;
 }
 

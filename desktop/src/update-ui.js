@@ -78,7 +78,7 @@
     #plasmic-desktop-update .update-action:is(:hover,:focus-visible) .update-icon { opacity: 1; transform: none; }
     #plasmic-desktop-update svg { width: 16px; height: 16px; }
     #plasmic-desktop-update:is([data-phase=downloading],[data-phase=downloaded]) .update-icon { opacity: 1; }
-    #plasmic-desktop-update[data-phase=downloaded] .update-action { color: #0285ff; background: color-mix(in srgb, #0285ff 10%, transparent); }
+    #plasmic-desktop-update:is([data-phase=downloading],[data-phase=downloaded]) .update-action { color: #0285ff; background: color-mix(in srgb, #0285ff 10%, transparent); }
     #plasmic-desktop-update .update-tooltip::before { content: ""; position: absolute; top: -4px; left: var(--update-tooltip-arrow-x); width: 8px; height: 8px; background: inherit; transform: translateX(-50%) rotate(45deg); }
     #plasmic-desktop-update[data-tooltip-side=above] .update-tooltip::before { top: auto; bottom: -4px; }
     @keyframes plasmic-update-spin { to { transform: rotate(360deg); } }
@@ -91,6 +91,7 @@
   const button = document.createElement("button");
   button.className = "update-action";
   button.type = "button";
+  button.setAttribute("aria-haspopup", "dialog");
   const icon = document.createElement("span");
   icon.className = "update-icon";
   icon.setAttribute("aria-hidden", "true");
@@ -157,33 +158,19 @@
       installing: t("Saving your design and preparing to install…"),
     };
     const description = states[phase] || t("Check for Updates");
-    tooltip.textContent = description;
-    button.setAttribute("aria-label", description);
-    const busy = ["available", "downloading", "installing"].includes(phase);
-    button.disabled = busy;
-    button.setAttribute("aria-busy", String(busy));
-    icon.innerHTML = ["downloading", "installing"].includes(phase)
-      ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${(progress * 37.7) / 100} 37.7" transform="rotate(-90 8 8)"/>` : `<path class="update-spinner" style="transform-origin:8px 8px" d="M8 2a6 6 0 1 1-6 6"/>`}</svg>`
-      : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="download"><path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/></svg>`;
-    if (phase === "downloading") {
-      control.setAttribute("role", "progressbar");
-      control.setAttribute("tabindex", "0");
-      control.setAttribute("aria-label", description);
-      control.setAttribute("aria-valuemin", "0");
-      control.setAttribute("aria-valuemax", "100");
-      control.setAttribute("aria-valuenow", String(progress));
-    } else {
-      for (const attr of [
-        "role",
-        "tabindex",
-        "aria-label",
-        "aria-valuemin",
-        "aria-valuemax",
-        "aria-valuenow",
-      ]) {
-        control.removeAttribute(attr);
+    if (tooltip.textContent !== description) {
+      tooltip.textContent = description;
+      if (tooltip.matches(":popover-open")) {
+        showTooltip();
       }
     }
+    button.setAttribute("aria-label", description);
+    const busy = ["available", "installing"].includes(phase);
+    button.disabled = busy;
+    button.setAttribute("aria-busy", String(busy));
+    icon.innerHTML = phase === "installing"
+      ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path class="update-spinner" style="transform-origin:8px 8px" d="M8 2a6 6 0 1 1-6 6"/></svg>`
+      : `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-icon="download"><path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/></svg>`;
   };
   async function runCommand(action) {
     if (!isMain) {
@@ -204,7 +191,6 @@
   }
   button.onclick = () => {
     hideTooltip();
-    button.disabled = true;
     void runCommand("open");
   };
   let observedDocument;

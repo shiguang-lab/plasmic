@@ -8,20 +8,35 @@ const ENGINE_PATH = "/canvas-preview/index.html";
 // Renders Dashboard canvas previews in a dedicated offscreen window. Its own
 // renderer process runs model loading, code generation, rendering and
 // capture, so the Dashboard's main thread stays free for input.
-function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
+function createDashboardPreviews({ session, studioOrigin, trustedSender, waitForEditorExit }) {
   const jobs = new Map();
   const owners = new Map();
   let queue = Promise.resolve();
 
   function render(id, src, request, scale) {
     const cancellation = Promise.withResolvers();
-    let cancel = () => cancellation.reject(abortError());
-    let cancelled = false;
-    const job = { started: false, cancel: () => { cancelled = true; cancel(); } };
-    jobs.set(id, job);
-    const work = queue.then(() => {
-      if (cancelled) {throw abortError();}
-      job.started = true;
+    const controller = new AbortController();
+    const { signal } = controller;
+    jobs.set(id, { cancel: () => {
+      const error = abortError();
+      controller.abort(error);
+      cancellation.reject(error);
+    } });
+    const work = queue.then(async () => {
+      signal.throwIfAborted();
+      const timer = setTimeout(() => controller.abort(new Error("Canvas preview timed out")), TIMEOUT_MS);
+      try {
+        await waitForEditorExit(signal);
+        signal.throwIfAborted();
+        return await renderOffscreen();
+      } finally {
+        clearTimeout(timer);
+      }
+    });
+    queue = work.catch(() => {});
+    return Promise.race([work, cancellation.promise]).finally(() => jobs.delete(id));
+
+    function renderOffscreen() {
       return new Promise((resolve, reject) => {
         const win = new BrowserWindow({
           show: false,
@@ -48,7 +63,7 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
         const finish = (error, bytes) => {
           if (settled) {return;}
           settled = true;
-          clearTimeout(timer);
+          signal.removeEventListener("abort", onAbort);
           ipcMain.removeListener("desktop:preview-host-result", onResult);
           ipcMain.removeListener("desktop:preview-host-error", onError);
           // Destroy the whole renderer, including codegen memoization, roots and timers.
@@ -63,8 +78,8 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
           if (event.sender !== contents) {return;}
           finish(new Error(String(message)));
         };
-        const timer = setTimeout(() => finish(new Error("Canvas preview timed out")), TIMEOUT_MS);
-        cancel = () => finish(abortError());
+        const onAbort = () => finish(signal.reason);
+        signal.addEventListener("abort", onAbort, { once: true });
         ipcMain.on("desktop:preview-host-result", onResult);
         ipcMain.on("desktop:preview-host-error", onError);
         contents.setWindowOpenHandler(() => ({ action: "deny" }));
@@ -72,13 +87,11 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
         contents.on("will-attach-webview", (event) => event.preventDefault());
         contents.on("render-process-gone", () => finish(new Error("Canvas preview renderer exited")));
         win.loadURL(studioOrigin + HOST_PATH).then(
-          () => contents.send("desktop:preview-host-start", { src, request }),
+          () => { if (!settled) contents.send("desktop:preview-host-start", { src, request }); },
           () => finish(new Error("Canvas preview failed to load")),
         );
       });
-    });
-    queue = work.catch(() => {});
-    return Promise.race([work, cancellation.promise]).finally(() => jobs.delete(id));
+    }
   }
 
   ipcMain.handle("desktop:dashboard-preview", (event, id, src, request, scale) => {
@@ -113,12 +126,6 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
   };
   ipcMain.on("desktop:dashboard-preview-cancel", onCancel);
   return {
-    cancelQueuedFor(contents) {
-      for (const [id, owner] of owners) {
-        const job = jobs.get(id);
-        if (owner === contents && job && !job.started) {job.cancel();}
-      }
-    },
     cancelFor(contents) {
       for (const [id, owner] of owners) {
         if (owner === contents) {jobs.get(id)?.cancel();}

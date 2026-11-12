@@ -62,6 +62,10 @@ For prototype work, follow the workflow's execution-stage table. Derive observab
 
 Apply the workflow's Design, Saved-Page and Integration review checkpoints through its single review-mode policy: prefer an independent subagent, otherwise perform the same scoped checks in the current conversation and disclose the fallback. Resolve required findings before dependent work; retain runtime/persistence checks as pending until executed. Scope local edits without adding unrelated reviews.
 
+Before final prototype acceptance, follow `references/visual-scenarios.md` for variants, hidden states, conditional entries and panels. Reconcile source scenes with saved-model discovery, enter each required state, inspect its screenshot, retain issue and repair history, and capture the repaired scene again. Final rule review checks every scene against the current saved model and image evidence.
+
+Before final native codegen acceptance, follow `references/codegen/visual-acceptance.md`. Compare paired design and implementation screenshots for every scoped variant, hidden state, conditional entry and panel; retain differences, repairs and fresh implementation captures. Run `verify_codegen_visual.py check` against the captured design and current application sources. Missing scenes, either screenshot, current versions or repair rechecks block visual acceptance; source reconciliation and actual image judgement remain required.
+
 ## Client implementation boundary
 
 Use documented Desktop MCP tools and resolved skill resources. Do not unpack, decompile or inspect Plasmic App/Desktop/Studio internals, packaged dependencies, copied artifacts or equivalent client repository source, including through delegated agents or scripts. Codegen may inspect the target application's source within the user's scope.

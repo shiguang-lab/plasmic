@@ -1,5 +1,4 @@
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
-import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { useEditingTextContext } from "@/wab/client/studio-ctx/editing-text-state";
 import { useAutoOpenedUuid } from "@/wab/client/studio-ctx/auto-open-state";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
@@ -36,7 +35,6 @@ import { InlineAddButton } from "@/wab/client/components/canvas/HoverBox/InlineA
 import { MultiSelectionBox } from "@/wab/client/components/canvas/HoverBox/MultiSelectionBox";
 import { ResponsiveColumnsCanvasControls } from "@/wab/client/components/canvas/HoverBox/ResponsiveColumnsCanvasControls";
 import { SpacingVisualizer } from "@/wab/client/components/canvas/HoverBox/SpacingVisualizer";
-import { StackOfParents } from "@/wab/client/components/canvas/HoverBox/StackOfParents";
 import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { VirtualScrollBar } from "@/wab/client/components/canvas/HoverBox/virtual-scrollbar";
 import {
@@ -54,7 +52,6 @@ import { getContextMenuForFocusedTpl } from "@/wab/client/components/tpl-menu";
 import { LinkButton } from "@/wab/client/components/widgets";
 import { usePlasmicCtx } from "@/wab/client/contexts/StudioContexts";
 import { offsetPxAsUnits } from "@/wab/client/DimManip";
-import { DragMoveManager } from "@/wab/client/Dnd";
 import {
   DragMoveFrameManager,
   FreestyleManipulator,
@@ -64,7 +61,6 @@ import {
   mkFreestyleManipForFocusedFrame,
 } from "@/wab/client/FreestyleManipulator";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { PLATFORM } from "@/wab/client/platform";
 import {
   cssPropsForInvertTransform,
   StudioCtx,
@@ -88,17 +84,9 @@ import {
   maybe,
   spawnWrapper,
 } from "@/wab/shared/common";
-import {
-  isSelectableLocked,
-  Selectable,
-  SQ,
-} from "@/wab/shared/core/selection";
+import { isSelectableLocked } from "@/wab/shared/core/selection";
 import { SlotSelection } from "@/wab/shared/core/slots";
-import {
-  isTplColumns,
-  isTplNodeNamable,
-  isTplTextBlock,
-} from "@/wab/shared/core/tpls";
+import { isTplColumns } from "@/wab/shared/core/tpls";
 import {
   ValComponent,
   ValNode,
@@ -138,7 +126,6 @@ import { ok, Result } from "neverthrow";
 import * as React from "react";
 import { memo, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "react-use";
-import { useHoverIntent } from "react-use-hoverintent";
 
 const HoverBoxInner = memo(HoverBoxInner_);
 
@@ -184,9 +171,7 @@ interface SpacingEdgeDragState {
 let showedToast = false;
 
 function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
-  const dragMoveManager = useRef<
-    DragMoveManager | DragMoveFrameManager | undefined
-  >(undefined);
+  const dragMoveManager = useRef<DragMoveFrameManager | undefined>(undefined);
   const plasmicCtx = usePlasmicCtx();
   const studioCtx = plasmicCtx.studioCtx;
   const leftTabKey = useStore(studioCtx.leftPanelState.store, selectLeftTabKey);
@@ -324,41 +309,15 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   };
 
   const startMove = (e: XDraggableEvent) => {
-    if (viewProps.displayProps?.isComponentPart || (viewCtx && isFixedSlotRoot(viewCtx, viewCtx.focusedTpl()))) {
+    const frame = studioCtx.hoverBoxControlledObj;
+    if (!isKnownArenaFrame(frame) || studioCtx.isPositionManagedFrame(frame)) {
       return;
     }
-    if (studioCtx.showStackOfParents) {
-      studioCtx.setShowStackOfParents(false);
-    }
-
-    const clientPt = new Pt(e.data.initX, e.data.initY);
-    const focusedObjects = studioCtx.hoverBoxControlledObjs;
-    if (focusedObjects.length === 1 && isKnownArenaFrame(focusedObjects[0])) {
-      if (studioCtx.isPositionManagedFrame(focusedObjects[0])) {
-        return;
-      }
-      dragMoveManager.current = new DragMoveFrameManager(
-        studioCtx,
-        focusedObjects[0],
-        clientPt,
-      );
-    } else if (viewCtx && focusedObjects.length > 0) {
-      const filteredFocusedObjects = (focusedObjects as Selectable[]).filter(
-        (obj) => {
-          return (
-            (obj instanceof ValTag ||
-              obj instanceof ValComponent ||
-              obj instanceof ValSlot) &&
-            !isTplTextBlock(obj.tpl.parent)
-          );
-        },
-      );
-      dragMoveManager.current = new DragMoveManager(
-        viewCtx,
-        filteredFocusedObjects as (ValTag | ValComponent | ValSlot)[],
-        clientPt,
-      );
-    }
+    dragMoveManager.current = new DragMoveFrameManager(
+      studioCtx,
+      frame,
+      new Pt(e.data.initX, e.data.initY),
+    );
     if (dragMoveManager.current && dragMoveManager.current.aborted()) {
       dragMoveManager.current = undefined;
     } else {
@@ -380,14 +339,10 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     }
   };
 
-  const stopMove = async (cancelled = false) => {
+  const stopMove = async () => {
     await studioCtx.changeUnsafe(() => {
       if (dragMoveManager.current) {
-        if (dragMoveManager.current instanceof DragMoveManager) {
-          dragMoveManager.current.endDrag(cancelled);
-        } else {
-          dragMoveManager.current.endDrag();
-        }
+        dragMoveManager.current.endDrag();
         dragMoveManager.current = undefined;
       }
       studioCtx.setIsDraggingObject(false);
@@ -401,13 +356,6 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   const controlledObj = studioCtx.hoverBoxControlledObj;
   const controlledTpl =
     controlledObj instanceof ValNode ? controlledObj.tpl : undefined;
-  const nameableItem =
-    state?.isComponentPart ? undefined : controlledObj &&
-    (isKnownArenaFrame(controlledObj)
-      ? controlledObj
-      : controlledTpl && isTplNodeNamable(controlledTpl)
-        ? controlledTpl
-        : undefined);
   const controlledSpacingObj = maybe(viewCtx, (vc) =>
     getControlledSpacingObj(controlledObj, vc),
   );
@@ -456,76 +404,34 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     };
   }, [studioCtx, manipState, dragMoveManager, stopMove, stopResize]);
 
-  const [isEditingLabel, setEditingLabel] = useState(false);
-
-  const tryShowingStackOfParents = () => {
-    const selection = viewCtx?.focusedSelectable();
-    const hasParents =
-      selection &&
-      !!SQ(selection, viewCtx!.valState(), false).parents().toArray().length;
-
-    if (hasParents && !isEditingLabel) {
-      studioCtx.setShowStackOfParents(true);
-    }
-  };
-
-  const onClickNameTag = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (PLATFORM === "osx" ? e.metaKey : e.ctrlKey) {
-      // Show with Cmd+Click [Mac] OR Ctrl+Click [PC]
-      // Current state doesn't matter
-      tryShowingStackOfParents();
-    } else if (studioCtx.showStackOfParents) {
-      // Hide with simple click
-      studioCtx.setShowStackOfParents(false);
-    }
-  };
-
-  const onChangeEditingLabel = (editing: boolean) => {
-    setEditingLabel(editing);
-    studioCtx.setShowStackOfParents(false);
-  };
-
-  const [isHoveringTag, hoverTagRef] = useHoverIntent<HTMLDivElement>({
-    timeout: 0,
-    sensitivity: 10,
-    interval: 100,
-  });
-
+  const frameTagRef = useRef<HTMLDivElement>(null);
+  const shouldShowDimBadge =
+    !isMultiSelection &&
+    (!isKnownArenaFrame(controlledObj) || arenaKind === "mixed") &&
+    !spacingDragState;
+  const showFrameTag = shouldShowDimBadge && isKnownArenaFrame(controlledObj);
   const tagPlacement = useTagPlacement(
-    hoverTagRef,
+    frameTagRef,
     visibleBox?.width || 0,
     viewportZoom,
-    viewCtx,
+    showFrameTag ? viewCtx : undefined,
   );
-
-  useEffect(() => {
-    if (isHoveringTag) {
-      tryShowingStackOfParents();
-    }
-  }, [isHoveringTag]);
-
-  const shouldShowHoverTag =
-    !isMultiSelection &&
-    (!isKnownArenaFrame(nameableItem) ||
-      arenaKind === "mixed") &&
-    !spacingDragState;
-  const shouldShowDimBadge = shouldShowHoverTag;
   // The size badge sits centered below the box. When the name tag has to go
   // below the box too, stack the badge under the tag instead of over it.
   const tagIsBelow =
-    shouldShowHoverTag &&
+    showFrameTag &&
     tagPlacement.visibility === "visible" &&
     typeof tagPlacement.top === "number" &&
     tagPlacement.top > 0;
   const [tagHeight, setTagHeight] = useState(0);
   React.useLayoutEffect(() => {
-    const tag = hoverTagRef.current;
+    const tag = frameTagRef.current;
     if (!tag) { return; }
     const measure = () => setTagHeight(tag.offsetHeight);
     measure();
     const observer = new ResizeObserver(measure); observer.observe(tag);
     return () => observer.disconnect();
-  }, [hoverTagRef, shouldShowHoverTag]);
+  }, [frameTagRef, showFrameTag]);
   const dimsStyle: React.CSSProperties | undefined =
     tagIsBelow && typeof tagPlacement.left === "number"
       ? {
@@ -603,37 +509,33 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     );
                   })()}
 
-                {shouldShowHoverTag && (
+                {showFrameTag && viewCtx && (
                   <div
                     className={styles.hoverBoxTagContainer}
                     style={tagPlacement}
                   >
-                    <StackOfParents hoverTagRef={hoverTagRef} />
                     <XDraggable
-                      nodeRef={hoverTagRef}
+                      nodeRef={frameTagRef}
                       onStart={(e) => startMove(e)}
                       onDrag={(e) => dragMove(e)}
                       onStop={async (e) => {
                         if (!e.data.aborted) {
                           await dragMove(e);
                         }
-                        await stopMove(e.data.aborted);
+                        await stopMove();
                       }}
                     >
                       <div
-                        ref={hoverTagRef}
+                        ref={frameTagRef}
                         className="node-outline-tag"
-                        onClick={onClickNameTag}
                       >
                         {state?.tagName && (
                           <EditableNodeLabel
-                            onChangeEditing={onChangeEditingLabel}
                             studioCtx={studioCtx}
                             viewCtx={viewCtx}
-                            displayName={state?.tagName}
+                            displayName={state.tagName}
                             icon={state?.tagIcon}
-                            nameable={nameableItem}
-                            isRepeated={state.isRepeated}
+                            nameable={controlledObj}
                           />
                         )}
                       </div>
@@ -1073,7 +975,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   )}
               </>
             }
-            {viewCtx && state && !state.isComponentPart && !isMultiSelection && shouldShowHoverTag && (
+            {viewCtx && state && !state.isComponentPart && shouldShowDimBadge && (
               <div
                 className={styles.elementActions}
                 style={{
@@ -1097,7 +999,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 elementWidth={visibleBox?.width}
                 elementHeight={visibleBox?.height}
                 dimensionsBoxWidth={dimsBoxWidth}
-                key={state?.tagUid}
+                key={state?.targetUid}
               />
             )}
           </div>

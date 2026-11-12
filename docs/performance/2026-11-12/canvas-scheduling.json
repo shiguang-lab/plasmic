@@ -1,0 +1,301 @@
+{
+  "date": "2026-11-12",
+  "scope": "Ten-artboard frozen business model, Electron 45.2.1, macOS arm64, no live API writes.",
+  "method": {
+    "normal": "ABBA, three opens per independent process, warm summaries exclude first open. Baseline uses the exact original production source for the five affected modules on the same source paths and with the same build settings. Both builds reuse the same runtime artifacts. Dashboard thumbnail rendering disabled. After each open all ten ViewCtxs are ready and visible. Native saved viewport is checked after the first open.",
+    "memory": "RSS is renderer working set. Peak sum samples at 100 ms and may double count shared pages. Normal RSS is after fitting the overview and waiting 800 ms. In separate ABBA runs, wait an additional five seconds on the second open, take natural RSS, then run CDP GC twice for retention diagnostics.",
+    "controls": "One native run per arm per scenario. Delay Host HTML for an already-started background iframe by 1300 ms, or reject it after 150 ms. Verify the real target DOM and the actual per-artboard retry button."
+  },
+  "normal": [
+    {
+      "id": "a1",
+      "rendererHash": "a01e2f288cca917f329064ac0d6ad231920e672d65048c012419a408f80c782c",
+      "samples": [
+        {
+          "warm": false,
+          "revealMs": 1485.8,
+          "allFramesRenderedMs": 3375.9,
+          "editorRssMiB": 982.8,
+          "peakWorkingSetSumMiB": 1736,
+          "liveBoards": 10
+        },
+        {
+          "warm": true,
+          "revealMs": 1520.1,
+          "allFramesRenderedMs": 3400,
+          "editorRssMiB": 990.5,
+          "peakWorkingSetSumMiB": 1770.4,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        },
+        {
+          "warm": true,
+          "revealMs": 1507.7,
+          "allFramesRenderedMs": 3376,
+          "editorRssMiB": 994.3,
+          "peakWorkingSetSumMiB": 1802.7,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "rendererHash": "c30d7e1b65759b259a065f0e926750ad562a8631505c9fab7004180197a54809",
+      "samples": [
+        {
+          "warm": false,
+          "revealMs": 1499.3,
+          "allFramesRenderedMs": 3449.2,
+          "editorRssMiB": 983.1,
+          "peakWorkingSetSumMiB": 1765.4,
+          "liveBoards": 10
+        },
+        {
+          "warm": true,
+          "revealMs": 1513.6,
+          "allFramesRenderedMs": 3373.6,
+          "editorRssMiB": 1018.9,
+          "peakWorkingSetSumMiB": 1847.6,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        },
+        {
+          "warm": true,
+          "revealMs": 1523.9,
+          "allFramesRenderedMs": 3405.6,
+          "editorRssMiB": 1020,
+          "peakWorkingSetSumMiB": 1807.1,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        }
+      ]
+    },
+    {
+      "id": "b2",
+      "rendererHash": "c30d7e1b65759b259a065f0e926750ad562a8631505c9fab7004180197a54809",
+      "samples": [
+        {
+          "warm": false,
+          "revealMs": 1476.5,
+          "allFramesRenderedMs": 3376.4,
+          "editorRssMiB": 982.9,
+          "peakWorkingSetSumMiB": 1729.8,
+          "liveBoards": 10
+        },
+        {
+          "warm": true,
+          "revealMs": 1538.1,
+          "allFramesRenderedMs": 3385.4,
+          "editorRssMiB": 1018.8,
+          "peakWorkingSetSumMiB": 1804.8,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        },
+        {
+          "warm": true,
+          "revealMs": 1509.2,
+          "allFramesRenderedMs": 3363.3,
+          "editorRssMiB": 1016.3,
+          "peakWorkingSetSumMiB": 1784.7,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        }
+      ]
+    },
+    {
+      "id": "a2",
+      "rendererHash": "a01e2f288cca917f329064ac0d6ad231920e672d65048c012419a408f80c782c",
+      "samples": [
+        {
+          "warm": false,
+          "revealMs": 1499.6,
+          "allFramesRenderedMs": 3395,
+          "editorRssMiB": 981.8,
+          "peakWorkingSetSumMiB": 1736.7,
+          "liveBoards": 10
+        },
+        {
+          "warm": true,
+          "revealMs": 1541.2,
+          "allFramesRenderedMs": 3427.5,
+          "editorRssMiB": 997.4,
+          "peakWorkingSetSumMiB": 1756.5,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        },
+        {
+          "warm": true,
+          "revealMs": 1510,
+          "allFramesRenderedMs": 3370.6,
+          "editorRssMiB": 996.8,
+          "peakWorkingSetSumMiB": 1769.8,
+          "liveBoards": 10,
+          "nativeViewportRestored": true
+        }
+      ]
+    }
+  ],
+  "settled": [
+    {
+      "id": "a1",
+      "rssBeforeGcMiB": 999.9,
+      "rssAfterGcMiB": 819.6,
+      "jsHeapBeforeGcMiB": 421.4,
+      "jsHeapAfterGcMiB": 327.9,
+      "documentsAfterGc": 16,
+      "domNodesAfterGc": 9810
+    },
+    {
+      "id": "b1",
+      "rssBeforeGcMiB": 1023.5,
+      "rssAfterGcMiB": 814.4,
+      "jsHeapBeforeGcMiB": 430.7,
+      "jsHeapAfterGcMiB": 327.9,
+      "documentsAfterGc": 16,
+      "domNodesAfterGc": 9810
+    },
+    {
+      "id": "b2",
+      "rssBeforeGcMiB": 840.4,
+      "rssAfterGcMiB": 758.9,
+      "jsHeapBeforeGcMiB": 420.1,
+      "jsHeapAfterGcMiB": 327.9,
+      "documentsAfterGc": 16,
+      "domNodesAfterGc": 9810
+    },
+    {
+      "id": "a2",
+      "rssBeforeGcMiB": 1000.3,
+      "rssAfterGcMiB": 816.7,
+      "jsHeapBeforeGcMiB": 422.6,
+      "jsHeapAfterGcMiB": 328,
+      "documentsAfterGc": 16,
+      "domNodesAfterGc": 9810
+    }
+  ],
+  "controlled": [
+    {
+      "id": "priority-base-paired",
+      "elapsedMs": 1626.7,
+      "targetRenderedDom": true,
+      "globalError": null,
+      "modelChanges": 0,
+      "events": [
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 596.1
+        },
+        {
+          "event": "held",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 603.5
+        },
+        {
+          "event": "host released",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 1904.4
+        },
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame9",
+          "offsetMs": 2025.3
+        }
+      ]
+    },
+    {
+      "id": "priority-new",
+      "elapsedMs": 404.9,
+      "targetRenderedDom": true,
+      "globalError": null,
+      "modelChanges": 0,
+      "events": [
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 700.7
+        },
+        {
+          "event": "held",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 704
+        },
+        {
+          "event": "cancel",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 731.1
+        },
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame9",
+          "offsetMs": 762.8
+        }
+      ]
+    },
+    {
+      "id": "failure-base-paired",
+      "elapsedMs": 33.5,
+      "targetRenderedDom": false,
+      "globalError": "Controlled artboard host failure",
+      "modelChanges": 0,
+      "events": [
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 529.7
+        },
+        {
+          "event": "held",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 560.9
+        },
+        {
+          "event": "host released",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 740.9
+        }
+      ]
+    },
+    {
+      "id": "failure-new",
+      "elapsedMs": 417.3,
+      "targetRenderedDom": true,
+      "retrySucceeded": true,
+      "globalError": null,
+      "modelChanges": 0,
+      "events": [
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 586.8
+        },
+        {
+          "event": "held",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 594
+        },
+        {
+          "event": "host released",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 744.2
+        },
+        {
+          "event": "cancel",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 744.4
+        },
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame9",
+          "offsetMs": 782
+        },
+        {
+          "event": "start",
+          "fixtureFrame": "auditFrame1",
+          "offsetMs": 1201.5
+        }
+      ]
+    }
+  ]
+}

@@ -56,16 +56,15 @@
       : phase === "downloaded" ? t("Update {version} is ready. Restart Plasmic to install.", {version})
       : phase === "installing" ? t("Saving your design and preparing to install…")
       : phase === "available" ? t("Preparing update {version}", {version}) : t("Checking for updates…");
-    const icon = phase === "installing" ? '<path d="M8 2a6 6 0 1 1-6 6"/>'
-      : phase === "downloading" ? `<circle cx="8" cy="8" r="6" opacity=".3"/><circle cx="8" cy="8" r="6" stroke-dasharray="${percent*37.7/100} 37.7" transform="rotate(-90 8 8)"/>`
+    const glyph = phase === "installing" ? "spinner" : "download";
+    const icon = glyph === "spinner" ? '<path d="M8 2a6 6 0 1 1-6 6"/>'
       : '<path d="M8 2v8m-3-3 3 3 3-3M3 11v3h10v-3"/>';
     for (const button of [$("capsule-update"), $("card-update")]) {
       button.hidden = !visible;
       button.dataset.phase = phase;
       button.title = description;
       button.setAttribute("aria-label", description);
-      button.setAttribute("aria-busy", String(["checking","available","downloading","installing"].includes(phase)));
-      const glyph = `${phase}:${percent}`;
+      button.setAttribute("aria-busy", String(["checking","available","installing"].includes(phase)));
       if (button.dataset.glyph !== glyph) {
         button.dataset.glyph = glyph;
         button.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;

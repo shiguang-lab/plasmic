@@ -54,7 +54,7 @@ async function fixture(t, html, initial) {
   };
 }
 
-test("dashboard only shows update states and opens ready details without installing", async (t) => {
+test("dashboard opens update details during and after downloads without installing", async (t) => {
   const ui = await fixture(
     t,
     '<header><div><a id="brand">Plasmic</a><span data-desktop-update-slot="header"></span></div><button id="avatar">User</button></header>',
@@ -75,17 +75,20 @@ test("dashboard only shows update states and opens ready details without install
   ]) {
     ui.send({ phase, version: "0.2.0", percent: 42 });
     assert.equal(control.hidden, false);
-    assert.equal(button.disabled, phase !== "downloaded");
+    assert.equal(button.disabled, phase === "available" || phase === "installing");
   }
   ui.send({ phase: "downloading", version: "0.2.0", percent: 72 });
   assert.equal(control.querySelector(".update-tooltip").textContent, "Downloading 0.2.0 · 72%");
   assert.equal(control.querySelector("button").textContent, "");
-  assert.equal(control.querySelectorAll("svg circle").length, 2);
-  ui.send({ phase: "downloaded", version: "0.2.0" });
   assert.equal(control.querySelector("svg").dataset.icon, "download");
   button.click();
   await flush();
   assert.deepEqual(ui.commands, ["status", "open"]);
+  ui.send({ phase: "downloaded", version: "0.2.0" });
+  assert.equal(control.querySelector("svg").dataset.icon, "download");
+  button.click();
+  await flush();
+  assert.deepEqual(ui.commands, ["status", "open", "open"]);
   assert.equal(ui.commands.includes("check"), false);
   assert.equal(ui.commands.includes("install"), false);
 });

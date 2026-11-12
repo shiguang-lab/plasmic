@@ -162,61 +162,48 @@ it("cancels queued Desktop previews and restarts them on Dashboard activation", 
   unmount();expect(stop).toHaveBeenCalledOnce();
 });
 
-it("lets the running Desktop preview finish while hidden, releases its image, and resumes from cache", () => {
-  let active = true;
-  let change: () => void = () => undefined;
+it("lets a scrolled-out Desktop preview finish, releases its image, and resumes from cache", () => {
   vi.stubGlobal("desktopPreview", { render: vi.fn(), cancel: vi.fn() });
-  vi.stubGlobal("desktopNavigation", { isActive: () => active, onActiveChange: (callback: () => void) => { change = callback; return () => undefined; } });
   const { container, unmount } = render(<ProjectPreview userId="user" projectId="p" updatedAt="today" />);
   intersect(true);
   const [, , deliver, start, finish] = mocks.subscribe.mock.calls[0];
   act(() => { deliver(new Blob()); start(); });
   expect(container.querySelector("img")).not.toBeNull();
-  act(() => { active = false; change(); });
+  intersect(false);
   expect(mocks.cancel).not.toHaveBeenCalled();
   expect(URL.revokeObjectURL).toHaveBeenCalledOnce();
   expect(container.querySelector("img")).toBeNull();
-  intersect(false);
-  expect(mocks.cancel).not.toHaveBeenCalled();
   act(() => { deliver(new Blob()); finish(); });
   expect(mocks.cancel).toHaveBeenCalledOnce();
   expect(URL.createObjectURL).toHaveBeenCalledOnce();
   expect(container.querySelector("img")).toBeNull();
   intersect(true);
-  expect(mocks.subscribe).toHaveBeenCalledOnce();
-  act(() => { active = true; change(); });
   expect(mocks.subscribe).toHaveBeenCalledTimes(2);
   unmount();
 });
 
 it("releases a hidden finished refresh even when no replacement image is delivered", () => {
-  let active = true;
-  let change: () => void = () => undefined;
   vi.stubGlobal("desktopPreview", { render: vi.fn(), cancel: vi.fn() });
-  vi.stubGlobal("desktopNavigation", { isActive: () => active, onActiveChange: (callback: () => void) => { change = callback; return () => undefined; } });
   render(<ProjectPreview userId="user" projectId="p" updatedAt="today" />);
   intersect(true);
-  act(() => { mocks.subscribe.mock.calls[0][3](); active = false; change(); });
+  act(() => { mocks.subscribe.mock.calls[0][3](); });
+  intersect(false);
   expect(mocks.cancel).not.toHaveBeenCalled();
   act(() => { mocks.subscribe.mock.calls[0][4](); });
   expect(mocks.cancel).toHaveBeenCalledOnce();
 });
 
 it("cancels running work on account replacement or unmount and ignores retired callbacks", () => {
-  let active = true;
-  let change: () => void = () => undefined;
   vi.stubGlobal("desktopPreview", { render: vi.fn(), cancel: vi.fn() });
-  vi.stubGlobal("desktopNavigation", { isActive: () => active, onActiveChange: (callback: () => void) => { change = callback; return () => undefined; } });
   const { rerender, unmount } = render(<ProjectPreview userId="old" projectId="p" updatedAt="today" />);
   intersect(true);
   const old = mocks.subscribe.mock.calls[0];
-  act(() => { old[3](); active = false; change(); });
+  act(() => { old[3](); });
   rerender(<ProjectPreview userId="new" projectId="p" updatedAt="today" />);
   expect(mocks.cancel).toHaveBeenCalledOnce();
   act(() => { old[2](new Blob()); old[3](); old[4](); });
   expect(URL.createObjectURL).not.toHaveBeenCalled();
   expect(mocks.subscribe).toHaveBeenCalledOnce();
-  act(() => { active = true; change(); });
   intersect(true);
   expect(mocks.subscribe).toHaveBeenCalledTimes(2);
   act(() => { mocks.subscribe.mock.calls[1][3](); });
@@ -235,7 +222,7 @@ it("still cancels a running browser preview when its document becomes hidden", (
   expect(mocks.cancel).toHaveBeenCalledOnce();
 });
 
-it.each(["visibility-first", "activation-first", "intersection-first"])("preserves the one running Desktop job with %s delivery", (order) => {
+it.each(["visibility-first", "activation-first", "intersection-first"])("cancels the running Desktop job on editor entry with %s delivery and resubscribes on return", (order) => {
   let active = true;
   let change: () => void = () => undefined;
   vi.stubGlobal("desktopPreview", { render: vi.fn(), cancel: vi.fn() });
@@ -243,20 +230,24 @@ it.each(["visibility-first", "activation-first", "intersection-first"])("preserv
   const { container } = render(<ProjectPreview userId="user" projectId="p" updatedAt="today" />);
   intersect(true);
   act(() => { mocks.subscribe.mock.calls[0][3](); });
-  const hideDocument = () => {
-    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
-    act(() => { document.dispatchEvent(new Event("visibilitychange")); });
-  };
+  const state = vi.spyOn(document, "visibilityState", "get");
+  const setVisibility = (value: DocumentVisibilityState) => act(() => {
+    state.mockReturnValue(value);
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
   const deactivate = () => act(() => { active = false; change(); });
-  if (order === "visibility-first") { hideDocument(); deactivate(); }
-  else if (order === "activation-first") { deactivate(); hideDocument(); }
-  else { intersect(false); hideDocument(); deactivate(); }
-  expect(mocks.cancel).not.toHaveBeenCalled();
+  if (order === "visibility-first") { setVisibility("hidden"); deactivate(); }
+  else if (order === "activation-first") { deactivate(); setVisibility("hidden"); }
+  else { intersect(false); setVisibility("hidden"); deactivate(); }
+  expect(mocks.cancel).toHaveBeenCalledOnce();
   expect(mocks.subscribe).toHaveBeenCalledOnce();
   act(() => { mocks.subscribe.mock.calls[0][2](new Blob()); mocks.subscribe.mock.calls[0][4](); });
   expect(URL.createObjectURL).not.toHaveBeenCalled();
   expect(container.querySelector("img")).toBeNull();
-  expect(mocks.cancel).toHaveBeenCalledOnce();
+  act(() => { active = true; change(); });
+  setVisibility("visible");
+  intersect(true);
+  expect(mocks.subscribe).toHaveBeenCalledTimes(2);
 });
 
 it("cancels queued Desktop work on minimization and finishes only an already running job", () => {

@@ -187,8 +187,7 @@ test.describe("text-slots", () => {
       await page.waitForTimeout(1000);
       await models.studio.focusFrameRoot(widgetFrame);
       await page.keyboard.press("Enter");
-      const selectionTag = models.studio.frame.locator(".node-outline-tag");
-      await expect(selectionTag).toContainText('Slot Target: "children"');
+      await expect(models.studio.leftPanel.focusedTreeNode).toContainText('Slot Target: "children"');
 
       await models.studio.focusFrameRoot(frame2);
       const frame2root = frame2.contentFrame();

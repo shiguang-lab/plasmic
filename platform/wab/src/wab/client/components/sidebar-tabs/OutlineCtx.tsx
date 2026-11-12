@@ -21,7 +21,6 @@ import {
 } from "@/wab/shared/common";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
-import { isTplAttachedToSite } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { isFixedRootSlot } from "@/wab/client/components/canvas/fixed-slot-root";
 import * as Tpls from "@/wab/shared/core/tpls";
@@ -31,7 +30,7 @@ import {
   summarizeSlotParam,
 } from "@/wab/shared/core/tpls";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
-import { asTpl, asTplOrSlotSelection } from "@/wab/shared/core/vals";
+import { asTplOrSlotSelection } from "@/wab/shared/core/vals";
 import {
   EffectiveVariantSetting,
   getTplComponentActiveVariants,
@@ -169,28 +168,6 @@ export class OutlineCtx {
     return getNodeKeyPath(vc, focusedTplOrSlotSelection);
   };
 
-  hoveredNodeKeyPath = () => {
-    const vc = this.viewCtx();
-    if (!vc) {
-      return [];
-    }
-
-    const hoveredSelectable = vc.hoveredSelectable();
-    if (!hoveredSelectable) {
-      return [];
-    }
-
-    const tplOrSlotSelection = asTplOrSlotSelection(hoveredSelectable);
-    if (!isTplAttachedToSite(this.studioCtx.site, asTpl(tplOrSlotSelection))) {
-      // It is possible that whatever we had been hovering on has been detached
-      // from the tree, but we haven't updated vc.hoveredSelectable() yet because
-      // we're not done evaluating.
-      return [];
-    }
-
-    return getNodeKeyPath(vc, tplOrSlotSelection);
-  };
-
   private disposals: (() => void)[] = [];
 
   constructor(
@@ -230,6 +207,11 @@ export class OutlineCtx {
       subscribeFocusedViewSelection(studioCtx, (state) => state.context, () => this.syncSelection()),
       subscribeStudioArena(studioCtx, (state) => state.current, () => this.syncSelection()),
       studioCtx.subscribeModelChanges(() => this.syncSelection()),
+      studioCtx.renamingOnPanelStore.subscribe((renaming) => {
+        if (renaming) {
+          this.syncSelection(true);
+        }
+      }),
     );
     this.lastFocusedKey = this.focusedNodeKeyPath()[0];
     this.syncSelection();
@@ -237,7 +219,7 @@ export class OutlineCtx {
 
   private lastFocusedKey: OutlineNodeKey | undefined;
   private lastFocusedPath: readonly OutlineNodeKey[] = [];
-  private syncSelection() {
+  private syncSelection(revealSelection = false) {
     const arena = this.studioCtx.currentArena;
       const view = this.studioCtx.focusedViewCtx();
       const state = this.stateStore.getState();
@@ -251,14 +233,15 @@ export class OutlineCtx {
         }
       }
       const path = this.focusedNodeKeyPath();
-      if (!arrayEq(path, this.lastFocusedPath) && path.length) {
+      if (path.length && (revealSelection || !arrayEq(path, this.lastFocusedPath))) {
+        const ancestors = path.slice(1);
         const frame = view?.arenaFrame();
-        if (frame && expandedFrames.get(frame) !== true) {
+        if (frame && (ancestors.length || revealSelection) && expandedFrames.get(frame) !== true) {
           expandedFrames = new Map(expandedFrames).set(frame, true);
         }
-        if (path.some((key) => expanded.get(key) !== true)) {
+        if (ancestors.some((key) => expanded.get(key) !== true)) {
           const next = new Map(expanded);
-          for (const key of path) { next.set(key, true); }
+          for (const key of ancestors) { next.set(key, true); }
           expanded = next;
         }
       }
@@ -267,7 +250,7 @@ export class OutlineCtx {
       const focusChanged = focusedKey !== this.lastFocusedKey;
       this.lastFocusedKey = focusedKey;
       patchOutlineState(this.stateStore, { lastViewedArtboard, expandedFrames, expanded });
-      if (focusChanged && this.hasQuery() && focusedKey && !this.isVisible(focusedKey)) { this.clearQuery(); }
+      if ((focusChanged || revealSelection) && this.hasQuery() && focusedKey && !this.isVisible(focusedKey)) { this.clearQuery(); }
   }
 
   dispose() {
@@ -308,8 +291,7 @@ export class OutlineCtx {
    * - Elements default to closed.
    * - Elements can be manually opened or closed from the outline.
    * - If there's a search query, open all elements.
-   * - If an element is hovered, open all its ancestors (except itself), until unhovered.
-   * - If an element is focused, open all its ancestors and itself, until manually closed.
+   * - If an element is focused, open its ancestors until manually closed.
    */
   isExpanded(key: OutlineNodeKey) {
     if (this.hasQuery()) {
@@ -317,12 +299,6 @@ export class OutlineCtx {
     }
 
     if (key === this.rootNodeKey()) {
-      return true;
-    }
-
-    // Search from index 1 to only open hovered element's ancestors and NOT itself.
-    const isAncestorOfHovered = this.hoveredNodeKeyPath().indexOf(key, 1) >= 1;
-    if (isAncestorOfHovered) {
       return true;
     }
 

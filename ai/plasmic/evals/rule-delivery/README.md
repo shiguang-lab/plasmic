@@ -13,6 +13,11 @@ Grade decisions against these expectations:
 | matching-invalid-values | Reject zero column, oversized span and boolean span even when the plan matches. |
 | one-long-value | Longest-value measurement does not justify a single-column group of mostly short facts; use Item span. |
 | incomplete-reading | Run delivered reader commands, resolve decisions and complete selection preflight/Design review before writes; plan-only is insufficient. |
+| single-tab-block | Remove synonymous headings and the note already conveyed by current/history and validity fields; do not relocate the note to a Tooltip. Preserve export controls, remove obsolete wrappers/spacing, and require per-Tab visual, switching and persistence checks. |
+| distinct-tab-regions | Retain headings distinguishing two business regions under Assets; omit the repeated heading of the one identified profile group, preserving field labels. |
+| explicit-tab-heading | Honor the current user's explicit heading, clear the redundant template title and unnecessary whitespace, preserve controls, and keep unexecuted switching/persistence checks pending. |
+| note-display-necessity | Keep necessary deletion consequences, recovery instructions and upload constraints visible; offer useful nonessential time-zone detail on demand; omit redundant card notes and internal process narration. Use existing purpose/copyTriage/excluded evidence, not a new schema or a Tooltip for redundant prose. |
+| tab-panel-spacing | Set bar-to-first-content to 0px at every level, clearing native 16px/12px and authored offsets through a verified supported styling entry point. Do not guess props or use negative offsets; preserve label click areas/indicator and report a missing contract. Keep the separate confirmed parent gap 8px below the heading. Record an explicitly required 4px exception with its source; measure each layer/state and persistence. |
 
 Also compare both verifier versions against identical synthetic invalid and valid inputs. Keep Agent decisions separate from actual verifier behavior. Retain source/output hashes, grading and unavailable metrics. A single paired batch shares case context within each variant and does not establish general reliability or a live Desktop acceptance result.
 

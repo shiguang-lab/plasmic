@@ -364,7 +364,7 @@ class ManifestAndScaffoldTests(unittest.TestCase):
             ledger = Path(tmp) / 'reads.jsonl'
             card = project_rules(ledger)
             self.assertEqual([r['rule'] for r in card['reads']], sorted(['references/libraries/index.md', 'references/design/page-structure.md', 'references/design/layout.md', 'references/design/naming.md',
-                                                                         'references/design/content-review.md', 'references/design/accessibility.md']))
+                                                                         'references/design/content-review.md', 'references/design/accessibility.md', 'references/visual-scenarios.md']))
             ledger.write_text('')
             report = check({'pages': [{'path': '/records', 'components': []}]}, page_path='/records', reads=load_ledger(ledger))
             self.assertIn('--project', json.dumps(report['errors']))

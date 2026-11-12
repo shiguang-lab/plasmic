@@ -214,6 +214,7 @@ def example(directory):
                       'success': 'Confirmed row changes to 停用; one 已停用 Message appears then dismisses',
                       'failure': 'Row unchanged; one error Message appears then dismisses'}],
         'appContext': {'required': False, 'evidence': ev['scope']},
+        'visualScenarios': [],
         'runtimeCases': [
             case('query', 'Filters', {'keyword': 'REC-025', 'submit': True}, [('REC-025', True), ('REC-001', False)], evidence=ev['query']),
             case('reset', 'Filters', {'keyword': 'REC-025', 'reset': True}, [('REC-001', True)], evidence=ev['query'])],
@@ -310,7 +311,7 @@ def project_rules(ledger, stage='compose', plan=None):
             'next': 'Run every command; ' + follow}
 
 
-def review_skeleton(plan, capture, mode, page_path=None):
+def review_skeleton(plan, capture, mode, page_path=None, readback=None, overview=None):
     """Rule review file with every accept-card rule and hard constraint pending ("__DECIDE__").
 
     Mechanical only: it binds checkedState to the capture and lists what needs a
@@ -318,7 +319,8 @@ def review_skeleton(plan, capture, mode, page_path=None):
     """
     from rules_manifest import PENDING, RESOURCE_ROOT
     from verify_selection import project_reads, required_reads
-    from verify_review import STATE_KEYS, plan_digest, rule_digest, valid_state
+    from verify_review import STATE_KEYS, plan_digest, rule_digest, valid_state, page_models, project_model
+    import verify_visual_scenarios
     if mode not in ('independent', 'fallback'):
         raise ValueError('mode is independent or fallback')
     after = capture.get('after') if isinstance(capture, dict) else None
@@ -330,6 +332,11 @@ def review_skeleton(plan, capture, mode, page_path=None):
     if not pages:
         raise ValueError('Review at least one planned Page')
 
+    models = page_models(readback)
+    project_data = project_model(overview, after)
+    if any(page.get("path") not in models for page in pages):
+        raise ValueError("Every scoped Page requires its complete saved model for visual scenarios")
+
     def entry(rule):
         item = {'rule': rule, 'sha256': rule_digest(rule), 'verdict': PENDING, 'evidence': []}
         found = hard_constraints((RESOURCE_ROOT / rule).read_text(encoding='utf-8'))
@@ -340,7 +347,9 @@ def review_skeleton(plan, capture, mode, page_path=None):
               'checkedState': {key: after[key] for key in STATE_KEYS},
               'checkedPlanSha256': plan_digest(plan),
               'project': {'rules': [entry(rule) for rule in sorted(project_reads('accept', plan))]},
-              'pages': [{'path': page.get('path'), 'rules': [entry(rule) for rule in sorted(required_reads(page, 'accept', plan))]}
+              'pages': [{'path': page.get('path'), 'rules': [entry(rule) for rule in sorted(required_reads(page, 'accept', plan))],
+                         'sourceCoverage': {'reviewed': False, 'sources': [], 'notes': PENDING},
+                         'visualScenarios': verify_visual_scenarios.skeleton(page, models[page['path']], project_data)}
                         for page in pages]}
     return review
 
@@ -671,6 +680,8 @@ def main():
     review.add_argument('plan', type=Path)
     review.add_argument('--page', help='Review shared project rules and only this Page; retain the complete plan digest')
     review.add_argument('--capture', type=Path, required=True, help='Final capture.json from suite or focused MCP collection of the reviewed saved model')
+    review.add_argument('--pages', type=Path, required=True, help='Complete pages.json bound by the capture')
+    review.add_argument('--overview', type=Path, required=True, help='Project overview.json bound by the capture')
     review.add_argument('--mode', choices=('independent', 'fallback'), required=True)
     review.add_argument('--output', type=Path, required=True)
     derive = commands.add_parser('inventories', help='Derive Form/Descriptions/overlay inventories, Slot intents and suite.json from the plan')
@@ -723,13 +734,17 @@ def main():
         elif args.command == 'label-width':
             result = label_widths(json.loads(args.plan.read_text(encoding='utf-8')), args.page)
         elif args.command == 'review-skeleton':
+            from verify_review import captured_file
+            capture = json.loads(args.capture.read_text(encoding='utf-8'))
+            readback = captured_file(capture, args.pages, "pages.json")
+            overview = captured_file(capture, args.overview, "overview.json")
             skeleton = review_skeleton(json.loads(args.plan.read_text(encoding='utf-8')),
-                                       json.loads(args.capture.read_text(encoding='utf-8')), args.mode, args.page)
+                                       capture, args.mode, args.page, readback=readback, overview=overview)
             write_new(args.output, skeleton)
             from verify_selection import pending_pointers
             result = {'output': str(args.output.resolve()), 'pendingVerdicts': sum(1 for _ in pending_pointers(skeleton)),
                       'next': 'After applicable static, Preview and persistence checks, run the accept cards and replace every "__DECIDE__" with its verdict, evidence, '
-                              'reason or finding; validate with verify_review.py --capture and the same --page scope. '
+                              'reason or finding; validate with verify_review.py --capture --pages --overview and the same --page scope. '
                               'For full-project acceptance configure suite review {ledger, results} and rerun verify_all.py'}
         elif args.command == 'inventories':
             result = write_inventories(json.loads(args.plan.read_text(encoding='utf-8')), args.plan, args.output_dir, args.reads, args.page)

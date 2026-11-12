@@ -29,7 +29,7 @@ test.describe("copilot mentions", () => {
   async function addPageWithElement(models: PageModels) {
     await models.studio.createNewPage(PAGE_NAME);
     await models.studio.insertTextNodeWithContent("hello");
-    await models.studio.renameSelectionTag(ELEMENT_NAME);
+    await models.studio.renameTreeNode(ELEMENT_NAME);
   }
 
   test("offers the canvas selections on a bare @", async ({ page, models }) => {
@@ -57,7 +57,7 @@ test.describe("copilot mentions", () => {
 
     // Two selected: counted rather than named, so neither name is on the row.
     await models.studio.insertTextNodeWithContent("world");
-    await models.studio.renameSelectionTag(SECOND_ELEMENT_NAME);
+    await models.studio.renameTreeNode(SECOND_ELEMENT_NAME);
     await models.studio.leftPanel.treeTabButton.click();
     const labels = models.studio.leftPanel.treeLabels;
     await labels.filter({ hasText: ELEMENT_NAME }).click();

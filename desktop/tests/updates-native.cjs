@@ -78,7 +78,11 @@ app
           closed: () => { window.fixtureClosed = (window.fixtureClosed || 0) + 1; },
           onStatus: callback => { window.updateListeners.push(callback); },
           onOpen: callback => { window.updateOpen = callback; },
-          command: async command => { window.commands.push(command); return window.fixtureStatus; },
+          command: async command => {
+            window.commands.push(command);
+            if (command === "open") window.updateOpen(window.fixtureStatus);
+            return window.fixtureStatus;
+          },
         };
       </script><script defer src="${studioOrigin}/renderer-i18n.js"></script><script defer src="${studioOrigin}/update-dialog.js"></script>`
           : ""
@@ -285,23 +289,52 @@ app
       true,
     );
     await evaluate(`document.querySelector(".update-action").blur()`);
-    await evaluate(`document.querySelector(".update-action").click()`);
-    await waitFor('window.commands.at(-1) === "open"');
-    assert.equal(await evaluate(`window.commands.at(-1)`), "open");
     await evaluate(
       `window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 42 }; window.updateStatus(window.fixtureStatus)`,
     );
-    assert.deepEqual(
-      await evaluate(`(() => {
-    const control = document.getElementById("plasmic-desktop-update");
-    return { role: control.getAttribute("role"), percent: control.getAttribute("aria-valuenow"), disabled: control.querySelector("button").disabled, tooltip: control.querySelector(".update-tooltip").textContent };
-  })()`),
-      { role: "progressbar", percent: "42", disabled: true, tooltip: "Downloading 0.0.7 · 42%" },
+    const buttonCenter = await evaluate(`(() => {
+      const { x, y, width, height } = document.querySelector(".update-action").getBoundingClientRect();
+      return { x: Math.round(x + width / 2), y: Math.round(y + height / 2) };
+    })()`);
+    window.webContents.sendInputEvent({ type: "mouseMove", x: 100, y: 100 });
+    window.webContents.sendInputEvent({ type: "mouseMove", ...buttonCenter });
+    await waitFor('document.querySelector(".update-tooltip").matches(":popover-open")');
+    assert.equal(
+      await evaluate('document.querySelector(".update-tooltip").textContent'),
+      "Downloading 0.0.7 · 42%",
     );
+    assert.equal(
+      await evaluate('document.querySelector(".update-action svg").dataset.icon'),
+      "download",
+    );
+    await evaluate(
+      `window.fixtureStatus = { ...window.fixtureStatus, percent: 58 }; window.updateStatus(window.fixtureStatus)`,
+    );
+    assert.equal(
+      await evaluate('document.querySelector(".update-tooltip:popover-open").textContent'),
+      "Downloading 0.0.7 · 58%",
+    );
+    await evaluate('document.querySelector(".update-action").click()');
+    const dialogRoot =
+      'document.getElementById("plasmic-desktop-update-dialog").shadowRoot';
+    await waitFor(`${dialogRoot}.querySelector("dialog").matches(":modal")`);
+    assert.equal(await evaluate('window.commands.at(-1)'), "open");
+    assert.equal(await evaluate(`${dialogRoot}.getElementById("progress").value`), 58);
+    await evaluate(
+      `window.fixtureStatus = { ...window.fixtureStatus, percent: 64 }; window.updateStatus(window.fixtureStatus)`,
+    );
+    assert.equal(await evaluate(`${dialogRoot}.getElementById("progress").value`), 64);
+    assert.equal(await evaluate(`${dialogRoot}.getElementById("percent").textContent`), "64%");
+    await evaluate(`${dialogRoot}.getElementById("secondary").click()`);
+    await evaluate(`document.querySelector(".update-action").click()`);
+    await waitFor(`${dialogRoot}.querySelector("dialog").matches(":modal")`);
+    assert.equal(await evaluate(`${dialogRoot}.getElementById("progress").value`), 64);
+    await evaluate(`${dialogRoot}.getElementById("secondary").click()`);
     await evaluate(
       `window.fixtureStatus = { phase: "downloaded", version: "0.0.7" }; window.updateStatus(window.fixtureStatus); document.querySelector(".update-action").click()`,
     );
     assert.equal(await evaluate(`window.commands.at(-1)`), "open");
+    await evaluate(`${dialogRoot}.getElementById("secondary").click()`);
     for (const phase of ["idle", "current", "checking", "disabled"]) {
       await evaluate(
         `window.updateStatus({ phase: ${JSON.stringify(phase)} })`,
@@ -412,21 +445,17 @@ app
       ),
       false,
     );
-    await editor.executeJavaScript(
-      `document.querySelector(".update-action").click()`,
-    );
-    await waitFor('!document.querySelector(".update-action").disabled', code => editor.executeJavaScript(code));
-    assert.equal(await evaluate(`window.commands.at(-1)`), "open");
     await evaluate(
       `window.fixtureStatus = { phase: "downloading", version: "0.0.7", percent: 67 }; window.updateStatus(window.fixtureStatus)`,
     );
-    await waitFor('document.getElementById("plasmic-desktop-update").getAttribute("aria-valuenow") === "67"', code => editor.executeJavaScript(code));
-    assert.equal(
-      await editor.executeJavaScript(
-        `document.querySelector("#plasmic-desktop-update").getAttribute("aria-valuenow")`,
-      ),
-      "67",
+    await waitFor(
+      'document.querySelector(".update-action").getAttribute("aria-label") === "Downloading 0.0.7 · 67%"',
+      code => editor.executeJavaScript(code),
     );
+    await editor.executeJavaScript('document.querySelector(".update-action").click()');
+    await waitFor(`${dialogRoot}.querySelector("dialog").matches(":modal")`);
+    assert.equal(await evaluate(`${dialogRoot}.getElementById("progress").value`), 67);
+    await evaluate(`${dialogRoot}.getElementById("secondary").click()`);
     // Studio's .dev-env resets text to a fixed dark color. The injected control
     // must use the Studio palette even across that ancestor, including at 0%.
     for (const [text, background] of [
@@ -447,23 +476,24 @@ app
         await evaluate(
           `window.updateStatus({phase:${JSON.stringify(phase)},version:"0.0.7",percent:${percent}})`,
         );
-        await waitFor(`document.getElementById("plasmic-desktop-update").dataset.phase === ${JSON.stringify(phase)} && ${phase === "downloading" ? `document.getElementById("plasmic-desktop-update").getAttribute("aria-valuenow") === "${percent}"` : "true"}`, code => editor.executeJavaScript(code));
+        await waitFor(`document.getElementById("plasmic-desktop-update").dataset.phase === ${JSON.stringify(phase)} && ${phase === "downloading" ? `document.querySelector(".update-action").getAttribute("aria-label") === "Downloading 0.0.7 · ${percent}%"` : "true"}`, code => editor.executeJavaScript(code));
         assert(
           await editor.executeJavaScript(`(() => {
             const control = document.getElementById("plasmic-desktop-update");
             const icon = control.querySelector("svg");
+            const expectedColor = control.dataset.phase === "downloading" ? "rgb(2, 133, 255)" : getComputedStyle(document.querySelector(".studio")).color;
             return !control.hidden && icon.getBoundingClientRect().width === 16 &&
-              getComputedStyle(icon).color === getComputedStyle(document.querySelector(".studio")).color &&
+              getComputedStyle(icon).color === expectedColor &&
               Number(getComputedStyle(control.querySelector(".update-icon")).opacity) >= 0.65;
           })()`),
-          `${phase} at ${percent}% must use the ${text} Studio foreground`,
+          `${phase} at ${percent}% must show the icon in the ${text} Studio theme`,
         );
       }
     }
     await evaluate(
       `window.updateStatus({phase:"downloading",version:"0.0.7",percent:67})`,
     );
-    await waitFor('document.getElementById("plasmic-desktop-update").getAttribute("aria-valuenow") === "67"', code => editor.executeJavaScript(code));
+    await waitFor('document.querySelector(".update-action").getAttribute("aria-label") === "Downloading 0.0.7 · 67%"', code => editor.executeJavaScript(code));
     const commandCount = await evaluate(`window.commands.length`);
     await editor.executeJavaScript(
       `window.parent.postMessage({channel:"plasmic-desktop-update-command",command:"install"},${JSON.stringify(studioOrigin)})`,
