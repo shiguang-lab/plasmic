@@ -407,10 +407,11 @@ class DesktopController {
     if (method === "preview") {
       const diagnostics = { phase: "validation", operationExecuted: false };
       try {
-      const allowed = { open: ["componentUuid", "width", "height"], close: [], back: [], forward: [], refresh: [], state: [], snapshot: ["offset", "limit", "textOffset", "textLimit"], click: ["ref"], hover: ["ref"], fill: ["ref", "value"], select: ["ref", "value"], press: ["ref", "key"], scroll: ["ref", "x", "y"], screenshot: ["fullResolution"], assert: ["checks", "timeoutMs"] };
+      const allowed = { open: ["componentUuid", "width", "height"], close: [], back: [], forward: [], refresh: [], state: [], snapshot: ["scopeRef", "offset", "limit", "textOffset", "textLimit"], click: ["ref"], hover: ["ref"], fill: ["ref", "value"], select: ["ref", "value"], press: ["ref", "key"], scroll: ["ref", "x", "y"], screenshot: ["scopeRef", "fullResolution"], assert: ["scopeRef", "checks", "timeoutMs"] };
       const transition = ["open", "close", "back", "forward", "refresh"].includes(input.action);
       if (!Object.hasOwn(allowed, input.action) || Object.keys(input).some((key) => key !== "action" && !(key === "frameUuid" && !transition) && !allowed[input.action].includes(key))) throw new Error("Invalid parameters for Preview action");
       if (input.frameUuid !== undefined && (typeof input.frameUuid !== "string" || !input.frameUuid.trim())) throw new Error("frameUuid must be a non-empty artboard ID");
+      if (input.scopeRef !== undefined && (typeof input.scopeRef !== "string" || !input.scopeRef.trim())) throw new Error("scopeRef must be a non-empty Preview snapshot ref");
       if (["click", "hover", "fill", "select", "press"].includes(input.action) && !input.ref) throw new Error("Preview interaction requires a current snapshot ref");
       if (["fill", "select"].includes(input.action) && typeof input.value !== "string") throw new Error("Preview input requires a value string");
       if (input.action === "press" && !input.key) throw new Error("Preview press requires key");

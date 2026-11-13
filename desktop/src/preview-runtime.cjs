@@ -48,6 +48,7 @@ function previewError(error, input, diagnostics = {}) {
     context: { ...context, code, operationExecuted, runtimeAvailable,
       canContinueRound: details.canContinueRound ?? (targetFailure ? true : runtimeAvailable === false ? false : null), recovery,
       preview: { action: input.action, ...(input.ref ? { ref: input.ref } : {}),
+        ...(input.scopeRef ? { scopeRef: input.scopeRef } : {}),
         editorContext: diagnostics.editorContext || null, frame: diagnostics.frame || null,
         inputsDispatched: diagnostics.inputsDispatched || [],
         ...(diagnostics.candidateFrames ? { candidateFrames: diagnostics.candidateFrames } : {}),
@@ -73,44 +74,92 @@ async function runtimeCommand(input, documentId, caller, showReadScan) {
     for (let parent = el.parentElement; parent; parent = parent.parentElement) if (getComputedStyle(parent).opacity === "0") return false;
     return true;
   };
-  const inViewport = (el) => {
-    let r = el.getBoundingClientRect();
-    let left = Math.max(0, r.left), right = Math.min(innerWidth, r.right), top = Math.max(0, r.top), bottom = Math.min(innerHeight, r.bottom);
+  const clips = (overflow) => ["hidden", "clip", "auto", "scroll"].includes(overflow);
+  const visibleBounds = (el, rect = el.getBoundingClientRect()) => {
+    const root = document.documentElement;
+    let left = Math.max(0, rect.left), right = Math.min(root.clientWidth || innerWidth, rect.right);
+    let top = Math.max(0, rect.top), bottom = Math.min(root.clientHeight || innerHeight, rect.bottom);
+    const establishesContainingBlock = (style) =>
+      [style.transform, style.perspective, style.filter, style.backdropFilter].some(value => value && value !== "none") ||
+      /\b(layout|paint|strict|content)\b/.test(style.contain) ||
+      /\b(transform|perspective|filter|backdrop-filter)\b/.test(style.willChange);
+    let position = getComputedStyle(el).position;
     for (let parent = el.parentElement; parent; parent = parent.parentElement) {
-      const s = getComputedStyle(parent), b = parent.getBoundingClientRect();
-      if (["hidden", "clip", "auto", "scroll"].includes(s.overflowX)) { left = Math.max(left, b.left); right = Math.min(right, b.right); }
-      if (["hidden", "clip", "auto", "scroll"].includes(s.overflowY)) { top = Math.max(top, b.top); bottom = Math.min(bottom, b.bottom); }
+      const style = getComputedStyle(parent);
+      if (style.display === "contents" || style.display === "inline") continue;
+      if (position === "fixed" && !establishesContainingBlock(style)) continue;
+      if (position === "absolute" && (!style.position || style.position === "static") && !establishesContainingBlock(style)) continue;
+      position = style.position;
+      if (parent === root || (parent === document.body && document.scrollingElement === parent)) continue;
+      const paint = /\b(paint|strict|content)\b/.test(style.contain);
+      const clipX = paint || clips(style.overflowX || style.overflow);
+      const clipY = paint || clips(style.overflowY || style.overflow);
+      if (!clipX && !clipY) continue;
+      const box = parent.getBoundingClientRect();
+      const sx = parent.offsetWidth ? box.width / parent.offsetWidth : 1;
+      const sy = parent.offsetHeight ? box.height / parent.offsetHeight : 1;
+      const x = box.left + parent.clientLeft * sx, y = box.top + parent.clientTop * sy;
+      if (clipX) { left = Math.max(left, x); right = Math.min(right, parent.offsetWidth ? x + parent.clientWidth * sx : box.right); }
+      if (clipY) { top = Math.max(top, y); bottom = Math.min(bottom, parent.offsetHeight ? y + parent.clientHeight * sy : box.bottom); }
     }
-    return right > left && bottom > top;
+    return right > left && bottom > top ? { x: left, y: top, width: right - left, height: bottom - top } : null;
   };
   // Antd's virtual Select puts ARIA options in a zero-size sibling, while its
   // rendered, clickable rows have no role/tabIndex. Bind refs to those rows,
   // scoped to the popup actually owned by an expanded combobox.
   const selectOptions = new Set();
-  for (const control of document.querySelectorAll('[role="combobox"][aria-expanded="true"]')) {
-    const ids = [control.getAttribute("aria-controls"), control.getAttribute("aria-owns")].filter(Boolean).join(" ").split(/\s+/);
-    for (const id of ids) {
-      const list = document.getElementById(id);
-      if (list?.getAttribute("role") !== "listbox") continue;
-      const popup = list.closest(".ant-select-dropdown");
-      for (const option of popup?.querySelectorAll(".ant-select-item-option") || []) selectOptions.add(option);
+  const popupRoles = new Map();
+  const controlledPopups = new Map();
+  const popupRole = (el) => el.getAttribute("role") || (el.tagName === "DIALOG" ? "dialog" : "");
+  const popupKinds = ["dialog", "alertdialog", "menu", "listbox", "tree", "grid"];
+  const readPopupRelations = () => {
+    selectOptions.clear();
+    popupRoles.clear();
+    controlledPopups.clear();
+    for (const control of document.querySelectorAll("[aria-controls], [aria-owns]")) {
+      if (control.getAttribute("aria-expanded") === "false" || !visible(control)) continue;
+      const ids = [control.getAttribute("aria-controls"), control.getAttribute("aria-owns")].filter(Boolean).join(" ").split(/\s+/);
+      for (const id of ids) {
+        const controlled = document.getElementById(id);
+        if (!controlled) continue;
+        const kind = popupRole(controlled);
+        if (!popupKinds.includes(kind)) continue;
+        const antSelect = kind === "listbox" && control.matches('[role="combobox"][aria-expanded="true"]');
+        const dropdown = antSelect ? controlled.closest(".ant-select-dropdown") : null;
+        const popup = dropdown || controlled;
+        if (!visible(popup)) continue;
+        if (dropdown) {
+          for (const option of dropdown.querySelectorAll(".ant-select-item-option")) selectOptions.add(option);
+        }
+        popupRoles.set(popup, kind);
+        if (!controlledPopups.has(control)) controlledPopups.set(control, new Set());
+        controlledPopups.get(control).add(popup);
+      }
     }
-  }
-  const role = (el) => el.getAttribute("role") || (selectOptions.has(el) ? "option" : "") || ({ BUTTON: "button", A: el.hasAttribute("href") ? "link" : "", TEXTAREA: "textbox", SELECT: "combobox", TABLE: "table", TR: "row", TD: "cell", TH: "columnheader", H1: "heading", H2: "heading", H3: "heading", DIALOG: "dialog", OPTION: "option" }[el.tagName]) || (el.tagName === "INPUT" ? ({ checkbox: "checkbox", radio: "radio", number: "spinbutton", button: "button", submit: "button", range: "slider" }[el.type] || "textbox") : "");
+  };
+  const role = (el) => el.getAttribute("role") || popupRoles.get(el) || (selectOptions.has(el) ? "option" : "") || ({ BUTTON: "button", A: el.hasAttribute("href") ? "link" : "", TEXTAREA: "textbox", SELECT: "combobox", TABLE: "table", TR: "row", TD: "cell", TH: "columnheader", H1: "heading", H2: "heading", H3: "heading", DIALOG: "dialog", OPTION: "option" }[el.tagName]) || (el.tagName === "INPUT" ? ({ checkbox: "checkbox", radio: "radio", number: "spinbutton", button: "button", submit: "button", range: "slider" }[el.type] || "textbox") : "");
   const name = (el) => {
     const labelled = (el.getAttribute("aria-labelledby") || "").split(/\s+/).filter(Boolean).map((id) => document.getElementById(id)?.textContent || "").join(" ");
     return (el.getAttribute("aria-label") || labelled || (el.labels ? [...el.labels].map((n) => n.textContent).join(" ") : "") || el.getAttribute("alt") || el.getAttribute("placeholder") || el.getAttribute("title") || (el.matches("input,textarea,select") ? "" : el.innerText || el.textContent) || "").replace(/\s+/g, " ").trim();
   };
   const disabled = (el) => !!el.disabled || el.matches(":disabled") || el.getAttribute("aria-disabled") === "true" || !!el.closest("[inert]");
-  const nodes = () => [...document.body.querySelectorAll("*")].filter(visible);
-  const find = (locator) => nodes().filter((el) => (!locator.role || role(el) === locator.role) && (locator.name === undefined || name(el) === locator.name));
+  const nodes = (scope) => {
+    const descendants = [...(scope ?? document.body).querySelectorAll("*")].filter(visible);
+    return scope ? [scope, ...descendants] : descendants;
+  };
+  const registerRef = (el) => {
+    let ref = store.ids.get(el);
+    if (!ref) { ref = store.id + ":" + (++store.next); store.ids.set(el, ref); }
+    store.nodes.set(ref, el);
+    return ref;
+  };
   let operationExecuted = false, phase = "target-resolution", targetInfo = null;
   const fail = (code, message) => {
     throw Object.assign(new Error(message), { context: { code, runtimeAvailable: true } });
   };
-  const target = () => {
-    const el = store.nodes.get(input.ref);
-    if (!el?.isConnected || !input.ref?.startsWith(store.id + ":")) fail("PREVIEW_TARGET_STALE", "Stale Preview ref; take a new snapshot after navigation or element replacement");
+  const target = (ref) => {
+    const el = store.nodes.get(ref);
+    if (!el?.isConnected || !ref?.startsWith(store.id + ":")) fail("PREVIEW_TARGET_STALE", "Stale Preview ref; take a new snapshot after navigation or element replacement");
     targetInfo = { role: role(el), name: name(el), tag: el.tagName.toLowerCase() };
     if (!visible(el)) fail("PREVIEW_TARGET_HIDDEN", "Preview target is hidden");
     return el;
@@ -126,52 +175,87 @@ async function runtimeCommand(input, documentId, caller, showReadScan) {
       action: "move", element, point: { x: point.x - r.left, y: point.y - r.top }, caller,
     } }));
   };
-  if (showReadScan && ["snapshot", "assert"].includes(input.action)) {
-    dispatchEvent(new CustomEvent("plasmic-preview-read-scan", { detail: { action: "start" } }));
+  try {
+  if (input.action === "screenshot") {
+    const scope = target(input.scopeRef);
+    const crop = visibleBounds(scope);
+    if (!crop) fail("PREVIEW_TARGET_OUTSIDE_VIEWPORT", "The Preview screenshot target is outside the visible viewport");
+    return { scopeRef: input.scopeRef, visibleBounds: crop, target: targetInfo };
   }
   if (input.action === "snapshot") {
-    const all = nodes().filter((el) => role(el) || el.tabIndex >= 0 || ["auto", "scroll"].includes(getComputedStyle(el).overflowY));
+    readPopupRelations();
+    const scope = input.scopeRef === undefined ? undefined : target(input.scopeRef);
+    if (showReadScan) {
+      dispatchEvent(new CustomEvent("plasmic-preview-read-scan", { detail: { action: "start", element: scope } }));
+    }
+    const regions = new Set();
+    const regionRoles = new Set([...popupKinds, "table", "row", "region"]);
+    const all = nodes(scope).filter((el) => {
+      const elementRole = role(el);
+      const style = getComputedStyle(el);
+      const scrollable = [style.overflowX || style.overflow, style.overflowY || style.overflow].some(value => value === "auto" || value === "scroll");
+      if (scrollable || regionRoles.has(elementRole)) regions.add(el);
+      return scrollable || elementRole || el.tabIndex >= 0;
+    });
     const items = all.slice(input.offset || 0, (input.offset || 0) + (input.limit || 40)).map((el) => {
-      let ref = store.ids.get(el);
-      if (!ref) { ref = store.id + ":" + (++store.next); store.ids.set(el, ref); }
-      store.nodes.set(ref, el);
+      const ref = registerRef(el);
+      let region = el.parentElement;
+      while (region && region !== scope && !regions.has(region)) region = region.parentElement;
+      const popupRefs = [...(controlledPopups.get(el) ?? [])].map(registerRef);
       const r = el.getBoundingClientRect();
-      return { ref, role: role(el), name: name(el).slice(0, 180), tag: el.tagName.toLowerCase(), disabled: disabled(el), inViewport: inViewport(el),
+      const clipped = visibleBounds(el, r);
+      return { ref, role: role(el), name: name(el).slice(0, 180), tag: el.tagName.toLowerCase(), disabled: disabled(el), inViewport: !!clipped,
+        ...(region ? { regionRef: registerRef(region) } : {}),
+        ...(popupRefs.length ? { popupRefs } : {}),
         ...(el.matches("input,textarea,select") ? { value: el.type === "password" ? "[redacted]" : String(el.value).slice(0, 512), readOnly: !!el.readOnly, checked: !!el.checked } : {}),
         ...(el.hasAttribute("aria-expanded") ? { expanded: el.getAttribute("aria-expanded") === "true" } : {}),
         bounds: { x: r.x, y: r.y, width: r.width, height: r.height },
+        visibleBounds: clipped,
         ...(el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth ? { scroll: { top: el.scrollTop, left: el.scrollLeft, height: el.scrollHeight, width: el.scrollWidth, clientHeight: el.clientHeight, clientWidth: el.clientWidth } } : {}) };
     });
-    const text = document.body.innerText || "";
+    const text = (scope ?? document.body).innerText || "";
     const start = input.textOffset || 0, end = Math.min(text.length, start + (input.textLimit || 3000));
     const nextOffset = (input.offset || 0) + items.length;
     return { documentId: store.id, viewport: { width: innerWidth, height: innerHeight }, elements: items, total: all.length,
+      ...(scope ? { scopeRef: input.scopeRef } : {}),
       ...(nextOffset < all.length ? { nextOffset } : {}),
       ...(nextOffset < all.length || end < text.length ? {
         continuation: { tool: "preview", arguments: { action: "snapshot", offset: nextOffset,
           limit: input.limit || 40, textOffset: end, textLimit: input.textLimit || 3000,
+          ...(scope ? { scopeRef: input.scopeRef } : {}),
           ...(input.frameUuid ? { frameUuid: input.frameUuid } : {}) } },
       } : {}),
       text: { offset: start, value: text.slice(start, end), total: text.length, ...(end < text.length ? { nextOffset: end } : {}) } };
   }
   if (input.action === "assert") {
-    const evaluate = () => input.checks.map((check) => {
-      const matches = check.role || check.name !== undefined ? find(check) : [];
-      let actual, passed;
-      if (check.kind === "text") { actual = (document.body.innerText || "").includes(check.text); passed = actual === check.present; }
-      else if (check.kind === "count") { actual = matches.length; passed = actual === check.count; }
-      else if (check.kind === "visible") { actual = matches.some(inViewport); passed = actual === check.present; }
-      else if (check.kind === "value") { actual = matches.length === 1 && matches[0].type !== "password" ? String(matches[0].value) : null; passed = actual === check.value; }
-      else throw new Error("Unsupported Preview assertion");
-      return { check, passed, actual };
-    });
+    const evaluate = () => {
+      readPopupRelations();
+      const scope = input.scopeRef === undefined ? undefined : target(input.scopeRef);
+      const candidates = input.checks.some(check => check.kind !== "text") ? nodes(scope) : [];
+      const text = input.checks.some(check => check.kind === "text") ? (scope ?? document.body).innerText || "" : "";
+      return input.checks.map((check) => {
+        const matches = check.kind === "text" ? [] : candidates.filter(el =>
+          role(el) === check.role && (check.name === undefined || name(el) === check.name));
+        let actual, passed, reason;
+        if (check.kind === "text") { actual = text.includes(check.text); passed = actual === check.present; }
+        else if (check.kind === "count") { actual = matches.length; passed = actual === check.count; }
+        else if (check.kind === "visible") { actual = matches.some(el => visibleBounds(el)); passed = actual === check.present; }
+        else if (check.kind === "value") {
+          actual = matches.length === 1 && matches[0].type !== "password" ? String(matches[0].value) : null;
+          passed = actual === check.value;
+          if (!passed) reason = matches.length === 0 ? "no-match" : matches.length > 1 ? "multiple-matches" : actual === null ? "redacted" : "value-mismatch";
+        }
+        else throw new Error("Unsupported Preview assertion");
+        return { check, passed, actual, ...(reason ? { reason, matchCount: matches.length } : {}) };
+      });
+    };
     const deadline = Date.now() + (input.timeoutMs ?? 2000);
     let checks;
     do { checks = evaluate(); if (checks.every((c) => c.passed) || globalThis.__plasmicLive?.getDiagnostics().errors.length || Date.now() >= deadline) break; await new Promise((r) => setTimeout(r, 100)); } while (true);
-    return { passed: checks.every((c) => c.passed), checks };
+    return { passed: checks.every((c) => c.passed), checks, ...(input.scopeRef ? { scopeRef: input.scopeRef } : {}) };
   }
-  try {
-  const el = input.ref ? target() : document.scrollingElement;
+  readPopupRelations();
+  const el = input.ref ? target(input.ref) : document.scrollingElement;
   if (!el) throw new Error("Preview scroll root is unavailable");
   targetInfo ||= { role: role(el), name: name(el), tag: el.tagName.toLowerCase() };
   if (["click", "fill", "select", "press"].includes(input.action) && disabled(el)) fail("PREVIEW_TARGET_DISABLED", "Preview target is disabled");
@@ -217,7 +301,9 @@ async function runtimeCommand(input, documentId, caller, showReadScan) {
   await settle();
   return { performed: input.action, target: targetInfo };
   } catch (error) {
-    dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
+    if (!["snapshot", "assert", "screenshot"].includes(input.action)) {
+      dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
+    }
     const failure = error instanceof Error ? error : new Error(String(error), { cause: error });
     failure.context = { ...failure.context, source: "renderer", phase, operationExecuted,
       target: targetInfo, documentId: store.id };
@@ -280,8 +366,8 @@ async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(300
   return frames[0];
 }
 
-async function viewportRect(frame, viewport, signal, point) {
-  let rect = { x: 0, y: 0, width: viewport.width, height: viewport.height };
+async function viewportRect(frame, viewport, signal, point, crop) {
+  let rect = crop ?? { x: 0, y: 0, width: viewport.width, height: viewport.height };
   for (let child = frame; child.parent; child = child.parent) {
     const index = child.parent.frames.indexOf(child);
     const box = await abortable(signal, () => child.parent.executeJavaScript(`((index, point) => {
@@ -299,7 +385,7 @@ async function viewportRect(frame, viewport, signal, point) {
     if (point) point = { x: box.x + point.x * box.sx, y: box.y + point.y * box.sy };
     rect = { x: box.x + rect.x * box.sx, y: box.y + rect.y * box.sy, width: rect.width * box.sx, height: rect.height * box.sy };
   }
-  return Object.fromEntries(Object.entries(rect).map(([key, value]) => [key, Math.round(value)]));
+  return crop ? rect : Object.fromEntries(Object.entries(rect).map(([key, value]) => [key, Math.round(value)]));
 }
 
 // Screenshot and Island capture can overlap. Keep the feedback hidden until
@@ -378,17 +464,24 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
       if (!frame.isDestroyed?.() && win.webContents.getURL() === originalUrl && win.webContents.mainFrame.framesInSubtree.includes(frame)) throw error;
     }
   };
-  if (input.action === "screenshot") {
+  const screenshot = async (scope) => {
     diagnostics.phase = "geometry";
-    const cssRect = await viewportRect(frame, { width: layout.width, height: layout.height }, signal);
+    const viewport = { width: layout.width, height: layout.height };
+    const cssRect = await viewportRect(frame, viewport, signal, undefined, scope?.visibleBounds);
     const zoom = win.webContents.getZoomFactor();
-    const rect = Object.fromEntries(Object.entries(cssRect).map(([k, v]) => [k, Math.round(v * zoom)]));
+    const x = Math.round(cssRect.x * zoom), y = Math.round(cssRect.y * zoom);
+    const rect = scope ? {
+      x, y,
+      width: Math.max(1, Math.round((cssRect.x + cssRect.width) * zoom) - x),
+      height: Math.max(1, Math.round((cssRect.y + cssRect.height) * zoom) - y),
+    } : { x, y, width: Math.round(cssRect.width * zoom), height: Math.round(cssRect.height * zoom) };
     const bounds = win.window.getContentBounds();
     if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > bounds.width + 1 || rect.y + rect.height > bounds.height + 1) throw new Error("Native Preview is clipped by the App window; reveal the full viewport before recording a screenshot");
     diagnostics.phase = "capture";
     const image = await capturePreviewPage(win, frame, rect, signal);
-    return await finish({ ...await abortable(signal, () => encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })), viewport: { width: layout.width, height: layout.height }, presentationRect: rect });
-  }
+    return await finish({ ...await abortable(signal, () => encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })), ...scope, viewport, presentationRect: rect });
+  };
+  if (input.action === "screenshot" && input.scopeRef === undefined) return await screenshot();
   diagnostics.phase = "dom-command";
   diagnostics.source = "renderer";
   if (["fill", "select", "scroll", "press"].includes(input.action)) diagnostics.operationExecuted = null;
@@ -408,6 +501,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   const result = response.result;
   diagnostics.target = result.target;
   diagnostics.source = "desktop";
+  if (input.action === "screenshot") return await screenshot({ scopeRef: result.scopeRef, visibleBounds: result.visibleBounds });
   if (["fill", "select", "scroll"].includes(input.action)) diagnostics.operationExecuted = true;
   if (["click", "hover"].includes(input.action)) {
     diagnostics.phase = "geometry";
@@ -450,7 +544,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   }
   return await finish(result);
   } catch (error) {
-    void notifyCursor("clear");
+    if (!["snapshot", "assert", "screenshot"].includes(input.action)) void notifyCursor("clear");
     if (!diagnostics.frame) {
       try { diagnostics.candidateFrames = win.webContents.mainFrame?.framesInSubtree?.map(frameIdentity); }
       catch { /* Frame discovery can fail while the WebContents is being destroyed. */ }

@@ -1,0 +1,7 @@
+{
+  "en": "- Support scoped Preview snapshots, screenshots, and assertions with scopeRef.\n- Refine canvas and Preview read feedback with 1 px scan lines, adaptive gradient trails, and clean fade-out transitions.",
+  "zh-CN": "- 支持通过 scopeRef 进行局部 Preview 快照、截图与内容断言。\n- 优化画布与 Preview 读取反馈：采用 1 px 细扫线与自适应渐变拖尾，并在完成时平滑淡出。",
+  "zh-TW": "- 支援透過 scopeRef 進行局部 Preview 快照、螢幕截圖與內容斷言。\n- 最佳化畫布與 Preview 讀取反饋：採用 1 px 細掃線與自適應漸變拖尾，並在完成時平滑淡出。",
+  "ja": "- scopeRef を指定した Preview の範囲スナップショット、スクリーンショット、およびアサーションに対応しました。\n- キャンバスと Preview の読み取りフィードバックを改善し、1px の細いスキャン線、適応型グラデーション、滑らかなフェードアウトを実現しました。",
+  "ko": "- scopeRef를 통한 부분 Preview 스냅샷, 스크린샷 및 어설션을 지원합니다.\n- 캔버스와 Preview 읽기 피드백을 개선하여 1px 미세 스캔 라인, 적응형 그라데이션 및 부드러운 페이드아웃 효과를 적용했습니다."
+}

@@ -19,7 +19,13 @@ app.whenReady().then(async () => {
   server = http.createServer((req, res) => {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     if (req.url.startsWith("/projects/p/preview")) return res.end('<iframe style="border:0;width:800px;height:600px" src="/runtime' + (req.url.includes("hung") ? "?hung" : "") + '#live=true"></iframe>');
-    if (req.url.startsWith("/runtime")) return res.end('<div class="live-root-container" data-plasmic-preview-component="page"><input aria-label="Missing route" oninput="location.href=\'/missing\'"></div>' + (req.url.includes("hung") ? `<script>
+    if (req.url.startsWith("/runtime")) return res.end(`<div class="live-root-container" data-plasmic-preview-component="page">
+      <input aria-label="Missing route" oninput="location.href='/missing'">
+      <div style="position:absolute;left:40px;top:80px;width:120px;height:50px;overflow:hidden">
+        <section role="dialog" aria-label="Edit" style="height:100px;background:#369;color:white">
+          <input aria-label="Missing route" value="dialog value">
+        </section>
+      </div></div>` + (req.url.includes("hung") ? `<script>
       Object.defineProperty(document.fonts, "ready", {value: new Promise(() => {})});
       // Root the callbacks so Chromium cannot collect the pending inspection
       // Promise and reject executeJavaScript before the controller deadline.
@@ -53,6 +59,20 @@ app.whenReady().then(async () => {
   }
   await win.loadURL(origin + "/projects/p/preview#/page");
   const snapshot = await controller.dispatch("preview", { action: "snapshot" });
+  const dialog = snapshot.elements.find(el => el.role === "dialog");
+  assert.deepEqual(dialog.visibleBounds, { x: 40, y: 80, width: 120, height: 50 });
+  const scoped = await controller.dispatch("preview", { action: "snapshot", scopeRef: dialog.ref });
+  assert.equal(scoped.elements.find(el => el.role === "textbox").regionRef, dialog.ref);
+  assert.equal((await controller.dispatch("preview", { action: "assert", scopeRef: dialog.ref,
+    checks: [{ kind: "value", role: "textbox", name: "Missing route", value: "dialog value" }], timeoutMs: 0 })).passed, true);
+  const screenshot = await controller.dispatch("preview", { action: "screenshot", scopeRef: dialog.ref, fullResolution: true });
+  assert.deepEqual(screenshot.visibleBounds, dialog.visibleBounds);
+  const image = require("sharp")(Buffer.from(screenshot.data, "base64"));
+  const { data: pixels, info } = await image.removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.equal(info.width * 50, info.height * 120);
+  const bottomRight = (info.width * info.height - 1) * info.channels;
+  assert.deepEqual([...pixels.subarray(bottomRight, bottomRight + 3)], [51, 102, 153]);
+  report.push({ case: "scoped-preview", visibleBounds: screenshot.visibleBounds, imageWidth: info.width, imageHeight: info.height });
   const ref = snapshot.elements.find((el) => el.name === "Missing route").ref;
   const start = Date.now();
   let error;

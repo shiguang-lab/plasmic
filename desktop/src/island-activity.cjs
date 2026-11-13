@@ -15,7 +15,10 @@ function operationTargets(method, input = {}) {
   if (method === "execute_batch") return Array.isArray(input.operations) ? input.operations.flatMap((op) => op && typeof op === "object" ? operationTargets("execute", op) : []) : [];
   const value = method === "execute" ? input.input || {} : input;
   if (value.fromProject) return [];
-  if (method === "preview") return typeof input.ref === "string" ? [target(input)] : [{ viewport: true }];
+  if (method === "preview") {
+    const ref = input.scopeRef ?? input.ref;
+    return typeof ref === "string" ? [target({ ...input, ref })] : [{ viewport: true }];
+  }
   if (method === "export_pages") return Array.isArray(input.pages) ? input.pages.map(target).filter((t) => t.componentUuid) : [];
   if (Array.isArray(value.elements) && value.elements.length) return value.elements.map(target).filter((t) => t.componentUuid);
   if (Array.isArray(value.componentUuids) && value.componentUuids.length) return value.componentUuids.filter((id) => typeof id === "string").map((componentUuid) => ({ componentUuid }));
@@ -24,8 +27,8 @@ function operationTargets(method, input = {}) {
 }
 
 function operationKind(method, input = {}) {
-  if (method === "preview") return ["state"].includes(input.action) ? null
-    : ["snapshot", "screenshot", "assert"].includes(input.action) ? "read" : "preview";
+  if (method === "preview") return ["state", "assert"].includes(input.action) ? null
+    : ["snapshot", "screenshot"].includes(input.action) ? "read" : "preview";
   if (method === "execute") return passive.has(input.name) ? null
     : reads.has(input.name) ? "read" : view.has(input.name) ? "view" : input.name === "save" ? "save" : "write";
   if (["snapshot_layout", "get_screenshot", "export_design", "export_pages", "read_image"].includes(method)) return "read";

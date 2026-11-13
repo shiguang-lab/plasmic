@@ -152,7 +152,11 @@ const ActivityRegion = function ActivityRegion({
       data-retiring={!scanning}
       data-copilot-target={target.elementUuid ?? target.componentUuid ?? "page"}
       aria-hidden="true"
-      style={{ ...bounds, borderWidth: 2 / zoom }}
+      style={{
+        ...bounds,
+        "--scan-stroke-width": `${1 / zoom}px`,
+        "--scan-completion-duration": `${SCAN_COMPLETION_MS}ms`,
+      } as React.CSSProperties}
     >
       <div className={styles.scan} onAnimationIteration={() => {
         if (!scanning) { setFinished(true); }

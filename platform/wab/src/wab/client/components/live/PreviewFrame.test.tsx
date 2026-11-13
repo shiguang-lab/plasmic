@@ -174,8 +174,8 @@ it("keeps a single Preview scan outside the page through capture, completion and
     await act(async () => hook.result.current.onLoad());
 
     const scan = () => document.querySelector<HTMLElement>("[data-plasmic-preview-read-scan]");
-    const send = (action: string) => win.dispatchEvent(
-      new CustomEvent("plasmic-preview-read-scan", { detail: { action } }),
+    const send = (action: string, element?: Element) => win.dispatchEvent(
+      new CustomEvent("plasmic-preview-read-scan", { detail: { action, element } }),
     );
     expect(scan()).toBeNull();
     send("start");
@@ -200,7 +200,32 @@ it("keeps a single Preview scan outside the page through capture, completion and
     vi.advanceTimersByTime(400);
     expect(scan()).toBeNull();
 
+    const scroller = win.document.createElement("div");
+    scroller.style.overflowY = "auto";
+    scroller.getBoundingClientRect = () => new DOMRect(0, 40, 200, 60);
+    const target = win.document.createElement("div");
+    target.checkVisibility = () => true;
+    target.getBoundingClientRect = () => new DOMRect(12, 20, 80, 100);
+    scroller.append(target);
+    win.document.body.append(scroller);
+    send("start", target);
+    expect(scan()).toBe(region);
+    expect([region.style.left, region.style.top, region.style.width, region.style.height])
+      .toEqual(["12px", "40px", "80px", "60px"]);
+    send("hide");
+    send("start", target);
+    expect(region.style.visibility).toBe("hidden");
+    send("show");
+    expect(region.style.visibility).toBe("");
+    target.getBoundingClientRect = () => new DOMRect(12, 110, 80, 100);
+    await new Promise<void>(resolve => win.requestAnimationFrame(() => resolve()));
+    expect(scan()).toBeNull();
+    send("start", target);
+    expect(scan()).toBeNull();
+
     send("start");
+    expect(scan()?.style.inset).toBe("0");
+    expect(scan()?.style.width).toBe("");
     act(() => previewCtx.store.setState({ previewData: mock<NonNullable<PreviewState["previewData"]>>({ previewPath: "/next" }) }));
     expect(scan()).toBeNull();
     send("start");

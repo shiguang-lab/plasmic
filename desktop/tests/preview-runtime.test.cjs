@@ -23,6 +23,8 @@ test("interactive canvas inputs use the focused live artboard and can reveal hid
     const w = dom.window;
     w.requestAnimationFrame = callback => callback();
     Object.defineProperty(w.document.body, "innerText", { get: () => w.document.body.textContent });
+    const drawer = w.document.querySelector("aside");
+    Object.defineProperty(drawer, "innerText", { get: () => drawer.textContent });
     for (const el of w.document.querySelectorAll("*")) el.getBoundingClientRect = () => ({ x: 0, y: 0, left: 0, top: 0, right: el.hidden ? 0 : 100, bottom: el.hidden ? 0 : 30, width: el.hidden ? 0 : 100, height: el.hidden ? 0 : 30 });
     const button = w.document.querySelector("button");
     button.scrollIntoView = () => {};
@@ -77,6 +79,12 @@ test("interactive canvas inputs use the focused live artboard and can reveal hid
   assert.deepEqual(inputs.map(input => input.type), ["mouseMoved", "mousePressed", "mouseReleased"]);
   const result = await preview({ action: "assert", checks: [{ kind: "visible", role: "dialog", present: true }], timeoutMs: 0 }, { ...context, frameUuid: "focused" });
   assert.equal(result.passed, true);
+  const opened = await preview({ action: "snapshot", frameUuid: "focused" });
+  const dialog = opened.elements.find(el => el.role === "dialog");
+  const scoped = await preview({ action: "snapshot", frameUuid: "focused", scopeRef: dialog.ref, textLimit: 2 });
+  assert.deepEqual(Array.from(scoped.elements, el => el.ref), [dialog.ref]);
+  assert.equal(scoped.continuation.arguments.frameUuid, "focused");
+  assert.equal(scoped.continuation.arguments.scopeRef, dialog.ref);
   assert.equal(documents[0].dom.window.document.querySelector("aside").hidden, true);
 });
 
@@ -117,6 +125,108 @@ test("snapshot continuation traverses both independent collections without repea
   }
 });
 
+test("scoped snapshots read only the current subtree and preserve its ref across pages", async (t) => {
+  const { run, w } = fixture(t);
+  const doc = w.document;
+  doc.querySelector("button").textContent = "Save";
+  doc.body.insertAdjacentHTML("beforeend", '<section id="dialog" role="dialog" aria-label="Edit"><button>Save</button><input aria-label="Title" value="old"><button hidden>Hidden</button></section>');
+  const dialog = doc.getElementById("dialog");
+  Object.defineProperty(dialog, "innerText", { value: "Save within dialog" });
+  for (const el of [dialog, ...dialog.children]) {
+    el.getBoundingClientRect = () => ({
+      x: 0, y: 760, left: 0, top: 760, width: 100,
+      height: el.hidden ? 0 : 30, right: 100, bottom: 790,
+    });
+  }
+  const whole = await run({ action: "snapshot" });
+  assert.equal(whole.elements.filter(el => el.name === "Save").length, 2);
+  const scopeRef = whole.elements.find(el => el.role === "dialog").ref;
+  const input = { action: "snapshot", scopeRef, limit: 1, textLimit: 3 };
+  const items = [];
+  let text = "", next = input, pages = 0;
+  while (next) {
+    const part = await run(next);
+    assert.equal(part.scopeRef, scopeRef);
+    items.push(...part.elements);
+    text += part.text.value;
+    next = part.continuation?.arguments;
+    if (next) assert.equal(next.scopeRef, scopeRef);
+    assert.ok(++pages < 20);
+  }
+  assert.deepEqual(items.map(el => el.name), ["Edit", "Save", "Title"]);
+  assert.ok(items.every(el => !el.inViewport), "offscreen, rendered elements remain readable");
+  assert.equal(text, "Save within dialog");
+  await run({ action: "fill", ref: items[2].ref, value: "new" });
+  assert.equal((await run({ action: "snapshot", scopeRef })).elements[2].value, "new");
+  dialog.setAttribute("aria-hidden", "true");
+  await assert.rejects(run(input), error => error.context?.code === "PREVIEW_TARGET_HIDDEN");
+  dialog.remove();
+  await assert.rejects(run(input), error => error.context?.code === "PREVIEW_TARGET_STALE");
+});
+
+test("scoped assertions distinguish duplicate controls and fail if the scope disappears while waiting", async (t) => {
+  const { run, w } = fixture(t);
+  const { document } = w;
+  document.body.insertAdjacentHTML("beforeend", '<section role="dialog"><textarea aria-label="SQL">dialog value</textarea><button>保存</button></section>');
+  const dialog = document.querySelector("section");
+  Object.defineProperty(dialog, "innerText", { value: "dialog-only text" });
+  for (const el of [dialog, ...dialog.children]) el.getBoundingClientRect = () =>
+    ({ x: 0, y: 0, left: 0, top: 0, width: 100, height: 30, right: 100, bottom: 30 });
+  const scopeRef = (await run({ action: "snapshot" })).elements.find(el => el.role === "dialog").ref;
+  const checks = [
+    { kind: "value", role: "textbox", name: "SQL", value: "dialog value" },
+    { kind: "count", role: "button", name: "保存", count: 1 },
+    { kind: "text", text: "SELECT old", present: false },
+    { kind: "visible", role: "button", name: "查询", present: false },
+  ];
+  const whole = await run({ action: "assert", checks, timeoutMs: 0 });
+  assert.equal(whole.passed, false);
+  assert.equal(whole.checks[0].reason, "multiple-matches");
+  assert.equal(whole.checks[0].matchCount, 2);
+  const scoped = await run({ action: "assert", scopeRef, checks, timeoutMs: 0 });
+  assert.equal(scoped.passed, true);
+  assert.equal(scoped.scopeRef, scopeRef);
+  const pending = run({ action: "assert", scopeRef, checks: [{ ...checks[0], value: "pending" }], timeoutMs: 500 });
+  dialog.remove();
+  await assert.rejects(pending, error => error.context.code === "PREVIEW_TARGET_STALE");
+});
+
+test("snapshot exposes horizontal regions and ARIA-linked portal roots outside the scoped subtree", async (t) => {
+  const { run, w } = fixture(t);
+  const { document } = w;
+  document.body.insertAdjacentHTML("beforeend", `
+    <div id="scroller" style="overflow-x: auto"><table aria-label="Records"><tr><td><button>Row action</button></td></tr></table></div>
+    <section role="dialog" aria-label="Editor"><div role="combobox" aria-label="Category" aria-controls="categories" aria-expanded="true"></div>
+      <button aria-label="More" aria-owns="more-menu" aria-expanded="true"></button></section>
+    <div class="ant-select-dropdown"><div id="categories" role="listbox" style="display: none"></div><div class="ant-select-item-option">Category one</div></div>
+    <div id="more-menu" role="menu" aria-label="More actions"><button role="menuitem">Export</button></div>
+  `);
+  for (const el of document.querySelectorAll("*")) el.getBoundingClientRect = () =>
+    ({ x: 0, y: 0, left: 0, top: 0, width: 100, height: 30, right: 100, bottom: 30 });
+  const snapshot = await run({ action: "snapshot" });
+  const rowAction = snapshot.elements.find(el => el.name === "Row action" && el.role === "button");
+  const row = snapshot.elements.find(el => el.ref === rowAction.regionRef);
+  const table = snapshot.elements.find(el => el.ref === row.regionRef);
+  assert.equal(row.role, "row");
+  assert.equal(table.role, "table");
+  const scroller = await run({ action: "snapshot", scopeRef: table.regionRef });
+  assert.equal(scroller.elements[0].ref, table.regionRef);
+  const dialog = snapshot.elements.find(el => el.role === "dialog");
+  const scoped = await run({ action: "snapshot", scopeRef: dialog.ref });
+  assert.ok(!scoped.elements.some(el => el.role === "option" || el.role === "menuitem"));
+  for (const [role, popupRole, itemRole, itemName] of [
+    ["combobox", "listbox", "option", "Category one"],
+    ["button", "menu", "menuitem", "Export"],
+  ]) {
+    const control = scoped.elements.find(el => el.role === role);
+    assert.equal(control.regionRef, dialog.ref);
+    assert.equal(control.popupRefs.length, 1);
+    const popup = await run({ action: "snapshot", scopeRef: control.popupRefs[0] });
+    assert.equal(popup.elements[0].role, popupRole);
+    assert.ok(popup.elements.some(el => el.role === itemRole && el.name === itemName));
+  }
+});
+
 test("fill/select dispatch DOM events and assertions observe actual runtime values", async (t) => {
   const { run, w } = fixture(t), events = [];
   w.document.getElementById("sql").addEventListener("input", (e) => events.push(e.target.value));
@@ -133,11 +243,11 @@ test("fill/select dispatch DOM events and assertions observe actual runtime valu
   await assert.rejects(run({ action: "fill", ref: sql.ref, value: "wrong" }), /Stale/);
 });
 
-test("Preview reads scan the viewport while interactions use the real cursor target", async (t) => {
+test("Preview snapshots scan, assertions stay silent, and interactions use the real cursor target", async (t) => {
   const { run, w } = fixture(t), feedback = [];
   w.addEventListener("plasmic-agent-cursor", (e) => feedback.push(e.detail));
   const scans = [];
-  w.addEventListener("plasmic-preview-read-scan", (e) => scans.push(e.detail.action));
+  w.addEventListener("plasmic-preview-read-scan", (e) => scans.push(e.detail));
   const frame = {
     url: "https://canvas.example/#live=true",
     executeJavaScript: async (script) => script.includes("function inspectPreview")
@@ -156,7 +266,17 @@ test("Preview reads scan the viewport while interactions use the real cursor tar
     action: "assert", checks: [{ kind: "count", role: "button", name: "查询", count: 1 }], timeoutMs: 0,
   });
   assert.equal(assertion.passed, true);
-  assert.deepEqual(scans, ["start", "start"]);
+  assert.deepEqual(scans.map(e => [e.action, e.element]), [["start", undefined]]);
+  const scopeRef = snapshot.elements.find(e => e.name === "查询").ref;
+  const scoped = await preview({ action: "snapshot", scopeRef });
+  assert.deepEqual(Array.from(scoped.elements, e => e.ref), [scopeRef]);
+  assert.equal(scans.at(-1).element, w.document.querySelector("button"));
+  await assert.rejects(preview({ action: "snapshot", scopeRef: "stale:1" }), error => {
+    assert.equal(error.context.code, "PREVIEW_TARGET_STALE");
+    assert.equal(error.context.preview.scopeRef, "stale:1");
+    assert.deepEqual(error.context.recovery[0].arguments, { action: "snapshot" });
+    return true;
+  });
   assert.equal(feedback.filter((e) => e.action === "move").length, 0);
   // The direct fixture below uses a separate page identity and its own refs.
   const interactionSnapshot = await run({ action: "snapshot" });
@@ -173,7 +293,7 @@ test("Preview reads scan the viewport while interactions use the real cursor tar
   assert.equal(feedback.at(-1).element, w.document.querySelector("textarea"));
   await assert.rejects(run({ action: "click", ref: interactionSnapshot.elements.find((e) => e.name === "保存").ref }), /disabled/);
   assert.equal(feedback.at(-1).action, "clear");
-  assert.deepEqual(scans, ["start", "start"]);
+  assert.deepEqual(scans.map(e => e.action), ["start", "start"]);
 });
 
 test("Preview screenshots hide both feedback layers until all captures release them", async (t) => {
@@ -205,6 +325,69 @@ test("Preview screenshots hide both feedback layers until all captures release t
   finishMirror();
   await capturing;
   assert.deepEqual(calls.slice(-2), ["cursor:show", "scan:show"]);
+});
+
+test("scoped screenshot uses the same clipped bounds as snapshot across iframe scaling and window zoom", async (t) => {
+  const { w } = fixture(t);
+  const { document } = w;
+  document.body.insertAdjacentHTML("beforeend", '<div id="clip" style="overflow: auto"><button>Crop target</button></div>');
+  const clip = document.getElementById("clip");
+  const target = clip.firstElementChild;
+  const geometry = (x, y, width, height) =>
+    ({ x, y, left: x, top: y, width, height, right: x + width, bottom: y + height });
+  clip.getBoundingClientRect = () => geometry(30, 40, 100, 80);
+  target.getBoundingClientRect = () => geometry(10, 60, 100, 90);
+  Object.defineProperties(clip, {
+    offsetWidth: { value: 100 }, offsetHeight: { value: 80 },
+    clientLeft: { value: 2 }, clientTop: { value: 3 },
+    clientWidth: { value: 84 }, clientHeight: { value: 66 },
+  });
+  const host = new JSDOM("<iframe></iframe>", { runScripts: "outside-only" });
+  t.after(() => host.window.close());
+  const iframe = host.window.document.querySelector("iframe");
+  iframe.getBoundingClientRect = () => geometry(20, 30, 400, 300);
+  Object.defineProperties(iframe, {
+    clientWidth: { value: 800 }, clientHeight: { value: 600 },
+    offsetWidth: { value: 800 }, offsetHeight: { value: 600 },
+  });
+  const parent = { executeJavaScript: script => host.window.eval(script) };
+  const frame = {
+    parent, url: "https://canvas.example/#live=true",
+    executeJavaScript: async script => script.includes("inspectPreview")
+      ? { ready: true, width: 800, height: 600 }
+      : w.eval(script),
+  };
+  parent.frames = [frame];
+  parent.framesInSubtree = [frame];
+  const captures = [];
+  const win = studioFixture({ getContentBounds: () => ({ width: 1000, height: 800 }), webContents: {
+    getURL: () => "https://studio.example/projects/p/preview#/records", getZoomFactor: () => 2,
+    mainFrame: parent,
+    capturePage: async rect => {
+      captures.push(rect);
+      const png = await require("sharp")({ create: { width: rect.width, height: rect.height, channels: 3, background: "#369" } }).png().toBuffer();
+      return { toPNG: () => png };
+    },
+  } });
+  const preview = input => runPreview(win, input, { sessionId: "s" });
+  const snapshot = await preview({ action: "snapshot" });
+  const item = snapshot.elements.find(el => el.name === "Crop target" && el.role === "button");
+  assert.deepEqual({ ...item.bounds }, { x: 10, y: 60, width: 100, height: 90 });
+  assert.deepEqual({ ...item.visibleBounds }, { x: 32, y: 60, width: 78, height: 49 });
+  const screenshot = await preview({ action: "screenshot", scopeRef: item.ref });
+  assert.equal(screenshot.scopeRef, item.ref);
+  assert.deepEqual(screenshot.visibleBounds, item.visibleBounds);
+  assert.deepEqual(screenshot.presentationRect, { x: 72, y: 120, width: 78, height: 49 });
+  assert.deepEqual(captures, [screenshot.presentationRect]);
+  assert.deepEqual(screenshot.sourceImageSize, { width: 78, height: 49 });
+  assert.deepEqual(screenshot.viewport, { width: 800, height: 600 });
+  target.getBoundingClientRect = () => geometry(10, 200, 100, 90);
+  const clipped = await preview({ action: "snapshot", scopeRef: item.ref });
+  assert.equal(clipped.elements[0].visibleBounds, null);
+  assert.equal(clipped.elements[0].inViewport, false);
+  await assert.rejects(preview({ action: "screenshot", scopeRef: item.ref }),
+    error => error.context.code === "PREVIEW_TARGET_OUTSIDE_VIEWPORT");
+  assert.equal(captures.length, 1);
 });
 
 test("background runtime discovery uses the committed Preview root and waits for the requested Page", { timeout: 2000 }, async (t) => {

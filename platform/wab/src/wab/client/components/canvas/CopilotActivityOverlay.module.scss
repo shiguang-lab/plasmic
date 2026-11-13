@@ -7,33 +7,53 @@
 }
 
 .region {
+  --scan-trail-near: 12%;
+  --scan-trail-peak: 18%;
+
   pointer-events: none;
   position: absolute;
   z-index: 100;
   box-sizing: border-box;
-  border: solid var(--scan-color);
-  background: color-mix(in srgb, var(--scan-color) 4%, transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--scan-color) 16%, transparent);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 var(--scan-stroke-width, 1px)
+    color-mix(in srgb, var(--scan-color) 78%, transparent);
   overflow: hidden;
   contain: paint;
+}
+
+[data-ui-appearance="dark"] .region {
+  --scan-trail-near: 14%;
+  --scan-trail-peak: 22%;
 }
 
 .scan {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    color-mix(in srgb, var(--scan-color) 5%, transparent) 55%,
-    color-mix(in srgb, var(--scan-color) 24%, transparent) 96%,
-    var(--scan-color) 100%
-  );
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--scan-color) 98%, transparent) 10% 90%,
+      transparent
+    ) bottom / 100% var(--scan-stroke-width, 1px) no-repeat,
+    linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--scan-color) 5%, transparent) 52%,
+      color-mix(in srgb, var(--scan-color) var(--scan-trail-near), transparent) 83%,
+      color-mix(in srgb, var(--scan-color) var(--scan-trail-peak), transparent)
+    ) bottom / 100% clamp(40px, 45%, 88px) no-repeat;
   animation: copilotScan 1.4s ease-in-out infinite;
 }
 
-[data-scanning="false"] .scan {
+.region[data-scanning="false"] {
+  opacity: 0;
+  transition: opacity var(--scan-completion-duration) ease-out;
+}
+
+.region[data-scanning="false"] .scan {
   animation: none;
-  opacity: 0.2;
+  visibility: hidden;
 }
 
 @keyframes copilotScan {
@@ -48,6 +68,6 @@
 @media (prefers-reduced-motion: reduce) {
   .scan {
     animation: none;
-    background: color-mix(in srgb, var(--scan-color) 6%, transparent);
+    visibility: hidden;
   }
 }

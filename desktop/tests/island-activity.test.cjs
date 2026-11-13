@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { IslandActivity, operationKind } = require("../src/island-activity.cjs");
+const { IslandActivity, operationKind, operationTargets } = require("../src/island-activity.cjs");
 
 test("call lifetime holds cards through queues and concurrency, then expires after ten idle minutes", (t) => {
   let now = 0;
@@ -69,6 +69,7 @@ test("island reports real read/write/Preview activity and ignores metadata polli
   assert.equal(operationKind("get_app_state"), null);
   assert.equal(operationKind("report_task"), null);
   assert.equal(operationKind("preview", { action: "state" }), null);
+  assert.equal(operationKind("preview", { action: "assert" }), null);
   for (const name of ["read", "queryElements", "beginCanvasInspection"]) assert.equal(operationKind("execute", { name }), "read");
   assert.equal(operationKind("execute", { name: "changeElement" }), "write");
   for (const name of ["navigate", "selectElement", "restoreEditorView", "setCanvasPageHeight"]) assert.equal(operationKind("execute", { name }), "view");
@@ -79,6 +80,8 @@ test("island reports real read/write/Preview activity and ignores metadata polli
   }
   assert.equal(operationKind("execute", { name: "save" }), "save");
   assert.equal(operationKind("preview", { action: "snapshot" }), "read");
+  assert.deepEqual(operationTargets("preview", { action: "snapshot" }), [{ viewport: true }]);
+  assert.deepEqual(operationTargets("preview", { action: "snapshot", scopeRef: "doc:1", frameUuid: "board" }), [{ ref: "doc:1", frameUuid: "board" }]);
   assert.equal(operationKind("preview", { action: "click" }), "preview");
 });
 
