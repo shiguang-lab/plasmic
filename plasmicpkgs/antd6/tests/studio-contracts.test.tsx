@@ -155,6 +155,117 @@ test("Collapse rich slots render without competing default items; explicit nativ
   expect(screen.getByRole("textbox", { name: "Native field" })).toBeTruthy();
 });
 
+test("Collapse registers every native semantic region, a color picker and a state-aware expand indicator", () => {
+  const { props } = metadata(registerCollapse).get("plasmic-antd6-collapse");
+  expect(props.styles.display).toBe("inline");
+  expect(Object.keys(props.styles.fields)).toEqual(["root", "header", "title", "body", "icon"]);
+  for (const field of Object.values(props.styles.fields)) {
+    expect(field).toMatchObject({ type: "object" });
+    expect(Object.keys((field as { fields: object }).fields).length).toBeGreaterThan(0);
+  }
+  expect(props.styles.fields.root.fields.maxWidth.type).toBe("number");
+  expect(props.styles.fields.header.fields.paddingInline.type).toBe("number");
+  expect(props.styles.fields.title.fields.fontWeight.type).toBe("number");
+  expect(props.styles.fields.body.fields.backgroundColor.type).toBe("color");
+  expect(props.styles.fields.icon.fields.color.type).toBe("color");
+  expect(props.headerBackgroundColor.type).toBe("color");
+  expect(props.expandIcon).toMatchObject({ type: "slot", renderPropParams: ["panelProps"] });
+  expect(props.expandIconPlacement.options).toEqual(["start", "end"]);
+  expect(props.expandText).toMatchObject({ type: "string" });
+  expect(props.collapseText).toMatchObject({ type: "string" });
+  expect(props.expandText.defaultValue).toBeUndefined();
+  expect(props.collapseText.defaultValue).toBeUndefined();
+});
+
+test.each(["items", "panels"])("Collapse applies all semantic styles and restores the header color when the picker is cleared (%s)", (source) => {
+  const styles = {
+    root: { maxWidth: 400 },
+    header: { backgroundColor: "pink", paddingInline: 20 },
+    title: { fontWeight: 600 },
+    body: { paddingBlock: 12 },
+    icon: { color: "blue" },
+  };
+  const panels = source === "items"
+    ? { items: [{ key: "details", label: "Details", children: "Content" }] }
+    : { children: <AntdCollapsePanel key="details" header="Details">Content</AntdCollapsePanel> };
+  const renderStyles = vi.fn(() => styles);
+  const view = render(
+    <AntdCollapse {...panels} defaultActiveKey="details" styles={renderStyles} headerBackgroundColor="white" />,
+  );
+  const header = screen.getByRole("button", { name: "Details" });
+  expect(renderStyles).toHaveBeenCalledWith(expect.objectContaining({ props: expect.any(Object) }));
+  expect(header.closest<HTMLElement>(".ant-collapse")?.style.maxWidth).toBe("400px");
+  expect(header.style.backgroundColor).toBe("white");
+  expect(header.style.paddingInline).toBe("20px");
+  expect(screen.getByText("Details").style.fontWeight).toBe("600");
+  expect(screen.getByText("Content").style.paddingBlock).toBe("12px");
+  expect(header.querySelector<HTMLElement>(".ant-collapse-expand-icon")?.style.color).toBe("blue");
+
+  view.rerender(<AntdCollapse {...panels} defaultActiveKey="details" styles={styles} />);
+  expect(header.style.backgroundColor).toBe("pink");
+  expect(header.style.paddingInline).toBe("20px");
+});
+
+test("Collapse styles the entire header and updates each text indicator through native toggles", () => {
+  const onChange = vi.fn();
+  const { container } = render(
+    <AntdCollapse
+      defaultActiveKey={["first"]}
+      expandIconPlacement="end"
+      expandText="展开"
+      collapseText="收起"
+      styles={{ header: { backgroundColor: "white" } }}
+      onChange={onChange}
+    >
+      <AntdCollapsePanel key="first" header="First" extra="10:30">First details</AntdCollapsePanel>
+      <AntdCollapsePanel key="second" header="Second">Second details</AntdCollapsePanel>
+    </AntdCollapse>,
+  );
+  const first = screen.getByRole("button", { name: /First/ });
+  const second = screen.getByRole("button", { name: /Second/ });
+  expect(container.querySelector(".ant-collapse-icon-placement-end")).toBeTruthy();
+  expect(first.style.backgroundColor).toBe("white");
+  expect(second.style.backgroundColor).toBe("white");
+  expect(within(first).getByText("收起")).toBeTruthy();
+  expect(within(first).getByText("10:30")).toBeTruthy();
+  expect(within(second).getByText("展开")).toBeTruthy();
+
+  fireEvent.click(within(second).getByText("展开"));
+  expect(first.getAttribute("aria-expanded")).toBe("true");
+  expect(second.getAttribute("aria-expanded")).toBe("true");
+  expect(onChange).toHaveBeenLastCalledWith(["first", "second"]);
+  fireEvent.keyDown(first, { key: "Enter" });
+  expect(first.getAttribute("aria-expanded")).toBe("false");
+  expect(within(first).getByText("展开")).toBeTruthy();
+  expect(first.style.backgroundColor).toBe("white");
+  expect(within(second).getByText("收起")).toBeTruthy();
+  expect(onChange).toHaveBeenLastCalledWith(["second"]);
+  fireEvent.keyDown(first, { key: " " });
+  expect(first.getAttribute("aria-expanded")).toBe("true");
+  expect(onChange).toHaveBeenLastCalledWith(["second", "first"]);
+});
+
+test("Collapse native items retain the default arrow and allow a custom indicator to override text", () => {
+  const items = [{ key: "panel", label: "Details", children: "Content" }];
+  const view = render(<AntdCollapse items={items} />);
+  expect(view.container.querySelector(".ant-collapse-expand-icon svg")).toBeTruthy();
+
+  view.rerender(<AntdCollapse items={items} expandText="展开" />);
+  fireEvent.click(screen.getByText("展开"));
+  expect(screen.getByText("Collapse")).toBeTruthy();
+
+  view.rerender(
+    <AntdCollapse
+      items={items}
+      expandText="展开"
+      collapseText="收起"
+      expandIcon={({ isActive }) => <span>{isActive ? "Hide details" : "Show details"}</span>}
+    />,
+  );
+  fireEvent.click(screen.getByText("Hide details"));
+  expect(screen.getByText("Show details")).toBeTruthy();
+});
+
 test("Tree callback metadata describes the real native info object", () => {
   const metas = metadata(registerTree);
   for (const [name, meta] of metadata(registerDirectoryTree)) {metas.set(name, meta);}

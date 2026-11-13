@@ -12,6 +12,7 @@ Library: [Ant Design v6](../index.md).
 
 - Use for a workflow with three to five ordered stages that the user moves through.
 - Horizontal, at the top of the step-form Page, outside any Card; titles are short stage nouns; the current stage comes from the workflow state.
+- Use [Collapse for read-only workflow details](collapse.md#read-only-workflow-details) when users expand stages to inspect their recorded results.
 
 ### Usage and behavior
 

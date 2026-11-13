@@ -12,6 +12,7 @@ Applies to the Overseas / Antd6 / React UI admin suite. Classify the requirement
 | Read-only attributes / `read-only-group` | [Descriptions](components/descriptions.md) | Informational groups versus editable Forms or repeated Table records |
 | Repeated records / `data-table`, `pagination` | [Table](components/table.md), [Pagination](components/pagination.md) | All Columns inventoried; one native pagination owner and fixed row actions |
 | Content scopes / `content-scope` | [Tabs](components/tabs.md) | Tabs own content; not a Radio/Select field value |
+| Expandable workflow results / `widget` | [Collapse](components/collapse.md#read-only-workflow-details) | Independently expandable stage details; initial open stages and full header styling |
 | Choose a field value / `field-choice` | [Radio](components/radio.md), [Select](components/select.md), [Segmented](components/segmented.md), [Checkbox](components/checkbox.md) | Required cardinality, searchability, values and Form/SearchForm ownership |
 | Daily clock time or time range / `widget` | [TimePicker](components/time-picker.md), [field semantics](#field-semantics) | Clock time versus dated instant or duration; native picker and value conversion |
 | Calendar date, dated time or date range / `widget` | [DatePicker](components/date-picker.md), [field semantics](#field-semantics) | Date-only versus date-and-time; range endpoints, supported showTime and timezone |

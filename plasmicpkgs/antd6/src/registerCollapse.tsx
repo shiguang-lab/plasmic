@@ -7,12 +7,56 @@ import { Registerable, registerComponentHelper } from "./utils";
 export const collapseComponentName = "plasmic-antd6-collapse";
 export const collapsePanelComponentName = "plasmic-antd6-collapse-item";
 
-export function AntdCollapse(props: React.ComponentProps<typeof Collapse> & PlasmicCanvasProps) {
-  const { __canvas: _canvas, ...nativeProps } = props;
-  return props.items !== undefined ? <Collapse {...nativeProps} /> : renderCanvasSlot(props.children, (children) => <CollapseWithChildren {...props} children={children} />);
+type NativeCollapseProps = React.ComponentProps<typeof Collapse>;
+type AntdCollapseProps = NativeCollapseProps & PlasmicCanvasProps & {
+  headerBackgroundColor?: string;
+  expandText?: string;
+  collapseText?: string;
+};
+
+export function AntdCollapse({
+  children,
+  styles,
+  headerBackgroundColor,
+  expandIcon,
+  expandText,
+  collapseText,
+  ...rest
+}: AntdCollapseProps) {
+  const resolvedStyles: NativeCollapseProps["styles"] = headerBackgroundColor
+    ? (info) => {
+        const semanticStyles = typeof styles === "function" ? styles(info) : styles;
+        return {
+          ...semanticStyles,
+          header: { ...semanticStyles?.header, backgroundColor: headerBackgroundColor },
+        };
+      }
+    : styles;
+
+  let renderIndicator = expandIcon;
+  if (!renderIndicator && (expandText || collapseText)) {
+    const expandedLabel = collapseText || "Collapse";
+    const collapsedLabel = expandText || "Expand";
+    renderIndicator = ({ isActive }) => isActive ? expandedLabel : collapsedLabel;
+  }
+
+  if (rest.items !== undefined) {
+    const { __canvas: _canvas, ...nativeProps } = rest;
+    return (
+      <Collapse {...nativeProps} styles={resolvedStyles} expandIcon={renderIndicator}>
+        {children}
+      </Collapse>
+    );
+  }
+
+  return renderCanvasSlot(children, (panels) => (
+    <CollapseWithChildren {...rest} styles={resolvedStyles} expandIcon={renderIndicator}>
+      {panels}
+    </CollapseWithChildren>
+  ));
 }
 
-function CollapseWithChildren(props: React.ComponentProps<typeof Collapse> & PlasmicCanvasProps) {
+function CollapseWithChildren(props: NativeCollapseProps & PlasmicCanvasProps) {
   const { children, activeKey, defaultActiveKey, onChange, accordion, __canvas: _canvas, ...rest } = props;
   const canvas = usePlasmicCanvasContext();
   const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
@@ -86,9 +130,93 @@ export function registerCollapse(loader?: Registerable) {
       },
       bordered: { type: "boolean", defaultValueHint: true },
       ghost: "boolean",
+      headerBackgroundColor: {
+        type: "color",
+        displayName: "Header background color",
+        description: "Background color of the entire header row of each panel. Overrides only the backgroundColor in the header semantic styles.",
+      },
+      styles: {
+        type: "object",
+        display: "inline",
+        displayName: "Semantic styles",
+        description: "Configure common CSS properties for each native Ant Design Collapse region.",
+        fields: {
+          root: {
+            type: "object",
+            description: "Styles for the Collapse container.",
+            fields: {
+              maxWidth: { type: "number", min: 0, displayName: "Max width (px)" },
+              marginInline: { type: "number", displayName: "Inline margin (px)" },
+              backgroundColor: { type: "color" },
+              borderColor: { type: "color" },
+              borderWidth: { type: "number", min: 0, displayName: "Border width (px)" },
+              borderRadius: { type: "number", min: 0, displayName: "Border radius (px)" },
+            },
+          },
+          header: {
+            type: "object",
+            description: "Styles for the entire header row of each panel. Use Header background color for the fill.",
+            fields: {
+              paddingInline: { type: "number", min: 0, displayName: "Inline padding (px)" },
+              paddingBlock: { type: "number", min: 0, displayName: "Block padding (px)" },
+              color: { type: "color", displayName: "Text color" },
+            },
+          },
+          title: {
+            type: "object",
+            description: "Styles for the title within each header.",
+            fields: {
+              color: { type: "color", displayName: "Text color" },
+              fontSize: { type: "number", min: 0, displayName: "Font size (px)" },
+              fontWeight: { type: "number", min: 1, max: 1000 },
+            },
+          },
+          body: {
+            type: "object",
+            description: "Styles for the content body of each panel.",
+            fields: {
+              paddingInline: { type: "number", min: 0, displayName: "Inline padding (px)" },
+              paddingBlock: { type: "number", min: 0, displayName: "Block padding (px)" },
+              backgroundColor: { type: "color" },
+              color: { type: "color", displayName: "Text color" },
+            },
+          },
+          icon: {
+            type: "object",
+            description: "Styles for the expand indicator container.",
+            fields: {
+              color: { type: "color" },
+              fontSize: { type: "number", min: 0, displayName: "Font size (px)" },
+              fontWeight: { type: "number", min: 1, max: 1000 },
+            },
+          },
+        },
+      },
       size: { type: "choice", options: ["small", "medium", "large"] },
       collapsible: { type: "choice", options: ["header", "icon", "disabled"] },
-      expandIconPlacement: { type: "choice", options: ["start", "end"] },
+      expandIconPlacement: {
+        type: "choice",
+        options: ["start", "end"],
+        defaultValueHint: "start",
+        description: "Place the expand indicator at the start or end of the header.",
+      },
+      expandText: {
+        type: "string",
+        defaultValueHint: "Expand",
+        description: "Label for a collapsed panel. Setting either text label enables text indicators when Expand icon is empty.",
+      },
+      collapseText: {
+        type: "string",
+        defaultValueHint: "Collapse",
+        description: "Label for an expanded panel. Setting either text label enables text indicators when Expand icon is empty.",
+      },
+      expandIcon: {
+        type: "slot",
+        displayName: "Expand icon",
+        renderPropParams: ["panelProps"],
+        hidePlaceholder: true,
+        description: "Custom indicator with panelProps.isActive. Takes precedence over the text labels. Keep the content non-interactive so Collapse owns the trigger.",
+      },
       destroyOnHidden: "boolean",
       onChange: { type: "eventHandler", argTypes: [{ name: "activeKey", type: "object" }] },
     },
