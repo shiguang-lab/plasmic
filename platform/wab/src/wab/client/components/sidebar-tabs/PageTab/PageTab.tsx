@@ -30,9 +30,10 @@ export const PageTab = function PageTab(props: {
   studioCtx: StudioCtx;
   page: PageComponent;
   isHalf?: boolean;
+  hideHeader?: boolean;
 }) {
   const { t: uiT } = useI18n();
-  const { studioCtx, page, viewCtx, isHalf = false } = props;
+  const { studioCtx, page, viewCtx, isHalf = false, hideHeader = false } = props;
   const hasFocusedTpl = useFocusedViewSelection(studioCtx, (state) => state.tpls[0] != null);
 
   const permissions = useStore(studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
@@ -104,12 +105,14 @@ export const PageTab = function PageTab(props: {
                     isHalf && hasFocusedTpl,
                   content: (
                     <>
-                      <SidebarSection>
-                        <div className={S.componentTabHeaderContainer}>
-                          {headerTitle}
-                          {headerControls}
-                        </div>
-                      </SidebarSection>
+                      {!hideHeader && (
+                        <SidebarSection>
+                          <div className={S.componentTabHeaderContainer}>
+                            {headerTitle}
+                            {headerControls}
+                          </div>
+                        </SidebarSection>
+                      )}
                       {canEditPageMeta && (
                         <>
                           <PageMetaPanel page={page} viewCtx={viewCtx} />

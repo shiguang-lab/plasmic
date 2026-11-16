@@ -1,3 +1,5 @@
+import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
+import { useI18n } from "@/wab/client/i18n";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { LabeledStyleItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import ColorSwatch from "@/wab/client/components/style-controls/ColorSwatch";
@@ -29,9 +31,10 @@ import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 function FilterEffectSectionContent({ expsProvider, cssProp, title, label }: {
   expsProvider: ExpsProvider;
   cssProp: string;
-  title: string;
-  label: string;
+  title: "Filter" | "Backdrop Filter";
+  label: "Filter Effect" | "Backdrop Effect";
 }) {
+    const { t } = useI18n();
     const { studioCtx } = expsProvider;
     const exp = expsProvider.mergedExp();
     const cell = useStyleCell(expsProvider, cssProp);
@@ -88,20 +91,23 @@ function FilterEffectSectionContent({ expsProvider, cssProp, title, label }: {
     return (
       <div>
         <LabeledStyleItemRow
-          label={label}
+          label={t(label)}
           styleName={cssProp}
           className="justify-between"
           alignment="center"
           labelSize="auto"
           contentAlignment="right"
         >
+          <StyleOverrideControl expsProvider={expsProvider} label={t(label)}
+            styleProps={[cssProp]} noneValues={{ [cssProp]: "none" }}
+            onChange={() => setInspect(undefined)} />
           <IconLinkButton onClick={addFilter}>
             <Icon icon={PlusIcon} />
           </IconLinkButton>
         </LabeledStyleItemRow>
         {inspect !== undefined && (
           <SidebarModal
-            title={title}
+            title={t(title)}
             show
             onClose={() => setInspect(undefined)}
           >
@@ -140,6 +146,7 @@ function FilterEffectSectionContent({ expsProvider, cssProp, title, label }: {
                 <ListBoxItem
                   key={i}
                   index={i}
+                  isDragDisabled={filters.length < 2}
                   onRemove={() => {
                     updateFilters(filters.filter((_, index) => index !== i));
                   }}

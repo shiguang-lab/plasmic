@@ -746,7 +746,7 @@ export const PageSizePanelSection = React.memo(
     );
     const sizeType = getPageFrameSizeType(arenaFrame);
     return (
-      <SidebarSection title={uiT("Size")}>
+      <SidebarSection title={uiT("Size")} data-test-id="size-section">
         {
           // Using LabeleditemRow instead of LabeledStyleCheckboxItem
           // because we are carefully managing the height style, unlike
@@ -830,7 +830,7 @@ export const StretchyComponentSizePanelSection =
     );
 
     return (
-      <SidebarSection title={uiT("Size")}>
+      <SidebarSection title={uiT("Size")} data-test-id="size-section">
         <div>
           <UiText
             message={"Stretchy components take up the entire artboard."}

@@ -34,6 +34,7 @@ export const ColorTokenSelector = function ColorTokenSelector(props: {
   autoFocusSearch?: boolean;
   maxRows?: number;
   hideAddToken?: boolean;
+  showNames?: boolean;
 }) {
   const { t: uiT } = useI18n();
   const {
@@ -55,6 +56,7 @@ export const ColorTokenSelector = function ColorTokenSelector(props: {
           matcher.matches(Chroma.stringify(t.color)),
       )
     : rows;
+  const listLayout = props.showNames || hasQuery;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   // TODO: measure actual width available to us
@@ -74,7 +76,7 @@ export const ColorTokenSelector = function ColorTokenSelector(props: {
       if (!hasQuery && selectedId !== undefined) {
         const index = rows.findIndex((row) => row.id === selectedId);
         if (index >= 0) {
-          const rowIndex = Math.ceil(index / numCols);
+          const rowIndex = listLayout ? index : Math.floor(index / numCols);
           listRef.current.scrollToItem(rowIndex, "smart");
         }
       }
@@ -100,10 +102,10 @@ export const ColorTokenSelector = function ColorTokenSelector(props: {
           }
         }
       }}
-      itemCount={hasQuery ? matchedRows.length : undefined}
+      itemCount={listLayout ? matchedRows.length : undefined}
     >
       {(downshift) => {
-        const height = hasQuery
+        const height = listLayout
           ? Math.min(maxRows, matchedRows.length) * ROW_SIZE
           : Math.min(maxRows, numRows) * GRID_SIZE;
         return (
@@ -141,23 +143,22 @@ export const ColorTokenSelector = function ColorTokenSelector(props: {
                 outerElementType={VirtualListScrollbar}
                 width={"100%"}
                 height={height + 5}
-                itemSize={hasQuery ? ROW_SIZE : GRID_SIZE}
-                itemCount={hasQuery ? matchedRows.length : numRows}
+                itemSize={listLayout ? ROW_SIZE : GRID_SIZE}
+                itemCount={listLayout ? matchedRows.length : numRows}
                 ref={listRef}
                 overscanCount={5}
               >
                 {({ index, style }) => {
-                  if (hasQuery) {
+                  if (listLayout) {
                     const token = matchedRows[index];
                     if (!token) {
                       return null;
                     }
+                    const color = Chroma.stringify(token.color);
                     return (
                       <Tooltip
                         key={`tooltip-${token.id}`}
-                        title={`${token.name} (${Chroma.stringify(
-                          token.color,
-                        )})`}
+                        title={`${token.name} (${color})`}
                       >
                         <div
                           {...downshift.getItemProps({
@@ -165,13 +166,14 @@ export const ColorTokenSelector = function ColorTokenSelector(props: {
                             key: token.id,
                             style: style,
                             index,
-                            onMouseDown: () => token.onSelect(),
+                            onMouseDown: props.showNames ? undefined : () => token.onSelect(),
                             className: cx({
                               NamedSwatch: true,
                               "NamedSwatch--highlighted":
                                 downshift.highlightedIndex === index,
                               "NamedSwatch--selected": token.selected,
-                              "pl-m": true,
+                              "NamedSwatch--withValue": props.showNames,
+                              "pl-m": !props.showNames,
                             }),
                           })}
                         >
@@ -179,13 +181,16 @@ export const ColorTokenSelector = function ColorTokenSelector(props: {
                             color={token.color}
                             isSelected={token.selected}
                           />
-                          <div className="text-ellipsis ml-m">
-                            {matcher.boldSnippets(token.name)} (
-                            {matcher.boldSnippets(
-                              Chroma.stringify(token.color),
-                            )}
-                            )
-                          </div>
+                          {props.showNames ? (
+                            <>
+                              <span className="NamedSwatch__name">{matcher.boldSnippets(token.name)}</span>
+                              <span className="NamedSwatch__value">{matcher.boldSnippets(color)}</span>
+                            </>
+                          ) : (
+                            <div className="text-ellipsis ml-m">
+                              {matcher.boldSnippets(token.name)} ({matcher.boldSnippets(color)})
+                            </div>
+                          )}
                         </div>
                       </Tooltip>
                     );

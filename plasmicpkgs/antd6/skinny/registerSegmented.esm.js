@@ -1,4 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Segmented } from 'antd';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -16,6 +17,12 @@ function registerSegmented(loader) {
     name: segmentedComponentName,
     displayName: "Segmented",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        icon: "Icon",
+        label: "Label",
+        item: "Item"
+      }),
       options: {
         type: "array",
         description: "Antd options: strings, numbers, or objects with label, value and disabled.",

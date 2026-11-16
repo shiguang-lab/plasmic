@@ -61,6 +61,7 @@ it("renders committed image/token fields and keeps original image selection and 
   const f = await setup(), mounted = render(f.section());
   try {
     expect(screen.getByText("First image")).toBeTruthy(); expect(screen.getByText("Paint token")).toBeTruthy();
+    expect(mounted.container.querySelectorAll('[data-rfd-drag-handle-draggable-id] [data-test-id="drag-handle"]:not([data-disabled])')).toHaveLength(2);
     expect([...mounted.container.querySelectorAll(".img-thumb")].some((element) => element.getAttribute("style")?.includes("first.png"))).toBe(true);
     // jsdom does not support linear-gradient in CSSStyleDeclaration; assert
     // the real native hook output while keeping the actual UI/commands mounted.
@@ -76,12 +77,76 @@ it("renders committed image/token fields and keeps original image selection and 
     fireEvent.click(ensure((await screen.findByText("Other image")).closest(".ant-select-item-option"), "Original image choice"));
     await waitFor(() => expect(f.exp.get("background")).toContain(mkImageAssetRef(f.other)));
     expect(f.exp.get("background")).not.toContain("other.png");
-    fireEvent.click(ensure(document.querySelector('[data-test-id="close-sidebar-modal"]'), "Close original image panel"));
+    fireEvent.keyDown(screen.getByRole("dialog", { name: "Edit fill" }), { key: "Escape" });
     await waitFor(() => expect(document.querySelector('[data-test-id="image-picker"]')).toBeNull());
     const before = parseCss(f.exp.get("background"), { startRule: "background" }).layers.length;
-    fireEvent.click(screen.getByRole("button", { name: "Add background color" }));
+    expect(screen.getByRole("spinbutton", { name: "Opacity" }).hasAttribute("disabled")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Add fill" }));
     await waitFor(() => expect(parseCss(f.exp.get("background"), { startRule: "background" }).layers).toHaveLength(before + 1));
+    const opacity = screen.getAllByRole("spinbutton", { name: "Opacity" })[0];
+    fireEvent.change(opacity, { target: { value: "50" } });
+    await waitFor(() => expect(f.exp.get("background").toLowerCase()).toContain("#ffffff80"));
     expect(f.exp.get("background")).toContain(mkTokenRef(f.head));
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+it("edits solid fill colors and theme variables in the anchored popover", async () => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => {
+    f.end.value = "#654321";
+    f.exp.set("background", "#ffffff");
+  });
+  const mounted = render(f.section());
+  try {
+    const trigger = screen.getByRole("button", { name: "Edit fill: #ffffff" });
+    expect(mounted.container.querySelectorAll('[data-test-id="drag-handle"][data-disabled="true"]')).toHaveLength(1);
+    fireEvent.click(trigger);
+    const picker = await screen.findByRole("dialog", { name: "Fill color" });
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(document.querySelector('[data-test-id="close-sidebar-modal"]')).toBeNull();
+
+    const hex = ensure(picker.querySelector('[data-test-id="Color-input"]'), "Fill color Hex input");
+    fireEvent.change(hex, { target: { value: "263a70" } });
+    fireEvent.blur(hex);
+    await waitFor(() => expect(f.exp.get("background").toLowerCase()).toContain("#263a70"));
+    expect(screen.getByTestId("background-projection").getAttribute("data-css")?.toLowerCase()).toContain("#263a70");
+
+    fireEvent.click(within(picker).getByRole("button", { name: "Theme variables" }));
+    fireEvent.click(await within(picker).findByRole("option", { name: /Paint token.*#654321/i }));
+    await waitFor(() => expect(f.exp.get("background")).toContain(mkTokenRef(f.head)));
+    expect(screen.getByTestId("background-projection").getAttribute("data-css")).toContain("#654321");
+
+    fireEvent.keyDown(picker, { key: "Escape" });
+    await waitFor(() => expect(trigger.getAttribute("aria-expanded")).toBe("false"));
+    expect(document.activeElement).toBe(trigger);
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+it("distinguishes default, no fill, and custom fill in the status menu", async () => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => f.exp.set("background", "#263a70"));
+  const mounted = render(f.section());
+  try {
+    fireEvent.click(screen.getByRole("button", { name: "Remove fill" }));
+    const defaultStatus = await screen.findByRole("button", { name: "Fill: Default" });
+    expect(f.exp.has("background")).toBe(false);
+
+    fireEvent.click(defaultStatus);
+    fireEvent.click(await screen.findByRole("menuitem", { name: "No fill" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Fill: No fill" }));
+    expect(f.exp.getRaw("background")).toBe("none");
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Restore default" }));
+    await screen.findByRole("button", { name: "Fill: Default" });
+    expect(f.exp.has("background")).toBe(false);
+
+    fireEvent.click(screen.getByRole("button", { name: "Add fill" }));
+    await screen.findByRole("button", { name: "Edit fill: #ffffff" });
+    expect(f.exp.has("background")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Fill: Custom" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "No fill" }));
+    await screen.findByRole("button", { name: "Fill: No fill" });
+    expect(f.exp.getRaw("background")).toBe("none");
+    expect(screen.queryByRole("button", { name: "Edit fill: #ffffff" })).toBeNull();
   } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });
 
@@ -112,7 +177,8 @@ it("closes the actual image panel and command-ref roster before a real model own
   const stop = collection.subscribe(terminal), laterChanged = vi.fn(), stopLater = laterCollection.subscribe(laterChanged), mounted = render(f.section());
   try {
     fireEvent.click(screen.getByText("First image")); await waitFor(() => expect(document.querySelector('[data-test-id="image-picker"]')).not.toBeNull());
-    fireEvent.click(ensure(screen.getAllByText("First image").find((element) => element.closest("a,button")), "Selected asset editor"));
+    const fill = screen.getByRole("dialog", { name: "Edit fill" });
+    fireEvent.click(ensure(within(fill).getByText("First image").closest("a,button"), "Selected asset editor"));
     await screen.findByPlaceholderText("(unnamed asset)");
     const release = mock<PkgVersionInfoMeta>({ id: "background-world", pkgId: "background-pkg", version: "1.0.0", branchId: null });
     f.api.getPkgVersion.mockResolvedValueOnce({ pkg: { ...release, model: f.studio.bundleSite().site }, depPkgs: [], etag: "background-etag" });

@@ -20,8 +20,10 @@ test("Badge registration exposes only official Ant Design props", () => {
   expect(AntdBadge).toBe(Ant.Badge);
   const props = metadata(registerAdditional).get("plasmic-antd6-badge").props;
   expect(Object.keys(props).sort()).toEqual(
-    ["children", "color", "count", "dot", "overflowCount", "showZero", "size", "status", "text"].sort(),
+    ["children", "classNames", "color", "count", "dot", "overflowCount", "showZero", "size", "status", "styles", "text"].sort(),
   );
+  expect(props.styles.editor).toBe("semantic");
+  expect(props.classNames.editor).toBe("semantic");
   expect(props.status.options).toEqual(["success", "processing", "default", "error", "warning"]);
 });
 

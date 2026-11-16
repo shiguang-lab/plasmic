@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var React = require('react');
 var utils = require('./utils-B1jTF3MA.cjs.js');
@@ -142,6 +143,12 @@ function registerUpload(loader) {
     displayName: "Upload",
     description: "Select files and read their contents locally as base64. A done status means local reading is complete; this component does not upload to a server.",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        list: "List",
+        item: "Item",
+        trigger: "Trigger"
+      }),
       accept: {
         type: "choice",
         displayName: "Allowed types",

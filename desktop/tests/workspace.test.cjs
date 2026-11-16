@@ -216,12 +216,36 @@ test("native menu availability follows ready, preview, permission and frame cont
   const exp = menu.submenu.find((entry) => entry.id === "desktop-export");
   const expPlasmic = menu.submenu.find((entry) => entry.id === "desktop-export-plasmic");
   const impPlasmic = menu.submenu.find((entry) => entry.id === "desktop-import-plasmic");
+  const impFigma = menu.submenu.find((entry) => entry.id === "desktop-import-figma");
+  const impPen = menu.submenu.find((entry) => entry.id === "desktop-import-pen");
+  assert.deepEqual(
+    menu.submenu.map((entry) => entry.id || entry.role || entry.type || entry.label),
+    [
+      "desktop-open-project",
+      "Recent Projects",
+      "separator",
+      "desktop-save",
+      "separator",
+      "desktop-import-plasmic",
+      "desktop-import-figma",
+      "desktop-import-pen",
+      "separator",
+      "desktop-export",
+      "desktop-export-plasmic",
+      "separator",
+      "close",
+    ],
+  );
   assert.equal(save.enabled, false);
   assert.equal(exp.enabled, false);
   assert.equal(expPlasmic.enabled, false);
   assert.ok(impPlasmic);
+  assert.equal(impFigma.enabled, false);
+  assert.equal(impPen.enabled, false);
   await save.click();
   await exp.click();
+  await impFigma.click();
+  await impPen.click();
   assert.deepEqual(calls, []);
   assert.deepEqual(errors, []);
   const { updateFileMenuContext } = require("../src/workspace.cjs");
@@ -233,6 +257,8 @@ test("native menu availability follows ready, preview, permission and frame cont
   assert.equal(save.enabled, true);
   assert.equal(exp.enabled, false);
   assert.equal(expPlasmic.enabled, true);
+  assert.equal(impFigma.enabled, true);
+  assert.equal(impPen.enabled, true);
   updateFileMenuContext(native, {
     ready: true,
     editorContext: { mode: "edit", canEdit: false, frameUuid: "frame" },
@@ -240,9 +266,13 @@ test("native menu availability follows ready, preview, permission and frame cont
   assert.equal(save.enabled, false);
   assert.equal(exp.enabled, true);
   assert.equal(expPlasmic.enabled, false);
+  assert.equal(impFigma.enabled, false);
+  assert.equal(impPen.enabled, false);
   updateFileMenuContext(native, { ready: false });
   assert.equal(save.enabled, false);
   assert.equal(expPlasmic.enabled, false);
+  assert.equal(impFigma.enabled, false);
+  assert.equal(impPen.enabled, false);
 });
 for (const fail of [false, true]) {
   test(`native export ${fail ? "failure preserves" : "confirmed overwrite replaces"} an existing file`, async () => {
@@ -538,4 +568,50 @@ test("an invalid saved branch preserves the project instead of deleting it", asy
   } };
   assert.equal(await workspace.startupUrl(session), origin + "/");
   assert.equal(new DesktopWorkspace(dir, origin).recent[0].url, savedUrl);
+});
+
+test("native Import from Figma and Import from Pen actions forward through editorFileAction", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-import-"));
+  try {
+    const figPath = path.join(dir, "sample.fig");
+    fs.writeFileSync(figPath, Buffer.from([1, 2, 3, 4]));
+    const invokes = [],
+      errors = [];
+    let focusCount = 0;
+    const state = {
+      ready: true,
+      editorContext: { mode: "edit", canEdit: true },
+      projectId: "proj-1",
+    };
+    const menu = fileMenu({
+      t: (key) => key,
+      state,
+      controller: {
+        state: async () => state,
+        invoke: async (...args) => invokes.push(args),
+      },
+      workspace: { recent: [] },
+      getWindow: () => ({ focus: () => { focusCount += 1; } }),
+      dialog: {
+        showOpenDialog: async () => ({ canceled: false, filePaths: [figPath] }),
+        showErrorBox: (...args) => errors.push(args),
+      },
+      refresh: () => {},
+    });
+    const impFigma = menu.submenu.find((entry) => entry.id === "desktop-import-figma");
+    const impPen = menu.submenu.find((entry) => entry.id === "desktop-import-pen");
+    await impFigma.click();
+    await impPen.click();
+    assert.deepEqual(errors, []);
+    assert.equal(focusCount, 2);
+    assert.equal(invokes.length, 2);
+    assert.equal(invokes[0][0], "editorFileAction");
+    assert.equal(invokes[0][1].action, "importFigma");
+    assert.equal(invokes[0][1].file.name, "sample.fig");
+    assert.deepEqual(Array.from(invokes[0][1].file.bytes), [1, 2, 3, 4]);
+    assert.equal(invokes[0][2], 30000);
+    assert.deepEqual(invokes[1], ["editorFileAction", { action: "importPen" }, 30000]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

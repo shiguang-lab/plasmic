@@ -8,6 +8,8 @@ import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
 import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { useI18n } from "@/wab/client/i18n";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
+import styles from "@/wab/client/components/style-controls/ColorButton.module.scss";
 
 import PlasmicColorButton from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicColorButton";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -20,9 +22,9 @@ import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-input
 import { FinalToken } from "@/wab/shared/core/tokens";
 import { StyleToken } from "@/wab/shared/model/classes";
 import Chroma from "@/wab/shared/utils/color-utils";
-import { Tooltip } from "antd";
+import { ColorPicker as AntdColorPicker, Tooltip } from "antd";
 import * as React from "react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 type ColorButtonProps = {
   color?: string;
@@ -31,6 +33,10 @@ type ColorButtonProps = {
   sc: StudioCtx;
   derefToken?: boolean;
   className?: string;
+  leadingIcon?: React.ReactNode;
+  "aria-label"?: string;
+  emptyLabel?: string;
+  floatingPicker?: boolean;
   popupTitle?: React.ReactNode;
   valueSetState?: ValueSetState;
   isDisabled?: boolean;
@@ -57,14 +63,16 @@ function ColorButtonContent(props: ColorButtonProps) {
     valueSetState,
     isDisabled,
     className,
+    leadingIcon,
+    floatingPicker,
     disabledTooltip,
     vsh,
     valuePath,
   } = props;
-  const ref = useRef<HTMLElement | null>(null);
-  const [buttonElement, setButtonElement] = useState<HTMLButtonElement | null>(null);
+  const [buttonElement, setButtonElement] = useState<HTMLElement | null>(null);
   const [show, setShow] = useState(false);
   const popoverFrameContext = useMaybePopoverFrameContext();
+  const floatingRef = React.useRef<HTMLDivElement>(null);
 
   // Only use PopoverFrame when there's an active on with non-empty stack
   const usePopoverFrame = valuePath && popoverFrameContext?.state.stack.length;
@@ -76,6 +84,7 @@ function ColorButtonContent(props: ColorButtonProps) {
   const clientValue = useClientTokenValue(resolved?.value, resolved, lifetime);
   const appliedToken = selected?.applied;
   const realColor = appliedToken ? (clientValue ?? "") : (color ?? "");
+  const tooltip = isDisabled ? disabledTooltip : undefined;
   React.useEffect(() => {
     const closeScope = () => setShow(false);
     if (lifetime.aborted) { closeScope(); return; }
@@ -86,8 +95,80 @@ function ColorButtonContent(props: ColorButtonProps) {
   const handleClose = useCallback(() => {
     setShow(false);
     // focus on next frame since we are currently in modal's FocusScope
-    setTimeout(() => ref.current?.focus());
-  }, []);
+    setTimeout(() => buttonElement?.focus());
+  }, [buttonElement]);
+  useStudioEscape(floatingRef, Boolean(floatingPicker && show), handleClose);
+
+  if (floatingPicker) {
+    const label = props["aria-label"];
+    const triggerProps = {
+      role: "button",
+      tabIndex: isDisabled ? -1 : 0,
+      title: label,
+      "aria-label": label,
+      "aria-haspopup": "dialog",
+      "aria-expanded": show,
+      "aria-disabled": isDisabled,
+      onClick: (event) => setButtonElement(event.currentTarget),
+      onKeyDown: (event) => {
+        if (isDisabled || (event.key !== "Enter" && event.key !== " ")) {
+          return;
+        }
+        event.preventDefault();
+        event.currentTarget.click();
+      },
+    } satisfies React.HTMLAttributes<HTMLDivElement>;
+    const trigger = (
+      <AntdColorPicker
+        {...triggerProps}
+        {...(props["data-plasmic-prop"] && {
+          "data-plasmic-prop": props["data-plasmic-prop"],
+        })}
+        size="small"
+        className={className}
+        showText={leadingIcon ? () => leadingIcon : false}
+        value={realColor || "transparent"}
+        open={show}
+        disabled={isDisabled}
+        onOpenChange={setShow}
+        placement="leftTop"
+        arrow={false}
+        destroyOnHidden
+        styles={{
+          content: { background: realColor || undefined },
+          description: { display: "flex", marginInline: 0, order: -1 },
+        }}
+        panelRender={() => (
+          <div
+            ref={floatingRef}
+            className={styles.floatingPicker}
+            role="dialog"
+            aria-label={label}
+          >
+            {popupTitle && (
+              <div className={styles.floatingTitle}>{popupTitle}</div>
+            )}
+            <ColorPicker
+              compact
+              autoFocus
+              color={color || ""}
+              onChange={onChange}
+              derefToken={derefToken}
+              hideTokenPicker={hideTokenPicker}
+              vsh={vsh}
+            />
+          </div>
+        )}
+      />
+    );
+    return tooltip ? (
+      <Tooltip title={tooltip}>
+        <span>{trigger}</span>
+      </Tooltip>
+    ) : (
+      trigger
+    );
+  }
 
   return (
     <>
@@ -103,7 +184,7 @@ function ColorButtonContent(props: ColorButtonProps) {
               ? studioUiT("Invalid token")
               : color != null
                 ? Chroma.stringify(color)
-                : zeroWidthSpace
+                : props.emptyLabel ?? zeroWidthSpace
         }
         valueSetState={valueSetState}
         overrides={{
@@ -124,16 +205,18 @@ function ColorButtonContent(props: ColorButtonProps) {
                 }
               },
               className,
+              "aria-label": props["aria-label"],
               "aria-disabled": isDisabled,
             },
-            wrap: (elt) =>
-              isDisabled && disabledTooltip ? (
-                <Tooltip title={disabledTooltip}>
+            wrap: (elt) => {
+              return tooltip ? (
+                <Tooltip title={tooltip}>
                   <TriggerTarget>{elt}</TriggerTarget>
                 </Tooltip>
               ) : (
                 elt
-              ),
+              );
+            },
           },
         }}
         isDisabled={isDisabled}

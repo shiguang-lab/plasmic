@@ -1,3 +1,4 @@
+import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -122,7 +123,7 @@ export function OutlinePanelSection() {
   const [isOpen, setIsOpen] = React.useState(false);
   const cells = useStyleCells(sc.props.expsProvider, outlineStyleProps);
   const hasOutlineProps = cells.some((cell) => cell.targetHas);
-  const isVisible = isOpen || hasOutlineProps;
+  const isVisible = isOpen || (hasOutlineProps && cells.find((cell) => cell.key === OutlineProps.style)?.raw !== "none");
 
   // A mixin editor has no focused View owner.
   const variantResource = React.useMemo(() => outlineVariantResource(viewCtx), [viewCtx, studioCtx.modelSnapshots]);
@@ -152,11 +153,16 @@ export function OutlinePanelSection() {
       title={uiT("Outline")}
       expsProvider={sc.props.expsProvider}
       styleProps={outlineStyleProps}
-      onHeaderClick={!isVisible ? onClick : undefined}
+      headerMenuOnRightClickOnly
       controls={
+        <>
+        <StyleOverrideControl expsProvider={sc.props.expsProvider} label={uiT("Outline")}
+          styleProps={outlineStyleProps} noneValues={{ "outline-style": "none" }}
+          onChange={() => setIsOpen(false)} />
         <IconLinkButton onClick={onClick}>
           <Icon icon={isVisible ? MinusIcon : PlusIcon} />
         </IconLinkButton>
+        </>
       }
     >
       {isVisible && (

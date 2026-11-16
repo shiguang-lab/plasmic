@@ -1,4 +1,5 @@
 import { jsx, Fragment } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Breadcrumb } from 'antd';
 import React from 'react';
 import { a as asArray, r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
@@ -36,6 +37,11 @@ function registerBreadcrumb(loader) {
     name: breadcrumbComponentName,
     displayName: "Breadcrumb",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        item: "Item",
+        separator: "Separator"
+      }),
       itemsRaw: {
         type: "slot",
         displayName: "items",

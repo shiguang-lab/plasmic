@@ -46,11 +46,9 @@ export function EditorToolIcon({ tool }: { tool: keyof typeof tools }) {
   );
 }
 export function EditorToolRail({
-  onOpenWebBrowser,
   moreButton,
   ...props
 }: React.ComponentProps<typeof PlasmicLeftTabStrip> & {
-  onOpenWebBrowser?: () => void;
   moreButton?: React.ReactNode;
 }) {
   const { t } = useI18n();
@@ -91,29 +89,6 @@ export function EditorToolRail({
                       </React.Fragment>
                     ))}
                 </>
-              )}
-              {navigator.userAgent.includes("PlasmicDesktop/") && (
-                <LeftTabButton
-                  label={t("Import from the web")}
-                  tooltip={t("Import from the web")}
-                  dataTestId="import-from-web-button"
-                  icon={
-                    <svg
-                      width={20}
-                      height={20}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={1.6}
-                      aria-hidden="true"
-                    >
-                      <circle cx={12} cy={12} r={9} />
-                      <path d="M3 12h18 M12 3c5 4 5 14 0 18-5-4-5-14 0-18" />
-                    </svg>
-                  }
-                  onClick={onOpenWebBrowser}
-                  disabled={!onOpenWebBrowser}
-                />
               )}
               {moreButton ?? (
                 <LeftTabButton

@@ -1,6 +1,8 @@
 import { Switch } from "antd";
+import type { SwitchSemanticType } from "antd/es/switch";
 import React from "react";
 import { switchComponentName } from "./names";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdSwitch(props: React.ComponentProps<typeof Switch>) {
@@ -33,6 +35,17 @@ export function registerSwitch(loader?: Registerable) {
         defaultValueHint: false,
         advanced: true,
       },
+      ...semanticAppearance(
+        {
+          root: "Switch container",
+          content: "Content",
+          indicator: "Thumb indicator",
+        } satisfies Record<
+          keyof NonNullable<SwitchSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
       onChange: {
         type: "eventHandler",
         argTypes: [{ name: "checked", type: "boolean" }],

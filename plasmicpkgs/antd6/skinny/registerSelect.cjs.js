@@ -5,6 +5,7 @@ var Ant = require('antd');
 var cls = require('classnames');
 var canvasOverlay$1 = require('./canvas-overlay-D2jWZ-TY.cjs.js');
 var names = require('./names-DbJduus8.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
 require('react');
@@ -70,6 +71,23 @@ function registerSelect(loader) {
     canvasOverlay,
     displayName: "Select",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Select container",
+        content: "Selected content",
+        placeholder: "Placeholder",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        input: "Search input",
+        item: "Selected item",
+        itemContent: "Selected item content",
+        itemRemove: "Selected item remove icon",
+        clear: "Clear icon",
+        popup: {
+          root: "Popup container",
+          list: "Option list",
+          listItem: "List option"
+        }
+      }),
       options: {
         type: "array",
         hidden: (ps) => !!ps.useChildren,

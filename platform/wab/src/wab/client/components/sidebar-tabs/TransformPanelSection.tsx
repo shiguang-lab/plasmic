@@ -1,26 +1,26 @@
-import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
+import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
+import type { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import {
   ExpsProvider,
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { StyleEditorPopover } from "@/wab/client/components/style-controls/StyleEditorPopover";
 import { TransformPanel } from "@/wab/client/components/style-controls/TransformPanel";
 import { TransformSettingsPanel } from "@/wab/client/components/style-controls/TransformSettingsPanel";
+import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
+import { Icon } from "@/wab/client/components/widgets/Icon";
+import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
+import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
+import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import {
   useStyleCells,
   useStyleIndicators,
 } from "@/wab/client/studio-ctx/style-inputs-react";
-import {
-  IconLinkButton,
-  ListBox,
-  ListBoxItem,
-} from "@/wab/client/components/widgets";
-import { Icon } from "@/wab/client/components/widgets/Icon";
-import { useI18n } from "@/wab/client/i18n";
-import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
-import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
-import { assert, spawn, uniqueKey } from "@/wab/shared/common";
+import { arrayMoveIndex } from "@/wab/shared/collections";
+import { assert, spawn } from "@/wab/shared/common";
 import {
   CssTransform,
   CssTransforms,
@@ -28,14 +28,19 @@ import {
   parseOrigin,
 } from "@/wab/shared/css/transforms";
 import { capitalize } from "lodash";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 
 export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
     const { t: uiT } = useI18n();
     const { expsProvider } = props;
     const { studioCtx } = expsProvider;
-    const [inspect, setInspect] = useState<number | undefined>(undefined);
-    const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
+    const sectionRef = useRef<SidebarSectionHandle>(null);
+    const [openEditor, setOpenEditor] = useState<"settings" | number>();
+    const changeOpenEditor = (editor: "settings" | number, open: boolean) => {
+      setOpenEditor((current) =>
+        open ? editor : current === editor ? undefined : current,
+      );
+    };
     const [
       transformCell,
       transformOriginCell,
@@ -115,7 +120,7 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
       setProp("perspective-origin", origin && `${origin.left} ${origin.top}`);
     };
 
-    const updateBackfaceVisibily = (visibility: string | undefined) => {
+    const updateBackfaceVisibility = (visibility: string | undefined) => {
       setProp("backface-visibility", visibility);
     };
 
@@ -130,7 +135,8 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
       assert(newTransform, "Expected CssTransform, found null");
 
       updateTransforms([newTransform, ...transforms]);
-      setInspect(0);
+      setOpenEditor(0);
+      sectionRef.current?.expand();
     };
 
     const styleProps = [
@@ -150,96 +156,114 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
       indicators: styleIndicators,
     });
 
+    const transformTitle = uiT("Transform");
+    const settingsTitle = uiT("Transform Settings");
+
     return (
       <StylePanelSection
-        key={String(transforms.length > 0 || isSettingOpen)}
-        title={uiT("Transform")}
+        ref={sectionRef}
+        title={transformTitle}
         styleProps={styleProps}
-        onHeaderClick={
-          transforms.length === 0 && !isDisabled ? addTransformation : undefined
-        }
+        headerMenuOnRightClickOnly
         controls={
           <>
-            <IconLinkButton
-              onClick={() => !isDisabled && setIsSettingOpen(true)}
+            <StyleOverrideControl expsProvider={expsProvider} label={transformTitle}
+              styleProps={styleProps} noneValues={{ transform: "none", perspective: "none" }}
+              onChange={() => setOpenEditor(undefined)} />
+            <StyleEditorPopover
+              title={settingsTitle}
+              open={!isDisabled && openEditor === "settings"}
+              onOpenChange={(open) => changeOpenEditor("settings", open)}
+              content={
+                <TransformSettingsPanel
+                  selfPerspective={cssTransforms.perspective}
+                  studioCtx={studioCtx}
+                  transformOrigin={transformOrigin}
+                  backfaceVisibility={backfaceVisibility}
+                  childPerspective={childPerspective}
+                  perspectiveOrigin={perspectiveOrigin}
+                  updateSelfPerspective={updateSelfPerspective}
+                  updateTransformOrigin={updateTransformOrigin}
+                  updateBackfaceVisibility={updateBackfaceVisibility}
+                  updateChildPerspective={updateChildPerspective}
+                  updatePerspectiveOrigin={updatePerspectiveOrigin}
+                />
+              }
             >
-              <Icon icon={GearIcon} />
-            </IconLinkButton>
-            <IconLinkButton onClick={() => !isDisabled && addTransformation()}>
+              <IconButton size="small" tooltip={settingsTitle} disabled={isDisabled}>
+                <Icon icon={GearIcon} />
+              </IconButton>
+            </StyleEditorPopover>
+            <IconButton
+              size="small"
+              tooltip={uiT("Add transform")}
+              disabled={isDisabled}
+              onClick={addTransformation}
+            >
               <Icon icon={PlusIcon} />
-            </IconLinkButton>
+            </IconButton>
           </>
         }
         expsProvider={expsProvider}
       >
-        {inspect !== undefined &&
-          transforms.length > 0 &&
-          transforms[inspect] && (
-            <SidebarModal
-              show
-              title={uiT("Transform")}
-              onClose={() => setInspect(undefined)}
-            >
-              <div className="panel-content">
-                <TransformPanel
-                  transform={transforms[inspect]}
-                  onChange={(newTransform) => {
-                    updateTransforms(transforms.map((transform, index) => index === inspect ? newTransform : transform));
-                  }}
-                  studioCtx={studioCtx}
-                />
-              </div>
-            </SidebarModal>
-          )}
-        {isSettingOpen && (
-          <SidebarModal
-            show
-            title={uiT("Transform Settings")}
-            onClose={() => setIsSettingOpen(false)}
-          >
-            <TransformSettingsPanel
-              selfPerspective={cssTransforms.perspective}
-              studioCtx={studioCtx}
-              transformOrigin={transformOrigin}
-              backfaceVisibility={backfaceVisibility}
-              childPerspective={childPerspective}
-              perspectiveOrigin={perspectiveOrigin}
-              updateSelfPerspective={updateSelfPerspective}
-              updateTransformOrigin={updateTransformOrigin}
-              updateBackfaceVisibility={updateBackfaceVisibily}
-              updateChildPerspective={updateChildPerspective}
-              updatePerspectiveOrigin={updatePerspectiveOrigin}
-            />
-          </SidebarModal>
-        )}
         {transforms.length > 0 && (
           <ListBox
             appendPrepend="append"
             onReorder={(from, to) => {
               if (!isDisabled) {
-                const reordered = arrayMoveIndex(transforms, from, to);
-                updateTransforms(reordered);
+                setOpenEditor(undefined);
+                updateTransforms(arrayMoveIndex(transforms, from, to));
               }
             }}
           >
-            {transforms.map((cssTransform: CssTransform, i: number) => {
+            {transforms.map((cssTransform, i) => {
+              const label = capitalize(cssTransform.type);
               return (
                 <ListBoxItem
-                  key={uniqueKey(cssTransform)}
+                  key={i}
                   index={i}
+                  clickable={false}
+                  truncate={false}
+                  disabled={isDisabled}
+                  isDragDisabled={isDisabled || transforms.length < 2}
                   onRemove={() => {
-                    if (!isDisabled) {
-                      arrayRemove(transforms, cssTransform);
-                      updateTransforms(transforms);
-                    }
+                    setOpenEditor(undefined);
+                    updateTransforms(
+                      transforms.filter((_, index) => index !== i),
+                    );
                   }}
-                  onClick={() => !isDisabled && setInspect(i)}
                   mainContent={
-                    <div className="labeled-item labeled-item--horizontal--vcenter">
-                      <div className="labeled-item__label labeled-item__label--horizontal">
-                        {capitalize(cssTransform.type)}
-                      </div>
-                      <code>{cssTransform.getDisplayText()}</code>
+                    <div className={`${paintStyles.fillValue} flex-fill`}>
+                      <StyleEditorPopover
+                        title={transformTitle}
+                        open={!isDisabled && openEditor === i}
+                        onOpenChange={(open) => changeOpenEditor(i, open)}
+                        content={
+                          <TransformPanel
+                            transform={cssTransform}
+                            onChange={(newTransform) => {
+                              updateTransforms(
+                                transforms.map((transform, index) =>
+                                  index === i ? newTransform : transform,
+                                ),
+                              );
+                            }}
+                            studioCtx={studioCtx}
+                          />
+                        }
+                      >
+                        <button
+                          type="button"
+                          className={paintStyles.fillEdit}
+                          disabled={isDisabled}
+                          aria-label={`${transformTitle}: ${label}`}
+                        >
+                          <span className={paintStyles.fillLabel}>{label}</span>
+                          <span className={paintStyles.valueSummary}>
+                            {cssTransform.getDisplayText()}
+                          </span>
+                        </button>
+                      </StyleEditorPopover>
                     </div>
                   }
                 />

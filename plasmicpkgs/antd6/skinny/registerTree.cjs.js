@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
@@ -107,6 +108,13 @@ function registerTreeHelper({
     name,
     displayName,
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemTitle: "Item Title",
+        itemSwitcher: "Item Switcher"
+      }),
       treeData: {
         type: "array",
         defaultValue: treeData

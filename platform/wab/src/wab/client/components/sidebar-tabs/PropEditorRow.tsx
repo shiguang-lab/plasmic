@@ -1,3 +1,9 @@
+import {
+  canEditSemanticValue,
+  isSemanticObjectProp,
+  SemanticBindingBody,
+  SemanticObjectPropSection,
+} from "@/wab/client/components/sidebar-tabs/ComponentProps/SemanticObjectPropEditor";
 import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { useElementPropInputs, useElementPropValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
@@ -87,6 +93,7 @@ import {
   maybe,
   swallow,
   switchType,
+  tryCatchElse,
   tuple,
   withoutNils,
 } from "@/wab/shared/common";
@@ -104,6 +111,7 @@ import {
   clone,
   codeLit,
   createExprForDataPickerValue,
+  deserCompositeExprMaybe,
   ExprCtx,
   extractReferencedParam,
   extractValueSavedFromDataPicker,
@@ -114,6 +122,7 @@ import {
   isFallbackSet,
   isPageHref,
   isRealCodeExpr,
+  isRealCodeExprEnsuringType,
   renderable,
   tryExtractJson,
 } from "@/wab/shared/core/exprs";
@@ -136,7 +145,7 @@ import {
   DefinedIndicatorType,
 } from "@/wab/shared/defined-indicator";
 import { tryEvalExpr } from "@/wab/shared/eval";
-import { makeDataTokenIdentifier } from "@/wab/shared/eval/expression-parser";
+import { makeDataTokenIdentifier, parseDataTokenIdentifier } from "@/wab/shared/eval/expression-parser";
 import { getFolderDisplayName } from "@/wab/shared/folders/folders-util";
 import { getInputTypeOptions } from "@/wab/shared/html-utils";
 import { isLinkCompatible } from "@/wab/shared/linked-props";
@@ -774,6 +783,12 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
   const isFlattenedObjectProp = isFlattenedObjectPropType(propType);
   const wabType = ensurePropTypeToWabType(studioCtx.site, propType);
   const propTypeType = getPropTypeType(propType);
+  const isSemantic = isSemanticObjectProp(propType);
+  const isTokenBinding =
+    isSemantic &&
+    isKnownObjectPath(expr) &&
+    typeof expr.path[0] === "string" &&
+    !!parseDataTokenIdentifier(expr.path[0]);
   const isStringPropType = propTypeType === "string";
   const isTemplatedStringWithDynamicParts =
     isKnownTemplatedString(expr) && hasDynamicParts(expr);
@@ -853,7 +868,10 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     !readOnly && !referencedParam && !disabledDynamicValue && !disabled;
 
   const canSuggestDataTokens =
-    allowDynamicValue && !isCustomCode && !isTemplatedStringWithDynamicParts;
+    allowDynamicValue &&
+    !isSemantic &&
+    !isCustomCode &&
+    !isTemplatedStringWithDynamicParts;
 
   const showDynamicValueButton =
     allowDynamicValue &&
@@ -888,8 +906,12 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
 
     // Keep the previous value as the fallback, except for string props.
     const currentExpr = readCurrentExpr();
+    const previousLiteral =
+      isSemantic && isRealCodeExprEnsuringType(currentExpr)
+        ? currentExpr.fallback
+        : currentExpr;
     const fallback =
-      currentExpr && !isStringPropType ? clone(currentExpr) : undefined;
+      previousLiteral && !isStringPropType ? clone(previousLiteral) : undefined;
 
     onChange(maybeWrapExpr(new ObjectPath({ path, fallback })));
     setShowFallback(fallback !== undefined);
@@ -900,7 +922,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     if (
       readOnly ||
       !allowDynamicValue ||
-      isCustomCode ||
+      (isCustomCode && !isTokenBinding) ||
       isTemplatedStringWithDynamicParts
     ) {
       return null;
@@ -909,6 +931,16 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
       site: studioCtx.site,
       projectId: studioCtx.siteInfo.id,
       onSelect: switchToDynamicValue,
+      title: isTokenBinding ? <UiText message="Change source" /> : undefined,
+      isTokenCompatible: isSemantic
+        ? ({ token }) =>
+            tryCatchElse({
+              try: () => JSON.parse(token.value),
+              else: (value) => canEditSemanticValue(propType.fields, value),
+              // Computed tokens may depend on context that is unavailable in the menu.
+              catch: () => true,
+            })
+        : undefined,
       onCreate: () => {
         void createDataToken();
       },
@@ -916,13 +948,18 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
   }
 
   async function createDataToken() {
-    const currentExpr = readCurrentExpr();
+    const original = readCurrentExpr();
+    const currentExpr =
+      isSemantic && isRealCodeExprEnsuringType(original)
+        ? original.fallback
+        : original;
     const dataType: DataTokenType =
       propTypeType === "number" || propTypeType === "string"
         ? propTypeType
         : "code";
-    const defaultValue =
-      propTypeType === "boolean"
+    const defaultValue = isSemantic
+      ? "{}"
+      : propTypeType === "boolean"
         ? "false"
         : dataTypes[dataType].defaultSerializedValue;
     const isExprDefined =
@@ -933,7 +970,10 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
       let tokenValue = defaultValue;
       if (isExprDefined) {
         const extractedJson = tryExtractJson(currentExpr);
-        if (extractedJson !== undefined) {
+        if (
+          extractedJson !== undefined &&
+          (!isSemantic || canEditSemanticValue(propType.fields, extractedJson))
+        ) {
           tokenValue = JSON.stringify(extractedJson);
         }
       }
@@ -951,13 +991,14 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     <Menu>
       {!readOnly &&
         !referencedParam &&
+        (!isSemantic || (!disabled && !isCustomCode)) &&
         expr &&
         onDelete &&
         ["set", "none", "invariantable", "setNonVariable"].includes(
           definedIndicator.source,
         ) &&
         !["functionArgs"].includes(getPropTypeType(propType) ?? "") && (
-          <Menu.Item onClick={onDelete}>
+          <Menu.Item key="removeProp" onClick={onDelete}>
             <UiText
               message="Remove {name} {type}"
               values={{
@@ -986,7 +1027,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
             </span>
           </Menu.Item>
         )}
-      {!readOnly && referencedParam && ownerComponent && (
+      {!readOnly && (!isSemantic || !disabled) && referencedParam && ownerComponent && (
         <UnlinkFromPropMenuItem
           ownerComponent={ownerComponent}
           referencedParam={referencedParam}
@@ -996,11 +1037,12 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
       {!readOnly &&
         ownerComponent &&
         (isPageComponent(ownerComponent) || isPlainComponent(ownerComponent)) &&
-        !referencedParam &&
+        (!referencedParam || isSemantic) &&
         canLinkToProp && (
           <LinkToPropMenuItem
-            availableParams={getRealParams(ownerComponent).filter((p) =>
-              isLinkCompatible(wabType, p.type),
+            title={referencedParam && isSemantic ? <UiText message="Change source" /> : undefined}
+            availableParams={getRealParams(ownerComponent).filter(
+              (p) => p !== referencedParam && isLinkCompatible(wabType, p.type)
             )}
             onLinkExisting={(param) =>
               onChange(new VarRef({ variable: param.variable }))
@@ -1021,7 +1063,13 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
             <UiText message={"Use dynamic value"} />
           </Menu.Item>
         )}
-      {!readOnly &&
+      {isSemantic && allowDynamicValue && isCustomCode && !isTokenBinding && (
+        <Menu.Item key="editSemanticBinding" onClick={() => setIsDataPickerVisible(true)}>
+          <UiText message="Change source" />
+        </Menu.Item>
+      )}
+      {!isSemantic &&
+        !readOnly &&
         !disabled &&
         canPropHaveFallback &&
         !showFallback &&
@@ -1033,7 +1081,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
       {!readOnly &&
         !disabled &&
         canPropHaveFallback &&
-        showFallback &&
+        (isSemantic ? expr && isFallbackSet(expr) : showFallback) &&
         !disableFallback && (
           <Menu.Item
             key={"removeFallback"}
@@ -1055,6 +1103,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
           </Menu.Item>
         )}
       {!readOnly &&
+        (!isSemantic || !disabled) &&
         !referencedParam &&
         (isCustomCode || isTemplatedStringWithDynamicParts) &&
         !isExprValuePropType(propType) && (
@@ -1120,6 +1169,8 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
         setVisible={setIsDataPickerVisible}
         data={canvasEnv}
         expectedValues={extractExpectedValues(propType, enumValues)}
+        isDisabled={isSemantic && (disabled || readOnly || disabledDynamicValue)}
+        hidePreview={isSemantic}
         schema={schema}
       />
     );
@@ -1127,6 +1178,23 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
 
   const [exprLit, exprEditable] = extractLitFromMaybeRenderable(expr, viewCtx);
 
+  const semanticBinding = isSemantic && (referencedParam || canPropHaveFallback);
+  const semanticValue = semanticBinding
+    ? Object.hasOwn(componentPropValues, attr)
+      ? componentPropValues[attr]
+      : evaluated?.val
+    : deserCompositeExprMaybe(exprLit) ?? {};
+  const evaluationError = evaluated?.err;
+  const semanticUsesFallback =
+    !!semanticBinding &&
+    !!expr &&
+    isFallbackSet(expr) &&
+    semanticValue !== undefined &&
+    (evaluationError instanceof TypeError ||
+      (!!evaluationError &&
+        !exprCtx.projectFlags.useLoadingState &&
+        "plasmicType" in evaluationError &&
+        evaluationError.plasmicType === "PlasmicUndefinedDataError"));
   const exprValue = evaluated?.val ?? exprLit;
   const invalidVal = isPropOptionInvalid(propType, exprValue, referencedParam, {
     componentPropValues,
@@ -1206,6 +1274,71 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     );
   };
 
+  const renderFallbackEditor = () => {
+    if (!canPropHaveFallback || disableFallback || !viewCtx) {
+      return null;
+    }
+    const codeExpr = ensureInstance(expr, CustomCode, ObjectPath);
+    const [fallbackLit, editable] = extractLitFromMaybeRenderable(
+      codeExpr.fallback,
+      viewCtx,
+    );
+    const changeFallback = (fallback: Expr | undefined) => {
+      const next = isKnownCustomCode(codeExpr)
+        ? new CustomCode({ code: codeExpr.code, fallback })
+        : new ObjectPath({ path: codeExpr.path, fallback });
+      onChange(maybeWrapExpr(next));
+    };
+    const editor = (
+      <PropValueEditor
+        attr={attr}
+        propType={propType}
+        value={fallbackLit}
+        label={label}
+        disabled={!editable || (isSemantic && (disabled || readOnly))}
+        valueSetState={fallbackLit ? "isSet" : "isUnset"}
+        component={ownerComponent}
+        hideDefaultValueHint
+        onChange={(val) => {
+          if (fallbackLit == null && val == null) {
+            return;
+          }
+
+          viewCtx.change(() => {
+            if (!world.isCurrent()) {
+              return;
+            }
+            changeFallback(
+              isSemantic && val === undefined
+                ? undefined
+                : updateOrCreateExpr(expr, wabType, val, tpl, viewCtx)
+            );
+          });
+        }}
+        onDelete={isSemantic ? undefined : onDelete}
+        controlExtras={controlExtras}
+      />
+    );
+    if (isSemantic) {
+      return editor;
+    }
+    return (
+      <FallbackEditor
+        isSet={isFallbackSet(codeExpr)}
+        onUnset={() => {
+          viewCtx.change(() => {
+            if (world.isCurrent()) {
+              changeFallback(undefined);
+            }
+          });
+          setShowFallback(false);
+        }}
+      >
+        {editor}
+      </FallbackEditor>
+    );
+  };
+
   const [panelRowElement, setPanelRowElement] = React.useState<HTMLDivElement | null>(null);
 
   return (
@@ -1252,7 +1385,35 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                 onClick={onReconcileLink}
               />
             ) : null}
-            {isFlattenedObjectProp ? (
+            {isSemantic ? (
+              <SemanticObjectPropSection
+                key={tpl?.uuid}
+                attr={attr}
+                label={label}
+                menu={allowPointerInteractions && !isMenuEmpty(contextMenu) ? contextMenu : undefined}
+                value={semanticValue}
+                reveal={isDataPickerVisible}
+                bindingStatus={referencedParam
+                  ? uiT("Linked")
+                  : isTokenBinding
+                    ? uiT("Data token")
+                    : canPropHaveFallback
+                      ? uiT("Dynamic value")
+                      : undefined}
+              >
+                {semanticBinding ? (
+                  <SemanticBindingBody
+                    source={referencedParam
+                      ? renderEditorForReferencedParam()
+                      : renderDataPickerEditorForDynamicValue()}
+                    value={semanticValue}
+                    usesFallback={semanticUsesFallback}
+                    invalidValue={!canEditSemanticValue(propType.fields, semanticValue)}
+                    fallback={renderFallbackEditor()}
+                  />
+                ) : renderDefaultEditor()}
+              </SemanticObjectPropSection>
+            ) : isFlattenedObjectProp ? (
               renderDefaultEditor()
             ) : (
               <LabeledItemRow
@@ -1362,79 +1523,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                 onChange={onChange}
               />
             )}
-            {canPropHaveFallback &&
-              showFallback &&
-              !disableFallback &&
-              viewCtx &&
-              (() => {
-                // If we were displaying a "whole" custom code expression, then now we need to show the fallback.
-                const codeExpr = ensureInstance(expr, CustomCode, ObjectPath);
-                const [fallbackLit, editable] = extractLitFromMaybeRenderable(
-                  codeExpr.fallback,
-                  viewCtx,
-                );
-                return (
-                  <FallbackEditor
-                    isSet={isFallbackSet(codeExpr)}
-                    onUnset={() => {
-                      viewCtx.change(() => {
-      if (!world.isCurrent()) { return; }
-                        const newExpr = isKnownCustomCode(codeExpr)
-                          ? new CustomCode({
-                              code: codeExpr.code,
-                              fallback: undefined,
-                            })
-                          : new ObjectPath({
-                              path: codeExpr.path,
-                              fallback: undefined,
-                            });
-                        onChange(maybeWrapExpr(newExpr));
-                      });
-                      setShowFallback(false);
-                    }}
-                  >
-                    <PropValueEditor
-                      attr={attr}
-                      propType={propType}
-                      value={fallbackLit}
-                      label={label}
-                      disabled={!editable}
-                      valueSetState={fallbackLit ? "isSet" : "isUnset"}
-                      component={ownerComponent}
-                      // Don't show default value hint for fallback
-                      hideDefaultValueHint
-                      onChange={(val) => {
-                        if (fallbackLit == null && val == null) {
-                          return;
-                        }
-
-                        viewCtx.change(() => {
-      if (!world.isCurrent()) { return; }
-                          const fallbackExpr = updateOrCreateExpr(
-                            expr,
-                            wabType,
-                            val,
-                            tpl,
-                            viewCtx,
-                          );
-                          const newExpr = isKnownCustomCode(codeExpr)
-                            ? new CustomCode({
-                                code: codeExpr.code,
-                                fallback: fallbackExpr,
-                              })
-                            : new ObjectPath({
-                                path: codeExpr.path,
-                                fallback: fallbackExpr,
-                              });
-                          onChange(maybeWrapExpr(newExpr));
-                        });
-                      }}
-                      onDelete={onDelete}
-                      controlExtras={controlExtras}
-                    />
-                  </FallbackEditor>
-                );
-              })()}
+            {!isSemantic && showFallback && renderFallbackEditor()}
           </PropValueEditorContext.Provider>
           {highlight && (
             <HighlightBlinker

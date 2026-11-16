@@ -293,3 +293,15 @@ test("updates its branch label from the native owner while mounted", () => {
   expect(screen.getByRole("button", { name: "Branches: Renamed branch" })).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Branches: main" })).toBeNull();
 });
+
+test("renders only an icon and shows the branch in a hover tooltip", async () => {
+  mount();
+  const trigger = screen.getByRole("button", { name: "Branches: main" });
+  expect(trigger.textContent).toBe("");
+  expect(trigger.getAttribute("title")).toBeNull();
+  expect(trigger.querySelector(".anticon-branches")).toBeTruthy();
+  fireEvent.mouseEnter(trigger);
+  expect((await screen.findByRole("tooltip")).textContent).toBe("Branches: main");
+  fireEvent.click(trigger);
+  expect(await screen.findByRole("textbox", { name: "Search branches" })).toBeTruthy();
+});

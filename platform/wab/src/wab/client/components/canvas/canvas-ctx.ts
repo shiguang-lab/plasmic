@@ -687,6 +687,18 @@ export class CanvasCtx {
   }
 
   private _outlineModeRules: CSSRule[] = [];
+  private readonly outlineModeListeners = new Set<() => void>();
+
+  subscribeOutlineMode(listener: () => void): () => void {
+    if (this._isDisposed) {
+      return () => undefined;
+    }
+    this.outlineModeListeners.add(listener);
+    return () => {
+      this.outlineModeListeners.delete(listener);
+    };
+  }
+
   setOutlineMode(mode: boolean) {
     const ss = this.controlStyleSheet();
     if (mode) {
@@ -735,6 +747,9 @@ export class CanvasCtx {
         ss.deleteRule(index);
       }
       this._outlineModeRules = [];
+    }
+    for (const listener of this.outlineModeListeners) {
+      listener();
     }
   }
   isOutlineMode() {
@@ -813,6 +828,7 @@ export class CanvasCtx {
     this.frameInfoOwner = undefined;
     this.usedPackages?.dispose(); this.usedPackages = undefined;
     this.registrations.dispose();
+    this.outlineModeListeners.clear();
     for (const dispose of this.disposals) {
       dispose();
     }

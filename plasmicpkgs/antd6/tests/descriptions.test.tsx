@@ -32,9 +32,14 @@ test("Descriptions registers editable Item slots as the default composition", ()
     expect(props.style.type).toBe("object");
     expect(props.style.description).toContain('width: "25%"');
     expect(props.className.type).toBe("string");
+    expect(props.styles.editor).toBe("semantic");
     expect(props.styles.fields.label.type).toBe("object");
     expect(props.styles.fields.content.type).toBe("object");
-    expect(props.classNames.fields).toEqual({ label: "string", content: "string" });
+    expect(props.classNames.editor).toBe("semantic");
+    expect(props.classNames.fields).toEqual({
+      label: { type: "string", displayName: "Label" },
+      content: { type: "string", displayName: "Content" },
+    });
   }
   expect(descriptions.props.children.hidden({ items: [] })).toBe(true);
   expect(descriptions.props.children.hidden({})).toBe(false);

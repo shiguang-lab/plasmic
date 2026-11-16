@@ -4,6 +4,7 @@ import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
 import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -271,19 +272,16 @@ const descriptionsItemAppearance = {
     type: "string",
     description: "CSS class applied to the Item table cell(s)."
   },
-  styles: {
-    type: "object",
-    description: "Native per-Item semantic styles. These override the parent Descriptions label/content styles; they do not set the whole field group's width.",
-    fields: {
-      label: { type: "object", description: "React.CSSProperties for the label." },
-      content: { type: "object", description: "React.CSSProperties for the value." }
+  ...semanticAppearance(
+    {
+      label: "Label",
+      content: "Content"
+    },
+    {
+      stylesDescription: "Native per-Item semantic styles. These override the parent Descriptions label/content styles; they do not set the whole field group's width.",
+      classNamesDescription: "Native per-Item semantic CSS classes."
     }
-  },
-  classNames: {
-    type: "object",
-    description: "Native per-Item semantic CSS classes.",
-    fields: { label: "string", content: "string" }
-  }
+  )
 };
 const slot = (text) => ({ type: "slot", defaultValue: text });
 const choice = (options, defaultValueHint) => ({
@@ -333,9 +331,27 @@ function registerAdditional(loader) {
     showIcon: "boolean",
     banner: "boolean",
     closable: "object",
-    action: { type: "slot", hidePlaceholder: true }
+    action: { type: "slot", hidePlaceholder: true },
+    ...semanticAppearance(
+      {
+        root: "Alert container",
+        icon: "Icon",
+        section: "Content section",
+        title: "Title",
+        description: "Description",
+        actions: "Actions",
+        close: "Close button"
+      },
+      { advanced: true }
+    )
   });
   register(loader, AntdAnchor, "anchor", "AntdAnchor", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      itemTitle: "Item Title",
+      indicator: "Indicator"
+    }),
     items: {
       type: "array",
       defaultValue: [{ key: "section", href: "#section", title: "Section" }]
@@ -351,6 +367,19 @@ function registerAdditional(loader) {
     "auto-complete",
     "AntdAutoComplete",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        placeholder: "Placeholder",
+        content: "Content",
+        clear: "Clear",
+        popup: {
+          root: "Root",
+          listItem: "List Item",
+          list: "List"
+        }
+      }),
       value: "string",
       options: {
         type: "array",
@@ -374,9 +403,21 @@ function registerAdditional(loader) {
     color: { type: "color" },
     size: choice(["small", "medium"]),
     status: choice([...badgeStatuses]),
-    text: "string"
+    text: "string",
+    ...semanticAppearance(
+      {
+        root: "Badge container",
+        indicator: "Indicator"
+      },
+      { advanced: true }
+    )
   });
   register(loader, AntdBadgeRibbon, "badge-ribbon", "AntdBadgeRibbon", {
+    ...semanticAppearance({
+      root: "Root",
+      content: "Content",
+      indicator: "Indicator"
+    }),
     children: slot("Ribbon content"),
     text: { ...slot("Ribbon"), hidePlaceholder: true },
     color: { type: "color" },
@@ -396,10 +437,24 @@ function registerAdditional(loader) {
     variant: choice(["outlined", "borderless"]),
     hoverable: "boolean",
     loading: "boolean",
-    styles: "object",
-    classNames: "object"
+    ...semanticAppearance({
+      root: "Card container",
+      header: "Header",
+      title: "Title",
+      extra: "Extra content",
+      body: "Body",
+      actions: "Actions",
+      cover: "Cover"
+    })
   });
   register(loader, AntdCardMeta, "card-meta", "AntdCardMeta", {
+    ...semanticAppearance({
+      root: "Root",
+      section: "Section",
+      avatar: "Avatar",
+      title: "Title",
+      description: "Description"
+    }),
     title: { ...slot("Title"), hidePlaceholder: true },
     description: { type: "slot", hidePlaceholder: true },
     avatar: { type: "slot", hidePlaceholder: true }
@@ -446,6 +501,22 @@ function registerAdditional(loader) {
     "cascader",
     "AntdCascader",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        input: "Input",
+        placeholder: "Placeholder",
+        content: "Content",
+        item: "Item",
+        itemContent: "Item Content",
+        itemRemove: "Item Remove",
+        popup: {
+          root: "Root",
+          listItem: "List Item",
+          list: "List"
+        }
+      }),
       ...cascaderProps,
       placeholder: "string",
       allowClear: "boolean",
@@ -543,8 +614,14 @@ function registerAdditional(loader) {
     layout: choice(["horizontal", "vertical"]),
     bordered: "boolean",
     size: sizes,
-    styles: "object",
-    classNames: "object"
+    ...semanticAppearance({
+      root: "Descriptions container",
+      header: "Header",
+      title: "Title",
+      extra: "Extra content",
+      label: "Label",
+      content: "Content"
+    })
   }, { description: "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics." });
   register(loader, AntdDescriptionsItem, "descriptions-item", "AntdDescriptionsItem", {
     key: { type: "string", description: "A stable field key within this Descriptions." },
@@ -554,6 +631,11 @@ function registerAdditional(loader) {
     ...descriptionsItemAppearance
   }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
   register(loader, AntdDivider, "divider", "AntdDivider", {
+    ...semanticAppearance({
+      root: "Root",
+      rail: "Rail",
+      content: "Content"
+    }),
     children: { type: "slot", hidePlaceholder: true },
     orientation: choice(["horizontal", "vertical"]),
     titlePlacement: choice(["start", "center", "end"]),
@@ -562,6 +644,12 @@ function registerAdditional(loader) {
     size: sizes
   });
   register(loader, AntdEmpty, "empty", "AntdEmpty", {
+    ...semanticAppearance({
+      root: "Root",
+      image: "Image",
+      description: "Description",
+      footer: "Footer"
+    }),
     description: { type: "slot", hidePlaceholder: true },
     children: { type: "slot", hidePlaceholder: true },
     image: "imageUrl"
@@ -582,6 +670,11 @@ function registerAdditional(loader) {
     ])
   });
   register(loader, AntdFloatButton, "float-button", "AntdFloatButton", {
+    ...semanticAppearance({
+      root: "Root",
+      icon: "Icon",
+      content: "Content"
+    }),
     icon: { type: "slot", hidePlaceholder: true },
     content: { type: "slot", hidePlaceholder: true },
     tooltip: "string",
@@ -595,6 +688,16 @@ function registerAdditional(loader) {
     "float-button-group",
     "AntdFloatButtonGroup",
     {
+      ...semanticAppearance({
+        root: "Root",
+        list: "List",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+        trigger: "Trigger",
+        triggerIcon: "Trigger Icon",
+        triggerContent: "Trigger Content"
+      }),
       children: {
         type: "slot",
         allowedComponents: [
@@ -612,11 +715,37 @@ function registerAdditional(loader) {
     }
   );
   register(loader, AntdBackTop, "back-top", "AntdBackTop", {
+    ...semanticAppearance({
+      root: "Root",
+      icon: "Icon",
+      content: "Content"
+    }),
     visibilityHeight: "number",
     duration: "number",
     icon: { type: "slot", hidePlaceholder: true }
   });
   register(loader, AntdImage, "image", "AntdImage", {
+    ...semanticAppearance({
+      root: "Root",
+      image: "Image",
+      cover: "Cover",
+      placeholder: {
+        progress: {
+          root: "Root",
+          content: "Content",
+          rail: "Rail",
+          indicator: "Indicator"
+        }
+      },
+      popup: {
+        root: "Root",
+        mask: "Mask",
+        body: "Body",
+        footer: "Footer",
+        actions: "Actions",
+        close: "Close"
+      }
+    }),
     src: { type: "imageUrl", defaultValue: "https://placehold.co/320x200" },
     alt: "string",
     width: "number",
@@ -630,6 +759,27 @@ function registerAdditional(loader) {
     "image-preview-group",
     "AntdImagePreviewGroup",
     {
+      ...semanticAppearance({
+        root: "Root",
+        image: "Image",
+        cover: "Cover",
+        placeholder: {
+          progress: {
+            root: "Root",
+            content: "Content",
+            rail: "Rail",
+            indicator: "Indicator"
+          }
+        },
+        popup: {
+          root: "Root",
+          mask: "Mask",
+          body: "Body",
+          footer: "Footer",
+          actions: "Actions",
+          close: "Close"
+        }
+      }),
       children: { type: "slot", allowedComponents: ["plasmic-antd6-image"] },
       items: { type: "array" }
     }
@@ -660,6 +810,10 @@ function registerAdditional(loader) {
     "layout-sider",
     "AntdLayoutSider",
     {
+      ...semanticAppearance({
+        root: "Root",
+        body: "Body"
+      }),
       children: slot("Navigation"),
       width: "number",
       collapsed: "boolean",
@@ -689,6 +843,10 @@ function registerAdditional(loader) {
     loading: "boolean"
   });
   register(loader, AntdListItem, "list-item", "AntdListItem", {
+    ...semanticAppearance({
+      actions: "Actions",
+      extra: "Extra"
+    }),
     children: slot("Item"),
     extra: { type: "slot", hidePlaceholder: true },
     actions: { type: "slot", hidePlaceholder: true }
@@ -699,6 +857,11 @@ function registerAdditional(loader) {
     avatar: { type: "slot", hidePlaceholder: true }
   });
   register(loader, AntdListy, "listy", "AntdListy", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      groupHeader: "Group Header"
+    }),
     items: {
       type: "array",
       defaultValue: [
@@ -711,6 +874,10 @@ function registerAdditional(loader) {
     sticky: "boolean"
   });
   register(loader, AntdMasonry, "masonry", "AntdMasonry", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item"
+    }),
     items: {
       type: "array",
       defaultValue: [
@@ -727,6 +894,12 @@ function registerAdditional(loader) {
     "mentions",
     "AntdMentions",
     {
+      ...semanticAppearance({
+        root: "Root",
+        textarea: "Textarea",
+        popup: "Popup",
+        suffix: "Suffix"
+      }),
       value: "string",
       options: {
         type: "array",
@@ -745,6 +918,14 @@ function registerAdditional(loader) {
     "popconfirm",
     "AntdPopconfirm",
     {
+      ...semanticAppearance({
+        title: "Title",
+        content: "Content",
+        root: "Root",
+        container: "Container",
+        arrow: "Arrow",
+        icon: "Icon"
+      }),
       icon: { type: "slot", hidePlaceholder: true },
       children: slot("Delete"),
       title: { ...slot("Delete this item?"), hidePlaceholder: true },
@@ -764,6 +945,10 @@ function registerAdditional(loader) {
     { canvasOverlay }
   );
   register(loader, AntdQRCode, "qr-code", "AntdQRCode", {
+    ...semanticAppearance({
+      root: "Root",
+      cover: "Cover"
+    }),
     value: { type: "string", defaultValue: "https://publib.cn" },
     size: "number",
     color: { type: "color" },
@@ -773,6 +958,14 @@ function registerAdditional(loader) {
     status: choice(["active", "expired", "loading", "scanned"])
   });
   register(loader, AntdResult, "result", "AntdResult", {
+    ...semanticAppearance({
+      root: "Root",
+      title: "Title",
+      subTitle: "Sub Title",
+      body: "Body",
+      extra: "Extra",
+      icon: "Icon"
+    }),
     title: { ...slot("Success"), hidePlaceholder: true },
     subTitle: { type: "slot", hidePlaceholder: true },
     extra: { type: "slot", hidePlaceholder: true },
@@ -788,6 +981,14 @@ function registerAdditional(loader) {
     ])
   });
   register(loader, AntdSkeleton, "skeleton", "AntdSkeleton", {
+    ...semanticAppearance({
+      root: "Root",
+      header: "Header",
+      section: "Section",
+      avatar: "Avatar",
+      title: "Title",
+      paragraph: "Paragraph"
+    }),
     children: { type: "slot", hidePlaceholder: true },
     active: "boolean",
     loading: { type: "boolean", defaultValue: true },
@@ -804,6 +1005,10 @@ function registerAdditional(loader) {
     ["node", AntdSkeletonNode, "AntdSkeletonNode"]
   ]) {
     register(loader, component, `skeleton-${suffix}`, importName, {
+      ...semanticAppearance({
+        root: "Root",
+        content: "Content"
+      }),
       active: "boolean"
     });
   }
@@ -813,6 +1018,11 @@ function registerAdditional(loader) {
     size: { type: "number", defaultValueHint: 8, description: "Gap in pixels. Unset uses the native small size." }
   };
   register(loader, AntdSpace, "space", "AntdSpace", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      separator: "Separator"
+    }),
     ...spaceProps,
     wrap: "boolean",
     separator: { type: "slot", hidePlaceholder: true },
@@ -825,6 +1035,15 @@ function registerAdditional(loader) {
     block: "boolean"
   });
   register(loader, AntdSpin, "spin", "AntdSpin", {
+    ...semanticAppearance({
+      root: "Root",
+      section: "Section",
+      indicator: "Indicator",
+      description: "Description",
+      container: "Container",
+      tip: "Tip",
+      mask: "Mask"
+    }),
     indicator: { type: "slot", hidePlaceholder: true },
     children: slot("Loading content"),
     spinning: { type: "boolean", defaultValue: true },
@@ -839,6 +1058,14 @@ function registerAdditional(loader) {
     "splitter",
     "AntdSplitter",
     {
+      ...semanticAppearance({
+        root: "Root",
+        panel: "Panel",
+        dragger: {
+          default: "Default",
+          active: "Active"
+        }
+      }),
       orientation: choice(["horizontal", "vertical"]),
       children: {
         type: "slot",
@@ -874,7 +1101,15 @@ function registerAdditional(loader) {
     prefix: { type: "slot", hidePlaceholder: true },
     suffix: { type: "slot", hidePlaceholder: true },
     loading: "boolean",
-    styles: "object"
+    ...semanticAppearance({
+      root: "Statistic container",
+      header: "Header",
+      title: "Title",
+      content: "Content",
+      value: "Value",
+      prefix: "Prefix",
+      suffix: "Suffix"
+    })
   });
   register(
     loader,
@@ -882,6 +1117,15 @@ function registerAdditional(loader) {
     "statistic-timer",
     "AntdStatisticTimer",
     {
+      ...semanticAppearance({
+        root: "Root",
+        content: "Content",
+        value: "Value",
+        title: "Title",
+        header: "Header",
+        prefix: "Prefix",
+        suffix: "Suffix"
+      }),
       title: { type: "slot", hidePlaceholder: true },
       type: choice(["countdown", "countup"]),
       value: { type: "number", description: "Unix timestamp in milliseconds" },
@@ -896,7 +1140,16 @@ function registerAdditional(loader) {
     variant: choice(["outlined", "filled", "solid"]),
     closable: "boolean",
     icon: { type: "slot", hidePlaceholder: true },
-    onClose: event("event", "object")
+    onClose: event("event", "object"),
+    ...semanticAppearance(
+      {
+        root: "Tag container",
+        icon: "Icon",
+        content: "Content",
+        close: "Close button"
+      },
+      { advanced: true }
+    )
   });
   register(
     loader,
@@ -911,6 +1164,18 @@ function registerAdditional(loader) {
     { states: valueState("boolean", "checked") }
   );
   register(loader, AntdTimeline, "timeline", "AntdTimeline", {
+    // Timeline renders the Steps semantic regions except itemSubtitle.
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      itemWrapper: "Item Wrapper",
+      itemIcon: "Item Icon",
+      itemSection: "Item Section",
+      itemHeader: "Item Header",
+      itemTitle: "Item Title",
+      itemContent: "Item Content",
+      itemRail: "Item Rail"
+    }),
     items: {
       type: "array",
       defaultValue: [
@@ -927,6 +1192,41 @@ function registerAdditional(loader) {
     "transfer",
     "AntdTransfer",
     {
+      ...semanticAppearance({
+        root: "Root",
+        section: "Section",
+        header: "Header",
+        title: "Title",
+        body: "Body",
+        list: "List",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+        footer: "Footer",
+        actions: "Actions",
+        source: {
+          section: "Section",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          list: "List",
+          item: "Item",
+          itemIcon: "Item Icon",
+          itemContent: "Item Content",
+          footer: "Footer"
+        },
+        target: {
+          section: "Section",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          list: "List",
+          item: "Item",
+          itemIcon: "Item Icon",
+          itemContent: "Item Content",
+          footer: "Footer"
+        }
+      }),
       dataSource: {
         type: "array",
         defaultValue: [
@@ -948,6 +1248,23 @@ function registerAdditional(loader) {
     "tree-select",
     "AntdTreeSelect",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        suffix: "Suffix",
+        content: "Content",
+        placeholder: "Placeholder",
+        item: "Item",
+        itemContent: "Item Content",
+        itemRemove: "Item Remove",
+        popup: {
+          root: "Root",
+          item: "Item",
+          itemTitle: "Item Title",
+          itemSwitcher: "Item Switcher"
+        }
+      }),
       treeData: {
         type: "array",
         defaultValue: [
@@ -974,9 +1291,21 @@ function registerAdditional(loader) {
     { states: valueState("object") }
   );
   register(loader, AntdTypography, "typography", "AntdTypography", {
+    ...semanticAppearance({
+      root: "Root",
+      actions: "Actions",
+      action: "Action",
+      textarea: "Textarea"
+    }),
     children: slot("Typography")
   });
   const textProps = {
+    ...semanticAppearance({
+      root: "Root",
+      actions: "Actions",
+      action: "Action",
+      textarea: "Textarea"
+    }),
     children: slot("Text"),
     type: choice(["secondary", "success", "warning", "danger"]),
     strong: "boolean",
@@ -1043,6 +1372,11 @@ function registerAdditional(loader) {
     "input-otp",
     "AntdInputOTP",
     {
+      ...semanticAppearance({
+        root: "Root",
+        input: "Input",
+        separator: "Separator"
+      }),
       value: "string",
       length: { type: "number", defaultValueHint: 6 },
       disabled: "boolean",
@@ -1066,6 +1400,19 @@ function registerAdditional(loader) {
     "input-search",
     "AntdInputSearch",
     {
+      ...semanticAppearance({
+        root: "Root",
+        input: "Input",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        clear: "Clear",
+        count: "Count",
+        button: {
+          root: "Root",
+          icon: "Icon",
+          content: "Content"
+        }
+      }),
       value: "string",
       placeholder: "string",
       enterButton: "boolean",
@@ -1078,6 +1425,12 @@ function registerAdditional(loader) {
     { states: valueState("text") }
   );
   register(loader, AntdUploadDragger, "upload-dragger", "AntdUploadDragger", {
+    ...semanticAppearance({
+      root: "Root",
+      list: "List",
+      item: "Item",
+      trigger: "Trigger"
+    }),
     children: slot("Drop files here"),
     action: "string",
     name: "string",
@@ -1092,6 +1445,14 @@ function registerAdditional(loader) {
     "calendar",
     "AntdCalendar",
     {
+      ...semanticAppearance({
+        root: "Root",
+        header: "Header",
+        body: "Body",
+        content: "Content",
+        item: "Item",
+        itemContent: "Item Content"
+      }),
       value: "string",
       fullscreen: "boolean",
       mode: choice(["month", "year"]),
@@ -1106,6 +1467,19 @@ function registerAdditional(loader) {
     "time-picker",
     "AntdTimePicker",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        suffix: "Suffix",
+        popup: {
+          root: "Root",
+          content: "Content",
+          item: "Item",
+          footer: "Footer",
+          container: "Container"
+        }
+      }),
       value: "string",
       format: { type: "string", defaultValue: "HH:mm:ss" },
       use12Hours: "boolean",
@@ -1122,6 +1496,21 @@ function registerAdditional(loader) {
     "time-range-picker",
     "AntdTimeRangePicker",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        suffix: "Suffix",
+        popup: {
+          root: "Root",
+          header: "Header",
+          body: "Body",
+          content: "Content",
+          item: "Item",
+          footer: "Footer",
+          container: "Container"
+        }
+      }),
       value: { type: "array" },
       format: "string",
       use12Hours: "boolean",
@@ -1132,6 +1521,20 @@ function registerAdditional(loader) {
     { states: valueState("array") }
   );
   register(loader, AntdTour, "tour", "AntdTour", {
+    ...semanticAppearance({
+      root: "Root",
+      cover: "Cover",
+      close: "Close",
+      mask: "Mask",
+      section: "Section",
+      footer: "Footer",
+      actions: "Actions",
+      indicator: "Indicator",
+      indicators: "Indicators",
+      header: "Header",
+      title: "Title",
+      description: "Description"
+    }),
     open: "boolean",
     current: "number",
     steps: {

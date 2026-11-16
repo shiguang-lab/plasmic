@@ -1,7 +1,8 @@
 import { AnonymousAvatar, Avatar } from "@/wab/client/components/studio/Avatar";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { CollaboratorAvatar } from "@/wab/client/studio-ctx/multiplayer-ctx";
-import { Popover } from "antd";
+import type { ApiUser } from "@/wab/shared/ApiSchema";
+import { Avatar as AntAvatar } from "antd";
 import * as React from "react";
 import { useStore } from "zustand";
 
@@ -31,35 +32,42 @@ const PlayerAvatar = React.memo(function PlayerAvatar({
   );
 });
 
-export function OnlineCollaborators({ studioCtx }: { studioCtx: StudioCtx }) {
+export function OnlineCollaborators({
+  studioCtx,
+  selfUser,
+  includeSelf = false,
+}: {
+  studioCtx: StudioCtx;
+  selfUser?: Pick<ApiUser, "displayName" | "email"> | null;
+  includeSelf?: boolean;
+}) {
   const avatars = useStore(
     studioCtx.multiplayerCtx.store,
     (state) => state.avatars,
   );
-  if (!avatars.size) {
+  if (!avatars.size && !includeSelf) {
     return null;
   }
   const rows = Array.from(avatars, ([key, avatar]) => (
     <PlayerAvatar studioCtx={studioCtx} avatar={avatar} key={key} />
   ));
+  if (includeSelf) {
+    rows.push(
+      selfUser ? (
+        <Avatar key="self" user={selfUser} />
+      ) : (
+        <AnonymousAvatar key="self" />
+      ),
+    );
+  }
   return (
     <div
-      style={{ display: "flex", alignItems: "center", gap: 4 }}
       data-test-id="editor-collaborators"
+      style={{ display: "inline-flex", alignItems: "center" }}
     >
-      {rows.slice(0, 3)}
-      {rows.length > 3 && (
-        <Popover
-          placement="bottomRight"
-          content={
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {rows.slice(3)}
-            </div>
-          }
-        >
-          <div className="Avatar AvatarPlayerSize">+{rows.length - 3}</div>
-        </Popover>
-      )}
+      <AntAvatar.Group className="editor-collaborator-group">
+        {rows}
+      </AntAvatar.Group>
     </div>
   );
 }

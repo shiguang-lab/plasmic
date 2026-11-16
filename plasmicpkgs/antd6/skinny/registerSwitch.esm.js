@@ -1,6 +1,7 @@
 import { jsx } from 'react/jsx-runtime';
 import { Switch } from 'antd';
 import { h as switchComponentName } from './names-DQIzgrvq.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -36,6 +37,14 @@ function registerSwitch(loader) {
         defaultValueHint: false,
         advanced: true
       },
+      ...semanticAppearance(
+        {
+          root: "Switch container",
+          content: "Content",
+          indicator: "Thumb indicator"
+        },
+        { advanced: true }
+      ),
       onChange: {
         type: "eventHandler",
         argTypes: [{ name: "checked", type: "boolean" }]

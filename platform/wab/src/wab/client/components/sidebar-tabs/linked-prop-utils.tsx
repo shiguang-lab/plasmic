@@ -253,18 +253,13 @@ export function LinkedPropIndicator(props: {
 
 export function LinkToPropMenuItem(props: {
   availableParams: Param[];
+  title?: React.ReactNode;
   onLinkExisting: (param: Param) => void;
   onCreateNew: () => void;
 }) {
   const { availableParams, onLinkExisting, onCreateNew } = props;
   return (
-    <Menu.SubMenu
-      title={
-        <span>
-          <UiText message={"Allow external access"} />
-        </span>
-      }
-    >
+    <Menu.SubMenu title={props.title ?? <UiText message="Allow external access" />}>
       {availableParams.map((param) => (
         <Menu.Item key={param.uid} onClick={() => onLinkExisting(param)}>
           <strong>{param.variable.name}</strong>

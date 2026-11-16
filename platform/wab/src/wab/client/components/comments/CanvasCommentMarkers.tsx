@@ -44,7 +44,6 @@ import $ from "jquery";
 import { noCanvasModelFields, useCanvasComponentInputs, useCanvasViewInputs } from "@/wab/client/components/canvas/canvas-view-inputs";
 import { useCommentMarkerOwner } from "@/wab/client/components/comments/comment-marker-inputs";
 import React, { ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { useStore } from "zustand";
 
 const emptyThreads: TplCommentThread[] = [];
@@ -375,9 +374,10 @@ export const CanvasCommentOverlay = React.memo(function CanvasCommentOverlay({
   }
 
 
-  return createPortal(
+  // Keep the overlay inside its frame so it moves with the frame during drag.
+  return (
     <CanvasTransformedBox
-      relativeTo={"arena"}
+      relativeTo="frame"
       $elt={$elt}
       viewCtx={viewCtx}
       style={{ zIndex }}
@@ -395,7 +395,6 @@ export const CanvasCommentOverlay = React.memo(function CanvasCommentOverlay({
       >
         {children}
       </div>
-    </CanvasTransformedBox>,
-    ensure(document.querySelector(".canvas-editor__scaler"), ""),
+    </CanvasTransformedBox>
   );
 });

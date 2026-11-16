@@ -65,3 +65,62 @@
 .pcr-palette:before {
   opacity: 0.2;
 }
+
+.compact-color-picker .pcr-selection {
+  height: 120px !important;
+}
+
+.compact-color-picker {
+  .NamedSwatch {
+    border-radius: 4px;
+  }
+
+  .NamedSwatch--withValue {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 8px;
+  }
+
+  .NamedSwatch__name,
+  .NamedSwatch__value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .NamedSwatch__value {
+    max-inline-size: 112px;
+    color: var(--ui-muted);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+  }
+
+  .NamedSwatch--selected,
+  .NamedSwatch--highlighted {
+    background-color: var(--ui-hover);
+    color: var(--ui-text);
+  }
+}
+
+.compact-color-picker__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: var(--ui-fill);
+  > button {
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 4px;
+    color: var(--ui-muted);
+    background: transparent;
+    &[aria-pressed="true"],
+    &:hover {
+      color: var(--ui-text);
+      background: var(--ui-hover);
+    }
+  }
+}

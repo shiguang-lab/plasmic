@@ -5,6 +5,7 @@ var Ant = require('antd');
 var cls = require('classnames');
 var dayjs = require('dayjs');
 var canvasOverlay = require('./canvas-overlay-D2jWZ-TY.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
 require('react');
@@ -180,7 +181,25 @@ function registerDatePicker(loader) {
         type: "boolean",
         advanced: true,
         description: "Whether to show the clear button"
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Picker container",
+          prefix: "Prefix",
+          input: "Input",
+          suffix: "Suffix",
+          popup: {
+            root: "Popup root",
+            container: "Popup container",
+            header: "Popup header",
+            body: "Popup body",
+            content: "Popup content",
+            item: "Calendar cell",
+            footer: "Popup footer"
+          }
+        },
+        { advanced: true }
+      )
     },
     states: {
       value: {

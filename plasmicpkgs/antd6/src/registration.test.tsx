@@ -730,3 +730,62 @@ test("full page height view renders every row in Studio, keeping horizontal scro
   assert.deepEqual(props.scroll, savedScroll);
   assert.equal(props.virtual, true);
 });
+
+test("Card and Select register semantic fields and forward native appearance props", () => {
+  const card = components.get("plasmic-antd6-card")!;
+  const select = components.get("plasmic-antd6-select")!;
+  assert.equal(card.meta.props.styles.editor, "semantic");
+  assert.equal(card.meta.props.styles.fields.title.type, "object");
+  assert.equal(card.meta.props.classNames.fields.title.type, "string");
+  assert.equal(select.meta.props.styles.fields.popup.fields.listItem.type, "object");
+  assert.equal(select.meta.props.classNames.fields.popup.fields.listItem.type, "string");
+
+  for (const name of [
+    "plasmic-antd6-descriptions",
+    "plasmic-antd6-descriptions-item",
+    "plasmic-antd6-statistic",
+    "plasmic-antd6-collapse",
+    "plasmic-antd6-form",
+    "plasmic-antd6-button",
+    "plasmic-antd6-input",
+    "plasmic-antd6-textarea",
+    "plasmic-antd6-tabs",
+    "plasmic-antd6-modal",
+    "plasmic-antd6-drawer",
+    "plasmic-antd6-popover",
+    "plasmic-antd6-tooltip",
+    "plasmic-antd6-alert",
+    "plasmic-antd6-tag",
+    "plasmic-antd6-badge",
+    "plasmic-antd6-steps",
+    "plasmic-antd6-pagination",
+    "plasmic-antd6-switch",
+    "plasmic-antd6-checkbox",
+    "plasmic-antd6-radio",
+    "plasmic-antd6-radio-group",
+    "plasmic-antd6-date-picker",
+    "plasmic-antd6-date-range-picker",
+  ]) {
+    const entry = components.get(name)!;
+    assert.equal(entry.meta.props.styles.editor, "semantic", `${name} styles should use semantic editor`);
+    assert.equal(entry.meta.props.classNames.editor, "semantic", `${name} classNames should use semantic editor`);
+  }
+
+  const cardMarkup = renderToStaticMarkup(
+    React.createElement(card.component, {
+      title: "Card header",
+      styles: { header: { paddingInline: 17 } },
+      classNames: { header: "custom-card-header" },
+    })
+  );
+  assert.match(cardMarkup, /custom-card-header[^>]*padding-inline:17px/);
+
+  const selectMarkup = renderToStaticMarkup(
+    React.createElement(select.component, {
+      options: [{ label: "First", value: "first" }],
+      styles: { root: { minHeight: 43 } },
+      classNames: { root: "custom-select-root", popup: { listItem: "custom-option" } },
+    })
+  );
+  assert.match(selectMarkup, /custom-select-root[^>]*min-height:43px/);
+});

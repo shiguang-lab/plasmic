@@ -1,4 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { ColorPicker } from 'antd';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -27,6 +28,16 @@ function registerColorPicker(loader) {
     name: "plasmic-antd6-color-picker",
     displayName: "Color Picker",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        body: "Body",
+        content: "Content",
+        description: "Description",
+        popup: {
+          root: "Root",
+          container: "Container"
+        }
+      }),
       children: {
         type: "slot",
         hidePlaceholder: true,

@@ -19,7 +19,18 @@ vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/VariablesSection",
 vi.mock("@/wab/client/components/sidebar-tabs/component-data-queries-section", async (original) => ({ ...await original<typeof import("@/wab/client/components/sidebar-tabs/component-data-queries-section")>(), ComponentDataQueriesSection: () => null }));
 vi.mock("@/wab/client/components/sidebar-tabs/server-queries-section", async (original) => ({ ...await original<typeof import("@/wab/client/components/sidebar-tabs/server-queries-section")>(), ServerQueriesSection: () => null }));
 vi.mock("@/wab/client/components/variants/VariantsPanel", async (original) => ({ ...await original<typeof import("@/wab/client/components/variants/VariantsPanel")>(), VariantsPanel: () => null }));
-vi.mock("@/wab/client/components/sidebar-tabs/PropEditorRow", async (original) => ({ ...await original<typeof import("@/wab/client/components/sidebar-tabs/PropEditorRow")>(), PropEditorRow: () => <span data-testid="page-title-control" /> }));
+vi.mock("@/wab/client/components/sidebar-tabs/PropEditorRow", async () => {
+  const R = await import("react");
+  return {
+    PropEditorRow: () => <span data-testid="page-title-control" />,
+    InnerPropEditorRow: () => null,
+    PropEditorRowWrapper: () => null,
+    PropValueEditorContext: R.createContext(undefined),
+    usePropValueEditorContext: () => ({}),
+    updateOrCreateExpr: () => undefined,
+    isPropShown: () => true,
+  };
+});
 vi.mock("@/wab/client/components/dev", () => ({ DevContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("@/wab/client/components/style-controls/StyleComponent", async (original) => ({ ...await original<typeof import("@/wab/client/components/style-controls/StyleComponent")>(), providesSidebarPopupSetting: () => (children: React.ReactNode) => children }));
 
@@ -65,7 +76,7 @@ it("collapses only the right pane, retains selection and tab, and reopens throug
     await waitFor(() => expect(container.querySelector('[data-test-id="page-panel"]')).not.toBeNull());
     expect(connections).toHaveBeenCalled();
     const contents = container.querySelector('[data-test-id="page-panel"]');
-    fireEvent.click(ensure(container.querySelector<HTMLButtonElement>('.editor-panel-header button'), "Inspector collapse button"));
+    fireEvent.click(ensure(container.querySelector<HTMLButtonElement>('.editor-panel-header [data-test-id="right-panel-close-button"]'), "Inspector collapse button"));
     expect(shell()?.getAttribute("data-open")).toBe("false");
     expect(studio.rightTabKey).toBe(RightTabKey.component);
     expect(studio.selectionStore.getState()).toBe(selection);

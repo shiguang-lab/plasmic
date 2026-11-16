@@ -1,7 +1,9 @@
 import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import { Button } from "antd";
+import type { ButtonSemanticType } from "antd/es/button/button";
 import React from "react";
 import { buttonComponentName } from "./names";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export type AntdButtonProps = Omit<
@@ -156,6 +158,17 @@ export function getButtonProps(): CodeComponentMeta<AntdButtonProps>["props"] {
         type: "slot",
         hidePlaceholder: true,
       },
+      ...semanticAppearance(
+        {
+          root: "Button container",
+          icon: "Icon",
+          content: "Content",
+        } satisfies Record<
+          keyof NonNullable<ButtonSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
       onClick: {
         type: "eventHandler",
         argTypes: [],

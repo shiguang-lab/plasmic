@@ -10,6 +10,7 @@ import { u as usePrevious, E as ErrorBoundary, o as omit } from './utils-DPGVAau
 import { InputType, SchemaFormContext, FormWrapper } from './Form.esm.js';
 import { FormItemWrapper } from './FormItem.esm.js';
 import './names-DQIzgrvq.esm.js';
+import './semantic-appearance-D-8fw6YR.esm.js';
 import 'classnames';
 import 'dayjs';
 import './canvas-overlay-BS6_0gNM.esm.js';

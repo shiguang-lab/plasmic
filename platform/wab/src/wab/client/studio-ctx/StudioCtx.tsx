@@ -689,6 +689,7 @@ export function calculateNextVersionKey(studioCtx: StudioCtx) {
 
 export enum RightTabKey {
   style = "style",
+  props = "props",
   interactions = "interactions",
   comments = "comments",
   component = "component",
@@ -4050,7 +4051,10 @@ export class StudioCtx extends WithDbCtx {
   }
   readonly rightPanelStore = createRightPanelStore();
   private lastElementRightTabKey:
-    | Extract<RightTabKey, RightTabKey.style | RightTabKey.interactions>
+    | Extract<
+        RightTabKey,
+        RightTabKey.style | RightTabKey.props | RightTabKey.interactions
+      >
     | undefined;
   get rightTabKey() {
     return this.rightPanelStore.getState().tabKey;
@@ -4086,7 +4090,11 @@ export class StudioCtx extends WithDbCtx {
 
   switchRightTab(tabKey: RightTabKey) {
     this.rightPanelStore.setState((previous) => previous.tabKey === tabKey && !previous.collapsed ? previous : { tabKey, collapsed: false });
-    if (tabKey === RightTabKey.style || tabKey === RightTabKey.interactions) {
+    if (
+      tabKey === RightTabKey.style ||
+      tabKey === RightTabKey.props ||
+      tabKey === RightTabKey.interactions
+    ) {
       this.lastElementRightTabKey = tabKey;
     }
   }
@@ -4108,7 +4116,11 @@ export class StudioCtx extends WithDbCtx {
     if (
       this.lastElementRightTabKey &&
       this.rightTabKey &&
-      ![RightTabKey.style, RightTabKey.interactions].includes(this.rightTabKey)
+      ![
+        RightTabKey.style,
+        RightTabKey.props,
+        RightTabKey.interactions,
+      ].includes(this.rightTabKey)
     ) {
       this.switchRightTab(this.lastElementRightTabKey);
     }

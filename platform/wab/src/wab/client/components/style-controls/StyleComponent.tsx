@@ -746,12 +746,12 @@ interface StylePanelSectionProps extends StyleComponentProps {
   defaultExpanded?: boolean;
   hasMore?: boolean;
   controls?: ReactNode;
+  headerMenuOnRightClickOnly?: boolean;
   emptyBody?: boolean;
   fullyCollapsible?: boolean;
   oneLiner?: boolean;
   unremovableStyleProps?: string[];
   extraMenuItems?: (builder: MenuBuilder) => void;
-  defaultHeaderAction?: () => void;
   onHeaderClick?: MouseEventHandler<HTMLDivElement>;
   onExtraContentExpanded?: () => void;
 }
@@ -768,12 +768,12 @@ function StylePanelSection_(
     hasMore,
     oneLiner,
     controls,
+    headerMenuOnRightClickOnly,
     emptyBody,
     styleProps,
     collapsableIndicatorNames = [],
     ignorableStyleProps = [],
     defaultStyleProps: _defaultStylePropsInput,
-    defaultHeaderAction,
     expsProvider,
     unremovableStyleProps,
     onHeaderClick,
@@ -893,6 +893,7 @@ function StylePanelSection_(
         getValueSetState(...collapsableDefinedIndicators) === "isSet"
       }
       makeHeaderMenu={headerOverlay}
+      headerMenuOnRightClickOnly={headerMenuOnRightClickOnly}
       isHeaderActive={getValueSetState(...definedIndicators) === "isSet"}
       onHeaderClick={onHeaderClick}
       definedIndicator={
@@ -901,7 +902,7 @@ function StylePanelSection_(
           <DefinedIndicator
             label={title}
             type={definedIndicators}
-            menu={headerOverlay}
+            menu={headerMenuOnRightClickOnly ? undefined : headerOverlay}
             alwaysShowPropLabel
             className="absolute"
           />

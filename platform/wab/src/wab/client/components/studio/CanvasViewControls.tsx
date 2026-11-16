@@ -18,14 +18,14 @@ const useStyles = createStyles(({ token }) => ({
     right: editorCanvasControlsLayout.edgeInset,
     bottom: editorCanvasControlsLayout.edgeInset,
     zIndex: 30,
-    maxWidth: "calc(100% - 100px)",
+    width: 240,
     display: "flex",
     alignItems: "center",
     gap: 2,
     height: editorCanvasControlsLayout.height,
     boxSizing: "border-box",
     padding: 3,
-    borderRadius: token.borderRadius,
+    borderRadius: editorCanvasControlsLayout.height / 2,
     background: token.colorBgContainer,
     border: `1px solid ${token.colorBorder}`,
     boxShadow: token.boxShadowSecondary,
@@ -49,12 +49,13 @@ const useStyles = createStyles(({ token }) => ({
   },
   action: {
     "&.ant-btn": {
+      flexShrink: 0,
       minWidth: 28,
       height: 28,
       padding: 0,
       // Match Antd's hover border so its transition cannot flash currentColor.
       border: "1px solid transparent",
-      borderRadius: 5,
+      borderRadius: 14,
       boxShadow: "none",
       "&.ant-btn-icon-only": { width: 28 },
     },
@@ -67,6 +68,7 @@ const useStyles = createStyles(({ token }) => ({
     },
   },
   separator: {
+    flexShrink: 0,
     width: 1,
     height: 14,
     marginInline: 3,
@@ -184,7 +186,7 @@ export const CanvasViewControls = React.memo(function CanvasViewControls({
           type="text"
           disabled
           aria-label={t("Zoom")}
-          style={{ width: 68, height: 28, padding: "0 7px", fontSize: 12 }}
+          style={{ flex: 1, minWidth: 0, height: 28, padding: "0 7px", fontSize: 12, borderRadius: 14 }}
         >
           —
         </Button>

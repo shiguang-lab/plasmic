@@ -29,6 +29,7 @@ import { mock } from "vitest-mock-extended";
 vi.mock("@/wab/client/studio-ctx/StudioCtx", () => ({
   RightTabKey: {
     style: "style",
+    props: "props",
     interactions: "interactions",
     component: "component",
   },
@@ -93,7 +94,14 @@ vi.mock("@/wab/client/components/widgets", () => ({
   },
 }));
 const arenaOwners = new Set<{ dispose(): void }>();
-afterEach(() => { cleanup(); for (const owner of arenaOwners) { owner.dispose(); } arenaOwners.clear(); });
+class FakeIntersectionObserver {
+  observe() { return undefined; }
+  disconnect() { return undefined; }
+  unobserve() { return undefined; }
+  takeRecords() { return []; }
+}
+beforeEach(() => { vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); for (const owner of arenaOwners) { owner.dispose(); } arenaOwners.clear(); });
 
 it("resets header geometry when available tabs change, retaining the active page editor", async () => {
   const rightPanelStore = createRightPanelStore();
@@ -146,8 +154,8 @@ it("resets header geometry when available tabs change, retaining the active page
     <RightPane studioCtx={sc} canvasLoading={false} />,
   );
   const header = () => container.querySelector(".ant-tabs-nav");
-  const threeTabsHeader = header();
-  expect(screen.getAllByRole("tab")).toHaveLength(3);
+  const elementTabsHeader = header();
+  expect(screen.getAllByRole("tab")).toHaveLength(4);
   const editor = ensureInstance(
     screen.getByRole("textbox", {
       name: "Page title draft",
@@ -163,7 +171,7 @@ it("resets header geometry when available tabs change, retaining the active page
   );
   expect(screen.getAllByRole("tab")).toHaveLength(1);
   const singleTabHeader = header();
-  expect(singleTabHeader).not.toBe(threeTabsHeader);
+  expect(singleTabHeader).not.toBe(elementTabsHeader);
   expect(screen.getByRole("textbox", { name: "Page title draft" })).toBe(
     editor,
   );
@@ -174,7 +182,7 @@ it("resets header geometry when available tabs change, retaining the active page
       focus.set(vc, []);
     })(),
   );
-  expect(screen.getAllByRole("tab")).toHaveLength(3);
+  expect(screen.getAllByRole("tab")).toHaveLength(4);
   expect(header()).not.toBe(singleTabHeader);
   expect(screen.getByRole("textbox", { name: "Page title draft" })).toBe(
     editor,

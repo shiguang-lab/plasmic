@@ -1,5 +1,6 @@
 import { jsx } from 'react/jsx-runtime';
 import { Steps } from 'antd';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -88,6 +89,21 @@ function registerSteps(loader) {
         type: "boolean",
         description: "Change to vertical when screen narrower than 532px"
       },
+      ...semanticAppearance(
+        {
+          root: "Steps container",
+          item: "Step item",
+          itemWrapper: "Step wrapper",
+          itemIcon: "Step icon",
+          itemSection: "Step section",
+          itemHeader: "Step header",
+          itemTitle: "Step title",
+          itemSubtitle: "Step subtitle",
+          itemContent: "Step content",
+          itemRail: "Step rail"
+        },
+        { advanced: true }
+      ),
       onChange: {
         type: "eventHandler",
         argTypes: [

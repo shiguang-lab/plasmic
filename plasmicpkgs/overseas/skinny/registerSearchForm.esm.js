@@ -83,41 +83,37 @@ function collectSearchItems(children) {
 function normalizedSpan(span) {
   return Math.min(24, Math.max(1, Math.round(span) || 6));
 }
-function searchGrid(spans) {
-  let rows = 1, lastRowSpan = 0;
-  for (const rawSpan of spans) {
-    const span = normalizedSpan(rawSpan);
-    if (lastRowSpan + span > 24) {
-      rows++;
-      lastRowSpan = span;
-    } else {
-      lastRowSpan += span;
+function measureSearchGrid(spans, rowLimit = Infinity) {
+  let rows = 1;
+  let lastRowSpan = 0;
+  let count = 0;
+  for (; count < spans.length; count++) {
+    const span = normalizedSpan(spans[count]);
+    const startsRow = lastRowSpan + span > 24;
+    const nextRows = startsRow ? rows + 1 : rows;
+    const nextSpan = startsRow ? span : lastRowSpan + span;
+    if (nextRows + Number(nextSpan === 24) > rowLimit) {
+      if (!count) {
+        count = 1;
+        lastRowSpan = nextSpan;
+      }
+      break;
     }
+    rows = nextRows;
+    lastRowSpan = nextSpan;
   }
-  return {
-    rows,
-    lastRowSpan,
-    rowsWithActions: rows + (lastRowSpan === 24 ? 1 : 0),
-    actionSpan: lastRowSpan === 24 ? 24 : 24 - lastRowSpan
-  };
+  return { count, rows, lastRowSpan };
 }
 function searchLayout(spans, minRows, collapsed) {
-  const all = searchGrid(spans);
-  const showExpand = all.rowsWithActions > Math.max(1, minRows);
-  let visibleCount = spans.length;
-  if (collapsed && showExpand) {
-    visibleCount = 0;
-    while (visibleCount < spans.length && searchGrid(spans.slice(0, visibleCount + 1)).rowsWithActions <= Math.max(1, minRows)) {
-      visibleCount++;
-    }
-    if (spans.length && visibleCount === 0) {
-      visibleCount = 1;
-    }
-  }
+  const rowLimit = Math.max(1, minRows);
+  const { count, rows, lastRowSpan } = measureSearchGrid(
+    spans,
+    collapsed ? rowLimit : void 0
+  );
   return {
-    showExpand,
-    visibleCount,
-    actionSpan: searchGrid(spans.slice(0, visibleCount)).actionSpan
+    showExpand: count < spans.length || rows + Number(lastRowSpan === 24) > rowLimit,
+    visibleCount: count,
+    actionSpan: 24 - lastRowSpan || 24
   };
 }
 function searchDefaults(items, initialValues = {}) {
@@ -178,18 +174,21 @@ const SearchForm = React.forwardRef(
       [items, initialValues]
     );
     const defaultKey = JSON.stringify(defaults.initialValues);
-    const names = items.flatMap(
-      (item) => item.props.name ? [item.props.name] : []
-    );
-    const namesKey = JSON.stringify(names);
+    const { names, namesKey } = useMemo(() => {
+      const fieldNames = items.flatMap(
+        (item) => item.props.name ? [item.props.name] : []
+      );
+      return { names: fieldNames, namesKey: JSON.stringify(fieldNames) };
+    }, [items]);
     const previousNames = useRef(/* @__PURE__ */ new Set());
     const getValues = () => form.getFieldsValue(names);
     useEffect(() => {
+      const nextNames = new Set(names);
       if (editing) {
         form.resetFields();
       } else {
         previousNames.current.forEach((name) => {
-          if (!names.includes(name)) {
+          if (!nextNames.has(name)) {
             form.setFieldValue(name, void 0);
           }
         });
@@ -201,7 +200,7 @@ const SearchForm = React.forwardRef(
         }
         form.setFieldsValue(addedValues);
       }
-      previousNames.current = new Set(names);
+      previousNames.current = nextNames;
       onValuesChange?.(getValues());
     }, [form, editing, defaultKey, namesKey]);
     const layout = searchLayout(

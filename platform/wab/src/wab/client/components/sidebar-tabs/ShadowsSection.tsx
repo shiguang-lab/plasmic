@@ -1,30 +1,25 @@
-import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
+import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
+import type { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { BoxShadowPanel } from "@/wab/client/components/style-controls/BoxShadowControls";
-import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch";
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import {
   StyleComponentProps,
   TplExpsProvider,
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { StyleEditorPopover } from "@/wab/client/components/style-controls/StyleEditorPopover";
 import { StyleWrapper } from "@/wab/client/components/style-controls/StyleWrapper";
-import {
-  IconLinkButton,
-  ListBox,
-  ListBoxItem,
-} from "@/wab/client/components/widgets";
+import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
-import { getUiLocale } from "@/wab/client/i18n";
-import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
+import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useI18n } from "@/wab/client/i18n";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { derefTokenRefs, extractAllReferencedTokenIds, replaceAllTokenRefs } from "@/wab/commons/StyleToken";
-import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { arrayMoveIndex } from "@/wab/shared/collections";
+import { cx } from "@/wab/shared/common";
 import { BoxShadow, BoxShadows, Dim } from "@/wab/shared/core/bg-styles";
 import { parseCss } from "@/wab/shared/css";
-import { Tooltip } from "antd";
 import React from "react";
 import { useStyleCell, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
@@ -33,12 +28,6 @@ import { useImageAssetList } from "@/wab/client/studio-ctx/image-asset-inputs";
 import { extractAllAssetRefs, resolveAllAssetRefs } from "@/wab/shared/core/image-assets";
 import { findLast } from "lodash";
 import { useShallow } from "zustand/react/shallow";
-
-interface ShadowsPanelSectionState {
-  inspectedShadow?: BoxShadow;
-  // index of the inspected shadow
-  index?: number;
-}
 
 export function ShadowsPanelSection(props: StyleComponentProps) {
   const studio = props.expsProvider.studioCtx;
@@ -53,13 +42,15 @@ export function ShadowsPanelSection(props: StyleComponentProps) {
 }
 
 function ShadowsContent(props: StyleComponentProps) {
+    const { t } = useI18n();
     const { expsProvider } = props;
     const studio = expsProvider.studioCtx;
     const cell = useStyleCell(expsProvider, "box-shadow");
     const indicators = useStyleIndicators(expsProvider, ["box-shadow"]).filter((indicator) => indicator.source !== "none");
     const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studio);
     const vsh = props.vsh ?? currentVsh;
-    const [{ inspectedShadow, index }, setState] = React.useState<ShadowsPanelSectionState>({});
+    const sectionRef = React.useRef<SidebarSectionHandle>(null);
+    const [inspectedIndex, setInspectedIndex] = React.useState<number>();
     const updateBoxShadows = (shadows: BoxShadows) => {
       studio.changeSpawn(() => {
         if (!(expsProvider instanceof TplExpsProvider) || expsProvider.canEdit()) {
@@ -67,7 +58,6 @@ function ShadowsContent(props: StyleComponentProps) {
         }
       });
     };
-    const inspectBoxShadow = (shadow: BoxShadow, position: number) => setState({ inspectedShadow: shadow, index: position });
     const boxShadows: BoxShadows = (() => {
       const v = cell?.value ?? "none";
       if (v === "none") {
@@ -76,6 +66,13 @@ function ShadowsContent(props: StyleComponentProps) {
         return parseCss(v, { startRule: "boxShadows" });
       }
     })();
+    const { isDisabled, disabledTooltip } = shouldBeDisabled({
+      props: {},
+      label: t("Shadows"),
+      indicators,
+      studioCtx: studio,
+    });
+
     const addShadowLayer = () => {
       const layer = new BoxShadow({
         inset: false,
@@ -87,14 +84,9 @@ function ShadowsContent(props: StyleComponentProps) {
       });
 
       updateBoxShadows(new BoxShadows([...boxShadows.shadows, layer]));
-      inspectBoxShadow(layer, boxShadows.shadows.length);
+      setInspectedIndex(boxShadows.shadows.length);
+      sectionRef.current?.expand();
     };
-
-    const { isDisabled, disabledTooltip } = shouldBeDisabled({
-      props: {},
-      label: translate(getUiLocale(), "Shadows"),
-      indicators: indicators,
-    });
 
     const inputs = boxShadows.shadows.map((shadow) => shadow.color);
     const colors = useStyleTokenRefs(studio, inputs, vsh, "all", useShallow((state) => state.rows.map((row) => row.resolved?.value)));
@@ -109,112 +101,127 @@ function ShadowsContent(props: StyleComponentProps) {
     const requests = assetResolved.flatMap((value) => extractAllReferencedTokenIds(value).map((id) => `var(--token-${id})`));
     const thumbnails = useStyleTokenRefs(studio, requests, vsh, "dictionary", useShallow((state) => state.rows.map((row) => row.resolved?.value)));
 
+    const title = t("Shadow");
+    const addLabel = t("Add shadow");
+    const addTooltip = isDisabled
+      ? typeof disabledTooltip === "function"
+        ? disabledTooltip()
+        : disabledTooltip
+      : addLabel;
+
     return (
       <StylePanelSection
-        key={String(boxShadows.shadows.length > 0)}
+        ref={sectionRef}
         expsProvider={expsProvider}
-        title={<UiText message={"Shadows"} />}
+        title={t("Shadows")}
         styleProps={["box-shadow"]}
-        onExtraContentExpanded={() => {
-          if (boxShadows.shadows.length === 0) {
-            addShadowLayer();
-          }
-        }}
-        onHeaderClick={
-          boxShadows.shadows.length === 0 ? addShadowLayer : undefined
-        }
+        headerMenuOnRightClickOnly
         controls={
-          <MaybeWrap
-            cond={!!disabledTooltip && !!isDisabled}
-            wrapper={(e) => (
-              <Tooltip title={disabledTooltip}>
-                <TriggerTarget>{e}</TriggerTarget>
-              </Tooltip>
-            )}
+          <>
+          <StyleOverrideControl expsProvider={expsProvider} label={t("Shadows")}
+            styleProps={["box-shadow"]} noneValues={{ "box-shadow": "none" }}
+            onChange={() => setInspectedIndex(undefined)} />
+          <IconButton
+            size="small"
+            tooltip={addTooltip ?? addLabel}
+            aria-label={addLabel}
+            onClick={addShadowLayer}
+            disabled={isDisabled}
           >
-            <IconLinkButton onClick={addShadowLayer} disabled={isDisabled}>
-              <Icon icon={PlusIcon} />
-            </IconLinkButton>
-          </MaybeWrap>
+            <Icon icon={PlusIcon} />
+          </IconButton>
+          </>
         }
-        defaultHeaderAction={() => !isDisabled && addShadowLayer()}
       >
         {boxShadows.shadows.length > 0 && (
-          <>
-            <SidebarModal
-              show={!!inspectedShadow && !isDisabled}
-              onClose={() => setState({ inspectedShadow: undefined })}
-              title={translate(getUiLocale(), "Shadow")}
+          <StyleWrapper styleName="box-shadow" className="flex-fill">
+            <ListBox
+              onReorder={(from, to) => {
+                setInspectedIndex(undefined);
+                updateBoxShadows(
+                  new BoxShadows(arrayMoveIndex(boxShadows.shadows, from, to)),
+                );
+              }}
             >
-              {inspectedShadow && index !== undefined && (
-                <div className="panel-content">
-                  <BoxShadowPanel
-                    expsProvider={expsProvider}
-                    defaultShadow={inspectedShadow}
-                    onUpdated={(shadow) => {
-                      setState({ inspectedShadow: shadow, index });
-                      updateBoxShadows(new BoxShadows(boxShadows.shadows.map((current, position) => position === index ? shadow : current)));
+              {boxShadows.shadows.map((shadow, i) => {
+                const color = colors.selected[i] ?? derefTokenRefs([], shadow.color);
+                const token = labels.selected[i];
+                const kind = t(shadow.inset ? "Inset" : "Outset");
+                const summary = [shadow.x, shadow.y, shadow.blur, shadow.spread]
+                  .map((dim) => dim.showCss())
+                  .join(" · ");
+                const preview = replaceAllTokenRefs(
+                  assetResolved[i],
+                  (id) => thumbnails.selected[requests.indexOf(`var(--token-${id})`)],
+                );
+                return (
+                  <ListBoxItem
+                    key={i}
+                    index={i}
+                    className={paintStyles.fillItem}
+                    clickable={false}
+                    truncate={false}
+                    disabled={isDisabled}
+                    isDragDisabled={isDisabled || boxShadows.shadows.length < 2}
+                    onRemove={() => {
+                      setInspectedIndex(undefined);
+                      updateBoxShadows(
+                        new BoxShadows(boxShadows.shadows.filter((_, index) => index !== i)),
+                      );
                     }}
-                    vsh={vsh}
-                  />
-                </div>
-              )}
-            </SidebarModal>
-            <StyleWrapper
-              styleName={["box-shadow"]}
-              className="flex-fill"
-              showDefinedIndicator={true}
-            >
-              <ListBox
-                appendPrepend={"append"}
-                {...(isDisabled
-                  ? {}
-                  : {
-                      onReorder: (from, to) => {
-                        updateBoxShadows(new BoxShadows(arrayMoveIndex(boxShadows.shadows, from, to)));
-                      },
-                    })}
-              >
-                {boxShadows.shadows.map((shadow: BoxShadow, i: number) => {
-                  const color = colors.selected[i] ?? derefTokenRefs([], shadow.color);
-                  const token = labels.selected[i];
-                  return (
-                    <ListBoxItem
-                      key={i}
-                      index={i}
-                      onRemove={() => {
-                        if (!isDisabled) {
-                          return updateBoxShadows(new BoxShadows(boxShadows.shadows.filter((candidate) => candidate !== shadow)));
-                        }
-                      }}
-                      onClick={() =>
-                        !isDisabled && inspectBoxShadow(shadow, i)
-                      }
-                      mainContent={
-                        <>
-                          <ColorSwatch color={color} />
-                          <code className="ml-sm text-ellipsis">
-                            {token ? token.name : color}
-                          </code>
-                        </>
-                      }
-                      thumbnail={
-                        <div
-                          className="shadow-thumb"
-                          style={{
-                            boxShadow: replaceAllTokenRefs(assetResolved[i], (id) => thumbnails.selected[requests.indexOf(`var(--token-${id})`)]),
+                    mainContent={
+                      <div className={cx(paintStyles.fillValue, "flex-fill")}>
+                        <StyleEditorPopover
+                          title={title}
+                          open={!isDisabled && inspectedIndex === i}
+                          onOpenChange={(open) => {
+                            setInspectedIndex((current) =>
+                              open ? i : current === i ? undefined : current,
+                            );
                           }}
-                        />
-                      }
-                      gridThumbnail
-                    />
-                  );
-                })}
-              </ListBox>
-            </StyleWrapper>
-          </>
+                          content={
+                            <BoxShadowPanel
+                              expsProvider={expsProvider}
+                              defaultShadow={shadow}
+                              onUpdated={(updated) => {
+                                updateBoxShadows(new BoxShadows(
+                                  boxShadows.shadows.map((current, index) =>
+                                    index === i ? updated : current,
+                                  ),
+                                ));
+                              }}
+                              vsh={vsh}
+                            />
+                          }
+                        >
+                          <button
+                            type="button"
+                            className={paintStyles.fillEdit}
+                            disabled={isDisabled}
+                            aria-label={`${title}: ${kind}, ${token?.name ?? color}, ${summary}`}
+                          >
+                            <span
+                              className={cx(paintStyles.fillSwatch, paintStyles.shadowSwatch)}
+                              aria-hidden="true"
+                              title={token?.name ?? color}
+                            >
+                              <span style={{ backgroundColor: color, boxShadow: preview }} />
+                            </span>
+                            <span className={paintStyles.fillLabel}>
+                              {kind}
+                              {token && <> · <span>{token.name}</span></>}
+                            </span>
+                            <span className={paintStyles.valueSummary}>{summary}</span>
+                          </button>
+                        </StyleEditorPopover>
+                      </div>
+                    }
+                  />
+                );
+              })}
+            </ListBox>
+          </StyleWrapper>
         )}
       </StylePanelSection>
     );
 }
-

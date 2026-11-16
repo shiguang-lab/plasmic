@@ -24,6 +24,11 @@ import { MultiSelectEnumPropEditor } from "@/wab/client/components/sidebar-tabs/
 import { NumPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/NumPropEditor";
 import { ObjectPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/ObjectPropEditor";
 import {
+  canEditSemanticValue,
+  isSemanticObjectProp,
+  SemanticObjectPropEditor,
+} from "@/wab/client/components/sidebar-tabs/ComponentProps/SemanticObjectPropEditor";
+import {
   QueryBuilderPropEditor,
   QueryBuilderValue,
 } from "@/wab/client/components/sidebar-tabs/ComponentProps/QueryBuilderPropEditor";
@@ -1119,6 +1124,38 @@ const PropValueEditor_ = (
       );
     }
   } else if (getPropTypeType(propType) === "object") {
+    if (isSemanticObjectProp(propType)) {
+      const semanticValue = litValue ?? deserCompositeExprMaybe(value);
+      if (canEditSemanticValue(propType.fields, semanticValue)) {
+        return (
+          <SemanticObjectPropEditor
+            key={tpl?.uuid}
+            fields={propType.fields}
+            value={semanticValue}
+            disabled={disabled || !!readOnly}
+            onChange={(next) => {
+              if (next === undefined && onDelete) {
+                onDelete();
+              } else {
+                onChange(next === undefined ? undefined : serCompositeExprMaybe(next));
+              }
+            }}
+          />
+        );
+      }
+      return (
+        <CodeEditor
+          onChange={onChange}
+          value={value}
+          title={label}
+          lang="json"
+          fileName={attr}
+          saveAsObject
+          isDisabled={disabled || readOnly}
+          defaultFullscreen
+        />
+      );
+    }
     if (
       isPlainObjectPropType(propType) &&
       propType.type === "object" &&

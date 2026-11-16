@@ -2,6 +2,7 @@ import { jsx } from 'react/jsx-runtime';
 import { Popover } from 'antd';
 import cls from 'classnames';
 import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
 import 'react';
@@ -166,7 +167,17 @@ function registerPopover(loader) {
       },
       defaultStylesClassName: {
         type: "themeResetClass"
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Popover root",
+          container: "Container",
+          title: "Title",
+          content: "Content",
+          arrow: "Arrow"
+        },
+        { advanced: true }
+      )
     },
     states: {
       open: {

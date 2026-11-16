@@ -1,6 +1,7 @@
 'use strict';
 
 var names = require('./names-DbJduus8.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 var Form = require('./Form.cjs.js');
 var SchemaForm = require('./SchemaForm.cjs.js');
@@ -556,12 +557,20 @@ function registerForm(loader) {
         options: ["horizontal", "vertical", "inline"],
         defaultValueHint: "horizontal"
       },
-      styles: {
-        displayName: "Semantic styles",
-        type: "object",
-        advanced: true,
-        description: "Native Ant Design Form semantic styles, shared by its fields. For inline field instructions, content can use display: flex, alignItems: center and gap: 12. Check every field before applying form-wide content styles."
-      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Form container",
+          label: "Field label",
+          content: "Control content",
+          help: "Help text",
+          helpItem: "Help item",
+          extra: "Extra text"
+        },
+        {
+          advanced: true,
+          stylesDescription: "Native Ant Design Form semantic styles, shared by its fields. For inline field instructions, content can use display: flex, alignItems: center and gap: 12. Check every field before applying form-wide content styles."
+        }
+      ),
       labelAlign: {
         type: "choice",
         options: ["left", "right"],

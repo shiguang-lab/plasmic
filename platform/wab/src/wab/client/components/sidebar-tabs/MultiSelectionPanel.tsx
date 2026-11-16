@@ -5,9 +5,12 @@ import { useShallow } from "zustand/react/shallow";
 import { useSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import {
   MultiSelectionProp,
+  getMultiSelectionBoxGeometryState,
   multiSelectionFields,
+  setMultiSelectionBoxProps,
   setMultiSelectionStyle,
 } from "@/wab/client/components/sidebar-tabs/multi-selection";
+import { BoxGeometryCard } from "@/wab/client/components/style-controls/BoxGeometryCard";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
@@ -78,6 +81,31 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
   const source = React.useMemo(() => new MultiSelectionInputs(viewCtx, { canEditProject, canEditBranch }, scope), [viewCtx, scope, selectionInputs, variantInputs, canEditProject, canEditBranch, permissions]);
   const snapshot = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
   const providers = source.providers, fieldStates = snapshot.fields;
+  const rawBoxState = getMultiSelectionBoxGeometryState(
+    viewCtx,
+    providers,
+    { canEditProject, canEditBranch },
+  );
+  const measuredBounds = React.useMemo(
+    () =>
+      bounds
+        ? { w: Math.round(bounds.width()), h: Math.round(bounds.height()) }
+        : undefined,
+    [bounds],
+  );
+  const commitMultiBoxProps = React.useCallback(
+    (entries: ReadonlyArray<readonly [string, string]>) =>
+      spawn(setMultiSelectionBoxProps(viewCtx, entries)),
+    [viewCtx],
+  );
+  const boxState = React.useMemo(
+    () => ({
+      ...rawBoxState,
+      measuredSize: measuredBounds,
+      onCommitProps: commitMultiBoxProps,
+    }),
+    [rawBoxState, measuredBounds, commitMultiBoxProps],
+  );
   if (!snapshot.active) { return null; }
   const renderFields = (props: MultiSelectionProp[]) =>
     fieldStates
@@ -199,13 +227,24 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
               })}
             </ul>
           </section>
-          {fieldStates.some((field) => field.supported) ? (
+          {providers.length > 0 && boxState.capabilities.visible && (
+            <section className={styles.section}>
+              <BoxGeometryCard
+                expsProvider={providers[0]}
+                multiTarget={boxState}
+              />
+            </section>
+          )}
+          {fieldStates.some((field) => field.supported) ||
+          (providers.length > 0 &&
+            boxState.capabilities.visible &&
+            !boxState.capabilities.readOnly) ? (
             <>
               {fieldStates.some(
                 (field) =>
                   field.supported && ["width", "height"].includes(field.prop),
               ) && (
-                <section className={styles.section}>
+                <section className={styles.section} data-test-id="size-section">
                   <h3 className={styles.heading}>{t("Size")}</h3>
                   {renderFields(["width", "height"])}
                 </section>

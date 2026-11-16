@@ -5,6 +5,7 @@ import React, { useMemo } from 'react';
 import { omit } from 'lodash';
 import { getButtonProps } from './registerButton.esm.js';
 import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import './names-DQIzgrvq.esm.js';
 import '@plasmicapp/host';
@@ -246,7 +247,21 @@ function registerModal(loader) {
       },
       defaultStylesClassName: {
         type: "themeResetClass"
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Modal root",
+          wrapper: "Modal wrapper",
+          mask: "Backdrop mask",
+          container: "Modal container",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          footer: "Footer",
+          close: "Close button"
+        },
+        { advanced: true }
+      )
     },
     states: {
       open: {

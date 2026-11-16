@@ -68,11 +68,15 @@ import {
   getVisibilityLabel,
   hasVisibilitySetting,
 } from "@/wab/shared/visibility-utils";
-import { Menu } from "antd";
+import { Menu, MenuProps } from "antd";
 import cn from "classnames";
 import React from "react";
 
-function readVisibility(view: ViewCtx, tpl: TplNode, expsProvider: TplExpsProvider) {
+export function readVisibility(
+  view: ViewCtx,
+  tpl: TplNode,
+  expsProvider: TplExpsProvider,
+) {
   const vtm = view.variantTplMgr();
   const targetCombo = vtm.getTargetVariantComboForNode(tpl, { forVisibility: true });
   const target = tryGetVariantSetting(tpl, targetCombo);
@@ -98,26 +102,51 @@ export const VisibilitySection = React.memo(function VisibilitySection(props: {
   return source.active && source.value ? <VisibilitySection_ {...props} visibilityInput={source.value} /> : null;
 });
 
-function VisibilitySection_(props: {
+export interface VisibilityController {
+  currentVisibility: TplVisibility;
+  targetHasVisibility: boolean;
+  hasPrivateStyleVariant: boolean;
+  isDisabled: boolean;
+  disabledTooltip?: React.ReactNode | (() => React.ReactNode);
+  visibilityDefinedIndicator: ReturnType<typeof readVisibility>["indicator"];
+  choices: readonly TplVisibility[];
+  customCode: ReturnType<typeof readVisibility>["condition"];
+  buildMenu: () => React.ReactElement<MenuProps>;
+  setVisibility: (visibility: TplVisibility) => void;
+  toggleQuickVisibility: () => void;
+  openDynamicValue: () => void;
+  conditionRows: React.ReactNode;
+}
+
+export function useVisibilityController(props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
   expsProvider: TplExpsProvider;
   visibilityInput: ReturnType<typeof readVisibility>;
-}) {
+}): VisibilityController {
   const { t: uiT } = useI18n();
-  const { viewCtx, tpl, expsProvider } = props;
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  const { viewCtx, tpl, visibilityInput } = props;
+  useViewVariants(
+    viewCtx,
+    useShallow((variantState) => [variantState.frames, variantState.global]),
+  );
   useViewSelection(viewCtx, (state) => state.context);
-  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl, { forDataRepCollection: true });
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl, {
+    forDataRepCollection: true,
+  });
   const functionsSchema = useCustomFunctionsSchema(viewCtx.studioCtx);
 
-  const { noStyles, targetCombo: targetVisibilityCombo,
-    targetHasVisibility, privateVariant: hasPrivateStyleVariant, indicator: visibilityDefinedIndicator,
-    choices: visibilityChoices, visibility: currentVisibility, condition: customCode } = props.visibilityInput;
+  const {
+    targetCombo: targetVisibilityCombo,
+    targetHasVisibility,
+    privateVariant: hasPrivateStyleVariant,
+    indicator: visibilityDefinedIndicator,
+    choices: visibilityChoices,
+    visibility: currentVisibility,
+    condition: customCode,
+  } = visibilityInput;
   const [isDataPickerVisible, setIsDataPickerVisible] =
     React.useState<boolean>(false);
-
-  const styling = useStyleTarget();
 
   const { roles } = useAppRoles(
     viewCtx.studioCtx.appCtx,
@@ -125,38 +154,24 @@ function VisibilitySection_(props: {
     true,
   );
 
-  const vsh = makeVariantedStylesHelperFromCurrentCtx(viewCtx.studioCtx);
-
   const { isDisabled, disabledTooltip } = shouldBeDisabled({
     props: {},
     label: "visibility",
     indicators: [visibilityDefinedIndicator],
   });
 
-  const [opacityCell] = useStyleCells(expsProvider, ["opacity"]);
-  const opacity = opacityCell?.value ?? "1";
-  const formattedOpacity = isTokenRef(opacity)
-    ? opacity
-    : `${Math.round(parseFloat(opacity) * 100)}%`;
-
-  const opacityDefinedIndicator = useStyleIndicator(expsProvider, "opacity");
-
   const handleUnsetVisibility = () =>
     viewCtx.change(() => clearTplVisibility(tpl, [...targetVisibilityCombo]));
 
-  const handleOpacityChange = (val?: string) => {
-    const newVal = val?.includes("%")
-      ? parseInt(val) / 100
-      : parseFloat(val || "0");
-
-    styling.change(() => {
-      if (val === undefined || (isNaN(newVal) && !isTokenRef(val))) {
-        styling.exp().clear("opacity");
-      } else {
-        styling
-          .exp()
-          .set("opacity", val && isTokenRef(val) ? val : String(newVal));
-      }
+  const _setTplVisibility = (visibility: TplVisibility) => {
+    viewCtx.change(() =>
+      viewCtx.getViewOps().setTplVisibility(tpl, visibility),
+    );
+  };
+  const _setCustomCond = (cond: CustomCode | ObjectPath) => {
+    viewCtx.change(() => {
+      viewCtx.getViewOps().setTplVisibility(tpl, TplVisibility.CustomExpr);
+      viewCtx.getViewOps().setDataCond(tpl, cond);
     });
   };
 
@@ -165,15 +180,27 @@ function VisibilitySection_(props: {
     setIsDataPickerVisible(true);
   };
 
+  const toggleQuickVisibility = () => {
+    if (isDisabled || hasPrivateStyleVariant) {
+      return;
+    }
+    const next =
+      currentVisibility === TplVisibility.Visible
+        ? visibilityChoices.includes(TplVisibility.DisplayNone)
+          ? TplVisibility.DisplayNone
+          : TplVisibility.NotRendered
+        : TplVisibility.Visible;
+    _setTplVisibility(next);
+  };
+
   const visibilityMenu = () => {
     const builder = new MenuBuilder();
     builder.genSection(undefined, (push) => {
       if (targetHasVisibility) {
         push(
           <Menu.Item
-            hidden={
-              !targetHasVisibility
-            }
+            key="reset-visibility"
+            hidden={!targetHasVisibility}
             onClick={handleUnsetVisibility}
           >
             <UiText
@@ -190,15 +217,39 @@ function VisibilitySection_(props: {
           </Menu.Item>,
         );
       }
-      push(
-        <Menu.Item
-          key={"not-rendered"}
-          data-plasmic-prop={getVisibilityDataProp(TplVisibility.NotRendered)}
-          onClick={() => _setTplVisibility(TplVisibility.NotRendered)}
-        >
-          {getVisibilityLabel(TplVisibility.NotRendered)}
-        </Menu.Item>,
-      );
+      if (visibilityChoices.includes(TplVisibility.Visible)) {
+        push(
+          <Menu.Item
+            key={TplVisibility.Visible}
+            data-plasmic-prop={getVisibilityDataProp(TplVisibility.Visible)}
+            onClick={() => _setTplVisibility(TplVisibility.Visible)}
+          >
+            {uiT(getVisibilityLabel(TplVisibility.Visible))}
+          </Menu.Item>,
+        );
+      }
+      if (visibilityChoices.includes(TplVisibility.DisplayNone)) {
+        push(
+          <Menu.Item
+            key={TplVisibility.DisplayNone}
+            data-plasmic-prop={getVisibilityDataProp(TplVisibility.DisplayNone)}
+            onClick={() => _setTplVisibility(TplVisibility.DisplayNone)}
+          >
+            {uiT(getVisibilityLabel(TplVisibility.DisplayNone))}
+          </Menu.Item>,
+        );
+      }
+      if (visibilityChoices.includes(TplVisibility.NotRendered)) {
+        push(
+          <Menu.Item
+            key={TplVisibility.NotRendered}
+            data-plasmic-prop={getVisibilityDataProp(TplVisibility.NotRendered)}
+            onClick={() => _setTplVisibility(TplVisibility.NotRendered)}
+          >
+            {uiT(getVisibilityLabel(TplVisibility.NotRendered))}
+          </Menu.Item>,
+        );
+      }
     });
     builder.genSection(undefined, (push) => {
       push(
@@ -240,15 +291,143 @@ function VisibilitySection_(props: {
     return builder.build();
   };
 
-  const _setTplVisibility = (visibility: TplVisibility) => {
-    viewCtx.change(() =>
-      viewCtx.getViewOps().setTplVisibility(tpl, visibility),
-    );
+  const conditionRows = customCode ? (
+    <>
+      <LabeledItemRow
+        data-test-id="visibility-custom-code"
+        label={uiT("Condition")}
+      >
+        <DataPickerEditor
+          viewCtx={viewCtx}
+          value={extractValueSavedFromDataPicker(customCode, {
+            projectFlags: viewCtx.projectFlags(),
+            component: viewCtx.currentComponent(),
+            inStudio: true,
+          })}
+          onChange={(val) => {
+            if (!val) {
+              return;
+            }
+            const fallbackExpr = customCode.fallback
+              ? clone(customCode.fallback)
+              : undefined;
+            const newExpr = createExprForDataPickerValue(
+              val,
+              fallbackExpr,
+            ) as CustomCode | ObjectPath;
+            _setCustomCond(newExpr);
+          }}
+          onUnlink={() => {
+            const boolProp = ensureKnownCustomCode(customCode.fallback);
+            if (tryExtractJson(boolProp)) {
+              _setTplVisibility(TplVisibility.Visible);
+            } else {
+              _setTplVisibility(TplVisibility.NotRendered);
+            }
+          }}
+          data={canvasEnv}
+          schema={functionsSchema}
+          key={tpl.uid}
+          visible={isDataPickerVisible}
+          setVisible={setIsDataPickerVisible}
+          context="Condition to decide whether the selected element should be visible"
+        />
+      </LabeledItemRow>
+      <FallbackEditor
+        isSet={isFallbackSet(customCode)}
+        onUnset={() => {
+          const clonedExpr = clone(customCode);
+          const newExpr = ensureInstance(clonedExpr, ObjectPath, CustomCode);
+          newExpr.fallback = undefined;
+          _setCustomCond(newExpr);
+        }}
+        definedIndicator={visibilityDefinedIndicator}
+      >
+        <BoolPropEditor
+          onChange={(val) => {
+            const clonedExpr = clone(customCode);
+            const newExpr = ensureInstance(clonedExpr, ObjectPath, CustomCode);
+            newExpr.fallback = codeLit(val);
+            _setCustomCond(newExpr);
+          }}
+          value={
+            customCode.fallback
+              ? tryExtractBoolean(customCode.fallback)
+              : undefined
+          }
+          defaultValueHint={false}
+          disabled={isDisabled}
+        />
+      </FallbackEditor>
+    </>
+  ) : null;
+
+  return {
+    currentVisibility,
+    targetHasVisibility,
+    hasPrivateStyleVariant,
+    isDisabled: !!isDisabled,
+    disabledTooltip,
+    visibilityDefinedIndicator,
+    choices: visibilityChoices,
+    customCode,
+    buildMenu: visibilityMenu as () => React.ReactElement<MenuProps>,
+    setVisibility: _setTplVisibility,
+    toggleQuickVisibility,
+    openDynamicValue: switchToDynamicValue,
+    conditionRows,
   };
-  const _setCustomCond = (cond: CustomCode | ObjectPath) => {
-    viewCtx.change(() => {
-      viewCtx.getViewOps().setTplVisibility(tpl, TplVisibility.CustomExpr);
-      viewCtx.getViewOps().setDataCond(tpl, cond);
+}
+
+function VisibilitySection_(props: {
+  tpl: TplNode;
+  viewCtx: ViewCtx;
+  expsProvider: TplExpsProvider;
+  visibilityInput: ReturnType<typeof readVisibility>;
+}) {
+  const { t: uiT } = useI18n();
+  const { expsProvider } = props;
+  const controller = useVisibilityController(props);
+  const { noStyles } = props.visibilityInput;
+  const {
+    currentVisibility,
+    targetHasVisibility,
+    hasPrivateStyleVariant,
+    isDisabled,
+    disabledTooltip,
+    visibilityDefinedIndicator,
+    choices: visibilityChoices,
+    customCode,
+    buildMenu: visibilityMenu,
+    setVisibility: _setTplVisibility,
+    openDynamicValue: switchToDynamicValue,
+    conditionRows,
+  } = controller;
+
+  const styling = useStyleTarget();
+  const vsh = makeVariantedStylesHelperFromCurrentCtx(props.viewCtx.studioCtx);
+
+  const [opacityCell] = useStyleCells(expsProvider, ["opacity"]);
+  const opacity = opacityCell?.value ?? "1";
+  const formattedOpacity = isTokenRef(opacity)
+    ? opacity
+    : `${Math.round(parseFloat(opacity) * 100)}%`;
+
+  const opacityDefinedIndicator = useStyleIndicator(expsProvider, "opacity");
+
+  const handleOpacityChange = (val?: string) => {
+    const newVal = val?.includes("%")
+      ? parseInt(val) / 100
+      : parseFloat(val || "0");
+
+    styling.change(() => {
+      if (val === undefined || (isNaN(newVal) && !isTokenRef(val))) {
+        styling.exp().clear("opacity");
+      } else {
+        styling
+          .exp()
+          .set("opacity", val && isTokenRef(val) ? val : String(newVal));
+      }
     });
   };
 
@@ -337,86 +516,7 @@ function VisibilitySection_(props: {
         </div>
       }
     >
-      {customCode && (
-        <>
-          <LabeledItemRow
-            data-test-id="visibility-custom-code"
-            label={uiT("Condition")}
-          >
-            <DataPickerEditor
-              viewCtx={viewCtx}
-              value={extractValueSavedFromDataPicker(customCode, {
-                projectFlags: viewCtx.projectFlags(),
-                component: viewCtx.currentComponent(),
-                inStudio: true,
-              })}
-              onChange={(val) => {
-                if (!val) {
-                  return;
-                }
-                const fallbackExpr = customCode.fallback
-                  ? clone(customCode.fallback)
-                  : undefined;
-                const newExpr = createExprForDataPickerValue(
-                  val,
-                  fallbackExpr,
-                ) as CustomCode | ObjectPath;
-                _setCustomCond(newExpr);
-              }}
-              onUnlink={() => {
-                const boolProp = ensureKnownCustomCode(customCode.fallback);
-                if (tryExtractJson(boolProp)) {
-                  _setTplVisibility(TplVisibility.Visible);
-                } else {
-                  _setTplVisibility(TplVisibility.NotRendered);
-                }
-              }}
-              data={canvasEnv}
-              schema={functionsSchema}
-              key={tpl.uid}
-              visible={isDataPickerVisible}
-              setVisible={setIsDataPickerVisible}
-              context="Condition to decide whether the selected element should be visible"
-            />
-          </LabeledItemRow>
-          <FallbackEditor
-            isSet={isFallbackSet(customCode)}
-            onUnset={() => {
-              const clonedExpr = clone(customCode);
-              const newExpr = ensureInstance(
-                clonedExpr,
-                ObjectPath,
-                CustomCode,
-              );
-              newExpr.fallback = undefined;
-              _setCustomCond(newExpr);
-            }}
-            definedIndicator={visibilityDefinedIndicator}
-          >
-            {
-              <BoolPropEditor
-                onChange={(val) => {
-                  const clonedExpr = clone(customCode);
-                  const newExpr = ensureInstance(
-                    clonedExpr,
-                    ObjectPath,
-                    CustomCode,
-                  );
-                  newExpr.fallback = codeLit(val);
-                  _setCustomCond(newExpr);
-                }}
-                value={
-                  customCode.fallback
-                    ? tryExtractBoolean(customCode.fallback)
-                    : undefined
-                }
-                defaultValueHint={false}
-                disabled={isDisabled}
-              />
-            }
-          </FallbackEditor>
-        </>
-      )}
+      {conditionRows}
     </SidebarSection>
   );
 }

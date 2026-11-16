@@ -1,10 +1,12 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Drawer } from "antd";
+import type { DrawerSemanticType } from "antd/es/drawer/DrawerPanel";
 import classNames from "classnames";
 import React from "react";
 import {
   useCanvasOverlay,
 } from "./canvas-overlay";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 const canvasOverlay = {};
@@ -198,6 +200,25 @@ export function registerDrawer(loader?: Registerable) {
       defaultStylesClassName: {
         type: "themeResetClass",
       } as any,
+      ...semanticAppearance(
+        {
+          root: "Drawer root",
+          mask: "Backdrop mask",
+          wrapper: "Drawer wrapper",
+          section: "Panel section",
+          header: "Header",
+          title: "Title",
+          extra: "Extra content",
+          body: "Body",
+          footer: "Footer",
+          dragger: "Resize dragger",
+          close: "Close button",
+        } satisfies Record<
+          keyof Omit<NonNullable<DrawerSemanticType["classNames"]>, "content">,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       open: {

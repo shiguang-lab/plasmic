@@ -1,3 +1,4 @@
+import { MARGIN_KEYS, PADDING_KEYS } from "@/wab/client/components/style-controls/BoxGeometryCard";
 import { getNodeSummary } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import { getMultiSelectionFieldState, getMultiSelectionProviders, multiSelectionFields, type MultiSelectionEditAccess, type MultiSelectionProp } from "@/wab/client/components/sidebar-tabs/multi-selection";
 import type { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
@@ -11,7 +12,7 @@ import { isKnownTplSlot } from "@/wab/shared/model/classes";
 import { shallow } from "zustand/shallow";
 
 const properties = Object.keys(multiSelectionFields) as MultiSelectionProp[];
-const keys = [...properties.filter((prop) => prop !== "border-radius"), ...standardCorners.map((corner) => `border-${corner}-radius`), "display", "flex-direction"];
+const keys = [...properties.filter((prop) => prop !== "border-radius"), ...MARGIN_KEYS, ...PADDING_KEYS, ...standardCorners.map((corner) => `border-${corner}-radius`), "display", "flex-direction"];
 interface Field extends ReturnType<typeof getMultiSelectionFieldState> { readonly prop: MultiSelectionProp; }
 interface Snapshot { readonly active: boolean; readonly fields: readonly Field[]; readonly names: readonly string[]; }
 const empty: Snapshot = Object.freeze({ active: false, fields: Object.freeze([]), names: Object.freeze([]) });

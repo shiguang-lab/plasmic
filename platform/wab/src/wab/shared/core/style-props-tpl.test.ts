@@ -3,7 +3,9 @@ import {
   mkTestVariantSetting as vs,
 } from "@/wab/__testonly__/tpls";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
-import { mkVariant, mkVariantSetting } from "@/wab/shared/Variants";
+import { TplMgr } from "@/wab/shared/TplMgr";
+import { getBaseVariant, mkVariant, mkVariantSetting } from "@/wab/shared/Variants";
+import { ComponentGenHelper, SiteGenHelper } from "@/wab/shared/codegen/codegen-helpers";
 import { CodeComponentsRegistry } from "@/wab/shared/code-components/code-components";
 import { mkShortId } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
@@ -24,7 +26,8 @@ import {
   isValidStylePropForTpl,
   validateStylesForTpl,
 } from "@/wab/shared/core/style-props-tpl";
-import { mkRuleSet } from "@/wab/shared/core/styles";
+import { createSite } from "@/wab/shared/core/sites";
+import { genCanvasRules, mkRuleSet } from "@/wab/shared/core/styles";
 import { TplTagType, mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
 import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
 import { CodeComponentMeta, Mixin } from "@/wab/shared/model/classes";
@@ -59,6 +62,25 @@ describe("isTypographyValidForTpl", () => {
     expect(isTypographyValidForTpl(mkIconTpl())).toBe(false);
     expect(isTypographyValidForTpl(mkPlainComponentTpl())).toBe(false);
   });
+});
+
+it("keeps block text vertical alignment in the generated canvas CSS", () => {
+  const site = createSite();
+  const text = mkTplTagX("p", { type: TplTagType.Text });
+  const component = new TplMgr({ site }).addComponent({
+    name: "Text",
+    type: ComponentType.Plain,
+    rootTpl: text,
+  });
+  const setting = mkVariantSetting({
+    variants: [getBaseVariant(component)],
+    styles: { "align-content": "end", height: "80px" },
+  });
+  text.vsettings = [setting];
+
+  expect(isValidStylePropForTpl("align-content", text, RSH(setting.rs, text), ccRegistry)).toBe(true);
+  const helper = new ComponentGenHelper(new SiteGenHelper(site, true), undefined);
+  expect(genCanvasRules(helper, text, setting).join("\n")).toContain("align-content: end");
 });
 
 describe("isSizeValidForTpl", () => {

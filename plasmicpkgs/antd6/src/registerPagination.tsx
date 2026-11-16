@@ -1,5 +1,7 @@
 import { Pagination } from "antd";
+import type { PaginationSemanticType } from "antd/es/pagination/Pagination";
 import React from "react";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 type AntdPaginationProps = Omit<
@@ -234,6 +236,16 @@ export function registerPagination(loader?: Registerable) {
           },
         ],
       },
+      ...semanticAppearance(
+        {
+          root: "Pagination container",
+          item: "Page item",
+        } satisfies Record<
+          keyof NonNullable<PaginationSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       currentPage: {

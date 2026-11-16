@@ -1,3 +1,5 @@
+import type { UploadSemanticType } from "antd/es/upload/interface";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { Image, Upload } from "antd";
 import type {
   UploadFile as AntdUploadFile,
@@ -180,6 +182,12 @@ export function registerUpload(loader?: Registerable) {
     description:
       "Select files and read their contents locally as base64. A done status means local reading is complete; this component does not upload to a server.",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        list: "List",
+        item: "Item",
+        trigger: "Trigger",
+      } satisfies SemanticPartLabels<UploadSemanticType["classNames"]>),
       accept: {
         type: "choice",
         displayName: "Allowed types",

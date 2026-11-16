@@ -1,4 +1,7 @@
+import type { InputNumberSemanticType } from "antd/es/input-number/index";
 import { Input, InputNumber } from "antd";
+import type { InputSemanticType } from "antd/es/input/Input";
+import type { TextAreaSemanticType } from "antd/es/input/TextArea";
 import React from "react";
 import {
   inputComponentName,
@@ -6,6 +9,7 @@ import {
   passwordComponentName,
   textAreaComponentName,
 } from "./names";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export const AntdInput = Input;
@@ -163,6 +167,20 @@ export function registerInput(loader?: Registerable) {
       },
       ...COMMON_ADVANCED_PROPS,
       ...COMMON_DECORATOR_PROPS,
+      ...semanticAppearance(
+        {
+          root: "Input container",
+          prefix: "Prefix",
+          suffix: "Suffix",
+          clear: "Clear button",
+          input: "Input",
+          count: "Character count",
+        } satisfies Record<
+          keyof NonNullable<InputSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
       ...COMMON_EVENT_HANDLERS,
     },
     states: {
@@ -221,6 +239,18 @@ export function registerTextArea(loader?: Registerable) {
         type: "boolean",
         displayName: "Auto grow height?",
       },
+      ...semanticAppearance(
+        {
+          root: "Textarea container",
+          textarea: "Textarea",
+          clear: "Clear button",
+          count: "Character count",
+        } satisfies Record<
+          keyof NonNullable<TextAreaSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
       ...COMMON_EVENT_HANDLERS,
     },
     states: {
@@ -240,6 +270,14 @@ export function registerPasswordInput(loader?: Registerable) {
     displayName: "Password Input",
     styleSections: ["visibility"],
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        clear: "Clear",
+        input: "Input",
+        count: "Count",
+      } satisfies SemanticPartLabels<InputSemanticType["classNames"]>),
       value: {
         type: "string",
         hidden: (ps: any) => !!ps.__plasmicFormField,
@@ -279,6 +317,14 @@ export function registerNumberInput(loader?: Registerable) {
     displayName: "Number Input",
     styleSections: ["visibility"],
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        input: "Input",
+        actions: "Actions",
+        clear: "Clear",
+      } satisfies SemanticPartLabels<InputNumberSemanticType["classNames"]>),
       value: {
         type: "number",
         hidden: (ps: any) => !!ps.__plasmicFormField,

@@ -1,3 +1,5 @@
+import type { ProgressSemanticType } from "antd/es/progress/progress";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { Progress } from "antd";
 import React, { useMemo } from "react";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -71,6 +73,13 @@ export function registerProgress(loader?: Registerable) {
     name: progressComponentName,
     displayName: "Progress",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        body: "Body",
+        rail: "Rail",
+        track: "Track",
+        indicator: "Indicator",
+      } satisfies SemanticPartLabels<ProgressSemanticType["classNames"]>),
       type: {
         type: "choice",
         defaultValueHint: "line",

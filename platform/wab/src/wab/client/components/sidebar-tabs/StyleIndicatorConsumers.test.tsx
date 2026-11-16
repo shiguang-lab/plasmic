@@ -7,13 +7,22 @@ import {
   StyleTargetContext,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { RuleSetHelpers } from "@/wab/shared/RuleSetHelpers";
 import { createSite } from "@/wab/shared/core/sites";
-import { mkRuleSet } from "@/wab/shared/core/styles";
+import { ensure } from "@/wab/shared/common";
 import { CssTransforms } from "@/wab/shared/css/transforms";
 import "@testing-library/jest-dom/vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import React from "react";
 
 vi.mock("@/wab/client/i18n", () => ({
@@ -54,36 +63,6 @@ vi.mock("@/wab/client/components/sidebar-tabs/FilterEffectSection", () => ({
 vi.mock("@/wab/client/components/sidebar/SidebarModal", () => ({
   SidebarModal: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
 }));
-vi.mock("@/wab/client/components/style-controls/TransformPanel", () => ({
-  TransformPanel: () => null,
-}));
-vi.mock("@/wab/client/components/style-controls/TransformSettingsPanel", () => ({
-  TransformSettingsPanel: () => null,
-}));
-vi.mock("@/wab/client/components/widgets", async (importOriginal) => {
-  const actual = await importOriginal<
-    typeof import("@/wab/client/components/widgets")
-  >();
-  return {
-    ...actual,
-    IconLinkButton: ({
-      children,
-      onClick,
-      disabled,
-    }: {
-      children?: React.ReactNode;
-      onClick?: () => void;
-      disabled?: boolean;
-    }) => (
-      <button data-testid="icon-link-button" disabled={disabled} onClick={onClick}>
-        {children}
-      </button>
-    ),
-    ListBox: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    ListBoxItem: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  };
-});
-
 const studios: ReturnType<typeof fakeStudioCtx>["studioCtx"][] = [];
 afterEach(async () => {
   cleanup();
@@ -96,7 +75,9 @@ afterEach(async () => {
 
 async function fixture(values: Record<string, string> = {}) {
   const site = createSite();
-  const rs = mkRuleSet({ values });
+  const rs = ensure(site.activeTheme, "Expected a theme for the test site")
+    .defaultStyle.rs;
+  Object.assign(rs.values, values);
   const { studioCtx: studio } = fakeStudioCtx({ site });
   studios.push(studio);
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
@@ -118,20 +99,69 @@ async function fixture(values: Record<string, string> = {}) {
   return { studio, rs, provider, wrap };
 }
 
-it("renders Transform from native cells/indicators and preserves the add-transform command", async () => {
+it("opens transform settings, creation and editing in popovers", async () => {
   const { studio, rs, provider, wrap } = await fixture();
   const definedIndicator = vi.spyOn(provider, "definedIndicator").mockImplementation(() => {
     throw new Error("Render must use native indicator recipes");
   });
-  render(wrap(<TransformPanelSection expsProvider={provider} />));
+  render(
+    wrap(
+      <ModalScope active>
+        <TransformPanelSection expsProvider={provider} />
+      </ModalScope>,
+    ),
+  );
+  const header = screen.getByText("Transform");
+  expect(screen.queryByRole("button", { name: "More actions" })).toBeNull();
 
-  const buttons = screen.getAllByTestId("icon-link-button");
-  fireEvent.click(buttons[1]);
+  const settingsTrigger = screen.getByRole("button", {
+    name: "Transform Settings",
+  });
+  act(() => settingsTrigger.focus());
+  fireEvent.click(settingsTrigger);
+  const settings = await screen.findByRole("dialog", {
+    name: "Transform Settings",
+  });
+  expect(settings.closest(".ant-popover")).toBeInTheDocument();
+  const [origin] = within(settings).getAllByRole("textbox");
+  act(() => origin.focus());
+  expect(origin).toHaveFocus();
+  fireEvent.click(within(settings).getByText("Hidden"));
+  await waitFor(() => expect(rs.values["backface-visibility"]).toBe("hidden"));
+  expect(settings).toBeInTheDocument();
+  fireEvent.keyDown(settings, { key: "Escape" });
+  expect(settingsTrigger).toHaveFocus();
+  expect(settingsTrigger).toHaveAttribute("aria-expanded", "false");
+
+  fireEvent.click(header);
   await act(async () => { await studio.awaitEval(); });
+  expect(rs.values.transform).toBeUndefined();
+  expect(screen.queryByRole("dialog", { name: "Transform" })).toBeNull();
 
-  const transform = new RuleSetHelpers(rs, "div").get("transform");
-  expect(CssTransforms.fromCss(transform).transforms).toHaveLength(1);
+  fireEvent.click(screen.getByRole("button", { name: "Add transform" }));
+  await act(async () => { await studio.awaitEval(); });
+  const editor = await screen.findByRole("dialog", { name: "Transform" });
+  expect(editor.closest(".ant-popover")).toBeInTheDocument();
+  expect(
+    CssTransforms.fromCss(new RuleSetHelpers(rs, "div").get("transform")).transforms,
+  ).toHaveLength(1);
+  fireEvent.click(within(editor).getByText("Rotate"));
+  const row = await screen.findByRole("button", { name: "Transform: Rotate" });
+  expect(screen.getByRole("dialog", { name: "Transform" })).toBe(editor);
+  fireEvent.keyDown(editor, { key: "Escape" });
+  expect(row).toHaveFocus();
+  fireEvent.click(row);
+  expect(await screen.findByRole("dialog", { name: "Transform" })).toBeInTheDocument();
+  fireEvent.pointerDown(document.body);
+  fireEvent.mouseDown(document.body);
+  expect(row).toHaveAttribute("aria-expanded", "false");
+
+  fireEvent.contextMenu(header);
+  expect(
+    await screen.findByRole("menuitem", { name: "Remove all Transform styles" }),
+  ).toBeInTheDocument();
   expect(definedIndicator).not.toHaveBeenCalled();
+  await act(async () => { await studio.awaitEval(); });
 });
 
 it("derives Effects isSet from native indicator sources and preserves pointer-events writes", async () => {
@@ -148,7 +178,7 @@ it("derives Effects isSet from native indicator sources and preserves pointer-ev
   });
   render(wrap(<EffectsPanelSection expsProvider={provider} />));
 
-  const interactive = screen.getByRole("checkbox", { name: "Interactive" });
+  const interactive = screen.getByRole("switch", { name: "Interactive" });
   expect(interactive).toBeChecked();
   fireEvent.click(interactive);
   await act(async () => { await studio.awaitEval(); });

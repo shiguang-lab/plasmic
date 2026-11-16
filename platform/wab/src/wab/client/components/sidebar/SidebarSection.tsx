@@ -190,6 +190,7 @@ interface SidebarSectionProps extends Omit<
   zeroBodyPadding?: boolean;
   zeroHeaderPadding?: boolean;
   noBottomPadding?: boolean;
+  symmetricNoHeaderPadding?: boolean;
   maxHeight?: number;
   style?: CSSProperties;
   noBorder?: boolean;
@@ -208,6 +209,7 @@ interface SidebarSectionProps extends Omit<
   defaultExtraContentExpanded?: boolean;
   oneLiner?: boolean;
   makeHeaderMenu?: () => React.ReactElement<import("antd").MenuProps>;
+  headerMenuOnRightClickOnly?: boolean;
 }
 
 export type SidebarSectionHandle = {
@@ -229,6 +231,7 @@ export function SidebarSection_(
     zeroBodyPadding,
     zeroHeaderPadding,
     noBottomPadding,
+    symmetricNoHeaderPadding,
     scrollable,
     maxHeight,
     style,
@@ -242,6 +245,7 @@ export function SidebarSection_(
     // dataExpandTestId,
     isHeaderActive,
     makeHeaderMenu,
+    headerMenuOnRightClickOnly,
     hasExtraContent,
     hasCollapsibleContent,
     oneLiner,
@@ -353,7 +357,7 @@ export function SidebarSection_(
           >
             <LabeledListItem
               indicator={definedIndicator}
-              menu={makeHeaderMenu}
+              menu={headerMenuOnRightClickOnly ? undefined : makeHeaderMenu}
               padding={["noHorizontal", "noContent"]}
               labelSize="auto"
               alignment="center"
@@ -384,6 +388,7 @@ export function SidebarSection_(
           className={cn({
             SidebarSection__Body: true,
             [styles.bodyScrollable]: scrollable,
+            [styles.bodyNoHeaderSymmetric]: !hasHeader && symmetricNoHeaderPadding,
             "studio-scrollbar": scrollableBody,
             SidebarSection__Body__EmptyBody: emptyBody && !showEmptyDescription,
             SidebarSection__Body__ZeroBodyPadding:

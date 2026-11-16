@@ -4,6 +4,7 @@ import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo } from 'react';
 import { a as getSelectedCanvasItemKey } from './canvas-overlay-BS6_0gNM.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper, a as asArray, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -287,7 +288,22 @@ function registerTabs(loader) {
         type: "eventHandler",
         advanced: true,
         argTypes: [{ name: "scrollInfo", type: "object" }]
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Tabs container",
+          header: "Tab bar header",
+          item: "Tab item",
+          remove: "Remove button",
+          indicator: "Active indicator",
+          body: "Panels body",
+          content: "Panel content",
+          popup: {
+            root: "Overflow tabs popup"
+          }
+        },
+        { advanced: true }
+      )
     },
     states: {
       activeKey: {

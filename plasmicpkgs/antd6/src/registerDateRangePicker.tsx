@@ -1,11 +1,13 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { DatePicker } from "antd";
+import type { DatePickerSemanticType } from "antd/es/date-picker/generatePicker/interface";
 import cls from "classnames";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import kebabCase from "lodash/kebabCase";
 import React, { useMemo } from "react";
 import { useCanvasOverlay } from "./canvas-overlay";
+import { semanticAppearance } from "./semantic-appearance";
 import { capitalize, Registerable, registerComponentHelper } from "./utils";
 
 import localeData from "dayjs/plugin/localeData";
@@ -394,6 +396,27 @@ export function registerDateRangePicker(loader?: Registerable) {
         advanced: true,
         argTypes: [{ name: "value", type: "object" }],
       },
+      ...semanticAppearance(
+        {
+          root: "Picker container",
+          prefix: "Prefix",
+          input: "Input",
+          suffix: "Suffix",
+          popup: {
+            root: "Popup root",
+            container: "Popup container",
+            header: "Popup header",
+            body: "Popup body",
+            content: "Popup content",
+            item: "Calendar cell",
+            footer: "Popup footer",
+          },
+        } satisfies Record<
+          keyof NonNullable<DatePickerSemanticType["styles"]>,
+          string | Record<string, string>
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       startDate: {

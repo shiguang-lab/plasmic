@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var React = require('react');
 var utils = require('./utils-B1jTF3MA.cjs.js');
@@ -42,6 +43,11 @@ function registerBreadcrumb(loader) {
     name: breadcrumbComponentName,
     displayName: "Breadcrumb",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        item: "Item",
+        separator: "Separator"
+      }),
       itemsRaw: {
         type: "slot",
         displayName: "items",

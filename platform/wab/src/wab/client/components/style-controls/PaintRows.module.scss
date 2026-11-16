@@ -1,0 +1,198 @@
+.fillItem:global(.list-box-item) {
+  padding: 0;
+
+  :global(.list-box-item__label) {
+    min-width: 0;
+  }
+}
+
+.fillStatus {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ui-muted);
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &[aria-expanded="true"] {
+    background: var(--ui-hover);
+    color: var(--ui-text);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  > span {
+    font-size: 9px;
+  }
+}
+
+.strokeRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px 24px;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.strokeRow > * {
+  min-width: 0;
+}
+
+.fillValue {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  border-radius: 6px;
+  background: var(--ui-fill);
+}
+
+.fillEdit {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ui-text);
+  text-align: start;
+
+  &:hover:not(:disabled),
+  &[aria-expanded="true"] {
+    background: var(--ui-hover);
+  }
+}
+
+.fillPopover {
+  width: min(288px, calc(100vw - 40px));
+}
+
+.fillPopoverBody {
+  max-height: calc(100dvh - 112px);
+  min-height: 0;
+}
+
+.fillColorPicker {
+  padding-top: 4px;
+}
+
+.fillLabel {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.valueSummary {
+  margin-left: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ui-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fillSwatch {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  background: repeating-conic-gradient(var(--ui-fill) 0% 25%, var(--ui-surface) 0% 50%) 0 0 / 8px 8px;
+
+  > span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-position: center;
+    background-size: cover;
+  }
+}
+
+.shadowSwatch {
+  display: grid;
+  place-items: center;
+
+  > span {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+}
+
+.fillOpacity:global(.ant-input-number-affix-wrapper) {
+  width: 56px;
+  padding-inline: 4px 6px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+
+  :global(.ant-input-number-input) {
+    padding: 0;
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &:focus-within {
+    outline: 1px solid var(--ui-accent);
+  }
+}
+
+.fillAdvanced {
+  > summary {
+    padding: 8px 12px;
+    color: var(--ui-muted);
+  }
+}
+
+.strokeSettings {
+  display: grid;
+  gap: 8px;
+  width: 200px;
+}
+
+.strokeSides {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 2px;
+  border-radius: 6px;
+  background: var(--ui-fill);
+}
+
+.strokeSides > button,
+.strokeSettingsButton {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 24px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ui-muted);
+
+  &:hover {
+    background: var(--ui-hover);
+    color: var(--ui-text);
+  }
+
+  &[aria-pressed="true"],
+  &[aria-expanded="true"] {
+    background: var(--ui-hover);
+    color: var(--ui-accent);
+  }
+}

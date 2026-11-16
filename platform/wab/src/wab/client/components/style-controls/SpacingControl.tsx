@@ -137,7 +137,9 @@ function SpacingControlContent({ ref, ...props }: SpacingRenderProps & { ref?: R
     const values = selectedSides().map((side) => props.values[side]);
     return selection.isEmpty() ? showCssShorthand(values) : new Set(values).size === 1 ? values[0] : "";
   };
-  const change = (command: () => void) => changeStyle(props.expsProvider, command);
+  const change = (command: () => void) => {
+    if (!props.readOnly) { changeStyle(props.expsProvider, command); }
+  };
   const setAllSelected = (value: string) => {
     const names = selectedStyleProps();
     change(() => {
@@ -258,7 +260,7 @@ function SpacingControlContent({ ref, ...props }: SpacingRenderProps & { ref?: R
                       })();
                       const maybeTokenValue = props.dragValues[side];
                       const isDraggingDisabled =
-                        !isDraggableSize(maybeTokenValue);
+                        props.readOnly || !isDraggableSize(maybeTokenValue);
                       return (
                         <Tooltip
                           open={false}
@@ -388,6 +390,8 @@ function SpacingControlContent({ ref, ...props }: SpacingRenderProps & { ref?: R
                 anchors the popover on its root element. */}
             <TriggerTarget>
               <LabeledStyleDimItem
+                isDisabled={props.readOnly}
+                disabledDragging={props.readOnly}
                 styleName={selectedStyleProps()}
                 displayStyleName={props.spacingStyleProp}
                 label={spacingLabel}

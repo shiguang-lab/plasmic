@@ -12,6 +12,7 @@ var utils = require('./utils-B1jTF3MA.cjs.js');
 var Form = require('./Form.cjs.js');
 var FormItem = require('./FormItem.cjs.js');
 require('./names-DbJduus8.cjs.js');
+require('./semantic-appearance-Ba48UgLS.cjs.js');
 require('classnames');
 require('dayjs');
 require('./canvas-overlay-D2jWZ-TY.cjs.js');

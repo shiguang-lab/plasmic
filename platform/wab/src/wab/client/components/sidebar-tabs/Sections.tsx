@@ -3,6 +3,8 @@ import {
   isTplCodeComponentStyleable,
 } from "@/wab/client/code-components/code-components";
 import { getRealClassNames } from "@/wab/client/components/canvas/styles-name";
+import { AppearancePanelSection } from "@/wab/client/components/sidebar-tabs/AppearancePanelSection";
+import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
 import { ComponentPropsSection } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import { CustomBehaviorsSection } from "@/wab/client/components/sidebar-tabs/CustomBehaviorsSection";
 import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
@@ -11,7 +13,7 @@ import {
   HTMLAttributesSection,
   TplTagSection,
 } from "@/wab/client/components/sidebar-tabs/HTMLAttributesSection";
-import { LayoutSection } from "@/wab/client/components/sidebar-tabs/LayoutSection";
+import { LayoutPanelSection } from "@/wab/client/components/sidebar-tabs/LayoutPanelSection";
 import { LinkSection } from "@/wab/client/components/sidebar-tabs/LinkSection";
 import { ListStyleSection } from "@/wab/client/components/sidebar-tabs/ListStyleSection";
 import {
@@ -19,7 +21,6 @@ import {
   MergedSlotsTextSection,
 } from "@/wab/client/components/sidebar-tabs/MergedSlotsSection";
 import { MixinsSection } from "@/wab/client/components/sidebar-tabs/MixinsSection";
-import { OverflowSection } from "@/wab/client/components/sidebar-tabs/OverflowSection";
 import { PositioningPanelSection } from "@/wab/client/components/sidebar-tabs/PositioningSection";
 import { RepeaterSection } from "@/wab/client/components/sidebar-tabs/RepeaterSection";
 import { RepeatingElementSection } from "@/wab/client/components/sidebar-tabs/RepeatingElementSection";
@@ -27,10 +28,8 @@ import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/Shadow
 import { SimplifiedCodeComponentModeSection } from "@/wab/client/components/sidebar-tabs/SimplifiedCodeComponentModeSection";
 import {
   PageSizePanelSection,
-  SizeSection,
   SizeWidthOnlySection,
 } from "@/wab/client/components/sidebar-tabs/SizeSection";
-import { SpacingSection } from "@/wab/client/components/sidebar-tabs/SpacingSection";
 import InteractionsSection from "@/wab/client/components/sidebar-tabs/StateManagement/InteractionsSection";
 import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import { TransitionsPanelSection } from "@/wab/client/components/sidebar-tabs/TransitionsSection";
@@ -52,24 +51,21 @@ import {
 import { PrivateStyleVariantsPanel } from "@/wab/client/components/sidebar-tabs/private-style-variants-section";
 import { SlotSettingsSection } from "@/wab/client/components/sidebar-tabs/slot-section";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import {
-  BorderPanelSection,
-  BorderRadiusSection,
-} from "@/wab/client/components/style-controls/BorderControls";
+import { BorderPanelSection } from "@/wab/client/components/style-controls/BorderControls";
 import { OutlinePanelSection } from "@/wab/client/components/style-controls/OutlineControls";
 import {
   TplExpsProvider,
   createStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
-import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import {
   getAncestorSlotArg,
   getAncestorTplSlot,
+  isCodeComponentSlot,
+  isPlainTextTplSlot,
   isTypographyNode,
 } from "@/wab/shared/SlotUtils";
 import { assert, ensure, ensureArray } from "@/wab/shared/common";
@@ -81,7 +77,6 @@ import {
 import {
   isBackgroundValidForTpl,
   isListStyleValidForTpl,
-  isOverflowValidForTpl,
   isPositioningValidForTpl,
   isSizeValidForTpl,
   isTransformValidForTpl,
@@ -139,6 +134,7 @@ export enum Section {
   Column = "column",
   ColumnsPanel = "columns-panel",
   GridChild = "grid-child",
+  BoxGeometry = "box-geometry",
   Size = "size",
   SizeWidthOnly = "size-width",
   ImageCodeComponent = "image-code-component",
@@ -150,6 +146,9 @@ export enum Section {
   ComponentMergedSlotText = "component-merged-slots-text",
   ComponentMergedSlotTypography = "component-merged-slots-typography",
   PositioningPanel = "positioning-panel",
+  LayoutPanel = "layout-panel",
+  AppearancePanel = "appearance-panel",
+  // Permission category for spacing controls, which render in LayoutPanel.
   Spacing = "spacing",
   Layout = "layout",
   Overflow = "overflow",
@@ -275,6 +274,18 @@ const SECTION_SETTINGS: AllSectionsPresent<SectionSetting> = {
     publicSection: undefined,
     defaultContentEditorVisible: true,
   },
+  [Section.BoxGeometry]: {
+    publicSection: undefined,
+    defaultContentEditorVisible: true,
+  },
+  [Section.LayoutPanel]: {
+    publicSection: undefined,
+    defaultContentEditorVisible: true,
+  },
+  [Section.AppearancePanel]: {
+    publicSection: undefined,
+    defaultContentEditorVisible: true,
+  },
 };
 
 function getSectionSetting(section: Section) {
@@ -294,10 +305,13 @@ const styleSections = new Set([
   Section.Column,
   Section.ColumnsPanel,
   Section.GridChild,
+  Section.BoxGeometry,
+  Section.PositioningPanel,
+  Section.LayoutPanel,
+  Section.AppearancePanel,
   Section.Size,
   Section.ListStyle,
   Section.Typography,
-  Section.PositioningPanel,
   Section.Spacing,
   Section.Layout,
   Section.Overflow,
@@ -481,24 +495,70 @@ function getRenderBySection(
         ),
     ],
     [
+      Section.BoxGeometry,
+      () => (
+        <BoxGeometrySection
+          key={`${tpl.uuid}-box-geometry`}
+          expsProvider={sc.props.expsProvider}
+          missingPositionClass={missingPositionClass}
+          contentEditorMode={contentEditorMode}
+          enabledStyleSections={enabledStyleSections}
+        />
+      ),
+    ],
+    [
+      Section.PositioningPanel,
+      () =>
+        isPositioningValidForTpl(tpl, expsProvider.mergedExp()) &&
+        showSection(Section.PositioningPanel) && (
+          <PositioningPanelSection
+            key={`${tpl.uuid}-positioning`}
+            expsProvider={sc.props.expsProvider}
+            missingPositionClass={missingPositionClass}
+            contentEditorMode={contentEditorMode}
+            enabledStyleSections={enabledStyleSections}
+          />
+        ),
+    ],
+    [
+      Section.LayoutPanel,
+      () => (
+        <LayoutPanelSection
+          key={`${tpl.uuid}-layout-panel`}
+          expsProvider={sc.props.expsProvider}
+          missingPositionClass={missingPositionClass}
+          contentEditorMode={contentEditorMode}
+          enabledStyleSections={enabledStyleSections}
+          allowConvert
+        />
+      ),
+    ],
+    [
+      Section.AppearancePanel,
+      () => (
+        <AppearancePanelSection
+          key={`${tpl.uuid}-appearance-panel`}
+          expsProvider={sc.props.expsProvider}
+          missingPositionClass={missingPositionClass}
+          contentEditorMode={contentEditorMode}
+          enabledStyleSections={enabledStyleSections}
+        />
+      ),
+    ],
+    [
       Section.Size,
       () => {
-        if (isSizeValidForTpl(tpl) && showSection(Section.Size)) {
-          if (isRoot) {
-            // For root element of page, show special size section
-            if (isPageComponent(component)) {
-              return (
-                <PageSizePanelSection
-                  key={`${tpl.uuid}-page-size`}
-                  expsProvider={sc.props.expsProvider}
-                />
-              );
-            }
-          }
-          // Else, show normal size section
+        if (
+          isSizeValidForTpl(tpl) &&
+          showSection(Section.Size) &&
+          isRoot &&
+          isPageComponent(component)
+        ) {
+          // Page root height still uses dedicated browser-window mode controls;
+          // standard Sizing is rendered inside LayoutPanelSection.
           return (
-            <SizeSection
-              key={`${tpl.uuid}-size`}
+            <PageSizePanelSection
+              key={`${tpl.uuid}-page-size`}
               expsProvider={sc.props.expsProvider}
             />
           );
@@ -531,29 +591,9 @@ function getRenderBySection(
       },
     ],
     [
-      Section.Spacing,
-      () =>
-        showSection(Section.Spacing) && (
-          <SpacingSection
-            key={`${tpl.uuid}-spacing`}
-            expsProvider={sc.props.expsProvider}
-          />
-        ),
-    ],
-    [
-      Section.PositioningPanel,
-      () =>
-        isPositioningValidForTpl(tpl, expsProvider.mergedExp()) &&
-        showSection(Section.PositioningPanel) && (
-          <PositioningPanelSection
-            key={`${tpl.uuid}-positioning`}
-            expsProvider={sc.props.expsProvider}
-          />
-        ),
-    ],
-    [
       Section.Visibility,
       () =>
+        !showStyleSections &&
         canToggleVisibility(tpl, viewCtx) &&
         showSection(Section.Visibility) && (
           <VisibilitySection
@@ -568,7 +608,7 @@ function getRenderBySection(
       Section.Mixins,
       () =>
         canRenderMixins(tpl, viewCtx) &&
-        renderOpts.get(Section.Mixins) && (
+        showSection(Section.Mixins) && (
           <MixinsSection
             key={`${tpl.uuid}-mixins`}
             tpl={tpl}
@@ -580,7 +620,7 @@ function getRenderBySection(
       Section.PrivateStyleVariants,
       () =>
         canRenderPrivateStyleVariants(tpl, viewCtx) &&
-        renderOpts.get(Section.PrivateStyleVariants) && (
+        showSection(Section.PrivateStyleVariants) && (
           // Cannot have private variants if you are default slot content,
           // as default slot content can only target base variant
           <PrivateStyleVariantsPanel
@@ -696,23 +736,16 @@ function getRenderBySection(
         isTypographyValidForTpl(tpl) &&
         showSection(Section.Typography) && (
           <TypographySection
-            title={
-              isContainerOrCodeComponentTpl
-                ? translate(getUiLocale(), "Typography")
-                : translate(getUiLocale(), "Text")
-            }
             key={`${tpl.uuid}-typography`}
             expsProvider={sc.props.expsProvider}
             ancestorSlot={styleAncestorSlot}
             inheritableOnly={isContainerOrCodeComponentTpl && !isTypographyTpl}
-            viewCtx={viewCtx}
           />
         ),
     ],
     [
       Section.TextContentOnly,
       () =>
-        (!showStyleSections || !isTypographyValidForTpl(tpl)) &&
         hasTextContent(tpl) &&
         showSection(Section.Typography) &&
         !showLink && (
@@ -735,29 +768,16 @@ function getRenderBySection(
           />
         ),
     ],
+    [Section.Spacing, () => undefined],
     [
       Section.Layout,
-      () =>
-        isContainerOrCodeComponentTpl &&
-        showSection(Section.Layout) && (
-          <LayoutSection
-            key={`${tpl.uuid}-layout`}
-            expsProvider={sc.props.expsProvider}
-            isCodeComponentTpl={codeComponentTpl}
-            allowConvert
-          />
-        ),
+      // Container layout is consolidated into Section.LayoutPanel below Position.
+      () => undefined,
     ],
     [
       Section.Overflow,
-      () =>
-        isOverflowValidForTpl(tpl) &&
-        showSection(Section.Overflow) && (
-          <OverflowSection
-            key={`${tpl.uuid}-overflow`}
-            expsProvider={expsProvider}
-          />
-        ),
+      // Overflow / Clip content is consolidated into Section.AppearancePanel.
+      () => undefined,
     ],
     [
       Section.Background,
@@ -775,16 +795,11 @@ function getRenderBySection(
       () =>
         isTagOrCodeComponentTpl &&
         showSection(Section.Border) && (
-          <React.Fragment key={`${tpl.uuid}-border`}>
-            <BorderPanelSection
-              key={`${tpl.uuid}-border-width`}
-              expsProvider={sc.props.expsProvider}
-            />
-            <BorderRadiusSection
-              key={`${tpl.uuid}-border-radius`}
-              expsProvider={sc.props.expsProvider}
-            />
-          </React.Fragment>
+          // Corner radius is consolidated into Section.AppearancePanel; BorderPanelSection stays for stroke.
+          <BorderPanelSection
+            key={`${tpl.uuid}-border-width`}
+            expsProvider={sc.props.expsProvider}
+          />
         ),
     ],
     [
@@ -918,6 +933,7 @@ function getRenderBySection(
       () =>
         (showStyleSections ||
           !isStyleSection(name) ||
+          name === Section.BoxGeometry ||
           name === Section.MissingPositionClass ||
           name === Section.ComponentStyleProps) &&
         render(),
@@ -925,7 +941,7 @@ function getRenderBySection(
   );
 }
 
-function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
+export function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
   const orderedSections = new Set<Section>();
 
   const pushIfNew = (...sections: Section[]) => {
@@ -940,7 +956,9 @@ function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
     isTplCodeComponent(tpl) &&
     !isTplCodeComponentStyleable(viewCtx.studioCtx.codeComponentsRegistry, tpl)
   ) {
-    // This code component explicitly opted out of styles
+    // This code component explicitly opted out of styles; keep BoxGeometry
+    // available so it can show a read-only box when a real DOM node exists.
+    pushIfNew(Section.BoxGeometry);
     pushIfNew(Section.Visibility);
     if (tpl.component.codeComponentMeta.isRepeatable) {
       pushIfNew(Section.RepeatingElement);
@@ -960,6 +978,13 @@ function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
   pushIfNew(Section.SizeWidthOnly);
 
   pushIfNew(Section.SimplifiedCodeComponentMode);
+  pushIfNew(Section.BoxGeometry);
+  pushIfNew(Section.PositioningPanel);
+  pushIfNew(Section.LayoutPanel);
+  pushIfNew(Section.AppearancePanel);
+  pushIfNew(Section.Typography);
+  pushIfNew(Section.Background, Section.Border, Section.Outline);
+  pushIfNew(Section.TextContentOnly);
   // Priority Sections
   if (isTplImage(tpl)) {
     pushIfNew(Section.Image);
@@ -986,27 +1011,21 @@ function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
   if (isTplComponent(tpl)) {
     pushIfNew(Section.ComponentProps, Section.VariantsPicker);
   }
-  if (isTypographyNode(tpl)) {
-    pushIfNew(Section.Typography);
-    pushIfNew(Section.TextContentOnly);
-  }
   if (isTplContainer(tpl)) {
     pushIfNew(
       Section.Size,
       Section.Layout,
-      Section.Spacing,
       Section.Overflow,
       Section.Background,
     );
   }
   if (isTplColumn(tpl)) {
-    pushIfNew(Section.Column, Section.Spacing, Section.Background);
+    pushIfNew(Section.Column, Section.Background);
   }
   if (isTplColumns(tpl)) {
     pushIfNew(
       Section.Size,
       Section.ColumnsPanel,
-      Section.Spacing,
       Section.Overflow,
       Section.Background,
     );
@@ -1029,7 +1048,6 @@ function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
   pushIfNew(Section.MissingPositionClass);
   pushIfNew(Section.Size);
   pushIfNew(Section.Spacing);
-  pushIfNew(Section.PositioningPanel);
   pushIfNew(Section.Repeater);
   pushIfNew(Section.Column);
   pushIfNew(Section.ColumnsPanel);
@@ -1037,15 +1055,8 @@ function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
   pushIfNew(Section.ImageCodeComponent);
   pushIfNew(Section.Image);
   pushIfNew(Section.ListStyle);
-  if (!isTplContainer(tpl)) {
-    pushIfNew(Section.Typography);
-  }
-  pushIfNew(Section.TextContentOnly);
   pushIfNew(Section.Layout);
   pushIfNew(Section.Overflow);
-  pushIfNew(Section.Background);
-  pushIfNew(Section.Border);
-  pushIfNew(Section.Outline);
   pushIfNew(Section.ShadowsPanel);
   pushIfNew(Section.EffectsPanel);
   pushIfNew(Section.TransitionsPanel);
@@ -1053,9 +1064,6 @@ function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section> {
   pushIfNew(Section.Tag);
   pushIfNew(Section.Link);
   pushIfNew(Section.HTMLAttributes);
-  if (isTplContainer(tpl)) {
-    pushIfNew(Section.Typography);
-  }
 
   pushIfNew(Section.CustomBehaviors);
   pushIfNew(Section.SlotSettings);
@@ -1081,12 +1089,49 @@ function isStyleSection(section: Section) {
   return styleSections.has(section);
 }
 
-export type StyleTabFilter = "design" | "interactions";
+export type StyleTabFilter = "design" | "props" | "interactions";
 
-function sectionMatchesTab(section: Section, tab: StyleTabFilter) {
-  const interaction =
-    section === Section.Interactions || section === Section.CustomBehaviors;
-  return tab === "interactions" ? interaction : !interaction;
+const INTERACTION_TAB_SECTIONS = new Set<Section>([
+  Section.Interactions,
+  Section.CustomBehaviors,
+]);
+
+const PROPS_TAB_SECTIONS = new Set<Section>([
+  Section.ComponentProps,
+  Section.VariantsPicker,
+  Section.ComponentMergedSlotProps,
+  Section.SimplifiedCodeComponentMode,
+  Section.ComponentMergedSlotText,
+  Section.RepeatingElement,
+  Section.Repeater,
+  Section.Tag,
+  Section.Link,
+  Section.HTMLAttributes,
+  Section.SlotSettings,
+  Section.TextContentOnly,
+]);
+
+function sectionMatchesTab(
+  section: Section,
+  tab: StyleTabFilter,
+  contentEditorMode: boolean,
+) {
+  if (tab === "interactions") {
+    return INTERACTION_TAB_SECTIONS.has(section);
+  }
+  if (tab === "props") {
+    return (
+      PROPS_TAB_SECTIONS.has(section) ||
+      (contentEditorMode &&
+        (section === Section.Visibility ||
+          section === Section.MissingPositionClass ||
+          section === Section.ComponentStyleProps))
+    );
+  }
+  return (
+    !INTERACTION_TAB_SECTIONS.has(section) &&
+    !PROPS_TAB_SECTIONS.has(section)
+  );
 }
 
 export function getOrderedSectionRender(
@@ -1102,7 +1147,7 @@ export function getOrderedSectionRender(
     .filter(
       (section) =>
         canEditSection(viewCtx.studioCtx, section) &&
-        sectionMatchesTab(section, styleTabFilter),
+        sectionMatchesTab(section, styleTabFilter, contentEditorMode),
     )
     .map((section) =>
       ensure(
@@ -1247,5 +1292,5 @@ export function canRenderPrivateStyleVariants(
 }
 
 function hasTextContent(tpl: TplNode) {
-  return isTplTextBlock(tpl);
+  return isTplTextBlock(tpl) || (isPlainTextTplSlot(tpl) && !isCodeComponentSlot(tpl));
 }

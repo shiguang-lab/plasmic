@@ -14,6 +14,7 @@ import React from "react";
  * @param opts.site - Project site whose tokens are listed.
  * @param opts.projectId - ID of that project, owner of the local tokens.
  * @param opts.onSelect - Invoked with the selected token and its project ID.
+ * @param opts.isTokenCompatible - Disables a token when its value is incompatible with the target.
  * @param opts.onCreate - When set, appends a "Create new data token" item.
  */
 export function makeDataTokensSubMenu(opts: {
@@ -21,6 +22,8 @@ export function makeDataTokensSubMenu(opts: {
   projectId: ProjectId;
   onSelect: (dataTokenRef: DataTokenRef) => void;
   onCreate?: () => void;
+  isTokenCompatible?: (token: DataTokenRef) => boolean;
+  title?: React.ReactNode;
 }): React.JSX.Element | null {
   const localTokens = naturalSortByName(opts.site.dataTokens);
   const depGroups = walkDependencyTree(opts.site, "direct").filter(
@@ -32,19 +35,32 @@ export function makeDataTokensSubMenu(opts: {
     return null;
   }
 
+  function tokenItem(ref: DataTokenRef) {
+    const disabled = opts.isTokenCompatible?.(ref) === false;
+    return (
+      <Menu.Item
+        key={ref.token.uuid}
+        disabled={disabled}
+        onClick={() => opts.onSelect(ref)}
+      >
+        {ref.token.name}
+        {disabled && (
+          <span className="dimfg ml-sm">
+            <UiText message="Prop value not allowed" />
+          </span>
+        )}
+      </Menu.Item>
+    );
+  }
+
   return (
     <Menu.SubMenu
       key={"data-tokens-submenu"}
-      title={<UiText message="Use data token" />}
+      title={opts.title ?? <UiText message="Use data token" />}
     >
-      {localTokens.map((token) => (
-        <Menu.Item
-          key={token.uuid}
-          onClick={() => opts.onSelect({ token, projectId: opts.projectId })}
-        >
-          {token.name}
-        </Menu.Item>
-      ))}
+      {localTokens.map((token) =>
+        tokenItem({ token, projectId: opts.projectId }),
+      )}
       {depGroups.map((dep) => (
         <Menu.ItemGroup
           key={dep.projectId}
@@ -55,19 +71,9 @@ export function makeDataTokensSubMenu(opts: {
             />
           }
         >
-          {naturalSortByName(dep.site.dataTokens).map((token) => (
-            <Menu.Item
-              key={token.uuid}
-              onClick={() =>
-                opts.onSelect({
-                  token,
-                  projectId: dep.projectId as ProjectId,
-                })
-              }
-            >
-              {token.name}
-            </Menu.Item>
-          ))}
+          {naturalSortByName(dep.site.dataTokens).map((token) =>
+            tokenItem({ token, projectId: dep.projectId as ProjectId }),
+          )}
         </Menu.ItemGroup>
       ))}
       {opts.onCreate && hasTokens && <Menu.Divider key="create-divider" />}

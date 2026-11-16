@@ -1,4 +1,5 @@
 import { jsxs, Fragment, jsx } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Upload, Image } from 'antd';
 import { useRef, useState, useMemo } from 'react';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
@@ -140,6 +141,12 @@ function registerUpload(loader) {
     displayName: "Upload",
     description: "Select files and read their contents locally as base64. A done status means local reading is complete; this component does not upload to a server.",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        list: "List",
+        item: "Item",
+        trigger: "Trigger"
+      }),
       accept: {
         type: "choice",
         displayName: "Allowed types",

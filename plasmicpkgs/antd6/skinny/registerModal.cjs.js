@@ -7,6 +7,7 @@ var React = require('react');
 var lodash = require('lodash');
 var registerButton = require('./registerButton.cjs.js');
 var canvasOverlay$1 = require('./canvas-overlay-D2jWZ-TY.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('./names-DbJduus8.cjs.js');
 require('@plasmicapp/host');
@@ -253,7 +254,21 @@ function registerModal(loader) {
       },
       defaultStylesClassName: {
         type: "themeResetClass"
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Modal root",
+          wrapper: "Modal wrapper",
+          mask: "Backdrop mask",
+          container: "Modal container",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          footer: "Footer",
+          close: "Close button"
+        },
+        { advanced: true }
+      )
     },
     states: {
       open: {

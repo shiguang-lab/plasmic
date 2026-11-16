@@ -3,6 +3,7 @@ import { Select } from 'antd';
 import cls from 'classnames';
 import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
 import { o as optionComponentName, g as optionGroupComponentName, s as selectComponentName } from './names-DQIzgrvq.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
 import 'react';
@@ -64,6 +65,23 @@ function registerSelect(loader) {
     canvasOverlay,
     displayName: "Select",
     props: {
+      ...semanticAppearance({
+        root: "Select container",
+        content: "Selected content",
+        placeholder: "Placeholder",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        input: "Search input",
+        item: "Selected item",
+        itemContent: "Selected item content",
+        itemRemove: "Selected item remove icon",
+        clear: "Clear icon",
+        popup: {
+          root: "Popup container",
+          list: "Option list",
+          listItem: "List option"
+        }
+      }),
       options: {
         type: "array",
         hidden: (ps) => !!ps.useChildren,

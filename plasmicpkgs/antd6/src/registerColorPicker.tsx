@@ -1,3 +1,5 @@
+import type { ColorPickerSemanticType } from "antd/es/color-picker/interface";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { ColorPicker } from "antd";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -26,6 +28,16 @@ export function registerColorPicker(loader?: Registerable) {
     name: "plasmic-antd6-color-picker",
     displayName: "Color Picker",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        body: "Body",
+        content: "Content",
+        description: "Description",
+        popup: {
+          root: "Root",
+          container: "Container",
+        },
+      } satisfies SemanticPartLabels<ColorPickerSemanticType["classNames"]>),
       children: {
         type: "slot",
         hidePlaceholder: true,

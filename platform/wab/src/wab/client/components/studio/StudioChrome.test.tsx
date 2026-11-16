@@ -427,7 +427,7 @@ it("hides web import throughout browser startup", () => {
   }
 });
 
-it("keeps the Desktop web import action inside the tool rail and opens it through the native bridge", () => {
+it("keeps the Desktop web import action at the far right of the top-right bar and opens it through the native bridge", () => {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
     "PlasmicDesktop/darwin",
   );
@@ -438,7 +438,12 @@ it("keeps the Desktop web import action inside the tool rail and opens it throug
     const button = container.querySelector(
       '[data-test-id="import-from-web-button"]',
     );
-    expect(button?.closest("#left-tab-strip")).toBeTruthy();
+    expect(button?.closest("#left-tab-strip")).toBeNull();
+    const actions = container.querySelector(
+      ".canvas-editor__top-bar .editor-primary-actions",
+    );
+    expect(actions?.contains(button ?? null)).toBe(true);
+    expect(actions?.lastElementChild).toBe(button);
     expect(button?.getAttribute("aria-label")).toBe("Import from the web");
     fireEvent.click(
       screen.getByRole("button", { name: "Import from the web" }),

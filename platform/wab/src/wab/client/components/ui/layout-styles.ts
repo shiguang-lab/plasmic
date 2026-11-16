@@ -56,7 +56,8 @@ export const editorCanvasControlsLayout = {
   panelGap: 8,
 } as const;
 
-const editorRightPanelWidth = 320;
+const editorRightPanelWidth = 240;
+const editorPrimaryActionSize = 24;
 
 export const editorPanelHeaderStyle = (token: GlobalToken) =>
   ({
@@ -346,7 +347,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
         boxSizing: "border-box",
         padding: "0 8px",
         border: `1px solid ${token.colorBorder}`,
-        borderRadius: token.borderRadius,
+        borderRadius: applicationHeaderLayout.height / 2,
         background: token.colorBgContainer,
         boxShadow: token.boxShadowSecondary,
         pointerEvents: "auto",
@@ -354,12 +355,13 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     [`& .canvas-editor__top-bar .${topBar.left}`]: {
       flexShrink: 1,
       minWidth: 0,
+      columnGap: 6,
       paddingInline: 12,
-      borderRadius: applicationHeaderLayout.height / 2,
     },
     [`& .canvas-editor__top-bar .${topBar.right}`]: {
       flexShrink: 0,
-      minWidth: 320,
+      minWidth: 0,
+      padding: "0 8px",
     },
     [`& .canvas-editor__top-bar .${topBar.freeBox___7MgoJ}`]: {
       paddingLeft: 0,
@@ -374,15 +376,15 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       alignItems: "center",
     },
     [`& .canvas-editor__top-bar .${topBar.titleSegment} .${topBar.saveIndicator}`]:
-      { marginLeft: 6, flexShrink: 0 },
+      { marginLeft: 4, flexShrink: 0 },
     "& .editor-project-title": {
       display: "inline-flex",
       alignItems: "center",
       height: applicationHeaderLayout.controlHeight,
       minWidth: 0,
       maxWidth: "30vw",
-      padding: "0 8px",
-      gap: 8,
+      padding: "0 6px",
+      gap: 4,
       color: token.colorText,
       fontSize: 13,
       fontWeight: 600,
@@ -416,19 +418,29 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       background: "transparent",
       cursor: "default",
     },
-    "& .editor-project-title:not(:disabled):hover, & .editor-project-trigger:hover":
-      {
-        background: token.colorFillSecondary,
-        color: token.colorText,
-      },
-    "& .editor-project-title:focus-visible, & .editor-project-trigger:focus-visible":
+    "& .editor-project-title:not(:disabled):hover": {
+      background: token.colorFillSecondary,
+      color: token.colorText,
+    },
+    "& .editor-project-title:focus-visible, & .editor-project-trigger:focus-visible, & .editor-history-action:focus-visible":
       {
         outline: `2px solid ${token.colorPrimary}`,
         outlineOffset: 2,
       },
-    "& .editor-project-trigger[aria-expanded=true]": {
-      background: token.colorPrimaryBg,
-      color: token.colorPrimaryText,
+    "& .editor-project-trigger:not(:disabled):hover, & .editor-history-action:not(:disabled):hover":
+      {
+        background: "transparent",
+        color: token.colorText,
+      },
+    "& .editor-project-trigger[aria-expanded=true], & .editor-history-action[aria-expanded=true]":
+      {
+        background: "transparent",
+        color: token.colorPrimaryText,
+      },
+    "& .editor-project-trigger:disabled, & .editor-history-action:disabled": {
+      background: "transparent",
+      color: token.colorTextSecondary,
+      opacity: 0.35,
     },
     "& .editor-project-name": {
       overflow: "hidden",
@@ -438,23 +450,45 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .editor-primary-actions": {
       display: "flex",
       alignItems: "center",
-      gap: 3,
+      gap: 4,
     },
     "& .editor-primary-actions .ant-btn": {
-      height: applicationHeaderLayout.controlHeight,
-      borderRadius: 7,
+      height: editorPrimaryActionSize,
+      borderRadius: editorPrimaryActionSize / 2,
       fontSize: 12,
       boxShadow: "none",
     },
     "& .canvas-editor__top-bar #branch-nav-button": {
       height: applicationHeaderLayout.controlHeight,
     },
-    "& .editor-primary-actions .Avatar": {
-      width: applicationHeaderLayout.controlHeight,
-      height: applicationHeaderLayout.controlHeight,
-      fontSize: 12,
+    "& .canvas-editor__top-bar #branch-nav-button svg": {
+      width: 14,
+      height: 14,
     },
-    "& .editor-primary-actions .ant-btn[aria-expanded=true], & .editor-primary-actions .ant-btn[aria-pressed=true]":
+    "& .editor-primary-actions .editor-collaborator-group": {
+      display: "inline-flex",
+      alignItems: "center",
+    },
+    "& .editor-primary-actions .Avatar": {
+      width: editorPrimaryActionSize,
+      height: editorPrimaryActionSize,
+      fontSize: 11,
+    },
+    "& .editor-primary-actions .editor-collaborator-group .Avatar": {
+      position: "relative",
+      boxShadow: `0 0 0 2px ${token.colorBgContainer}`,
+    },
+    "& .editor-primary-actions .editor-collaborator-group .Avatar:hover": {
+      zIndex: 1,
+    },
+    "& .editor-primary-actions .Avatar.AvatarPlayer": {
+      width: editorPrimaryActionSize,
+      height: editorPrimaryActionSize,
+      marginBlock: 0,
+      boxSizing: "border-box",
+      fontSize: 10,
+    },
+    "& .editor-primary-actions .editor-icon-action[aria-expanded=true], & .editor-primary-actions .editor-icon-action[aria-pressed=true]":
       {
         background: token.colorPrimaryBg,
         color: token.colorPrimaryText,
@@ -464,66 +498,84 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       { outline: `2px solid ${token.colorPrimary}`, outlineOffset: 2 },
     "& .canvas-editor__left-pane button:focus-visible, & .canvas-editor__right-pane button:focus-visible":
       { outline: `2px solid ${token.colorPrimary}`, outlineOffset: -2 },
-    "& .editor-primary-actions svg, & .editor-history-controls svg": {
-      width: 17,
-      height: 17,
-      fill: "none",
-      stroke: "currentColor",
-      strokeWidth: 1.6,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    },
+    "& .editor-primary-actions .editor-icon-action svg, & .editor-primary-actions .editor-publish-action svg":
+      {
+        width: 14,
+        height: 14,
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: 1.6,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+      },
     "& .editor-primary-actions .anticon-loading svg": {
       fill: "currentColor",
       stroke: "none",
     },
-    "& .editor-history-controls": {
-      display: "flex",
-      alignItems: "center",
-      gap: 2,
-      paddingRight: 0,
+    "& .editor-primary-actions .editor-icon-action, & .editor-primary-actions .editor-publish-action":
+      {
+        width: editorPrimaryActionSize,
+        minWidth: editorPrimaryActionSize,
+        height: editorPrimaryActionSize,
+        padding: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: editorPrimaryActionSize / 2,
+      },
+    "& .editor-primary-actions .editor-icon-action:hover:not(:disabled)": {
+      background: token.colorFillTertiary,
+      color: token.colorText,
     },
-    "& .editor-history-controls .ant-btn": {
-      width: applicationHeaderLayout.controlHeight,
-      height: applicationHeaderLayout.controlHeight,
+    "& .editor-primary-actions .editor-icon-action:disabled": {
+      opacity: 0.35,
+    },
+    "& .editor-primary-actions .editor-publish-action:disabled": {
+      opacity: 0.45,
+    },
+    "& .editor-primary-actions .editor-publish-wrapper": {
+      position: "relative",
+      display: "inline-flex",
+      alignItems: "center",
+    },
+    "& .editor-primary-actions .editor-publish-branch-group": {
+      gap: 1,
+    },
+    "& .editor-primary-actions .editor-publish-branch-group .editor-publish-action":
+      {
+        width: 22,
+        minWidth: 22,
+        borderStartEndRadius: 0,
+        borderEndEndRadius: 0,
+      },
+    "& .editor-primary-actions .editor-publish-branch-menu": {
+      width: 16,
+      minWidth: 16,
+      height: editorPrimaryActionSize,
       padding: 0,
-      borderRadius: 7,
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      boxShadow: "none",
+      borderStartStartRadius: 0,
+      borderEndStartRadius: 0,
+      borderStartEndRadius: editorPrimaryActionSize / 2,
+      borderEndEndRadius: editorPrimaryActionSize / 2,
     },
-    "& .editor-history-controls .ant-btn:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: 2,
+    "& .editor-primary-actions .editor-publish-branch-menu svg": {
+      width: 10,
+      height: 10,
     },
-    "& .editor-primary-actions #view-menu": {
-      width: "auto",
-      padding: "0 10px",
-      gap: 6,
+    "& .editor-primary-actions .editor-publish-badge": {
+      position: "absolute",
+      top: -1,
+      right: -1,
+      width: 7,
+      height: 7,
+      borderRadius: "50%",
+      background: token.colorError,
+      border: `1.5px solid ${token.colorBgContainer}`,
+      pointerEvents: "none",
     },
-    "& .editor-primary-actions #view-menu .editor-view-chevron": {
-      width: 12,
-      height: 12,
-    },
-    "& .editor-primary-actions .editor-icon-action": {
-      width: applicationHeaderLayout.controlHeight,
-      height: applicationHeaderLayout.controlHeight,
-      padding: 0,
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: 7,
-    },
-    "& .editor-primary-actions .editor-icon-action:hover:not(:disabled), & .editor-history-controls .ant-btn:hover:not(:disabled)":
-      {
-        background: token.colorFillTertiary,
-        color: token.colorText,
-      },
-    "& .editor-primary-actions .editor-icon-action:disabled, & .editor-history-controls .ant-btn:disabled":
-      {
-        opacity: 0.35,
-      },
     "& .editor-code-controls": {
       display: "flex",
       alignItems: "center",
@@ -532,9 +584,9 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .editor-code-controls > .editor-code-options": { width: 22, padding: 2 },
     "& .editor-action-divider": {
       width: 1,
-      height: 18,
+      height: 16,
       background: token.colorBorderSecondary ?? token.colorBorder,
-      margin: "0 4px",
+      margin: "0 2px",
       flexShrink: 0,
     },
     "& .editor-history-divider": {
@@ -547,15 +599,19 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      width: 28,
+      width: "auto",
+      minWidth: 0,
       height: applicationHeaderLayout.controlHeight,
-      padding: 0,
-      borderRadius: 7,
+      padding: "0 2px",
+      border: 0,
+      borderRadius: 4,
+      boxShadow: "none",
+      background: "transparent",
       color: token.colorTextSecondary,
     },
     "& .editor-history-action svg": {
-      width: 18,
-      height: 18,
+      width: 14,
+      height: 14,
       fill: "currentColor",
       stroke: "none",
     },
@@ -563,12 +619,15 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
-      width: 28,
+      width: 14,
+      minWidth: 0,
       height: applicationHeaderLayout.controlHeight,
-      padding: 6,
+      padding: 0,
+      border: 0,
+      borderRadius: 4,
       flexShrink: 0,
+      background: "transparent",
       color: token.colorTextSecondary,
-      borderRadius: 7,
       boxShadow: "none",
     },
     "& .editor-project-trigger svg": {
@@ -600,6 +659,191 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
         color: token.colorText,
       },
     "& .editor-panel-header": editorPanelHeaderStyle(token),
+    "& .editor-inspector-header": {
+      display: "flex",
+      flexDirection: "column",
+      flexShrink: 0,
+      borderBottom: `1px solid ${token.colorBorderSecondary}`,
+      background: token.colorBgContainer,
+    },
+    "& .editor-inspector-header .editor-panel-header": {
+      height: 40,
+      borderBottom: "none",
+      gap: 6,
+      padding: "0 8px 0 10px",
+    },
+    "& .editor-panel-header__title-group": {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      flex: 1,
+      minWidth: 0,
+    },
+    "& .editor-inspector-node-icon": {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    },
+    "& .editor-inspector-part-badge": {
+      fontSize: 11,
+      color: token.colorTextSecondary,
+      flexShrink: 0,
+      maxWidth: 80,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+    "& .editor-panel-header__actions": {
+      display: "flex",
+      alignItems: "center",
+      gap: 2,
+      flexShrink: 0,
+    },
+    "& .editor-panel-header__icon-btn, & .editor-panel-subheader__icon-btn": {
+      width: 24,
+      minWidth: 24,
+      height: 24,
+      padding: 0,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: token.colorTextSecondary,
+      borderRadius: token.borderRadiusSM,
+    },
+    "& .editor-panel-header__icon-btn--active": {
+      color: token.colorPrimary,
+    },
+    "& .editor-panel-header__divider": {
+      width: 1,
+      height: 14,
+      background: token.colorBorderSecondary,
+      margin: "0 2px",
+      flexShrink: 0,
+    },
+    "& .editor-panel-subheader": {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      minWidth: 0,
+      minHeight: 28,
+      padding: "0 8px 6px 10px",
+    },
+    "& .editor-panel-subtitle-group": {
+      display: "flex",
+      alignItems: "center",
+      gap: 4,
+      flex: "1 1 0%",
+      minWidth: 0,
+      height: 16,
+      color: token.colorTextSecondary,
+      fontSize: 11,
+      lineHeight: "16px",
+    },
+    "& .editor-panel-subtitle-group--interactive": {
+      cursor: "pointer",
+    },
+    "& .editor-panel-subtitle-name": {
+      minWidth: 0,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+    "& .editor-panel-subtitle-info-btn": {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      width: 14,
+      height: 14,
+      padding: 0,
+      border: "none",
+      background: "transparent",
+      color: token.colorTextTertiary,
+      cursor: "pointer",
+      "&:hover": {
+        color: token.colorTextSecondary,
+      },
+    },
+    "& .editor-panel-description": {
+      flex: "1 1 0%",
+      minWidth: 0,
+      maxWidth: "100%",
+      height: 16,
+      fontSize: 11,
+      lineHeight: "16px",
+      color: token.colorTextSecondary,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      cursor: "pointer",
+    },
+    "& .editor-panel-description__content": {
+      display: "block",
+      width: "100%",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      lineHeight: "16px",
+      "& > *, & p, & div, & ul, & ol, & li, & pre, & blockquote, & code": {
+        display: "inline",
+        margin: 0,
+        padding: 0,
+        border: "none",
+        whiteSpace: "nowrap",
+      },
+      "& br": {
+        display: "none",
+      },
+      "& a": {
+        color: "inherit",
+        textDecoration: "none",
+        pointerEvents: "none",
+      },
+    },
+    "& .editor-panel-subheader__actions": {
+      display: "flex",
+      alignItems: "center",
+      gap: 4,
+      marginLeft: "auto",
+      flexShrink: 0,
+    },
+    "& .editor-panel-state-pill": {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 5,
+      height: 22,
+      padding: "0 6px",
+      fontSize: 11,
+      fontWeight: 500,
+      borderRadius: token.borderRadiusSM,
+      color: token.colorText,
+      background: token.colorFillTertiary,
+      maxWidth: 116,
+    },
+    "& .editor-panel-state-pill--static": {
+      background: "transparent",
+      color: token.colorTextSecondary,
+    },
+    "& .editor-panel-state-pill--recording": {
+      color: token.colorPrimary,
+      background: token.colorPrimaryBg,
+    },
+    "& .editor-panel-state-dot": {
+      width: 6,
+      height: 6,
+      borderRadius: "50%",
+      background: token.colorTextQuaternary,
+      flexShrink: 0,
+    },
+    "& .editor-panel-state-dot--recording": {
+      background: token.colorPrimary,
+    },
+    "& .editor-panel-state-label": {
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
     "& .editor-issues-panel": {
       display: "flex",
       flexDirection: "column",
@@ -629,6 +873,8 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     },
     "& .canvas-editor__right-pane .SidebarSection__Body:not(.SidebarSection__Body__NoBottomPadding):not(.SidebarSection__Body__EmptyBody)":
       { paddingBottom: 12 },
+    [`& .canvas-editor__right-pane .${sidebarSection.root} .SidebarSection__Body.${sidebarSection.bodyNoHeaderSymmetric}`]:
+      { paddingTop: 12 },
     [`& .canvas-editor__right-pane .SidebarSection__Body:not(.SidebarSection__Body__NoBottomPadding):not(.SidebarSection__Body__EmptyBody) > .${sidebarSection.collapsingToggle}:not(.${sidebarSection.collapsingToggle_sticky})`]: {
       marginBottom: 0,
     },
@@ -808,7 +1054,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       rowGap: 0,
       alignSelf: "flex-start",
       border: `1px solid ${token.colorBorder}`,
-      borderRadius: token.borderRadius,
+      borderRadius: editorLeftRailLayout.width / 2,
       boxShadow: token.boxShadowSecondary,
       background: token.colorBgContainer,
     },
@@ -826,7 +1072,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       flexDirection: "column",
       alignItems: "center",
       gap: 4,
-      padding: "4px 3px",
+      padding: 3,
     },
     [`& #left-tab-strip .${leftTabButton.root}`]: {
       alignItems: "center",

@@ -1,4 +1,5 @@
 import { d as buttonComponentName, j as formComponentName } from './names-DQIzgrvq.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { b as arrayEq, r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import { InputType, formHelpers } from './Form.esm.js';
 import { FormWrapper as SchemaForm } from './SchemaForm.esm.js';
@@ -555,12 +556,20 @@ function registerForm(loader) {
         options: ["horizontal", "vertical", "inline"],
         defaultValueHint: "horizontal"
       },
-      styles: {
-        displayName: "Semantic styles",
-        type: "object",
-        advanced: true,
-        description: "Native Ant Design Form semantic styles, shared by its fields. For inline field instructions, content can use display: flex, alignItems: center and gap: 12. Check every field before applying form-wide content styles."
-      },
+      ...semanticAppearance(
+        {
+          root: "Form container",
+          label: "Field label",
+          content: "Control content",
+          help: "Help text",
+          helpItem: "Help item",
+          extra: "Extra text"
+        },
+        {
+          advanced: true,
+          stylesDescription: "Native Ant Design Form semantic styles, shared by its fields. For inline field instructions, content can use display: flex, alignItems: center and gap: 12. Check every field before applying form-wide content styles."
+        }
+      ),
       labelAlign: {
         type: "choice",
         options: ["left", "right"],

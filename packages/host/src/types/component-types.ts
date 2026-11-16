@@ -157,7 +157,10 @@ export type NumberType<P> = "number" | RichNumberType<P>;
 
 // Container types
 export type ObjectType<P> = PropTypeBaseDefault<P, Record<string, any>> &
-  ObjectTypeBaseCore<ComponentControlContext<P>, PropType<P>>;
+  ObjectTypeBaseCore<ComponentControlContext<P>, PropType<P>> & {
+    /** Show the registered semantic keys as inline style groups or class name fields. */
+    editor?: "semantic";
+  };
 
 export type ArrayType<P> = PropTypeBaseDefault<P, any[]> &
   ArrayTypeBaseCore<ComponentControlContext<P>, PropType<P>>;
@@ -380,6 +383,8 @@ export type CustomControl<P> = React.ComponentType<CustomControlProps<P>>;
 export interface RichCustomType<P> extends PropTypeBaseDefault<P, any> {
   type: "custom";
   control: CustomControl<P>;
+  /** Render the control at full width below its property label. */
+  display?: "inline";
 }
 
 export type CustomType<P> = RichCustomType<P> | CustomControl<P>;

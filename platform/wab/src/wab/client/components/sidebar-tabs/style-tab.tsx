@@ -7,24 +7,16 @@ import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
 import { useInspectorSelection, useInspectorPending, useInspectorDom } from "@/wab/client/studio-ctx/inspector-state";
-import { MenuBuilder } from "@/wab/client/components/menu-builder";
-import {
-  TplComponentNameSection,
-  TplTagNameSection,
-} from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import { ComponentTab } from "@/wab/client/components/sidebar-tabs/ComponentTab/ComponentTab";
 import { PageTab } from "@/wab/client/components/sidebar-tabs/PageTab/PageTab";
 import {
   Section,
   StyleTabFilter,
-  canRenderMixins,
-  canRenderPrivateStyleVariants,
   getOrderedSectionRender,
 } from "@/wab/client/components/sidebar-tabs/Sections";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import { NamedPanelHeader } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
   TplExpsProvider,
   createStyleTarget,
@@ -34,15 +26,13 @@ import { makeVariantsController } from "@/wab/client/components/variants/Variant
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SelectionInspector } from "@/wab/client/components/sidebar-tabs/SelectionInspector";
 import { useCurrentRecordingTarget } from "@/wab/client/hooks/useCurrentRecordingTarget";
-import { useI18n } from "@/wab/client/i18n";
-import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import { UiText } from "@/wab/client/i18n/UiText";
 import SlotIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Slot";
 import { selectionPath } from "@/wab/client/selection-context";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isDedicatedArena } from "@/wab/shared/Arenas";
-import { MIXINS_CAP, PRIVATE_STYLE_VARIANTS_CAP } from "@/wab/shared/Labels";
 import {
   getAncestorTplSlot,
   isCodeComponentSlot,
@@ -50,7 +40,6 @@ import {
 } from "@/wab/shared/SlotUtils";
 import { $$$ } from "@/wab/shared/TplQuery";
 import {
-  findOrCreatePrivateStyleVariant,
   getPrivateStyleVariantsForTag,
   isBaseVariant,
 } from "@/wab/shared/Variants";
@@ -63,26 +52,21 @@ import {
 } from "@/wab/shared/core/components";
 import { isTplAttachedToSite } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
-import { getApplicableSelectors } from "@/wab/shared/core/styles";
 import {
-  isTplComponent,
   isTplSlot,
   isTplTag,
   isTplVariantable,
 } from "@/wab/shared/core/tpls";
 import {
   Component,
-  TplComponent,
   TplNode,
   TplSlot,
-  TplTag,
   isKnownRenderExpr,
-  isKnownTplTag,
   isKnownVirtualRenderExpr,
 } from "@/wab/shared/model/classes";
 import { selectionControlsColor } from "@/wab/styles/css-variables";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Button, Menu } from "antd";
+import { Alert, Button } from "antd";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { createContext, useContext } from "react";
@@ -112,19 +96,17 @@ export function useNewAnimationContext() {
 }
 
 function readStyleTab(view: ViewCtx, tpl: TplNode) {
-  const component = view.currentTplComponent().component;
   return Object.freeze({
     hasMixins: isMixinSet(tpl, view),
     hasPrivateStyleVariants: shouldShowPrivateStyleVariantsSection(tpl, view),
-    isTag: isTplTag(tpl), isComponent: isTplComponent(tpl),
     ancestorSlot: getAncestorTplSlot(tpl, true),
     isBase: isBaseVariant(view.variantTplMgr().getCurrentVariantCombo()),
-    privateStylesAvailable: canRenderPrivateStyleVariants(tpl, view),
-    mixinsAvailable: canRenderMixins(tpl, view),
-    applicableSelectors: isKnownTplTag(tpl) ? Object.freeze(getApplicableSelectors(tpl.tag, true, tpl === component.tplTree)) : Object.freeze([]),
   });
 }
-const StyleTabForTpl = React.memo(function StyleTabForTpl(props: { tpl: TplNode; viewCtx: ViewCtx }) {
+const StyleTabForTpl = React.memo(function StyleTabForTpl(props: {
+  tpl: TplNode;
+  viewCtx: ViewCtx;
+}) {
   const select = React.useCallback(() => readStyleTab(props.viewCtx, props.tpl), [props.viewCtx, props.tpl]);
   const source = useTargetedStylePanelValue(props.viewCtx.studioCtx, { kind: "style-tab", view: props.viewCtx, tpl: props.tpl }, select);
   if (!source.active || !source.value) return null;
@@ -133,7 +115,11 @@ const StyleTabForTpl = React.memo(function StyleTabForTpl(props: { tpl: TplNode;
   }
   return <StyleTabForTplBody {...props} styleInput={source.value} />;
 });
-function StyleTabForTplBody(props: { tpl: TplNode; viewCtx: ViewCtx; styleInput: ReturnType<typeof readStyleTab> }) {
+function StyleTabForTplBody(props: {
+  tpl: TplNode;
+  viewCtx: ViewCtx;
+  styleInput: ReturnType<typeof readStyleTab>;
+}) {
   const { tpl, viewCtx, styleInput } = props;
   const studioCtx = viewCtx.studioCtx;
   useInspectorDom(viewCtx);
@@ -141,9 +127,7 @@ function StyleTabForTplBody(props: { tpl: TplNode; viewCtx: ViewCtx; styleInput:
   const [showMixins, setShowMixins] = React.useState(styleInput.hasMixins);
   const [showPrivateStyleVariants, setShowPrivateStyleVariants] =
     React.useState(styleInput.hasPrivateStyleVariants);
-  const [newAnimation, setNewAnimation] = React.useState<NewAnimation>(null);
-  const clearNewAnimation = React.useCallback(() => setNewAnimation(null), []);
-  const { hasMixins, hasPrivateStyleVariants, isTag, isComponent, ancestorSlot, isBase } = styleInput;
+  const { hasMixins, hasPrivateStyleVariants, ancestorSlot, isBase } = styleInput;
   React.useEffect(() => setShowMixins(hasMixins), [hasMixins]);
   React.useEffect(() => setShowPrivateStyleVariants(hasPrivateStyleVariants), [hasPrivateStyleVariants]);
   useStore(studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
@@ -154,112 +138,6 @@ function StyleTabForTplBody(props: { tpl: TplNode; viewCtx: ViewCtx; styleInput:
   const sc = createStyleTarget({
     expsProvider,
   });
-
-  const showStyleSections = styleTabFilter === "design";
-
-  const vcontroller = makeVariantsController(studioCtx, viewCtx);
-  // Compute checks for ApplyMenu visibility
-  const canShowAnimations =
-    isTag && styleInput.privateStylesAvailable && showStyleSections;
-  const canShowElementVariants =
-    styleInput.privateStylesAvailable &&
-    !showPrivateStyleVariants &&
-    showStyleSections;
-  const canShowMixins =
-    styleInput.mixinsAvailable && !showMixins && showStyleSections;
-
-  const buildApplyMenu = (): React.ReactElement | null => {
-    if (!canShowAnimations && !canShowElementVariants && !canShowMixins) {
-      return null;
-    }
-
-    const builder = new MenuBuilder();
-
-    // Animations submenu (only for TplTag elements)
-    if (canShowAnimations && isKnownTplTag(tpl)) {
-      const component = viewCtx.currentTplComponent().component;
-      const applicableSelectors = styleInput.applicableSelectors;
-
-      builder.genSub(<UiText message={"Animations"} />, (push) => {
-        push(
-          <Menu.Item
-            key="base"
-            onClick={() => {
-              setShowPrivateStyleVariants(true);
-              setNewAnimation({ type: "base" });
-            }}
-          >
-            <UiText message={"Base"} />
-          </Menu.Item>,
-        );
-
-        // Available selectors (Hover, Pressed, etc.) - each uses a private style variant
-        // Filter out "Not X" selectors as they don't make sense for animations
-        for (const selector of applicableSelectors.filter(
-          (s) => !s.displayName.toLowerCase().startsWith("not "),
-        )) {
-          push(
-            <Menu.Item
-              key={selector.cssSelector}
-              onClick={async () => {
-                await studioCtx.change(() => {
-                  // Find or create private style variant with this selector
-                  const variant = findOrCreatePrivateStyleVariant(
-                    component,
-                    tpl,
-                    selector.cssSelector,
-                    (selectors) =>
-                      studioCtx
-                        .tplMgr()
-                        .createPrivateStyleVariant(component, tpl, selectors),
-                  );
-                  // Pin the variant to turn on recording for it
-                  vcontroller?.onClickVariant(variant);
-
-                  return ok();
-                });
-
-                setShowPrivateStyleVariants(true);
-                setNewAnimation({
-                  type: "selector",
-                  cssSelector: selector.cssSelector,
-                });
-              }}
-            >
-              {selector.displayName}
-            </Menu.Item>,
-          );
-        }
-      });
-    }
-
-    // Element variants (existing behavior - shows the section)
-    if (canShowElementVariants) {
-      builder.genSection(undefined, (push) => {
-        push(
-          <Menu.Item
-            key="private-style-variants"
-            onClick={() => setShowPrivateStyleVariants(true)}
-          >
-            {<UiLabel text={PRIVATE_STYLE_VARIANTS_CAP} />}
-          </Menu.Item>,
-        );
-      });
-    }
-
-    // Mixins (existing behavior)
-    if (canShowMixins) {
-      builder.genSection(undefined, (push) => {
-        push(
-          <Menu.Item key="mixins" onClick={() => setShowMixins(true)}>
-            {<UiLabel text={MIXINS_CAP} />}
-          </Menu.Item>,
-        );
-      });
-    }
-
-    return builder.build({ menuName: "apply-menu" });
-  };
 
   const orderedSections = getOrderedSectionRender(
     tpl,
@@ -272,16 +150,8 @@ function StyleTabForTplBody(props: { tpl: TplNode; viewCtx: ViewCtx; styleInput:
     contentEditorMode,
   );
 
-  const newAnimationContextValue = React.useMemo(
-    () => ({
-      newAnimation,
-      onAnimationAdded: clearNewAnimation,
-    }),
-    [newAnimation, clearNewAnimation],
-  );
-
   return providesStyleTarget(sc)(
-    <NewAnimationContext.Provider value={newAnimationContextValue}>
+    <>
       {isTplSlot(tpl) && <TplSlotMessage tpl={tpl} viewCtx={viewCtx} />}
       {ancestorSlot && !isBase && !isCodeComponentSlot(ancestorSlot) && (
         <NonBaseTplSlotDescendantMessage
@@ -289,22 +159,8 @@ function StyleTabForTplBody(props: { tpl: TplNode; viewCtx: ViewCtx; styleInput:
           slot={ancestorSlot}
         />
       )}
-      {isTag && (
-        <TplTagNameSection
-          viewCtx={viewCtx}
-          tpl={tpl as TplTag}
-          applyMenu={buildApplyMenu()}
-        />
-      )}
-      {isComponent && (
-        <TplComponentNameSection
-          viewCtx={viewCtx}
-          tpl={tpl as TplComponent}
-          applyMenu={buildApplyMenu()}
-        />
-      )}
       {orderedSections.map((render) => render())}
-    </NewAnimationContext.Provider>,
+    </>,
   );
 }
 
@@ -325,8 +181,18 @@ export const ComponentOrPageTab = React.memo(function ComponentOrPageTab(props: 
   studioCtx: StudioCtx;
   viewCtx: ViewCtx;
   isHalf?: boolean;
+  hideHeader?: boolean;
+  showComponentSettings?: boolean;
+  onShowComponentSettingsChange?: (open: boolean) => void;
 }) {
-  const { studioCtx, viewCtx, isHalf } = props;
+  const {
+    studioCtx,
+    viewCtx,
+    isHalf,
+    hideHeader,
+    showComponentSettings,
+    onShowComponentSettingsChange,
+  } = props;
   useViewSelection(viewCtx, useShallow((state) => [state.context, state.targets, state.tpls]));
   const component = viewCtx.currentComponent();
   const modelInputs = useTargetedStylePanelInputs(studioCtx, { kind: "style-tab", view: viewCtx, tpl: component.tplTree });
@@ -362,6 +228,7 @@ export const ComponentOrPageTab = React.memo(function ComponentOrPageTab(props: 
                 studioCtx={studioCtx}
                 viewCtx={viewCtx}
                 isHalf={isHalf}
+                hideHeader={hideHeader}
               />
             </div>
           )}
@@ -375,6 +242,9 @@ export const ComponentOrPageTab = React.memo(function ComponentOrPageTab(props: 
                 viewCtx={viewCtx}
                 component={component}
                 isHalf={isHalf}
+                hideHeader={hideHeader}
+                showSettings={showComponentSettings}
+                onShowSettingsChange={onShowComponentSettingsChange}
               />
             </div>
           )}
@@ -425,7 +295,12 @@ export const StyleTab = React.memo(function StyleTab(props: {
     return null;
   }
 
-  return <StyleTabBottomPanel studioCtx={studioCtx} viewCtx={viewCtx} />;
+  return (
+    <StyleTabBottomPanel
+      studioCtx={studioCtx}
+      viewCtx={viewCtx}
+    />
+  );
 });
 
 const StyleTabBottomPanel = React.memo(function StyleTabBottomPanel(props: {
@@ -475,7 +350,11 @@ const StyleTabBottomPanel = React.memo(function StyleTabBottomPanel(props: {
               <CodeComponentTplSlotMessage component={component} />
             ) : tpl ? (
               <>
-                <StyleTabForTpl key={selection?.generation} viewCtx={viewCtx} tpl={tpl} />
+                <StyleTabForTpl
+                  key={selection?.generation}
+                  viewCtx={viewCtx}
+                  tpl={tpl}
+                />
               </>
             ) : null}
             </SelectionInspector>
@@ -603,36 +482,12 @@ const TplSlotMessage = React.memo(function TplSlotMessage(props: {
   viewCtx: ViewCtx;
   tpl: TplSlot;
 }) {
-  const { t: studioUiT } = useI18n();
-
   const { viewCtx, tpl } = props;
   const component = $$$(tpl).owningComponent();
   const modelInputs = useTargetedStylePanelInputs(viewCtx.studioCtx, { kind: "style-tab", view: viewCtx, tpl });
   if (!modelInputs.active) { return null; }
   return (
     <SidebarSection>
-      {
-        <NamedPanelHeader
-          icon={<Icon icon={SlotIcon} className="component-fg" />}
-          value={tpl.param.variable.name}
-          onChange={(val) =>
-            viewCtx.change(() =>
-              viewCtx.getViewOps().tryRenameParam(val, tpl.param),
-            )
-          }
-          placeholder={studioUiT("(unnamed slot)")}
-          suffix={
-            <div className="text-ellipsis">
-              <UiText
-                message={"Slot target for {part1}"}
-                values={{
-                  part1: <code>{getComponentDisplayName(component)}</code>,
-                }}
-              />
-            </div>
-          }
-        />
-      }
       <div className="panel-row mt-lg">
         <Alert
           type="info"

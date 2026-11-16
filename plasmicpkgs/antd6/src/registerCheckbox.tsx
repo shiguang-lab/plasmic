@@ -1,7 +1,10 @@
+import type { CheckboxGroupSemanticType } from "antd/es/checkbox/Group";
 import { Checkbox } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
+import type { CheckboxSemanticType } from "antd/es/checkbox/Checkbox";
 import React from "react";
 import { checkboxComponentName, checkboxGroupComponentName } from "./names";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import {
   Registerable,
   registerComponentHelper,
@@ -72,6 +75,17 @@ export function registerCheckbox(loader?: Registerable) {
         type: "eventHandler",
         argTypes: [{ name: "checked", type: "boolean" }],
       } as any,
+      ...semanticAppearance(
+        {
+          root: "Checkbox container",
+          icon: "Checkbox box",
+          label: "Label",
+        } satisfies Record<
+          keyof NonNullable<CheckboxSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       checked: {
@@ -91,6 +105,12 @@ export function registerCheckbox(loader?: Registerable) {
     name: checkboxGroupComponentName,
     displayName: "Checkbox Group",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        item: "Item",
+        itemIcon: "Item icon",
+        itemLabel: "Item label",
+      } satisfies SemanticPartLabels<CheckboxGroupSemanticType["classNames"]>),
       value: {
         type: "choice",
         editOnly: true,

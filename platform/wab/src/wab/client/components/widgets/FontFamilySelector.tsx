@@ -24,6 +24,7 @@ export const FontFamilySelector = function FontFamilySelector(props: {
     vsh?: VariantedStylesHelper;
   };
   "data-test-id"?: string;
+  "aria-label"?: string;
 }) {
   const { t: uiT } = useI18n();
   const { selectOpts, studioCtx } = props;
@@ -68,6 +69,7 @@ export const FontFamilySelector = function FontFamilySelector(props: {
 
   return (
     <Select
+      aria-label={props["aria-label"]}
       className={cx({
         "flex-fill textboxlike": true,
         "text-set": !textboxUnset,

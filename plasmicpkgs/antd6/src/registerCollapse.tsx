@@ -1,7 +1,9 @@
 import { PlasmicCanvasProps, usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
 import { getCanvasItems, getSelectedCanvasItemKey, renderCanvasSlot } from "./canvas-overlay";
 import { Collapse } from "antd";
+import type { CollapseSemanticType } from "antd/es/collapse/Collapse";
 import React from "react";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export const collapseComponentName = "plasmic-antd6-collapse";
@@ -135,63 +137,22 @@ export function registerCollapse(loader?: Registerable) {
         displayName: "Header background color",
         description: "Background color of the entire header row of each panel. Overrides only the backgroundColor in the header semantic styles.",
       },
-      styles: {
-        type: "object",
-        display: "inline",
-        displayName: "Semantic styles",
-        description: "Configure common CSS properties for each native Ant Design Collapse region.",
-        fields: {
-          root: {
-            type: "object",
-            description: "Styles for the Collapse container.",
-            fields: {
-              maxWidth: { type: "number", min: 0, displayName: "Max width (px)" },
-              marginInline: { type: "number", displayName: "Inline margin (px)" },
-              backgroundColor: { type: "color" },
-              borderColor: { type: "color" },
-              borderWidth: { type: "number", min: 0, displayName: "Border width (px)" },
-              borderRadius: { type: "number", min: 0, displayName: "Border radius (px)" },
-            },
-          },
-          header: {
-            type: "object",
-            description: "Styles for the entire header row of each panel. Use Header background color for the fill.",
-            fields: {
-              paddingInline: { type: "number", min: 0, displayName: "Inline padding (px)" },
-              paddingBlock: { type: "number", min: 0, displayName: "Block padding (px)" },
-              color: { type: "color", displayName: "Text color" },
-            },
-          },
-          title: {
-            type: "object",
-            description: "Styles for the title within each header.",
-            fields: {
-              color: { type: "color", displayName: "Text color" },
-              fontSize: { type: "number", min: 0, displayName: "Font size (px)" },
-              fontWeight: { type: "number", min: 1, max: 1000 },
-            },
-          },
-          body: {
-            type: "object",
-            description: "Styles for the content body of each panel.",
-            fields: {
-              paddingInline: { type: "number", min: 0, displayName: "Inline padding (px)" },
-              paddingBlock: { type: "number", min: 0, displayName: "Block padding (px)" },
-              backgroundColor: { type: "color" },
-              color: { type: "color", displayName: "Text color" },
-            },
-          },
-          icon: {
-            type: "object",
-            description: "Styles for the expand indicator container.",
-            fields: {
-              color: { type: "color" },
-              fontSize: { type: "number", min: 0, displayName: "Font size (px)" },
-              fontWeight: { type: "number", min: 1, max: 1000 },
-            },
-          },
+      ...semanticAppearance(
+        {
+          root: "Collapse container",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          icon: "Expand icon",
+        } satisfies Record<
+          keyof NonNullable<CollapseSemanticType["classNames"]>,
+          string
+        >,
+        {
+          stylesDescription:
+            "Configure common CSS properties for each native Ant Design Collapse region.",
         },
-      },
+      ),
       size: { type: "choice", options: ["small", "medium", "large"] },
       collapsible: { type: "choice", options: ["header", "icon", "disabled"] },
       expandIconPlacement: {

@@ -1,6 +1,7 @@
 import { jsx } from 'react/jsx-runtime';
 import { Pagination } from 'antd';
 import React from 'react';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -204,7 +205,14 @@ function registerPagination(loader) {
             type: "number"
           }
         ]
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Pagination container",
+          item: "Page item"
+        },
+        { advanced: true }
+      )
     },
     states: {
       currentPage: {

@@ -8,7 +8,7 @@ import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
-import { ensureKnownCustomCode, TplTag } from "@/wab/shared/model/classes";
+import { ensureKnownCustomCode, ensureKnownObjectPath, Expr, isKnownExpr, ObjectPath, TplTag, VarRef } from "@/wab/shared/model/classes";
 import { ensure } from "@/wab/shared/common";
 import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import {
@@ -18,11 +18,11 @@ import {
 import { PropValueEditor } from "@/wab/client/components/sidebar-tabs/PropValueEditor";
 import { generateActionMetaForGlobalAction } from "@/wab/client/state-management/interactions-meta";
 import { FunctionArgumentsPropType } from "@/wab/shared/code-components/code-components";
-import { codeLit } from "@/wab/shared/core/exprs";
+import { codeLit, tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { typeFactory } from "@/wab/shared/model/model-util";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { vi } from "vitest";
 
@@ -200,4 +200,203 @@ it("refreshes a literal editor after its existing expression is edited and retir
   expect((screen.getByRole("combobox") as HTMLSelectElement).value).toBe("Second");
   act(() => view.dispose());
   expect(mounted.container.textContent).toBe("");
+});
+
+it("edits registered semantic props at their native paths while preserving existing CSS keys", async () => {
+  const tpl = mkTplTagX("div");
+  const { studio, view } = nativeView(
+    () => ({ invalidArgs: [], componentPropValues: {}, ccContextData: undefined }),
+    tpl
+  );
+  const styleChanged = vi.fn();
+  const classChanged = vi.fn();
+  const deleteClasses = vi.fn();
+  function Editors() {
+    const [appearance, setAppearance] = React.useState<Expr | undefined>(
+      codeLit({ popup: { listItem: { paddingBlock: 12, letterSpacing: "1px" } } })
+    );
+    const [classes, setClasses] = React.useState<Expr | undefined>();
+    return (
+      <StudioCtxContext.Provider value={studio}>
+        <PropEditorRow
+          tpl={tpl}
+          viewCtx={view}
+          attr="styles"
+          label="Styles"
+          propType={{
+            type: "object", editor: "semantic",
+            fields: { popup: { type: "object", fields: { listItem: { type: "object" } } } },
+          }}
+          expr={appearance}
+          onChange={(next) => {
+            if (isKnownExpr(next)) {
+              styleChanged(tryExtractJson(next));
+              setAppearance(next);
+            }
+          }}
+        />
+        <PropEditorRow
+          tpl={tpl}
+          viewCtx={view}
+          attr="classNames"
+          label="Class names"
+          propType={{
+            type: "object", editor: "semantic",
+            fields: { popup: { type: "object", fields: { listItem: "string" } } },
+          }}
+          expr={classes}
+          onDelete={() => {
+            setClasses(undefined);
+            deleteClasses();
+          }}
+          onChange={(next) => {
+            if (isKnownExpr(next)) {
+              classChanged(tryExtractJson(next));
+              setClasses(next);
+            }
+          }}
+        />
+      </StudioCtxContext.Provider>
+    );
+  }
+
+  const { container } = render(<Editors />);
+  for (const element of container.querySelectorAll("details")) {
+    element.open = true;
+  }
+  const padding = screen.getByRole("textbox", { name: "Vertical padding" });
+  fireEvent.change(padding, { target: { value: "24" } });
+  fireEvent.blur(padding);
+  expect(styleChanged).toHaveBeenLastCalledWith({
+    popup: { listItem: { paddingBlock: 24, letterSpacing: "1px" } },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Remove CSS property Vertical padding" }));
+  expect(styleChanged).toHaveBeenLastCalledWith({
+    popup: { listItem: { letterSpacing: "1px" } },
+  });
+  fireEvent.mouseDown(screen.getByRole("combobox", { name: "Add CSS property" }));
+  fireEvent.click(await screen.findByText("Horizontal padding · paddingInline"));
+  expect(styleChanged).toHaveBeenLastCalledWith({
+    popup: { listItem: { letterSpacing: "1px", paddingInline: 0 } },
+  });
+
+  const styleEditor = ensure(
+    container.querySelector<HTMLElement>('[data-plasmic-prop="styles"]'),
+    "Missing inline Styles editor"
+  );
+  const valueButton = within(styleEditor).getByRole("button", {
+    name: "View property value",
+  });
+  fireEvent.focus(valueButton);
+  await waitFor(() => expect(document.querySelector(".ant-popover pre")?.textContent).toContain('"paddingInline": 0'));
+
+  const classInput = screen.getByRole("textbox", { name: "List item" });
+  fireEvent.change(classInput, { target: { value: "custom-option" } });
+  fireEvent.blur(classInput);
+  expect(classChanged).toHaveBeenLastCalledWith({ popup: { listItem: "custom-option" } });
+  fireEvent.change(classInput, { target: { value: "" } });
+  fireEvent.blur(classInput);
+  expect(deleteClasses).toHaveBeenCalledTimes(1);
+});
+
+it("uses the semantic header menu for object bindings and keeps the binding when the last fallback field is removed", async () => {
+  const tpl = mkTplTagX("div");
+  const effective = { header: { paddingBlock: 12 } };
+  const { studio, view } = nativeView(
+    () => ({
+      invalidArgs: [],
+      componentPropValues: { styles: effective },
+      ccContextData: undefined,
+    }),
+    tpl,
+  );
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  const parentStyle = mkParam({
+    name: "headerAppearance",
+    type: typeFactory.any(),
+    paramType: "prop",
+  });
+  await studio.changeUnsafe(() => {
+    view.currentComponent().params.push(parentStyle);
+    studio.tplMgr().addDataToken({ name: "Number only", value: "14" });
+    studio.tplMgr().addDataToken({
+      name: "Header appearance",
+      value: JSON.stringify(effective),
+    });
+  });
+
+  const changes = vi.fn();
+  const onDelete = vi.fn();
+  const propType = {
+    type: "object",
+    editor: "semantic",
+    fields: { header: { type: "object" } },
+  } as const;
+
+  function TestEditor({ initial }: { initial: Expr }) {
+    const [expr, setExpr] = React.useState<Expr | undefined>(initial);
+    return (
+      <StudioCtxContext.Provider value={studio}>
+        <PropEditorRow
+          tpl={tpl}
+          viewCtx={view}
+          env={{ $ctx: { appearance: effective } }}
+          attr="styles"
+          label="Styles"
+          propType={propType}
+          expr={expr}
+          onChange={(next) => {
+            changes(next);
+            setExpr(next);
+          }}
+          onDelete={onDelete}
+        />
+      </StudioCtxContext.Provider>
+    );
+  }
+
+  const literal = codeLit(effective);
+  const mounted = render(<TestEditor key="literal" initial={literal} />);
+  fireEvent.click(screen.getByRole("button", { name: "More actions" }));
+  expect(await screen.findByText("Use dynamic value")).toBeTruthy();
+  expect(screen.getByText("Allow external access")).toBeTruthy();
+  fireEvent.mouseEnter(screen.getByRole("menuitem", { name: /Use data token/ }));
+  const numberToken = await screen.findByRole("menuitem", { name: /Number only/ });
+  expect(numberToken.getAttribute("aria-disabled")).toBe("true");
+  fireEvent.click(screen.getByRole("menuitem", { name: /Header appearance/ }));
+  expect(await screen.findByText("Data token", { exact: true })).toBeTruthy();
+  const tokenBinding = ensureKnownObjectPath(changes.mock.lastCall?.[0]);
+  expect(tryExtractJson(ensure(tokenBinding.fallback, "Expected the static styles as fallback"))).toEqual(effective);
+
+  const editor = ensure(
+    mounted.container.querySelector<HTMLElement>('[data-plasmic-prop="styles"]'),
+    "Missing semantic header",
+  );
+  for (const element of editor.querySelectorAll("details")) {
+    element.open = true;
+  }
+  fireEvent.click(within(editor).getByRole("button", { name: "Remove CSS property Vertical padding" }));
+  await waitFor(() => expect(ensureKnownObjectPath(changes.mock.lastCall?.[0]).fallback).toBeUndefined());
+  expect(ensureKnownObjectPath(changes.mock.lastCall?.[0]).path).toEqual(tokenBinding.path);
+  expect(onDelete).not.toHaveBeenCalled();
+
+  mounted.rerender(
+    <TestEditor key="dynamic" initial={new ObjectPath({ path: ["$ctx", "appearance"], fallback: literal })} />,
+  );
+  expect(screen.getByText("Dynamic value", { exact: true })).toBeTruthy();
+  expect(screen.getByText("Preview value")).toBeTruthy();
+
+  mounted.rerender(
+    <TestEditor
+      key="missing"
+      initial={new ObjectPath({ path: ["$ctx", "missing", "styles"], fallback: literal })}
+    />,
+  );
+  expect(screen.getByText("Using fallback")).toBeTruthy();
+
+  mounted.rerender(
+    <TestEditor key="linked" initial={new VarRef({ variable: parentStyle.variable })} />,
+  );
+  expect(screen.getByText("Linked", { exact: true })).toBeTruthy();
+  expect(screen.getByText("Arguments.headerAppearance")).toBeTruthy();
 });

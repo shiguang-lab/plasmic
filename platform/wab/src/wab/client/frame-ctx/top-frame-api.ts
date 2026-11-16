@@ -18,6 +18,7 @@ import { DataSourceType } from "@/wab/shared/data-sources-meta/data-source-regis
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { Listener } from "history";
 import type { DesktopDraft, DesktopDraftSession } from "@/wab/shared/desktop-drafts";
+import type { EditorViewMenuState } from "@/wab/shared/desktop-view-menu";
 
 /**
  * API the TopFrame exposes to HostFrame.
@@ -125,6 +126,7 @@ export interface TopFrameApi {
   ): Promise<void>;
   onFrameInteraction(event: FrameInteraction): Promise<void>;
   onFileDragEventInHost(event: RemoteFileDragEvent): Promise<void>;
+  setEditorViewMenuState(state: EditorViewMenuState): Promise<void>;
 }
 
 export type TopFrameApiArgs<Method extends keyof TopFrameApi> = Parameters<

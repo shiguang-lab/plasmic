@@ -1,4 +1,3 @@
-import { openDesktopBrowser } from "@/wab/client/desktop-browser";
 import { parseProjectLocation } from "@/wab/client/cli-routes";
 import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
 import { CanvasAiComposer, CanvasAiComposerProps } from "@/wab/client/components/copilot/CanvasAiComposer";
@@ -10,7 +9,7 @@ import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
 import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
-import { ensure, spawn } from "@/wab/shared/common";
+import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import * as React from "react";
 
@@ -198,7 +197,7 @@ function StudioChromeContent({
                 bottom: editorLeftRailLayout.bottom,
               }}
             >
-              <EditorToolRail onOpenWebBrowser={() => spawn(openDesktopBrowser())} />
+              <EditorToolRail />
             </div>
             <div className="canvas-editor__canvas-container">
               {children ? (

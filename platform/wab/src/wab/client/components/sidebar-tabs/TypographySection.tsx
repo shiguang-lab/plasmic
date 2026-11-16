@@ -29,7 +29,8 @@ import {
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleSwitch from "@/wab/client/components/style-controls/StyleSwitch";
-import { Typography } from "@/wab/client/components/style-controls/Typography";
+import { Typography, TypographySettings } from "@/wab/client/components/style-controls/Typography";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import {
   makeTplTextMenu,
   makeTplTextOps,
@@ -62,6 +63,7 @@ import {
   inheritableTypographyCssProps,
   typographyCssProps,
 } from "@/wab/shared/core/style-props";
+import { isTextVerticalAlignmentValidForTpl } from "@/wab/shared/core/style-props-tpl";
 import {
   getRichTextContent,
   isTplTextBlock,
@@ -119,6 +121,10 @@ function TypographySection_(props: {
   const vc = sc.focusedViewCtx();
   const tpl =
     expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
+  const canEditProject = useStore(sc.uiEnvironment.store, (state) => state.canEditProject);
+  const canEditBranch = useStudioSaveState(sc, (state) => state.canEditBranch);
+  const readOnly = !canEditProject || !canEditBranch;
+  const verticalAlign = !!tpl && !animatableOnly && isTextVerticalAlignmentValidForTpl(tpl);
   const typographyCells = useStyleCells(expsProvider, typographyCssProps);
   const hasStyles = typographyCells.some((cell) => cell.targetHas);
 
@@ -127,101 +133,91 @@ function TypographySection_(props: {
 
   return (
     <StylePanelSection
-      hasMore
-      title={title ?? studioUiT("Text")}
+      title={title ?? studioUiT("Typography")}
       expsProvider={expsProvider}
-      styleProps={
-        props.inheritableOnly
-          ? inheritableTypographyCssProps
-          : typographyCssProps
+      headerMenuOnRightClickOnly
+      styleProps={[
+        ...(props.inheritableOnly ? inheritableTypographyCssProps : typographyCssProps),
+        ...(verticalAlign ? ["align-content"] : []),
+      ]}
+      controls={
+        !animatableOnly && (
+          <TypographySettings
+            inheritableOnly={props.inheritableOnly}
+            readOnly={readOnly}
+          />
+        )
       }
     >
-      {(renderMaybeCollapsibleRows) => (
-        <>
-          {shouldShowSlotTypographyWarning && (
-            <Alert
-              type="info"
-              showIcon={true}
-              className="mb-sm"
-              message={
-                <div>
-                  <UiText
-                    message={
-                      "This is default content for slot {part1}. If you want to style any content in the slot, and not just this default text, then you should {part2}.{part3}"
-                    }
-                    values={{
-                      part1: <code>{ancestorSlot!.param.variable.name}</code>,
-                      part2: (
-                        <a
-                          onClick={() =>
-                            vc!.change(() =>
-                              vc!.setStudioFocusByTpl(ancestorSlot!),
-                            )
-                          }
-                        >
-                          <strong>
-                            <UiText message={"style the slot instead"} />
-                          </strong>
-                        </a>
-                      ),
-                      part3: hasStyles && (
-                        <>
-                          <UiText
-                            message={
-                              "You can also transfer text styles here {part1}."
-                            }
-                            values={{
-                              part1: (
-                                <a
-                                  onClick={() =>
-                                    vc!.change(() =>
-                                      vc!
-                                        .getViewOps()
-                                        .transferTextStyleToSlot(
-                                          tpl as TplTag,
-                                          ancestorSlot!,
-                                        ),
-                                    )
-                                  }
-                                >
-                                  <UiText message={"to the slot"} />
-                                </a>
-                              ),
-                            }}
-                          />
-                        </>
-                      ),
-                    }}
-                  />
-                </div>
-              }
-            />
-          )}
-          {expsProvider instanceof TplExpsProvider && viewCtx && (
-            <TextContentRow viewCtx={viewCtx} expsProvider={expsProvider} />
-          )}
-          <Typography
-            renderMaybeCollapsibleRows={renderMaybeCollapsibleRows}
-            onChange={async (cssPropName: string, newValue: string) => {
-              await sc.changeUnsafe(() => {
-                expsProvider.targetExp().set(cssPropName, newValue);
-              });
-              if (cssPropName === "font-family") {
-                sc.fontManager.loadFont(sc, newValue);
-              }
-            }}
-            unset={async (cssPropName: string) => {
-              await sc.changeUnsafe(() => {
-                expsProvider.targetExp().clear(cssPropName);
-              });
-            }}
-            inheritableOnly={props.inheritableOnly}
-            warnOnRelativeUnits={props.warnOnRelativeUnits}
-            vsh={vsh}
-            animatableOnly={animatableOnly}
-          />
-        </>
+      {shouldShowSlotTypographyWarning && (
+        <Alert
+          type="info"
+          showIcon={true}
+          className="mb-sm"
+          message={
+            <div>
+              <UiText
+                message={
+                  "This is default content for slot {part1}. If you want to style any content in the slot, and not just this default text, then you should {part2}.{part3}"
+                }
+                values={{
+                  part1: <code>{ancestorSlot!.param.variable.name}</code>,
+                  part2: (
+                    <a
+                      onClick={() =>
+                        vc!.change(() =>
+                          vc!.setStudioFocusByTpl(ancestorSlot!),
+                        )
+                      }
+                    >
+                      <strong>
+                        <UiText message={"style the slot instead"} />
+                      </strong>
+                    </a>
+                  ),
+                  part3: hasStyles && (
+                    <>
+                      <UiText
+                        message={
+                          "You can also transfer text styles here {part1}."
+                        }
+                        values={{
+                          part1: (
+                            <a
+                              onClick={() =>
+                                vc!.change(() =>
+                                  vc!
+                                    .getViewOps()
+                                    .transferTextStyleToSlot(
+                                      tpl as TplTag,
+                                      ancestorSlot!,
+                                    ),
+                                )
+                              }
+                            >
+                              <UiText message={"to the slot"} />
+                            </a>
+                          ),
+                        }}
+                      />
+                    </>
+                  ),
+                }}
+              />
+            </div>
+          }
+        />
       )}
+      {expsProvider instanceof TplExpsProvider && viewCtx && (
+        <TextContentRow viewCtx={viewCtx} expsProvider={expsProvider} />
+      )}
+      <Typography
+        warnOnRelativeUnits={props.warnOnRelativeUnits}
+        readOnly={readOnly}
+        verticalAlign={verticalAlign}
+        vsh={vsh}
+        animatableOnly={animatableOnly}
+      />
     </StylePanelSection>
   );
 }

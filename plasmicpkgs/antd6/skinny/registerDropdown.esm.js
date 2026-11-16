@@ -1,4 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Dropdown } from 'antd';
 import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
 import { AntdMenu, MENU_ITEM_TYPE } from './registerMenu.esm.js';
@@ -57,12 +58,14 @@ function AntdDropdown(props) {
       destroyOnHidden,
       onOpenChange: canvasProps.onOpenChange,
       trigger: [trigger],
-      popupRender: () => {
+      menu: { items: [] },
+      popupRender: (nativeMenu) => {
         const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;
         const items = useMenuItemsSlot ? void 0 : keyedMenuItems;
         return /* @__PURE__ */ jsx(
           AntdMenu,
           {
+            ...nativeMenu.props,
             className: `${dropdownMenuScopeClassName}`,
             onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
             items,
@@ -83,6 +86,14 @@ function registerDropdown(loader) {
     ],
     displayName: "Dropdown",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        menu: "Menu",
+        item: "Item",
+        itemTitle: "Item Title",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content"
+      }),
       menuItems: {
         type: "slot",
         displayName: "Menu items",

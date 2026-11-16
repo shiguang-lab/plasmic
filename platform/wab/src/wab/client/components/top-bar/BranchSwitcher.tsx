@@ -2,8 +2,8 @@ import { BranchPanelTop } from "@/wab/client/components/sidebar-tabs/ProjectPane
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
-import { BranchesOutlined, DownOutlined } from "@ant-design/icons";
-import { Button, Popover } from "antd";
+import { BranchesOutlined } from "@ant-design/icons";
+import { Button, Popover, Tooltip } from "antd";
 import { createStyles } from "antd-style";
 import { useStore } from "zustand";
 import * as React from "react";
@@ -12,18 +12,30 @@ const useStyles = createStyles(({ token }) => ({
   trigger: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 6,
-    minWidth: 0,
-    maxWidth: 180,
+    justifyContent: "center",
     flexShrink: 0,
-    height: 32,
-    padding: "0 10px",
-    borderRadius: 6,
-    background: token.colorFillTertiary,
+    width: "auto",
+    minWidth: 0,
+    height: 28,
+    padding: "0 2px",
+    border: 0,
+    borderRadius: 4,
+    boxShadow: "none",
+    background: "transparent",
     color: token.colorTextSecondary,
-    fontSize: 12,
+    "&:hover:not(:disabled)": {
+      background: "transparent",
+      color: token.colorText,
+    },
+    "&[aria-expanded='true']": {
+      background: "transparent",
+      color: token.colorPrimaryText,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${token.colorPrimary}`,
+      outlineOffset: 2,
+    },
   },
-  name: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
 }));
 
 export interface BranchSwitcherProps {
@@ -68,19 +80,21 @@ function BranchSwitcher({
         </div>
       )}
     >
-      <Button
-        id="branch-nav-button"
-        type="text"
-        className={cx(styles.trigger, className)}
-        aria-label={`${t("Branches")}: ${currentBranchName}`}
-        aria-expanded={visible}
+      <Tooltip
+        trigger={["hover", "focus"]}
         title={`${t("Branches")}: ${currentBranchName}`}
-        onKeyDownCapture={closeOnEscape}
-        icon={<BranchesOutlined />}
+        open={visible ? false : undefined}
       >
-        <span className={styles.name}>{currentBranchName}</span>
-        <DownOutlined style={{ fontSize: 10 }} />
-      </Button>
+        <Button
+          id="branch-nav-button"
+          type="link"
+          className={cx(styles.trigger, className)}
+          aria-label={`${t("Branches")}: ${currentBranchName}`}
+          aria-expanded={visible}
+          onKeyDownCapture={closeOnEscape}
+          icon={<BranchesOutlined />}
+        />
+      </Tooltip>
     </Popover>
   );
 }

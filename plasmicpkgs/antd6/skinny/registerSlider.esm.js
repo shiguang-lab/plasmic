@@ -1,4 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Slider } from 'antd';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -16,6 +17,13 @@ function registerSlider(loader) {
     displayName: "Slider",
     defaultStyles: { width: "stretch" },
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        tracks: "Tracks",
+        track: "Track",
+        rail: "Rail",
+        handle: "Handle"
+      }),
       range: { type: "object", description: "Boolean or Antd range configuration, such as { draggableTrack: true }." },
       value: { type: "object", editOnly: true, uncontrolledProp: "defaultValue", description: "Number for a single handle, array of numbers for range mode." },
       min: { type: "number", defaultValueHint: 0 },

@@ -1,5 +1,7 @@
 import { Steps } from "antd";
+import type { StepsSemanticType } from "antd/es/steps";
 import React from "react";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdSteps(props: React.ComponentProps<typeof Steps>) {
@@ -85,6 +87,24 @@ export function registerSteps(loader?: Registerable) {
         type: "boolean",
         description: "Change to vertical when screen narrower than 532px",
       },
+      ...semanticAppearance(
+        {
+          root: "Steps container",
+          item: "Step item",
+          itemWrapper: "Step wrapper",
+          itemIcon: "Step icon",
+          itemSection: "Step section",
+          itemHeader: "Step header",
+          itemTitle: "Step title",
+          itemSubtitle: "Step subtitle",
+          itemContent: "Step content",
+          itemRail: "Step rail",
+        } satisfies Record<
+          keyof NonNullable<StepsSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
       onChange: {
         type: "eventHandler",
         argTypes: [

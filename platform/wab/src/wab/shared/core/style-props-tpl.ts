@@ -53,6 +53,10 @@ export function isValidStylePropForTpl(
     return false;
   }
 
+  if (prop === "align-content" && isTextVerticalAlignmentValidForTpl(tpl)) {
+    return true;
+  }
+
   if (typographyCssProps.includes(prop)) {
     // Icon color is editable via its dedicated control even though the
     // typography section is hidden for icons.
@@ -169,6 +173,10 @@ export function isValidStylePropForTpl(
   }
 
   return false;
+}
+
+export function isTextVerticalAlignmentValidForTpl(tpl: TplNode): boolean {
+  return Tpls.isTplTextBlock(tpl) && !Tpls.isTplRawString(tpl);
 }
 
 export function isTypographyValidForTpl(tpl: TplNode): boolean {

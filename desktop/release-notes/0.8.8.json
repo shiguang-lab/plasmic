@@ -1,0 +1,7 @@
+{
+  "en": "- Reorganize the Studio inspector with compact layout and appearance controls, clearer spacing inputs, and direct access to style presets.\n- Add semantic appearance controls for Ant Design 6 components and consolidate canvas view controls.",
+  "zh-CN": "- 重整 Studio 属性面板，优化布局、外观和间距的编辑方式，并通过加号添加样式预设。\n- 为 Ant Design 6 组件增加语义化外观控件，并统一画布视图入口。",
+  "zh-TW": "- 重整 Studio 屬性面板，改善版面配置、外觀和間距的編輯方式，並透過加號新增樣式預設。\n- 為 Ant Design 6 元件新增語意化外觀控制項，並統一畫布檢視入口。",
+  "ja": "- Studio のプロパティパネルを再編し、レイアウト、外観、余白の編集を改善しました。スタイルプリセットはプラスボタンから追加できます。\n- Ant Design 6 コンポーネントにセマンティックな外観コントロールを追加し、キャンバス表示の操作をまとめました。",
+  "ko": "- Studio 속성 패널을 재구성하여 레이아웃, 모양, 간격 편집을 개선했습니다. 더하기 버튼으로 스타일 프리셋을 추가할 수 있습니다.\n- Ant Design 6 컴포넌트에 시맨틱 모양 컨트롤을 추가하고 캔버스 보기 메뉴를 통합했습니다."
+}

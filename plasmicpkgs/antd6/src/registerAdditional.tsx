@@ -1,7 +1,47 @@
+import type { DatePickerSemanticType } from "antd/es/date-picker/generatePicker/interface";
+import type { ElementSemanticType } from "antd/es/skeleton/Element";
+import type { ListItemSemanticClassNames } from "antd/es/list/Item";
+import type { StepsSemanticType } from "antd/es/steps";
+import type { AnchorSemanticType } from "antd/es/anchor/Anchor";
+import type { AutoCompleteSemanticType } from "antd/es/auto-complete/AutoComplete";
+import type { RibbonSemanticType } from "antd/es/badge/Ribbon";
+import type { CardMetaSemanticType } from "antd/es/card/CardMeta";
+import type { CascaderSemanticType } from "antd/es/cascader/index";
+import type { DividerSemanticType } from "antd/es/divider/index";
+import type { EmptySemanticType } from "antd/es/empty/index";
+import type { FloatButtonSemanticType } from "antd/es/float-button/FloatButton";
+import type { FloatButtonGroupSemanticType } from "antd/es/float-button/FloatButtonGroup";
+import type { ImageSemanticType } from "antd/es/image/index";
+import type { SiderSemanticType } from "antd/es/layout/Sider";
+import type { ListySemanticType } from "antd/es/listy/index";
+import type { MasonrySemanticType } from "antd/es/masonry/Masonry";
+import type { MentionSemanticType } from "antd/es/mentions/index";
+import type { PopconfirmSemanticType } from "antd/es/popconfirm/index";
+import type { QRCodeSemanticType } from "antd/es/qr-code/interface";
+import type { ResultSemanticType } from "antd/es/result/index";
+import type { SkeletonSemanticType } from "antd/es/skeleton/Skeleton";
+import type { SpaceSemanticType } from "antd/es/space/index";
+import type { SpinSemanticType } from "antd/es/spin/index";
+import type { SplitterSemanticType } from "antd/es/splitter/interface";
+import type { TransferSemanticType } from "antd/es/transfer/index";
+import type { TreeSelectSemanticType } from "antd/es/tree-select/index";
+import type { TypographySemanticType } from "antd/es/typography/Base/index";
+import type { OTPSemanticType } from "antd/es/input/OTP/index";
+import type { InputSearchSemanticType } from "antd/es/input/Search";
+import type { UploadSemanticType } from "antd/es/upload/interface";
+import type { CalendarSemanticType } from "antd/es/calendar/generateCalendar";
+import type { TimePickerSemanticType } from "antd/es/time-picker/index";
+import type { TourSemanticType } from "antd/es/tour/interface";
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { PropType, usePlasmicCanvasContext } from "@plasmicapp/host";
 import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import * as Ant from "antd";
+import type { AlertSemanticType } from "antd/es/alert/Alert";
+import type { BadgeSemanticType } from "antd/es/badge/Badge";
+import type { CardSemanticType } from "antd/es/card/Card";
+import type { DescriptionsSemanticType } from "antd/es/descriptions";
+import type { StatisticSemanticType } from "antd/es/statistic/Statistic";
+import type { TagSemanticType } from "antd/es/tag";
 import dayjs from "dayjs";
 import React from "react";
 import {
@@ -9,6 +49,7 @@ import {
   renderCanvasSlot,
   useCanvasOverlay,
 } from "./canvas-overlay";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 const canvasOverlay = { triggerSlot: "children" };
@@ -343,19 +384,17 @@ const descriptionsItemAppearance: Props = {
     type: "string",
     description: "CSS class applied to the Item table cell(s).",
   },
-  styles: {
-    type: "object",
-    description: "Native per-Item semantic styles. These override the parent Descriptions label/content styles; they do not set the whole field group's width.",
-    fields: {
-      label: { type: "object", description: "React.CSSProperties for the label." },
-      content: { type: "object", description: "React.CSSProperties for the value." },
+  ...semanticAppearance(
+    {
+      label: "Label",
+      content: "Content",
     },
-  },
-  classNames: {
-    type: "object",
-    description: "Native per-Item semantic CSS classes.",
-    fields: { label: "string", content: "string" },
-  },
+    {
+      stylesDescription:
+        "Native per-Item semantic styles. These override the parent Descriptions label/content styles; they do not set the whole field group's width.",
+      classNamesDescription: "Native per-Item semantic CSS classes.",
+    },
+  ),
 };
 const slot = (text: string) => ({ type: "slot" as const, defaultValue: text });
 const choice = (options: string[], defaultValueHint?: string) => ({
@@ -425,8 +464,29 @@ export function registerAdditional(loader?: Registerable) {
     banner: "boolean",
     closable: "object",
     action: { type: "slot", hidePlaceholder: true },
+    ...semanticAppearance(
+      {
+        root: "Alert container",
+        icon: "Icon",
+        section: "Content section",
+        title: "Title",
+        description: "Description",
+        actions: "Actions",
+        close: "Close button",
+      } satisfies Record<
+        keyof NonNullable<AlertSemanticType["classNames"]>,
+        string
+      >,
+      { advanced: true },
+    ),
   });
   register(loader, AntdAnchor, "anchor", "AntdAnchor", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      itemTitle: "Item Title",
+      indicator: "Indicator",
+    } satisfies SemanticPartLabels<AnchorSemanticType["classNames"]>),
     items: {
       type: "array",
       defaultValue: [{ key: "section", href: "#section", title: "Section" }],
@@ -442,6 +502,19 @@ export function registerAdditional(loader?: Registerable) {
     "auto-complete",
     "AntdAutoComplete",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        placeholder: "Placeholder",
+        content: "Content",
+        clear: "Clear",
+        popup: {
+          root: "Root",
+          listItem: "List Item",
+          list: "List",
+        },
+      } satisfies SemanticPartLabels<AutoCompleteSemanticType["classNames"]>),
       value: "string",
       options: {
         type: "array",
@@ -466,8 +539,23 @@ export function registerAdditional(loader?: Registerable) {
     size: choice(["small", "medium"]),
     status: choice([...badgeStatuses]),
     text: "string",
+    ...semanticAppearance(
+      {
+        root: "Badge container",
+        indicator: "Indicator",
+      } satisfies Record<
+        keyof NonNullable<BadgeSemanticType["classNames"]>,
+        string
+      >,
+      { advanced: true },
+    ),
   });
   register(loader, AntdBadgeRibbon, "badge-ribbon", "AntdBadgeRibbon", {
+    ...semanticAppearance({
+      root: "Root",
+      content: "Content",
+      indicator: "Indicator",
+    } satisfies SemanticPartLabels<RibbonSemanticType["classNames"]>),
     children: slot("Ribbon content"),
     text: { ...slot("Ribbon"), hidePlaceholder: true },
     color: { type: "color" },
@@ -487,10 +575,24 @@ export function registerAdditional(loader?: Registerable) {
     variant: choice(["outlined", "borderless"]),
     hoverable: "boolean",
     loading: "boolean",
-    styles: "object",
-    classNames: "object",
+    ...semanticAppearance({
+      root: "Card container",
+      header: "Header",
+      title: "Title",
+      extra: "Extra content",
+      body: "Body",
+      actions: "Actions",
+      cover: "Cover",
+    } satisfies Record<keyof NonNullable<CardSemanticType["classNames"]>, string>),
   });
   register(loader, AntdCardMeta, "card-meta", "AntdCardMeta", {
+    ...semanticAppearance({
+      root: "Root",
+      section: "Section",
+      avatar: "Avatar",
+      title: "Title",
+      description: "Description",
+    } satisfies SemanticPartLabels<CardMetaSemanticType["classNames"]>),
     title: { ...slot("Title"), hidePlaceholder: true },
     description: { type: "slot", hidePlaceholder: true },
     avatar: { type: "slot", hidePlaceholder: true },
@@ -537,6 +639,22 @@ export function registerAdditional(loader?: Registerable) {
     "cascader",
     "AntdCascader",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        input: "Input",
+        placeholder: "Placeholder",
+        content: "Content",
+        item: "Item",
+        itemContent: "Item Content",
+        itemRemove: "Item Remove",
+        popup: {
+          root: "Root",
+          listItem: "List Item",
+          list: "List",
+        },
+      } satisfies SemanticPartLabels<CascaderSemanticType["classNames"]>),
       ...cascaderProps,
       placeholder: "string",
       allowClear: "boolean",
@@ -634,8 +752,17 @@ export function registerAdditional(loader?: Registerable) {
     layout: choice(["horizontal", "vertical"]),
     bordered: "boolean",
     size: sizes,
-    styles: "object",
-    classNames: "object",
+    ...semanticAppearance({
+      root: "Descriptions container",
+      header: "Header",
+      title: "Title",
+      extra: "Extra content",
+      label: "Label",
+      content: "Content",
+    } satisfies Record<
+      keyof NonNullable<DescriptionsSemanticType["classNames"]>,
+      string
+    >),
   }, { description: "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics." });
   register(loader, AntdDescriptionsItem, "descriptions-item", "AntdDescriptionsItem", {
     key: { type: "string", description: "A stable field key within this Descriptions." },
@@ -645,6 +772,11 @@ export function registerAdditional(loader?: Registerable) {
     ...descriptionsItemAppearance,
   }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
   register(loader, AntdDivider, "divider", "AntdDivider", {
+    ...semanticAppearance({
+      root: "Root",
+      rail: "Rail",
+      content: "Content",
+    } satisfies SemanticPartLabels<DividerSemanticType["classNames"]>),
     children: { type: "slot", hidePlaceholder: true },
     orientation: choice(["horizontal", "vertical"]),
     titlePlacement: choice(["start", "center", "end"]),
@@ -653,6 +785,12 @@ export function registerAdditional(loader?: Registerable) {
     size: sizes,
   });
   register(loader, AntdEmpty, "empty", "AntdEmpty", {
+    ...semanticAppearance({
+      root: "Root",
+      image: "Image",
+      description: "Description",
+      footer: "Footer",
+    } satisfies SemanticPartLabels<EmptySemanticType["classNames"]>),
     description: { type: "slot", hidePlaceholder: true },
     children: { type: "slot", hidePlaceholder: true },
     image: "imageUrl",
@@ -673,6 +811,11 @@ export function registerAdditional(loader?: Registerable) {
     ]),
   });
   register(loader, AntdFloatButton, "float-button", "AntdFloatButton", {
+    ...semanticAppearance({
+      root: "Root",
+      icon: "Icon",
+      content: "Content",
+    } satisfies SemanticPartLabels<FloatButtonSemanticType["classNames"]>),
     icon: { type: "slot", hidePlaceholder: true },
     content: { type: "slot", hidePlaceholder: true },
     tooltip: "string",
@@ -686,6 +829,16 @@ export function registerAdditional(loader?: Registerable) {
     "float-button-group",
     "AntdFloatButtonGroup",
     {
+      ...semanticAppearance({
+        root: "Root",
+        list: "List",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+        trigger: "Trigger",
+        triggerIcon: "Trigger Icon",
+        triggerContent: "Trigger Content",
+      } satisfies SemanticPartLabels<FloatButtonGroupSemanticType["classNames"]>),
       children: {
         type: "slot",
         allowedComponents: [
@@ -703,11 +856,37 @@ export function registerAdditional(loader?: Registerable) {
     },
   );
   register(loader, AntdBackTop, "back-top", "AntdBackTop", {
+    ...semanticAppearance({
+      root: "Root",
+      icon: "Icon",
+      content: "Content",
+    } satisfies SemanticPartLabels<FloatButtonSemanticType["classNames"]>),
     visibilityHeight: "number",
     duration: "number",
     icon: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdImage, "image", "AntdImage", {
+    ...semanticAppearance({
+      root: "Root",
+      image: "Image",
+      cover: "Cover",
+      placeholder: {
+        progress: {
+          root: "Root",
+          content: "Content",
+          rail: "Rail",
+          indicator: "Indicator",
+        },
+      },
+      popup: {
+        root: "Root",
+        mask: "Mask",
+        body: "Body",
+        footer: "Footer",
+        actions: "Actions",
+        close: "Close",
+      },
+    } satisfies SemanticPartLabels<ImageSemanticType["classNames"]>),
     src: { type: "imageUrl", defaultValue: "https://placehold.co/320x200" },
     alt: "string",
     width: "number",
@@ -721,6 +900,27 @@ export function registerAdditional(loader?: Registerable) {
     "image-preview-group",
     "AntdImagePreviewGroup",
     {
+      ...semanticAppearance({
+        root: "Root",
+        image: "Image",
+        cover: "Cover",
+        placeholder: {
+          progress: {
+            root: "Root",
+            content: "Content",
+            rail: "Rail",
+            indicator: "Indicator",
+          },
+        },
+        popup: {
+          root: "Root",
+          mask: "Mask",
+          body: "Body",
+          footer: "Footer",
+          actions: "Actions",
+          close: "Close",
+        },
+      } satisfies SemanticPartLabels<ImageSemanticType["classNames"]>),
       children: { type: "slot", allowedComponents: ["plasmic-antd6-image"] },
       items: { type: "array" },
     },
@@ -751,6 +951,10 @@ export function registerAdditional(loader?: Registerable) {
     "layout-sider",
     "AntdLayoutSider",
     {
+      ...semanticAppearance({
+        root: "Root",
+        body: "Body",
+      } satisfies SemanticPartLabels<SiderSemanticType["classNames"]>),
       children: slot("Navigation"),
       width: "number",
       collapsed: "boolean",
@@ -777,6 +981,10 @@ export function registerAdditional(loader?: Registerable) {
     loading: "boolean",
   });
   register(loader, AntdListItem, "list-item", "AntdListItem", {
+    ...semanticAppearance({
+      actions: "Actions",
+      extra: "Extra",
+    } satisfies SemanticPartLabels<ListItemSemanticClassNames>),
     children: slot("Item"),
     extra: { type: "slot", hidePlaceholder: true },
     actions: { type: "slot", hidePlaceholder: true },
@@ -787,6 +995,11 @@ export function registerAdditional(loader?: Registerable) {
     avatar: { type: "slot", hidePlaceholder: true },
   });
   register(loader, AntdListy, "listy", "AntdListy", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      groupHeader: "Group Header",
+    } satisfies SemanticPartLabels<ListySemanticType["classNames"]>),
     items: {
       type: "array",
       defaultValue: [
@@ -799,6 +1012,10 @@ export function registerAdditional(loader?: Registerable) {
     sticky: "boolean",
   });
   register(loader, AntdMasonry, "masonry", "AntdMasonry", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+    } satisfies SemanticPartLabels<MasonrySemanticType["classNames"]>),
     items: {
       type: "array",
       defaultValue: [
@@ -815,6 +1032,12 @@ export function registerAdditional(loader?: Registerable) {
     "mentions",
     "AntdMentions",
     {
+      ...semanticAppearance({
+        root: "Root",
+        textarea: "Textarea",
+        popup: "Popup",
+        suffix: "Suffix",
+      } satisfies SemanticPartLabels<MentionSemanticType["classNames"]>),
       value: "string",
       options: {
         type: "array",
@@ -833,6 +1056,14 @@ export function registerAdditional(loader?: Registerable) {
     "popconfirm",
     "AntdPopconfirm",
     {
+      ...semanticAppearance({
+        title: "Title",
+        content: "Content",
+        root: "Root",
+        container: "Container",
+        arrow: "Arrow",
+        icon: "Icon",
+      } satisfies SemanticPartLabels<PopconfirmSemanticType["classNames"]>),
       icon: { type: "slot", hidePlaceholder: true },
       children: slot("Delete"),
       title: { ...slot("Delete this item?"), hidePlaceholder: true },
@@ -853,6 +1084,10 @@ export function registerAdditional(loader?: Registerable) {
     { canvasOverlay },
   );
   register(loader, AntdQRCode, "qr-code", "AntdQRCode", {
+    ...semanticAppearance({
+      root: "Root",
+      cover: "Cover",
+    } satisfies SemanticPartLabels<QRCodeSemanticType["classNames"]>),
     value: { type: "string", defaultValue: "https://publib.cn" },
     size: "number",
     color: { type: "color" },
@@ -862,6 +1097,14 @@ export function registerAdditional(loader?: Registerable) {
     status: choice(["active", "expired", "loading", "scanned"]),
   });
   register(loader, AntdResult, "result", "AntdResult", {
+    ...semanticAppearance({
+      root: "Root",
+      title: "Title",
+      subTitle: "Sub Title",
+      body: "Body",
+      extra: "Extra",
+      icon: "Icon",
+    } satisfies SemanticPartLabels<ResultSemanticType["classNames"]>),
     title: { ...slot("Success"), hidePlaceholder: true },
     subTitle: { type: "slot", hidePlaceholder: true },
     extra: { type: "slot", hidePlaceholder: true },
@@ -877,6 +1120,14 @@ export function registerAdditional(loader?: Registerable) {
     ]),
   });
   register(loader, AntdSkeleton, "skeleton", "AntdSkeleton", {
+    ...semanticAppearance({
+      root: "Root",
+      header: "Header",
+      section: "Section",
+      avatar: "Avatar",
+      title: "Title",
+      paragraph: "Paragraph",
+    } satisfies SemanticPartLabels<SkeletonSemanticType["classNames"]>),
     children: { type: "slot", hidePlaceholder: true },
     active: "boolean",
     loading: { type: "boolean", defaultValue: true },
@@ -893,6 +1144,10 @@ export function registerAdditional(loader?: Registerable) {
     ["node", AntdSkeletonNode, "AntdSkeletonNode"],
   ] as const) {
     register(loader, component, `skeleton-${suffix}`, importName, {
+      ...semanticAppearance({
+        root: "Root",
+        content: "Content",
+      } satisfies SemanticPartLabels<ElementSemanticType["classNames"]>),
       active: "boolean",
     });
   }
@@ -902,6 +1157,11 @@ export function registerAdditional(loader?: Registerable) {
     size: { type: "number", defaultValueHint: 8, description: "Gap in pixels. Unset uses the native small size." },
   };
   register(loader, AntdSpace, "space", "AntdSpace", {
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      separator: "Separator",
+    } satisfies SemanticPartLabels<SpaceSemanticType["classNames"]>),
     ...spaceProps,
     wrap: "boolean",
     separator: { type: "slot", hidePlaceholder: true },
@@ -914,6 +1174,15 @@ export function registerAdditional(loader?: Registerable) {
     block: "boolean",
   });
   register(loader, AntdSpin, "spin", "AntdSpin", {
+    ...semanticAppearance({
+      root: "Root",
+      section: "Section",
+      indicator: "Indicator",
+      description: "Description",
+      container: "Container",
+      tip: "Tip",
+      mask: "Mask",
+    } satisfies SemanticPartLabels<SpinSemanticType["classNames"]>),
     indicator: { type: "slot", hidePlaceholder: true },
     children: slot("Loading content"),
     spinning: { type: "boolean", defaultValue: true },
@@ -928,6 +1197,14 @@ export function registerAdditional(loader?: Registerable) {
     "splitter",
     "AntdSplitter",
     {
+      ...semanticAppearance({
+        root: "Root",
+        panel: "Panel",
+        dragger: {
+          default: "Default",
+          active: "Active",
+        },
+      } satisfies SemanticPartLabels<SplitterSemanticType["classNames"]>),
       orientation: choice(["horizontal", "vertical"]),
       children: {
         type: "slot",
@@ -963,7 +1240,18 @@ export function registerAdditional(loader?: Registerable) {
     prefix: { type: "slot", hidePlaceholder: true },
     suffix: { type: "slot", hidePlaceholder: true },
     loading: "boolean",
-    styles: "object",
+    ...semanticAppearance({
+      root: "Statistic container",
+      header: "Header",
+      title: "Title",
+      content: "Content",
+      value: "Value",
+      prefix: "Prefix",
+      suffix: "Suffix",
+    } satisfies Record<
+      keyof NonNullable<StatisticSemanticType["classNames"]>,
+      string
+    >),
   });
   register(
     loader,
@@ -971,6 +1259,15 @@ export function registerAdditional(loader?: Registerable) {
     "statistic-timer",
     "AntdStatisticTimer",
     {
+      ...semanticAppearance({
+        root: "Root",
+        content: "Content",
+        value: "Value",
+        title: "Title",
+        header: "Header",
+        prefix: "Prefix",
+        suffix: "Suffix",
+      } satisfies SemanticPartLabels<StatisticSemanticType["classNames"]>),
       title: { type: "slot", hidePlaceholder: true },
       type: choice(["countdown", "countup"]),
       value: { type: "number", description: "Unix timestamp in milliseconds" },
@@ -986,6 +1283,18 @@ export function registerAdditional(loader?: Registerable) {
     closable: "boolean",
     icon: { type: "slot", hidePlaceholder: true },
     onClose: event("event", "object"),
+    ...semanticAppearance(
+      {
+        root: "Tag container",
+        icon: "Icon",
+        content: "Content",
+        close: "Close button",
+      } satisfies Record<
+        keyof NonNullable<TagSemanticType["classNames"]>,
+        string
+      >,
+      { advanced: true },
+    ),
   });
   register(
     loader,
@@ -1000,6 +1309,20 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("boolean", "checked") },
   );
   register(loader, AntdTimeline, "timeline", "AntdTimeline", {
+// Timeline renders the Steps semantic regions except itemSubtitle.
+    ...semanticAppearance({
+      root: "Root",
+      item: "Item",
+      itemWrapper: "Item Wrapper",
+      itemIcon: "Item Icon",
+      itemSection: "Item Section",
+      itemHeader: "Item Header",
+      itemTitle: "Item Title",
+      itemContent: "Item Content",
+      itemRail: "Item Rail",
+    } satisfies SemanticPartLabels<
+      Omit<NonNullable<StepsSemanticType["classNames"]>, "itemSubtitle">
+    >),
     items: {
       type: "array",
       defaultValue: [
@@ -1016,6 +1339,41 @@ export function registerAdditional(loader?: Registerable) {
     "transfer",
     "AntdTransfer",
     {
+      ...semanticAppearance({
+        root: "Root",
+        section: "Section",
+        header: "Header",
+        title: "Title",
+        body: "Body",
+        list: "List",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+        footer: "Footer",
+        actions: "Actions",
+        source: {
+          section: "Section",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          list: "List",
+          item: "Item",
+          itemIcon: "Item Icon",
+          itemContent: "Item Content",
+          footer: "Footer",
+        },
+        target: {
+          section: "Section",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          list: "List",
+          item: "Item",
+          itemIcon: "Item Icon",
+          itemContent: "Item Content",
+          footer: "Footer",
+        },
+      } satisfies SemanticPartLabels<TransferSemanticType["classNames"]>),
       dataSource: {
         type: "array",
         defaultValue: [
@@ -1037,6 +1395,23 @@ export function registerAdditional(loader?: Registerable) {
     "tree-select",
     "AntdTreeSelect",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        suffix: "Suffix",
+        content: "Content",
+        placeholder: "Placeholder",
+        item: "Item",
+        itemContent: "Item Content",
+        itemRemove: "Item Remove",
+        popup: {
+          root: "Root",
+          item: "Item",
+          itemTitle: "Item Title",
+          itemSwitcher: "Item Switcher",
+        },
+      } satisfies SemanticPartLabels<TreeSelectSemanticType["classNames"]>),
       treeData: {
         type: "array",
         defaultValue: [
@@ -1064,9 +1439,21 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("object") },
   );
   register(loader, AntdTypography, "typography", "AntdTypography", {
+    ...semanticAppearance({
+      root: "Root",
+      actions: "Actions",
+      action: "Action",
+      textarea: "Textarea",
+    } satisfies SemanticPartLabels<TypographySemanticType["classNames"]>),
     children: slot("Typography"),
   });
   const textProps: Props = {
+    ...semanticAppearance({
+      root: "Root",
+      actions: "Actions",
+      action: "Action",
+      textarea: "Textarea",
+    } satisfies SemanticPartLabels<TypographySemanticType["classNames"]>),
     children: slot("Text"),
     type: choice(["secondary", "success", "warning", "danger"]),
     strong: "boolean",
@@ -1133,6 +1520,11 @@ export function registerAdditional(loader?: Registerable) {
     "input-otp",
     "AntdInputOTP",
     {
+      ...semanticAppearance({
+        root: "Root",
+        input: "Input",
+        separator: "Separator",
+      } satisfies SemanticPartLabels<OTPSemanticType["classNames"]>),
       value: "string",
       length: { type: "number", defaultValueHint: 6 },
       disabled: "boolean",
@@ -1156,6 +1548,19 @@ export function registerAdditional(loader?: Registerable) {
     "input-search",
     "AntdInputSearch",
     {
+      ...semanticAppearance({
+        root: "Root",
+        input: "Input",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        clear: "Clear",
+        count: "Count",
+        button: {
+          root: "Root",
+          icon: "Icon",
+          content: "Content",
+        },
+      } satisfies SemanticPartLabels<InputSearchSemanticType["classNames"]>),
       value: "string",
       placeholder: "string",
       enterButton: "boolean",
@@ -1168,6 +1573,12 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("text") },
   );
   register(loader, AntdUploadDragger, "upload-dragger", "AntdUploadDragger", {
+    ...semanticAppearance({
+      root: "Root",
+      list: "List",
+      item: "Item",
+      trigger: "Trigger",
+    } satisfies SemanticPartLabels<UploadSemanticType["classNames"]>),
     children: slot("Drop files here"),
     action: "string",
     name: "string",
@@ -1182,6 +1593,14 @@ export function registerAdditional(loader?: Registerable) {
     "calendar",
     "AntdCalendar",
     {
+      ...semanticAppearance({
+        root: "Root",
+        header: "Header",
+        body: "Body",
+        content: "Content",
+        item: "Item",
+        itemContent: "Item Content",
+      } satisfies SemanticPartLabels<CalendarSemanticType["classNames"]>),
       value: "string",
       fullscreen: "boolean",
       mode: choice(["month", "year"]),
@@ -1196,6 +1615,19 @@ export function registerAdditional(loader?: Registerable) {
     "time-picker",
     "AntdTimePicker",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        suffix: "Suffix",
+        popup: {
+          root: "Root",
+          content: "Content",
+          item: "Item",
+          footer: "Footer",
+          container: "Container",
+        },
+      } satisfies SemanticPartLabels<TimePickerSemanticType["classNames"]>),
       value: "string",
       format: { type: "string", defaultValue: "HH:mm:ss" },
       use12Hours: "boolean",
@@ -1212,6 +1644,21 @@ export function registerAdditional(loader?: Registerable) {
     "time-range-picker",
     "AntdTimeRangePicker",
     {
+      ...semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        input: "Input",
+        suffix: "Suffix",
+        popup: {
+          root: "Root",
+          header: "Header",
+          body: "Body",
+          content: "Content",
+          item: "Item",
+          footer: "Footer",
+          container: "Container",
+        },
+      } satisfies SemanticPartLabels<DatePickerSemanticType["classNames"]>),
       value: { type: "array" },
       format: "string",
       use12Hours: "boolean",
@@ -1222,6 +1669,20 @@ export function registerAdditional(loader?: Registerable) {
     { states: valueState("array") },
   );
   register(loader, AntdTour, "tour", "AntdTour", {
+    ...semanticAppearance({
+      root: "Root",
+      cover: "Cover",
+      close: "Close",
+      mask: "Mask",
+      section: "Section",
+      footer: "Footer",
+      actions: "Actions",
+      indicator: "Indicator",
+      indicators: "Indicators",
+      header: "Header",
+      title: "Title",
+      description: "Description",
+    } satisfies SemanticPartLabels<TourSemanticType["classNames"]>),
     open: "boolean",
     current: "number",
     steps: {

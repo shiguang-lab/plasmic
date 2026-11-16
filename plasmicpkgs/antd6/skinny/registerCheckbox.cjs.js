@@ -4,6 +4,7 @@ var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
 var names = require('./names-DbJduus8.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -69,7 +70,15 @@ function registerCheckbox(loader) {
       onChange: {
         type: "eventHandler",
         argTypes: [{ name: "checked", type: "boolean" }]
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Checkbox container",
+          icon: "Checkbox box",
+          label: "Label"
+        },
+        { advanced: true }
+      )
     },
     states: {
       checked: {
@@ -88,6 +97,12 @@ function registerCheckbox(loader) {
     name: names.checkboxGroupComponentName,
     displayName: "Checkbox Group",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        item: "Item",
+        itemIcon: "Item icon",
+        itemLabel: "Item label"
+      }),
       value: {
         type: "choice",
         editOnly: true,

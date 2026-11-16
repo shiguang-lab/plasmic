@@ -1,3 +1,4 @@
+import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { FilterEffectSection, BackdropFilterEffectSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
@@ -16,7 +17,7 @@ import { ensure } from "@/wab/shared/common";
 import { createSite } from "@/wab/shared/core/sites";
 import { parseCss } from "@/wab/shared/css";
 import { StyleToken } from "@/wab/shared/model/classes";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -52,7 +53,7 @@ it("updates both real filter instances from native CSS/token fields and keeps hi
   const hide = ensure([...row.querySelectorAll("button")].find((button) => !button.closest(".list-box-item__actions")), "Original hide command");
   fireEvent.click(hide); await waitFor(() => expect(f.exp.getRaw("filter")).toContain("hidden#drop-shadow"));
   expect(f.exp.getRaw("backdrop-filter")).not.toContain("hidden#");
-  fireEvent.click(ensure(filter.querySelector(".list-box-item__actions button"), "Original remove command"));
+  fireEvent.click(within(filter).getByRole("button", { name: "Remove" }));
   await waitFor(() => expect(f.exp.getRaw("filter")).toBe("none"));
   fireEvent.click(ensure(filter.querySelector(".icon-link-btn"), "Original add command"));
   await waitFor(() => expect(f.exp.getRaw("filter")).toBe("blur(0px)"));
@@ -60,31 +61,71 @@ it("updates both real filter instances from native CSS/token fields and keeps hi
   mounted.unmount();
 });
 
-it("preserves first-array colors/names, last-dictionary thumbnails and the actual shadow edit command", async () => {
+it("keeps the resolved shadow swatch current and adds, edits and removes shadows in place", async () => {
   const f = await setup();
   const duplicate = new StyleToken({ uuid: f.end.uuid, name: "Last terminal", type: "Color", value: "#FEDCBA", variantedValues: [], isRegistered: false, regKey: null });
   await f.studio.changeUnsafe(() => { f.site.styleTokens.push(duplicate); });
-  const mounted = render(f.wrap(<ShadowsPanelSection expsProvider={f.provider} vsh={f.helper} />));
-  expect(screen.getByText("Shadow paint")).toBeTruthy();
-  expect(mounted.container.querySelector('[style*="rgb(18, 52, 86)"]')).not.toBeNull();
-  expect(ensure(mounted.container.querySelector<HTMLElement>(".shadow-thumb"), "Shadow thumbnail").style.boxShadow).toContain("#FEDCBA");
-  await act(async () => { await f.studio.changeUnsafe(() => { f.head.name = "Renamed shadow"; f.end.value = "#223344"; duplicate.value = "#AABBCC"; f.exp.set("box-shadow", `1px 6px 18px 2px ${mkTokenRef(f.head)}`); }); });
-  expect(screen.getByText("Renamed shadow")).toBeTruthy();
-  expect(ensure(mounted.container.querySelector<HTMLElement>(".shadow-thumb"), "Updated shadow thumbnail").style.boxShadow).toBe("1px 6px 18px 2px #AABBCC");
-  fireEvent.click(screen.getByText("Renamed shadow"));
-  fireEvent.click(await screen.findByRole("button", { name: "Inset" }));
-  await waitFor(() => expect(parseCss(f.exp.get("box-shadow"), { startRule: "boxShadows" }).shadows[0].inset).toBe(true));
-  expect(f.exp.get("box-shadow")).toContain(mkTokenRef(f.head));
-  mounted.unmount();
-});
+  render(f.wrap(<ShadowsPanelSection expsProvider={f.provider} vsh={f.helper} />));
 
+  expect(screen.queryByRole("button", { name: "More actions" })).toBeNull();
+  const initial = screen.getByRole("button", { name: /^Shadow: Outset, Shadow paint/ });
+  const swatch = ensure(initial.querySelector<HTMLElement>("[style]"), "Shadow preview");
+  expect(swatch.style.backgroundColor).toBe("rgb(18, 52, 86)");
+  expect(swatch.style.boxShadow).toContain("#FEDCBA");
+  await act(async () => {
+    await f.studio.changeUnsafe(() => {
+      f.head.name = "Renamed shadow";
+      f.end.value = "#223344";
+      duplicate.value = "#AABBCC";
+      f.exp.set("box-shadow", `1px 6px 18px 2px ${mkTokenRef(f.head)}`);
+    });
+  });
+  const original = screen.getByRole("button", { name: /^Shadow: Outset, Renamed shadow/ });
+  expect(original.textContent).toContain("1px · 6px · 18px · 2px");
+  expect(swatch.style.backgroundColor).toBe("rgb(34, 51, 68)");
+  expect(swatch.style.boxShadow).toBe("1px 6px 18px 2px #AABBCC");
+
+  fireEvent.click(original);
+  const editor = await screen.findByRole("dialog", { name: "Shadow" });
+  expect(editor.closest(".ant-popover")).toBeTruthy();
+  expect(document.querySelector("#sidebar-modal")).toBeNull();
+  fireEvent.click(within(editor).getByRole("button", { name: "Inset" }));
+  const updated = await screen.findByRole("button", { name: /^Shadow: Inset, Renamed shadow/ });
+  expect(f.exp.get("box-shadow")).toContain(`inset 1px 6px 18px 2px ${mkTokenRef(f.head)}`);
+  expect(screen.getByRole("dialog", { name: "Shadow" })).toBe(editor);
+  fireEvent.keyDown(editor, { key: "Escape" });
+  expect(document.activeElement).toBe(updated);
+  fireEvent.contextMenu(screen.getByText("Shadows"));
+  const clear = await screen.findByRole("menuitem", { name: "Remove all Shadows styles" });
+  fireEvent.keyDown(clear, { key: "Escape" });
+
+  fireEvent.click(screen.getByRole("button", { name: "Add shadow" }));
+  const added = await screen.findByRole("button", { name: /^Shadow: Outset,/ });
+  expect(added.getAttribute("aria-expanded")).toBe("true");
+  expect(await screen.findByRole("dialog", { name: "Shadow" })).toBeTruthy();
+  expect(document.querySelector("#sidebar-modal")).toBeNull();
+  expect(parseCss(f.exp.get("box-shadow"), { startRule: "boxShadows" }).shadows).toHaveLength(2);
+
+  const [removeOriginal, removeAdded] = screen.getAllByRole("button", { name: "Remove" });
+  fireEvent.click(removeAdded);
+  await waitFor(() => expect(parseCss(f.exp.get("box-shadow"), { startRule: "boxShadows" }).shadows).toHaveLength(1));
+  expect(f.exp.get("box-shadow")).toContain(mkTokenRef(f.head));
+  fireEvent.click(removeOriginal);
+  await waitFor(() => expect(f.exp.get("box-shadow")).toBe("none"));
+  fireEvent.click(screen.getByText("Shadows"));
+  await act(async () => { await f.studio.awaitEval(); });
+  expect(f.exp.get("box-shadow")).toBe("none");
+  expect(screen.queryByRole("dialog", { name: "Shadow" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Add shadow" }));
+  expect(await screen.findByRole("dialog", { name: "Shadow" })).toBeTruthy();
+});
 it("unmounts actual open edit scopes before model-world replacement and allows a fresh provider", async () => {
   const f = await setup(true);
   const content = () => f.wrap(<><FilterEffectSection expsProvider={f.provider} /><ShadowsPanelSection expsProvider={f.provider} vsh={f.helper} /></>);
   const mounted = render(content());
   fireEvent.click(screen.getAllByText("Shadow paint")[0]);
   await waitFor(() => expect(document.querySelector(".panel-content")).not.toBeNull());
-  fireEvent.click(screen.getAllByText("Shadow paint").find((element) => element.closest(".list-box-item")?.querySelector(".shadow-thumb")) ?? ensure(document.querySelector(".shadow-thumb"), "Original shadow editor"));
+  fireEvent.click(screen.getByRole("button", { name: /^Shadow: Outset, Shadow paint/ }));
   expect(await screen.findByRole("button", { name: "Inset" })).toBeTruthy();
   const release = mock<PkgVersionInfoMeta>({ id: "shadow-world", pkgId: "shadow-pkg", version: "1.0.0", branchId: null });
   f.api.getPkgVersion.mockResolvedValueOnce({ pkg: { ...release, model: f.studio.bundleSite().site }, depPkgs: [], etag: "shadow-etag" });
@@ -100,4 +141,28 @@ it("unmounts actual open edit scopes before model-world replacement and allows a
   mounted.rerender(f.wrap(<FilterEffectSection expsProvider={provider} />));
   expect(screen.getByText("Shadow paint")).toBeTruthy();
   mounted.unmount();
+});
+
+it.each([
+  ["Shadows", "box-shadow", ShadowsPanelSection],
+  ["Filter Effect", "filter", FilterEffectSection],
+  ["Backdrop Effect", "backdrop-filter", BackdropFilterEffectSection],
+  ["Transform", "transform", TransformPanelSection],
+] as const)("distinguishes none from default for %s and preserves unrelated styles", async (label, prop, Section) => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => {
+    f.exp.set("opacity", "0.5");
+    if (prop === "transform") { f.exp.set("transform", "translateX(10px)"); }
+  });
+  render(f.wrap(<Section expsProvider={f.provider} />));
+  fireEvent.click(screen.getByRole("button", { name: `${label}: Custom` }));
+  fireEvent.click(await screen.findByRole("menuitem", { name: "None" }));
+  await screen.findByRole("button", { name: `${label}: None` });
+  expect(f.exp.getRaw(prop)).toBe("none");
+  expect(f.exp.getRaw("opacity")).toBe("0.5");
+  fireEvent.click(screen.getByRole("button", { name: `${label}: None` }));
+  fireEvent.click(await screen.findByRole("menuitem", { name: "Restore default" }));
+  await screen.findByRole("button", { name: `${label}: Default` });
+  expect(f.exp.has(prop)).toBe(false);
+  expect(f.exp.getRaw("opacity")).toBe("0.5");
 });

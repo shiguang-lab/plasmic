@@ -14,6 +14,7 @@ import {
   StyleTab,
   StyleTabContext,
 } from "@/wab/client/components/sidebar-tabs/style-tab";
+import { RightInspectorHeader } from "@/wab/client/components/studio/RightInspectorHeader";
 import { SidePanelShell } from "@/wab/client/components/studio/SidePanelShell";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
@@ -38,6 +39,7 @@ export const RightPane = React.memo(function RightPane({
   const collapsed = useStore(studioCtx.rightPanelStore, (state) => state.collapsed);
   const [selectedFrames, focusedViewCtx] = useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view] as const));
   const [hover, setHover] = React.useState(false);
+  const [componentSettingsOpen, setComponentSettingsOpen] = React.useState(false);
   const pending = useInspectorPending(studioCtx);
   const devMode = useStudioRenderPolicy(studioCtx, (state) => state.devMode);
   const panelsHidden = useStore(
@@ -57,6 +59,10 @@ export const RightPane = React.memo(function RightPane({
   const focusedComponent = focusedOrFirstViewCtx?.component;
   const contentOnly = !!focusedViewCtx && isFixedSlotRoot(focusedViewCtx, selectedTpl);
 
+  React.useEffect(() => {
+    setComponentSettingsOpen(false);
+  }, [focusedComponent]);
+
   const selectionTitle = useInspectorTitle(studioCtx,
     rightTabKey === RightTabKey.component ? undefined : selectedTpl, focusedComponent);
   const partTitle = selection.part?.displayName;
@@ -68,12 +74,28 @@ export const RightPane = React.memo(function RightPane({
   // Element tabs are shown if an artboard is focused
   // and element is selected (not frame)
   if (focusedViewCtx && selectedFrames.length === 0) {
+    if (!contentOnly) {
+      tabs.push(
+        new widgets.Tab({
+          name: <UiText message={"Design"} />,
+          key: RightTabKey.style,
+          contents: () => (
+            <StyleTabContext.Provider value="design">
+              <StyleTab
+                studioCtx={studioCtx}
+                viewCtx={focusedViewCtx}
+              />
+            </StyleTabContext.Provider>
+          ),
+        }),
+      );
+    }
     tabs.push(
       new widgets.Tab({
-        name: <UiText message={contentOnly ? "Props" : "Design"} />,
-        key: RightTabKey.style,
+        name: <UiText message={"Props"} />,
+        key: RightTabKey.props,
         contents: () => (
-          <StyleTabContext.Provider value="design">
+          <StyleTabContext.Provider value="props">
             <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
           </StyleTabContext.Provider>
         ),
@@ -102,19 +124,32 @@ export const RightPane = React.memo(function RightPane({
         name: <UiText message={"Data"} />,
         key: RightTabKey.component,
         contents: () => (
-          !pending && <ComponentOrPageTab
-            studioCtx={studioCtx}
-            viewCtx={focusedOrFirstViewCtx}
-          />
+          !pending && (
+            <ComponentOrPageTab
+              studioCtx={studioCtx}
+              viewCtx={focusedOrFirstViewCtx}
+              hideHeader
+              showComponentSettings={componentSettingsOpen}
+              onShowComponentSettingsChange={setComponentSettingsOpen}
+            />
+          )
         ),
       }),
     );
   }
 
   React.useEffect(() => {
-    if (contentOnly && rightTabKey === RightTabKey.interactions) {
-      studioCtx.switchRightTab(RightTabKey.style);
-    } else if (tabs.length === 1 && !isMultiSelection) {
+    if (
+      contentOnly &&
+      (rightTabKey === RightTabKey.style ||
+        rightTabKey === RightTabKey.interactions)
+    ) {
+      studioCtx.switchRightTab(RightTabKey.props);
+    } else if (
+      tabs.length === 1 &&
+      !isMultiSelection &&
+      rightTabKey !== tabs[0].key
+    ) {
       studioCtx.switchRightTab(tabs[0].key as RightTabKey);
     }
   }, [tabs.length, isMultiSelection, contentOnly, rightTabKey]);
@@ -148,26 +183,20 @@ export const RightPane = React.memo(function RightPane({
           <CommentsTab />
         ) : (
           <>
-            <div className="editor-panel-header">
-              <strong
-                className="editor-panel-title"
-                title={isMultiSelection ? undefined : inspectorTitle}
-              >
-                {isMultiSelection ? (
-                  <UiText
-                    message={
-                      isFrameSelection
-                        ? "{count} artboards selected"
-                        : "{count} layers selected"
-                    }
-                    values={{ count: selectionCount }}
-                  />
-                ) : (
-                  inspectorTitle
-                )}
-              </strong>
-              <PanelCloseButton onClick={() => studioCtx.collapseRightPanel()} />
-            </div>
+            <RightInspectorHeader
+              studioCtx={studioCtx}
+              focusedViewCtx={selectedFrames.length === 0 ? focusedViewCtx : undefined}
+              selectedTpl={selectedTpl}
+              focusedComponent={focusedComponent}
+              isMultiSelection={isMultiSelection}
+              isFrameSelection={isFrameSelection}
+              selectionCount={selectionCount}
+              inspectorTitle={inspectorTitle}
+              partDisplayName={partTitle}
+              rightTabKey={rightTabKey}
+              contentOnly={contentOnly}
+              onOpenComponentSettings={() => setComponentSettingsOpen(true)}
+            />
             {isFrameSelection ? (
               !pending && <FrameSelectionPanel studioCtx={studioCtx} />
             ) : isMultiSelection && focusedViewCtx ? (

@@ -6,6 +6,7 @@ var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
 var canvasOverlay = require('./canvas-overlay-D2jWZ-TY.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -294,7 +295,22 @@ function registerTabs(loader) {
         type: "eventHandler",
         advanced: true,
         argTypes: [{ name: "scrollInfo", type: "object" }]
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Tabs container",
+          header: "Tab bar header",
+          item: "Tab item",
+          remove: "Remove button",
+          indicator: "Active indicator",
+          body: "Panels body",
+          content: "Panel content",
+          popup: {
+            root: "Overflow tabs popup"
+          }
+        },
+        { advanced: true }
+      )
     },
     states: {
       activeKey: {

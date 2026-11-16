@@ -1,0 +1,19 @@
+.root {
+  :global(.SidebarSection__Body) > :global(.panel-row) + :global(.panel-row) {
+    margin-top: 4px;
+  }
+
+  :global([data-plasmic-role="labeled-item"]) label {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    > div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

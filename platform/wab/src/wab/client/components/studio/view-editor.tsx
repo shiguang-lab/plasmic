@@ -144,7 +144,12 @@ import { useStore } from "zustand";
 const minDragPx = 4;
 interface DragState {
   sourceViewCtx: ViewCtx;
-  artboard?: { frame: ArenaFrame; lifetime: AbortSignal; click: () => void };
+  artboard?: {
+    frame: ArenaFrame;
+    lifetime: AbortSignal;
+    click: () => void;
+    selectOnDrag?: boolean;
+  };
   initClientPt: Pt;
   initScreenX: number;
   initScreenY: number;
@@ -1254,9 +1259,7 @@ private async handleMouseDown(
     const frame = targetVc.arenaFrame();
     if (
       frame &&
-      !sc.canvasContentEditor &&
-      !sc.isPositionManagedFrame(frame) &&
-      !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey &&
+      this.canDragArtboard(e, frame) &&
       sc.focusedFrames().includes(frame)
     ) {
       // Keep the artboard selection until the pointer commits to a click or drag.
@@ -1275,6 +1278,15 @@ private async handleMouseDown(
     this.handleLayerMouseDown(e, $target, targetVc);
   }
 
+  private canDragArtboard(e: MouseEvent, frame: ArenaFrame) {
+    const sc = this.props.studioCtx;
+    return (
+      !sc.canvasContentEditor &&
+      !sc.isPositionManagedFrame(frame) &&
+      !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey
+    );
+  }
+
   private makeDragState(e: MouseEvent, sourceViewCtx: ViewCtx): DragState {
     const point = new Pt(e.clientX, e.clientY);
     return {
@@ -1287,6 +1299,39 @@ private async handleMouseDown(
       isDragging: false,
       dragMoveManager: undefined,
     };
+  }
+
+  private startArtboardBackgroundGesture(
+    e: MouseEvent,
+    view: ViewCtx,
+    click: () => void,
+    clickOnly: boolean,
+    clearOnPress = false,
+  ) {
+    const frame = view.arenaFrame();
+    if (clickOnly) {
+      click();
+    } else if (this.canDragArtboard(e, frame)) {
+      this.dragState = {
+        ...this.makeDragState(e, view),
+        artboard: { frame, lifetime: view.modelLifetime, click, selectOnDrag: true },
+      };
+    } else {
+      this.startMarquee(e, view, click, clearOnPress);
+    }
+  }
+
+  private fillsArtboard(view: ViewCtx, node: ValNode, dom: JQuery | null) {
+    // A page can wrap its full-viewport shell in a root div.
+    return view.component.tplTree === node.tpl.parent &&
+      !!dom?.toArray().some((element) => {
+        const viewport = element.ownerDocument.documentElement;
+        const bounds = element.getBoundingClientRect();
+        return viewport.clientWidth > 0 && viewport.clientHeight > 0 &&
+          bounds.left <= 0 && bounds.top <= 0 &&
+          bounds.right >= viewport.clientWidth &&
+          bounds.bottom >= viewport.clientHeight;
+      });
   }
 
   private handleLayerMouseDown(
@@ -1306,11 +1351,7 @@ private async handleMouseDown(
           autoZoom: false,
         });
       });
-      if (clickOnly) {
-        focusFrame();
-      } else {
-        this.startMarquee(e, targetVc, focusFrame, true);
-      }
+      this.startArtboardBackgroundGesture(e, targetVc, focusFrame, clickOnly, true);
       return;
     }
 
@@ -1365,13 +1406,15 @@ private async handleMouseDown(
     const focusedSelectables = targetVc.focusedSelectables();
     const directSelect = isCanvasModifierPressed(e);
     const deepSelect = directSelect && !e.altKey;
-    const focusable = targetVc
+    const { val: focusable, focusedDom } = targetVc
       .getViewOps()
-      .getFinalFocusable(closest, { deepSelect }).val;
+      .getFinalFocusable(closest, { deepSelect });
 
     if (
       focusable instanceof ValNode &&
-      targetVc.getViewOps().isRootNodeOfFrame(focusable.tpl)
+      (targetVc.getViewOps().isRootNodeOfFrame(focusable.tpl) ||
+        (this.canDragArtboard(e, targetVc.arenaFrame()) &&
+          this.fillsArtboard(targetVc, focusable, focusedDom)))
     ) {
       const focusRoot = () => {
         targetVc.getViewOps().tryFocusDomElt(closest, {
@@ -1380,11 +1423,7 @@ private async handleMouseDown(
           exact: false,
         });
       };
-      if (clickOnly) {
-        focusRoot();
-      } else {
-        this.startMarquee(e, targetVc, focusRoot);
-      }
+      this.startArtboardBackgroundGesture(e, targetVc, focusRoot, clickOnly);
       return;
     }
 
@@ -1502,16 +1541,23 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
       Math.hypot(e.screenX - s.initScreenX, e.screenY - s.initScreenY) >= minDragPx
     ) {
       if (s.artboard) {
-        const { frame } = s.artboard;
+        const { frame, selectOnDrag } = s.artboard;
         if (
           sc.canvasContentEditor ||
           sc.isPositionManagedFrame(frame) ||
-          !sc.focusedFrames().includes(frame)
+          !(selectOnDrag
+            ? getArenaFrames(sc.currentArena).includes(frame)
+            : sc.focusedFrames().includes(frame))
         ) {
           this.cancelCanvasGesture();
           return;
         }
         this.dragState = { ...s, isDragging: true };
+        if (selectOnDrag) {
+          sc.changeSelection(() =>
+            sc.setStudioFocusOnFrame({ frame, autoZoom: false }),
+          );
+        }
         const manager = new DragMoveFrameManager(sc, frame, s.initClientPt);
         if (!manager.aborted()) {
           this.dragState = { ...this.dragState, dragMoveManager: manager };

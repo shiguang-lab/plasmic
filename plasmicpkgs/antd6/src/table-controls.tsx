@@ -25,6 +25,33 @@ const checkboxStyles: CheckboxProps["styles"] = {
   label: { flex: 1, paddingInlineStart: 0, paddingInlineEnd: 8 },
 };
 
+function TableControlFields({ children }: { children: React.ReactNode }) {
+  const fields = React.Children.toArray(children);
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        width: "100%",
+      }}
+    >
+      {fields.map((field, index) => (
+        <div className="with-connector-line" key={index}>
+          <div className="property-connector-line-icon" aria-hidden="true" />
+          {index < fields.length - 1 && (
+            <div
+              className="property-connector-vertical-line"
+              aria-hidden="true"
+            />
+          )}
+          {field}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Edits the real pagination prop, preserving options not exposed by these controls. */
 export function TablePaginationControl({
   value,
@@ -42,61 +69,59 @@ export function TablePaginationControl({
     updateValue(result);
   };
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+    <TableControlFields>
       <Checkbox
         styles={checkboxStyles}
         checked={value !== false}
-        onChange={(e) =>
-          updateValue(e.target.checked ? { ...options } : false)
-        }
+        onChange={(e) => updateValue(e.target.checked ? { ...options } : false)}
       >
         Show pagination
       </Checkbox>
       {value !== false && (
-        <>
-          <label style={rowStyle}>
-            Page size{" "}
-            <Input
-              type="number"
-              style={inputStyle}
-              aria-label="Page size"
-              min={1}
-              step={1}
-              value={options.pageSize ?? options.defaultPageSize ?? ""}
-              placeholder="10"
-              onChange={(e) => {
-                if (!e.target.validity.valid) {
-                  return;
-                }
-                update(
-                  options.pageSize !== undefined
-                    ? "pageSize"
-                    : "defaultPageSize",
-                  e.target.value === "" ? null : Number(e.target.value),
-                );
-              }}
-            />
-          </label>
-          <Checkbox
-            styles={checkboxStyles}
-            checked={
-              options.showSizeChanger ??
-              (options.total ?? componentProps?.data?.data?.length ?? 0) > 50
-            }
-            onChange={(e) => update("showSizeChanger", e.target.checked)}
-          >
-            Show size changer
-          </Checkbox>
-          <Checkbox
-            styles={checkboxStyles}
-            checked={options.showQuickJumper ?? false}
-            onChange={(e) => update("showQuickJumper", e.target.checked)}
-          >
-            Show quick jumper
-          </Checkbox>
-        </>
+        <label style={rowStyle}>
+          Page size{" "}
+          <Input
+            type="number"
+            style={inputStyle}
+            aria-label="Page size"
+            min={1}
+            step={1}
+            value={options.pageSize ?? options.defaultPageSize ?? ""}
+            placeholder="10"
+            onChange={(e) => {
+              if (!e.target.validity.valid) {
+                return;
+              }
+              update(
+                options.pageSize !== undefined ? "pageSize" : "defaultPageSize",
+                e.target.value === "" ? null : Number(e.target.value),
+              );
+            }}
+          />
+        </label>
       )}
-    </div>
+      {value !== false && (
+        <Checkbox
+          styles={checkboxStyles}
+          checked={
+            options.showSizeChanger ??
+            (options.total ?? componentProps?.data?.data?.length ?? 0) > 50
+          }
+          onChange={(e) => update("showSizeChanger", e.target.checked)}
+        >
+          Show size changer
+        </Checkbox>
+      )}
+      {value !== false && (
+        <Checkbox
+          styles={checkboxStyles}
+          checked={options.showQuickJumper ?? false}
+          onChange={(e) => update("showQuickJumper", e.target.checked)}
+        >
+          Show quick jumper
+        </Checkbox>
+      )}
+    </TableControlFields>
   );
 }
 
@@ -115,7 +140,7 @@ export function TableScrollControl({
     updateValue(result);
   };
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+    <TableControlFields>
       <label style={rowStyle}>
         <Tooltip title="Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling.">
           <span>x</span>
@@ -152,6 +177,6 @@ export function TableScrollControl({
           }}
         />
       </label>
-    </div>
+    </TableControlFields>
   );
 }

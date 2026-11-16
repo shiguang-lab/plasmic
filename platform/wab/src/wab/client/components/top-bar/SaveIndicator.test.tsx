@@ -80,6 +80,8 @@ it("shows local protection as a warning and explains recovery on hover", async (
     name: "Saved on this device",
   });
   expect(indicator.getAttribute("data-save-state")).toBe("local");
+  expect(indicator.textContent).toBe("");
+  expect(indicator.querySelector(".save-indicator-dot")).toBeTruthy();
   expect(screen.queryByText(/Your edits are backed up/)).toBeNull();
   fireEvent.mouseEnter(indicator);
   expect((await screen.findByRole("tooltip")).textContent).toContain(
@@ -135,7 +137,8 @@ it.each([
   renderIndicator();
   const indicator = screen.getByRole("status", { name: label });
   expect(indicator.getAttribute("data-save-state")).toBe(status);
-  expect(indicator.textContent).toBe(label);
+  expect(indicator.textContent).toBe("");
+  expect(indicator.querySelector(".save-indicator-dot")).toBeTruthy();
 });
 
 it("retries errors only when saving is allowed", async () => {

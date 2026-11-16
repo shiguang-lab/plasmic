@@ -1,5 +1,6 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Select } from "antd";
+import type { SelectSemanticType } from "antd/es/select";
 import cls from "classnames";
 import React from "react";
 import {
@@ -10,6 +11,7 @@ import {
   optionGroupComponentName,
   selectComponentName,
 } from "./names";
+import { semanticAppearance } from "./semantic-appearance";
 import {
   Registerable,
   registerComponentHelper,
@@ -84,6 +86,23 @@ export function registerSelect(loader?: Registerable) {
     canvasOverlay,
     displayName: "Select",
     props: {
+      ...semanticAppearance({
+        root: "Select container",
+        content: "Selected content",
+        placeholder: "Placeholder",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        input: "Search input",
+        item: "Selected item",
+        itemContent: "Selected item content",
+        itemRemove: "Selected item remove icon",
+        clear: "Clear icon",
+        popup: {
+          root: "Popup container",
+          list: "Option list",
+          listItem: "List option",
+        } satisfies Record<keyof NonNullable<NonNullable<SelectSemanticType["classNames"]>["popup"]>, string>,
+      } satisfies Record<keyof NonNullable<SelectSemanticType["classNames"]>, string | Record<string, string>>),
       options: {
         type: "array",
         hidden: (ps: any) => !!ps.useChildren,

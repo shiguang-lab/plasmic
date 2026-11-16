@@ -20,11 +20,12 @@ import { FiChevronDown } from "react-icons/fi";
 const useStyles = createStyles(({ token }) => ({
   trigger: {
     "&.ant-btn": {
+      flex: 1,
       height: 28,
-      minWidth: 68,
+      minWidth: 0,
       padding: "0 7px",
       border: "1px solid transparent",
-      borderRadius: 5,
+      borderRadius: 14,
       boxShadow: "none",
       fontSize: 12,
       fontVariantNumeric: "tabular-nums",

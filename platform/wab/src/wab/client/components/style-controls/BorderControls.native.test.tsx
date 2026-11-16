@@ -2,6 +2,7 @@ import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { BorderPanelSection, BorderRadiusSection } from "@/wab/client/components/style-controls/BorderControls";
+import indicatorStyles from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
 import { SingleRsExpsProvider, StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
@@ -50,13 +51,25 @@ it("renders native side/corner values and preserves the original selected-side a
   const f = await setup(), mounted = render(f.panel());
   try {
     expect(screen.getByDisplayValue("1px")).toBeTruthy(); expect(screen.getByDisplayValue("4px")).toBeTruthy();
+    const stroke = ensure(screen.getByText("Stroke").closest(".SidebarSection__Container"), "Stroke section");
+    const strokeIndicator = `.${indicatorStyles["DefinedIndicator--set"]}`;
+    expect(stroke.querySelectorAll(strokeIndicator)).toHaveLength(1);
+    for (const field of [screen.getByRole("button", { name: "Stroke color" }), screen.getByDisplayValue("1px")]) {
+      const row = ensure(field.closest('[data-plasmic-role="labeled-item"]'), "Stroke field");
+      expect(row.querySelector(strokeIndicator)).toBeNull();
+    }
+    expect(screen.queryByRole("button", { name: "Top border" })).toBeNull();
     await act(async () => { await f.studio.changeUnsafe(() => { f.exp.set("border-top-width", "5px"); f.exp.set("border-top-left-radius", "9px"); }); });
+    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Top border" }));
+    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
     const width = screen.getByDisplayValue("5px");
     fireEvent.change(width, { target: { value: "8px" } }); fireEvent.keyDown(width, { key: "Enter" });
     await waitFor(() => expect(f.exp.get("border-top-width")).toBe("8px"));
     expect(f.exp.get("border-right-width")).toBe("1px");
+    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Right border" }));
+    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
     expect(screen.getByDisplayValue("1px")).toBeTruthy(); expect(f.exp.get("border-top-width")).toBe("8px");
     fireEvent.click(screen.getByRole("button", { name: "Top-left corner" }));
     const radius = screen.getByDisplayValue("9px");
@@ -79,9 +92,9 @@ it("leases the captured tag only at commit, updates native default borders and d
   expect(active).toBe(0); abandoned.unmount();
   const mounted = render(f.panel());
   try {
-    expect(screen.queryByRole("button", { name: "Top border" })).toBeNull(); expect(active).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Stroke settings" })).toBeNull(); expect(active).toBeGreaterThan(0);
     await act(async () => { await f.studio.changeUnsafe(() => { f.root.tag = "input"; }); });
-    expect(screen.getByRole("button", { name: "Top border" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Stroke settings" })).toBeTruthy();
     await act(async () => { f.studio.disposeViewCtx(f.view); }); expect(active).toBe(0);
     await act(async () => { await f.studio.changeUnsafe(() => { f.root.tag = "div"; }); });
     mounted.rerender(f.panel()); expect(active).toBe(0);
@@ -109,5 +122,44 @@ it("preserves the original provider rejection of a foreign tag before creating i
     // is constructed; preserve that original admission invariant.
     expect(screen.getByTestId("border-error").textContent).toContain("getComponentFrame did not return a valid frame");
     expect(fields.mock.calls.some(([model]) => model === foreign.tplTree)).toBe(false);
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+it("distinguishes inherited stroke from none and restores the base stroke without changing it", async () => {
+  const f = await setup(true);
+  await f.studio.changeUnsafe(() => {
+    const exp = f.provider.targetExp();
+    standardSides.forEach((side) => {
+      exp.set(`border-${side}-style`, "solid");
+      exp.set(`border-${side}-width`, "3px");
+    });
+  });
+  const readBase = () => standardSides.map((side) => [
+    f.provider.targetExp().getRaw(`border-${side}-style`),
+    f.provider.targetExp().getRaw(`border-${side}-width`),
+  ]);
+  const base = readBase();
+  const [variant] = await f.studio.changeUnsafe(() => f.manager.createStyleVariant(f.component, [":hover"]));
+  await act(async () => { await f.studio.changeUnsafe(() => {
+    f.view.currentComponentStackFrame().setTargetVariants([variant]);
+  }); });
+  await waitFor(() => expect(f.studio.isSelectionPending).toBe(false));
+  const provider = new TplExpsProvider(f.view, f.root);
+  expect(provider.canEdit()).toBe(true);
+  const mounted = render(f.wrap(<BorderPanelSection expsProvider={provider} vsh={f.vsh} />));
+  try {
+    fireEvent.click(screen.getByRole("button", { name: "Stroke: Default" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "None" }));
+    await screen.findByRole("button", { name: "Stroke: None" });
+    expect(screen.queryByRole("button", { name: "Stroke settings" })).toBeNull();
+    standardSides.forEach((side) => expect(provider.targetExp().getRaw(`border-${side}-style`)).toBe("none"));
+    fireEvent.click(screen.getByRole("button", { name: "Stroke: None" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Restore default" }));
+    await screen.findByRole("button", { name: "Stroke: Default" });
+    expect(screen.getByRole("button", { name: "Stroke settings" })).toBeTruthy();
+    expect(screen.getByDisplayValue("3px")).toBeTruthy();
+    standardSides.forEach((side) => expect(provider.maybeTargetExp()?.has(`border-${side}-style`) ?? false).toBe(false));
+    await act(async () => { await f.studio.changeUnsafe(() => f.view.currentComponentStackFrame().setTargetVariants([])); });
+    expect(readBase()).toEqual(base);
   } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });

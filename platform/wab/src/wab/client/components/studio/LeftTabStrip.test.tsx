@@ -25,8 +25,6 @@ const mocks = vi.hoisted(() => ({
   ctx: undefined as any,
   toggleAi: vi.fn().mockResolvedValue(undefined),
   getUiConfig: vi.fn(),
-  importFigmaFile: vi.fn().mockResolvedValue(undefined),
-  importPenFile: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => mocks.ctx,
@@ -36,12 +34,6 @@ vi.mock("@/wab/client/i18n", () => ({
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useTopFrameApi: () => ({ toggleCopilotChat: mocks.toggleAi }),
-}));
-vi.mock("@/wab/client/figma-importer/import-file", () => ({
-  importFigmaFile: mocks.importFigmaFile,
-}));
-vi.mock("@/wab/client/pen-importer/import-file", () => ({
-  importPenFile: mocks.importPenFile,
 }));
 vi.mock("@/wab/client/components/widgets", () => ({}));
 vi.mock("@/wab/client/components/ui/layout-styles", () => ({
@@ -74,8 +66,6 @@ vi.mock("@/wab/client/components/studio/LeftTabButton", () => ({
 beforeEach(() => {
   mocks.toggleAi.mockClear();
   mocks.getUiConfig.mockClear().mockImplementation(() => mocks.ctx.config);
-  mocks.importFigmaFile.mockClear();
-  mocks.importPenFile.mockClear();
   const tools = createStore<"select" | "pan">(() => "select");
   const tabs = createStore<"store" | "imports">(() => "imports");
   const leftPanelState = new StudioLeftPanelState();
@@ -182,66 +172,8 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); mocks.ctx.modelSnapshots.dispose(); });
 it.each([false, true])(
-  "places Pen import immediately after Figma in web and Desktop (Desktop: %s)",
+  "omits Figma, Pen, and web import entries from the left tool rail and More menu (Desktop: %s)",
   async (desktop) => {
-    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
-      desktop ? "PlasmicDesktop/darwin" : "Mozilla/5.0",
-    );
-    render(<LeftTabStrip useVersionsCTA={false} />);
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    const pen = await screen.findByRole("button", { name: "Import from Pen" });
-    const labels = screen
-      .getAllByRole("button")
-      .map((button) => button.textContent);
-    expect(labels.indexOf("Import from Pen")).toBe(
-      labels.indexOf("Import from Figma") + 1,
-    );
-    fireEvent.click(pen);
-    await waitFor(() =>
-      expect(mocks.importPenFile).toHaveBeenCalledExactlyOnceWith(mocks.ctx),
-    );
-    vi.restoreAllMocks();
-  },
-);
-it.each([false, true])(
-  "imports .fig from the existing Figma entry in web and Desktop (Desktop: %s)",
-  async (desktop) => {
-    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
-      desktop ? "PlasmicDesktop/darwin" : "Mozilla/5.0",
-    );
-    render(<LeftTabStrip useVersionsCTA={false} />);
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    const input = screen.getByLabelText("Import from Figma", {
-      selector: "input",
-    });
-    const click = vi.spyOn(input, "click");
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Import from Figma" }),
-    );
-    expect(click).toHaveBeenCalledOnce();
-    expect(input).toHaveAttribute("type", "file");
-    expect(input).toHaveAttribute("accept", ".fig");
-    const file = new File(["fig-kiwi"], "Design.fig");
-    fireEvent.change(input, { target: { files: [file] } });
-    await waitFor(() =>
-      expect(mocks.importFigmaFile).toHaveBeenCalledWith(mocks.ctx, file),
-    );
-    expect(input).toHaveValue("");
-    vi.restoreAllMocks();
-  },
-);
-
-it("does nothing when the Figma file chooser is cancelled", async () => {
-  render(<LeftTabStrip useVersionsCTA={false} />);
-  fireEvent.change(
-    screen.getByLabelText("Import from Figma", { selector: "input" }),
-    { target: { files: [] } },
-  );
-  expect(mocks.importFigmaFile).not.toHaveBeenCalled();
-});
-it.each([false, true])(
-  "shows web import only in Desktop and before More (Desktop: %s)",
-  (desktop) => {
     vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
       desktop
         ? "PlasmicDesktop/darwin"
@@ -249,20 +181,17 @@ it.each([false, true])(
     );
     try {
       render(<LeftTabStrip useVersionsCTA={false} />);
-      const entry = screen.queryByRole("button", {
-        name: "Import from the web",
-      });
-      if (desktop) {
-        const labels = screen
-          .getAllByRole("button")
-          .map((button) => button.textContent);
-        expect(entry).toBeTruthy();
-        expect(labels.indexOf("More")).toBe(
-          labels.indexOf("Import from the web") + 1,
-        );
-      } else {
-        expect(entry).toBeNull();
-      }
+      expect(
+        screen.queryByRole("button", { name: "Import from the web" }),
+      ).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "More" }));
+      await screen.findByRole("button", { name: "Expressions" });
+      expect(
+        screen.queryByRole("button", { name: "Import from Figma" }),
+      ).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: "Import from Pen" }),
+      ).toBeNull();
     } finally {
       vi.restoreAllMocks();
     }

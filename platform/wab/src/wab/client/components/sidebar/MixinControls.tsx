@@ -1,13 +1,13 @@
 import { useStore } from "zustand";
 import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
+import { AppearancePanelSection } from "@/wab/client/components/sidebar-tabs/AppearancePanelSection";
+import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
 import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
-import { LayoutSection } from "@/wab/client/components/sidebar-tabs/LayoutSection";
+import { LayoutPanelSection } from "@/wab/client/components/sidebar-tabs/LayoutPanelSection";
 import { ListStyleSection } from "@/wab/client/components/sidebar-tabs/ListStyleSection";
 import { PositioningPanelSection } from "@/wab/client/components/sidebar-tabs/PositioningSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
-import { SizeSection } from "@/wab/client/components/sidebar-tabs/SizeSection";
-import { SpacingSection } from "@/wab/client/components/sidebar-tabs/SpacingSection";
 import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import { TransitionsPanelSection } from "@/wab/client/components/sidebar-tabs/TransitionsSection";
 import { TypographySection } from "@/wab/client/components/sidebar-tabs/TypographySection";
@@ -20,10 +20,7 @@ import {
   VirtualGroupedList,
 } from "@/wab/client/components/sidebar/VirtualGroupedList";
 import { useDepFilterButton } from "@/wab/client/components/sidebar/left-panel-utils";
-import {
-  BorderPanelSection,
-  BorderRadiusSection,
-} from "@/wab/client/components/style-controls/BorderControls";
+import { BorderPanelSection } from "@/wab/client/components/style-controls/BorderControls";
 import { OutlinePanelSection } from "@/wab/client/components/style-controls/OutlineControls";
 import {
   SingleRsExpsProvider,
@@ -51,6 +48,7 @@ import {
   VariantedRuleSetHelpers,
 } from "@/wab/shared/RuleSetHelpers";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
+import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { ensure, spawn, tuple } from "@/wab/shared/common";
 import { extractTransitiveDepsFromMixins } from "@/wab/shared/core/project-deps";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
@@ -188,6 +186,7 @@ export interface MixinPopupProps {
   show: boolean;
   onClose: () => void;
   autoFocusTitle?: boolean;
+  readOnly?: boolean;
 }
 
 const iconClass = "mixin-fg custom-svg-icon--lg monochrome-exempt";
@@ -239,6 +238,7 @@ export const MixinPopup = React.memo(function MixinPopup(props: MixinPopupProps)
         themeTag={themeTag}
         panelSelection={isDefaultThemeStyle ? { typography: true } : undefined}
         inheritableTypographyPropsOnly={isDefaultThemeStyle}
+        readOnly={props.readOnly}
       />
     </SidebarModal>
   );
@@ -253,6 +253,7 @@ export const MixinFormContent = React.memo(function MixinFormContent(props: {
   inheritableTypographyPropsOnly: boolean;
   warnOnRelativeFontUnits?: boolean;
   targetGlobalVariants?: Variant[];
+  readOnly?: boolean;
 }) {
   const {
     studioCtx,
@@ -262,6 +263,7 @@ export const MixinFormContent = React.memo(function MixinFormContent(props: {
     inheritableTypographyPropsOnly,
     targetGlobalVariants,
     warnOnRelativeFontUnits,
+    readOnly = false,
   } = props;
 
   const inputs = useMixinModelInputs(studioCtx, mixin);
@@ -290,6 +292,51 @@ export const MixinFormContent = React.memo(function MixinFormContent(props: {
 
   const styleComponent = createStyleTarget({ expsProvider });
   const s = panelSelection;
+  const boxEnabledSections: PublicStyleSection[] | boolean | undefined = s
+    ? (() => {
+        const list: PublicStyleSection[] = [];
+        if (s.sizing) {
+          list.push(PublicStyleSection.Sizing);
+        }
+        if (s.spacing) {
+          list.push(PublicStyleSection.Spacing);
+        }
+        if (s.border) {
+          list.push(PublicStyleSection.Border);
+        }
+        return list.length > 0 ? list : false;
+      })()
+    : undefined;
+  const layoutEnabledSections: PublicStyleSection[] | boolean | undefined = s
+    ? (() => {
+        const list: PublicStyleSection[] = [];
+        if (s.sizing) {
+          list.push(PublicStyleSection.Sizing);
+        }
+        if (s.spacing) {
+          list.push(PublicStyleSection.Spacing);
+        }
+        if (s.container) {
+          list.push(PublicStyleSection.Layout);
+        }
+        return list.length > 0 ? list : false;
+      })()
+    : undefined;
+  const appearanceEnabledSections: PublicStyleSection[] | boolean | undefined = s
+    ? (() => {
+        const list: PublicStyleSection[] = [];
+        if (s.visibility) {
+          list.push(PublicStyleSection.Visibility);
+        }
+        if (s.border) {
+          list.push(PublicStyleSection.Border);
+        }
+        if (s.effect) {
+          list.push(PublicStyleSection.Effects);
+        }
+        return list.length > 0 ? list : false;
+      })()
+    : undefined;
 
   return providesStyleTarget(styleComponent)(
     <>
@@ -321,21 +368,36 @@ export const MixinFormContent = React.memo(function MixinFormContent(props: {
         <ListStyleSection expsProvider={expsProvider} />
       )}
 
-      {(!s || s.sizing) && (
-        <SizeSection expsProvider={expsProvider} vsh={vsh} />
-      )}
+      <BoxGeometrySection
+        expsProvider={expsProvider}
+        vsh={vsh}
+        enabledStyleSections={boxEnabledSections}
+        readOnly={readOnly}
+      />
 
       {(!s || s.position) && (
-        <PositioningPanelSection expsProvider={expsProvider} />
+        <PositioningPanelSection
+          expsProvider={expsProvider}
+          vsh={vsh}
+          readOnly={readOnly}
+          showTransformQuickBar={!s || !!s.transform}
+        />
       )}
 
-      {(!s || s.spacing) && (
-        <SpacingSection expsProvider={expsProvider} vsh={vsh} />
-      )}
+      <LayoutPanelSection
+        expsProvider={expsProvider}
+        vsh={vsh}
+        enabledStyleSections={layoutEnabledSections}
+        readOnly={readOnly}
+        allowConvert
+      />
 
-      {(!s || s.container) && (
-        <LayoutSection expsProvider={expsProvider} vsh={vsh} allowConvert />
-      )}
+      <AppearancePanelSection
+        expsProvider={expsProvider}
+        vsh={vsh}
+        enabledStyleSections={appearanceEnabledSections}
+        readOnly={readOnly}
+      />
 
       {(!s || s.background) && (
         <BackgroundSection expsProvider={expsProvider} vsh={vsh} />
@@ -343,10 +405,6 @@ export const MixinFormContent = React.memo(function MixinFormContent(props: {
 
       {(!s || s.border) && (
         <BorderPanelSection expsProvider={expsProvider} vsh={vsh} />
-      )}
-
-      {(!s || s.border) && (
-        <BorderRadiusSection expsProvider={expsProvider} vsh={vsh} />
       )}
 
       {(!s || s.outline) && <OutlinePanelSection />}

@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
@@ -18,6 +19,12 @@ function registerSegmented(loader) {
     name: segmentedComponentName,
     displayName: "Segmented",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        icon: "Icon",
+        label: "Label",
+        item: "Item"
+      }),
       options: {
         type: "array",
         description: "Antd options: strings, numbers, or objects with label, value and disabled.",

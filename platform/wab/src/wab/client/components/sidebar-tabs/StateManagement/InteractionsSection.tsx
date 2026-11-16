@@ -32,6 +32,7 @@ import {
 import { HighlightInteractionRequest } from "@/wab/shared/code-components/code-components";
 
 import { PropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
+import styles from "@/wab/client/components/sidebar-tabs/StateManagement/InteractionsSection.module.scss";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { DefaultInteractionsSectionProps } from "@/wab/client/plasmic/plasmic_kit_state_management/PlasmicInteractionsSection";
@@ -112,6 +113,7 @@ function InteractionsSection_(props: InteractionsSectionProps) {
   return (
     <SidebarSection
       id="component-interactions-section"
+      className={styles.root}
       title={uiT("Interactions")}
       controls={
         <AddHandlerFunctionButton
@@ -159,6 +161,7 @@ function InteractionsSection_(props: InteractionsSectionProps) {
             viewCtx={vc}
             tpl={tpl}
             label={getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl })}
+            tooltip={getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl })}
             attr={getNameOfEventHandlerKey(eventHandlerKey)}
             definedIndicator={defined}
             disableDynamicValue

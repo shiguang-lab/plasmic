@@ -223,6 +223,7 @@ export function makeTplMenu(
   onMenuClick?: () => void,
   opts?: {
     fromTplTreePanel?: boolean;
+    appendExtraSections?: (builder: MenuBuilder) => void;
   },
 ) {
   if (isCodeComponentRoot(tpl) || isCodeComponentSlot(tpl)) {
@@ -1044,6 +1045,8 @@ export function makeTplMenu(
       );
     });
   }
+
+  opts?.appendExtraSections?.(builder);
 
   return builder.build({ onMenuClick, menuName: "tpl-menu" });
 }

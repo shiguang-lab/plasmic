@@ -2,6 +2,7 @@ import { jsx } from 'react/jsx-runtime';
 import { Radio } from 'antd';
 import React from 'react';
 import { r as radioGroupComponentName, e as radioComponentName, f as radioButtonComponentName } from './names-DQIzgrvq.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -57,7 +58,15 @@ function registerRadio(loader) {
           }
         ],
         ...{ mergeWithParent: true }
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Radio container",
+          icon: "Radio indicator",
+          label: "Label"
+        },
+        { advanced: true }
+      )
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerRadio",
     importName: "AntdRadio",
@@ -199,7 +208,16 @@ function registerRadio(loader) {
       onChange: {
         type: "eventHandler",
         argTypes: [{ name: "value", type: "string" }]
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Radio group container",
+          item: "Radio item",
+          itemIcon: "Item indicator",
+          itemLabel: "Item label"
+        },
+        { advanced: true }
+      )
     },
     states: {
       value: {

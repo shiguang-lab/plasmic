@@ -1,4 +1,5 @@
 import { jsx, Fragment } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Menu } from 'antd';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import { r as renderCanvasSlot } from './canvas-overlay-BS6_0gNM.esm.js';
@@ -149,6 +150,24 @@ function registerMenu(loader) {
     name: "plasmic-antd6-menu",
     displayName: "Menu",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        itemTitle: "Item Title",
+        list: "List",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+        popup: {
+          root: "Root"
+        },
+        subMenu: {
+          item: "Item",
+          itemTitle: "Item Title",
+          list: "List",
+          itemContent: "Item Content",
+          itemIcon: "Item Icon"
+        }
+      }),
       expandIcon: {
         type: "slot",
         hidePlaceholder: true

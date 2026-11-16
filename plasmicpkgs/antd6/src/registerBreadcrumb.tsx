@@ -1,3 +1,5 @@
+import type { BreadcrumbSemanticType } from "antd/es/breadcrumb/Breadcrumb";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import type { BreadcrumbItemProps, BreadcrumbProps } from "antd";
 import { Breadcrumb } from "antd";
 import React from "react";
@@ -44,6 +46,11 @@ export function registerBreadcrumb(loader?: Registerable) {
     name: breadcrumbComponentName,
     displayName: "Breadcrumb",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        item: "Item",
+        separator: "Separator",
+      } satisfies SemanticPartLabels<BreadcrumbSemanticType["classNames"]>),
       itemsRaw: {
         type: "slot",
         displayName: "items",

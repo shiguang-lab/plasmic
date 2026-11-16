@@ -3,6 +3,7 @@ import { DatePicker } from 'antd';
 import cls from 'classnames';
 import dayjs from 'dayjs';
 import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper, c as capitalize } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
 import 'react';
@@ -173,7 +174,25 @@ function registerDatePicker(loader) {
         type: "boolean",
         advanced: true,
         description: "Whether to show the clear button"
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Picker container",
+          prefix: "Prefix",
+          input: "Input",
+          suffix: "Suffix",
+          popup: {
+            root: "Popup root",
+            container: "Popup container",
+            header: "Popup header",
+            body: "Popup body",
+            content: "Popup content",
+            item: "Calendar cell",
+            footer: "Popup footer"
+          }
+        },
+        { advanced: true }
+      )
     },
     states: {
       value: {

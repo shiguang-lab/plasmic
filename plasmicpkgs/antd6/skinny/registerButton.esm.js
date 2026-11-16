@@ -2,6 +2,7 @@ import { jsx } from 'react/jsx-runtime';
 import { Button } from 'antd';
 import React from 'react';
 import { d as buttonComponentName } from './names-DQIzgrvq.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -140,6 +141,14 @@ function getButtonProps() {
       type: "slot",
       hidePlaceholder: true
     },
+    ...semanticAppearance(
+      {
+        root: "Button container",
+        icon: "Icon",
+        content: "Content"
+      },
+      { advanced: true }
+    ),
     onClick: {
       type: "eventHandler",
       argTypes: []

@@ -90,6 +90,9 @@ if (window.top === window) {
     open: () => ipcRenderer.invoke("desktop:open-reference-browser"),
     openPreview: (url) => ipcRenderer.invoke("desktop:open-preview", url),
   });
+  contextBridge.exposeInMainWorld("desktopEditorView", {
+    setMenuState: (state) => ipcRenderer.send("desktop:editor-view-menu-state", state),
+  });
   window.addEventListener("DOMContentLoaded", () => {
     document.documentElement.inert = !viewActive;
     const appearance = document.documentElement.dataset.uiAppearance;

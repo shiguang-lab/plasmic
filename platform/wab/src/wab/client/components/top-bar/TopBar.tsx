@@ -1,11 +1,9 @@
 import { useTopBarInputs } from "@/wab/client/components/top-bar/top-bar-inputs";
 import { useStore } from "zustand";
-import { getUploadedFile } from "@/wab/client/dom-utils";
 import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
-import { EditorHistoryControls } from "@/wab/client/components/top-bar/EditorHistoryControls";
 import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
 import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
 import { EditorBrandGroup } from "@/wab/client/components/top-bar/EditorBrandGroup";
@@ -20,16 +18,12 @@ import {
   MenuBuilder,
   TextAndShortcut,
 } from "@/wab/client/components/menu-builder";
-import {
-  AnonymousAvatar,
-  AvatarGallery,
-} from "@/wab/client/components/studio/Avatar";
+import { AvatarGallery } from "@/wab/client/components/studio/Avatar";
 import { OnlineCollaborators } from "@/wab/client/components/studio/OnlineCollaborators";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import LivePopOutButton from "@/wab/client/components/top-bar/LivePopOutButton";
 import PublishButton from "@/wab/client/components/top-bar/PublishButton";
 import styles from "@/wab/client/components/top-bar/TopBar.module.scss";
-import ViewButton from "@/wab/client/components/top-bar/ViewButton";
 import { useShareDialog } from "@/wab/client/components/top-bar/useShareDialog";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
@@ -60,7 +54,6 @@ import {
   canPublishProject,
   getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { fixPageHrefsToLocal } from "@/wab/shared/utils/split-site-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Menu, Popover, Tooltip, theme as AntdTheme, message } from "antd";
@@ -204,117 +197,6 @@ function TopBarContent({ preview }: TopBarProps) {
     ? () => {
         const builder = new MenuBuilder();
         builder.genSection(undefined, () => {
-          builder.genSection(undefined, (push2) => {
-            if (
-              studioCtx.canEditProject() &&
-              canEditProjectConfig(uiConfig, "rename")
-            ) {
-              push2(
-                <Menu.Item
-                  key="rename"
-                  onClick={() => topFrameApi.setShowProjectNameModal(true)}
-                >
-                  {t("Rename project")}
-                </Menu.Item>,
-              );
-            }
-
-            {
-              push2(
-                <Menu.Item
-                  key="duplicate"
-                  onClick={() => topFrameApi.setShowCloneProjectModal(true)}
-                >
-                  {t("Duplicate project")}
-                </Menu.Item>,
-              );
-            }
-
-            {
-              push2(
-                <Menu.Item
-                  key="export-plasmic"
-                  onClick={async () => {
-                    return await (async () => {
-                      if (studioCtx.canEditProject()) {
-                        await studioCtx.save();
-                      }
-                      await appCtx.ops?.exportPlasmicFile(
-                        studioCtx.siteInfo.id,
-                        studioCtx.siteInfo.name,
-                      );
-                    })().catch(async () => {
-                      void message.error({
-                        content: t("Failed to export .plasmic file"),
-                      });
-                    });
-                  }}
-                >
-                  {t("Export .plasmic")}
-                </Menu.Item>,
-              );
-            }
-
-            {
-              push2(
-                <Menu.Item
-                  key="import-plasmic"
-                  onClick={() => {
-                    getUploadedFile(
-                      async (content: string, file?: File) => {
-                        return await (async () => {
-                          if (!file?.name.toLowerCase().endsWith(".plasmic")) {
-                            throw new Error(t("Please select a valid .plasmic file."));
-                          }
-                          const parsed = JSON.parse(content);
-                          if (
-                            !parsed ||
-                            (typeof parsed !== "object" && !Array.isArray(parsed))
-                          ) {
-                            throw new Error(
-                              t("Please select a valid .plasmic file."),
-                            );
-                          }
-                          const suggestedName = file.name.replace(
-                            /\.plasmic$/i,
-                            "",
-                          );
-                          const result = await appCtx.api.importProject(
-                            content,
-                            {
-                              projectName: suggestedName,
-                              workspaceId:
-                                studioCtx.siteInfo.workspaceId ?? undefined,
-                            },
-                          );
-                          void message.success({
-                            content: t("Imported project successfully"),
-                          });
-                          window.location.href = APP_ROUTES.project.fill({
-                            projectId: result.projectId,
-                          });
-                        })().catch(async (error) => {
-                          void message.error({
-                            content:
-                              error instanceof Error &&
-                              error.message.includes(
-                                t("Please select a valid .plasmic file."),
-                              )
-                                ? t("Please select a valid .plasmic file.")
-                                : t("Failed to import .plasmic file"),
-                          });
-                        });
-                      },
-                      { accept: ".plasmic" },
-                    );
-                  }}
-                >
-                  {t("Import .plasmic")}
-                </Menu.Item>,
-              );
-            }
-          });
-
           if (studioCtx.canEditProject() && !studioCtx.contentEditorMode) {
             builder.genSection(
               <UiText message={"Configuration"} />,
@@ -611,7 +493,7 @@ function TopBarContent({ preview }: TopBarProps) {
                 <EditorIconAction
                   action="Published versions"
                   className="editor-history-action"
-                  type="text"
+                  type="link"
                   title={t("Published versions")}
                   disabled={
                     !appCtx.selfInfo ||
@@ -632,12 +514,6 @@ function TopBarContent({ preview }: TopBarProps) {
               children
             ) : (
               <div className="editor-primary-actions">
-                {!preview && (
-                  <>
-                    <EditorHistoryControls />
-                    <span className="editor-action-divider" />
-                  </>
-                )}
                 <Tooltip
                   trigger={["hover", "focus"]}
                   title={
@@ -685,18 +561,28 @@ function TopBarContent({ preview }: TopBarProps) {
                 </Tooltip>
                 <LivePopOutButton iconOnly />
                 <span className="editor-action-divider" />
-                <ViewButton />
                 <PublishButton
                   enable={
                     studioCtx.canEditProject() && canPublishProject(uiConfig)
                   }
                 />
                 <span className="editor-action-divider" />
-                <OnlineCollaborators studioCtx={studioCtx} />
-                {appCtx.selfInfo ? (
-                  <AvatarGallery users={[appCtx.selfInfo]} />
-                ) : (
-                  <AnonymousAvatar />
+                <OnlineCollaborators
+                  studioCtx={studioCtx}
+                  selfUser={appCtx.selfInfo}
+                  includeSelf
+                />
+                {navigator.userAgent.includes("PlasmicDesktop/") && (
+                  <Tooltip
+                    trigger={["hover", "focus"]}
+                    title={t("Import from the web")}
+                  >
+                    <EditorIconAction
+                      action="Import from the web"
+                      data-test-id="import-from-web-button"
+                      onClick={() => spawn(topFrameApi.openDesktopBrowser())}
+                    />
+                  </Tooltip>
                 )}
               </div>
             ),
@@ -763,7 +649,7 @@ function TopBarContent({ preview }: TopBarProps) {
             >
               <Button
                 ref={projectTriggerRef}
-                type="text"
+                type="link"
                 className="editor-project-trigger"
                 aria-label={t("Project menu")}
                 title={t("Project menu")}
@@ -836,7 +722,7 @@ function TopBarContent({ preview }: TopBarProps) {
         }}
         codeButton={{ render: () => null }}
         zoomButton={preview ? {} : { render: () => null }}
-        viewButton={{ render: preview ? undefined : () => null }}
+        viewButton={{ render: () => null }}
         shareButton={{ wrap: () => null }}
         commentButton={{
           wrap: preview && studioCtx.showComments() ? undefined : () => null,

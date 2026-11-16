@@ -78,22 +78,46 @@ it("reads frozen base-only raw rules in a cold View and installs targets and raw
   } finally { stopCommit(); stopField(); stop(); mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });
 
-it("preserves actual SingleRs transition edits and removes the original rule fields through the original commands", async () => {
+it("edits transitions in a popup instead of a sidebar modal and removes the original rule fields through the original commands", async () => {
   const f = await setup(true), mounted = render(f.panel());
   try {
-    fireEvent.click(screen.getByText("opacity"));
+    const header = ensure(mounted.container.querySelector('[data-plasmic-role="labeled-item"]'), "Transitions header");
+    expect(header.querySelector('[data-plasmic-name="menuButton"]')).toBeNull();
+    expect(screen.queryByText("Property")).toBeNull();
+    const trigger = screen.getByRole("button", { name: "Transition: opacity" });
+    expect(trigger.textContent).toContain("opacity");
+    expect(trigger.textContent).toContain("1s · ease");
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog", { name: "Transition" });
+    expect(dialog).toBeTruthy();
+    expect(document.querySelector('[data-test-id="sidebar-modal"]')).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "What to animate" }));
+    fireEvent.click(await screen.findByRole("option", { name: "transform" }));
+    await waitFor(() => expect(f.exp.getRaw("transition-property")).toBe("transform"));
+    expect(screen.getByRole("dialog", { name: "Transition" })).toBeTruthy();
     const duration = await screen.findByRole("textbox", { name: "Duration" });
     fireEvent.change(duration, { target: { value: "003s" } }); fireEvent.blur(duration);
     await waitFor(() => expect(f.exp.getRaw("transition-duration")).toBe("3s"));
-    expect(f.exp.getRaw("transition-property")).toBe("opacity");
+    expect(f.exp.getRaw("transition-property")).toBe("transform");
     const delay = screen.getByRole("textbox", { name: "Delay" });
     fireEvent.change(delay, { target: { value: "1s" } }); fireEvent.blur(delay);
     await waitFor(() => expect(f.exp.getRaw("transition-delay")).toBe("1s"));
-    fireEvent.click(ensure(document.querySelector('[data-test-id="close-sidebar-modal"]'), "Close transition panel"));
+    expect(screen.getByRole("button", { name: "Transition: transform" }).textContent).toContain("3s + 1s · ease");
+    fireEvent.keyDown(dialog, { key: "Escape" });
     await waitFor(() => expect(screen.queryByRole("textbox", { name: "Duration" })).toBeNull());
-    fireEvent.click(ensure(mounted.container.querySelector(".list-box-item__actions button"), "Original transition remove command"));
+    fireEvent.click(screen.getByRole("button", { name: "Remove transition" }));
     await waitFor(() => expect(f.exp.getRaw("transition-property")).toBeUndefined());
     expect(f.exp.getRaw("transition-duration")).toBeUndefined(); expect(f.exp.getRaw("transition-delay")).toBeUndefined();
+    fireEvent.click(header);
+    await act(async () => { await f.studio.awaitEval(); });
+    expect(f.exp.getRaw("transition-property")).toBeUndefined();
+    expect(screen.queryByRole("dialog", { name: "Transition" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Add transition" }));
+    expect(await screen.findByRole("dialog", { name: "Transition" })).toBeTruthy();
+    expect(document.querySelector('[data-test-id="sidebar-modal"]')).toBeNull();
+    expect(mounted.container.querySelectorAll('[data-test-id="drag-handle"][data-disabled="true"]')).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Add transition" }));
+    expect(mounted.container.querySelectorAll('[data-rfd-drag-handle-draggable-id] [data-test-id="drag-handle"]:not([data-disabled])')).toHaveLength(2);
   } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });
 
@@ -119,4 +143,29 @@ it("leases only committed frozen fields and preserves a captured old View result
     expect(changed).not.toHaveBeenCalled(); late();
     expect(screen.getByText("opacity")).toBeTruthy();
   } finally { stop(); mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+it("sets none and restores defaults in the base rules without editing the active variant or creating a none row", async () => {
+  const f = await setup();
+  await act(async () => { await f.studio.changeUnsafe(() => f.view.currentComponentStackFrame().setTargetVariants([f.variant])); });
+  const mounted = render(f.panel());
+  try {
+    fireEvent.click(screen.getByRole("button", { name: "Transitions: Custom" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "None" }));
+    await screen.findByRole("button", { name: "Transitions: None" });
+    expect(f.exp.getRaw("transition-property")).toBe("none");
+    expect(f.exp.getRaw("transition-duration")).toBeUndefined();
+    expect(screen.queryByRole("button", { name: "Transition: none" })).toBeNull();
+    expect(f.activeExp.getRaw("transition-property")).toBe("transform");
+    expect(f.activeExp.getRaw("transition-duration")).toBe("9s");
+    fireEvent.click(screen.getByRole("button", { name: "Add transition" }));
+    await screen.findByRole("button", { name: "Transition: all" });
+    expect(f.exp.getRaw("transition-property")).toBe("all");
+    fireEvent.keyDown(await screen.findByRole("dialog", { name: "Transition" }), { key: "Escape" });
+    fireEvent.click(screen.getByRole("button", { name: "Transitions: Custom" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Restore default" }));
+    await screen.findByRole("button", { name: "Transitions: Default" });
+    expect(f.exp.getRaw("transition-property")).toBeUndefined();
+    expect(f.exp.getRaw("transition-duration")).toBeUndefined();
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });

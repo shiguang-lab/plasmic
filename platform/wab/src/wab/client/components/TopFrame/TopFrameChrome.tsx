@@ -1,5 +1,6 @@
 import { TopFrameDialogs } from "@/wab/client/components/TopFrame/TopFrameDialogs";
 import { AppCtx } from "@/wab/client/app-ctx";
+import type { EditorFileActionInput } from "@/wab/client/frame-ctx/host-frame-api";
 import { desktopDraftBridge } from "@/wab/client/desktop-drafts";
 import { desktopComponentReuse } from "@/wab/client/desktop-component-reuse";
 import { isPlasmicPath } from "@/wab/client/cli-routes";
@@ -52,6 +53,10 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { assert, asyncWrapper, ensure, mkUuid, spawn } from "@/wab/shared/common";
 import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
+import type {
+  EditorViewMenuAction,
+  EditorViewMenuState,
+} from "@/wab/shared/desktop-view-menu";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { LocalizationConfig } from "@/wab/shared/localization";
 import { getAccessLevelToResource } from "@/wab/shared/perms";
@@ -164,6 +169,43 @@ export function TopFrameChrome(props: TopFrameChromeProps) {
     };
     return () => { delete target.desktopDraftAction; };
   }, [hostFrameApi, hostFrameApiReady]);
+  React.useEffect(() => {
+    const target = window as Window & {
+      desktopEditorViewAction?: (
+        action: EditorViewMenuAction,
+      ) => Promise<EditorViewMenuState | null>;
+      desktopEditorFileAction?: (
+        input: EditorFileActionInput,
+      ) => Promise<{ handled: boolean }>;
+    };
+    target.desktopEditorViewAction = async (action) => {
+      if (!hostFrameApiReady) {
+        return null;
+      }
+      return hostFrameApi.runEditorViewMenuAction(action);
+    };
+    target.desktopEditorFileAction = async (input) => {
+      if (!hostFrameApiReady) {
+        return { handled: false };
+      }
+      return hostFrameApi.runEditorFileAction(input);
+    };
+    return () => {
+      delete target.desktopEditorViewAction;
+      delete target.desktopEditorFileAction;
+    };
+  }, [hostFrameApi, hostFrameApiReady]);
+  React.useEffect(() => {
+    return () => {
+      (
+        window as Window & {
+          desktopEditorView?: {
+            setMenuState: (state: EditorViewMenuState | null) => void;
+          };
+        }
+      ).desktopEditorView?.setMenuState(null);
+    };
+  }, []);
   const location = useLocation();
   const fullPreview = !!APP_ROUTES.projectPresentation.parse(
     location.pathname,
@@ -634,6 +676,15 @@ export function useTopFrameState({
       onFileDragEventInHost: asyncWrapper((event) =>
         fileDragMonitor.onRemoteEvent(event),
       ),
+      setEditorViewMenuState: async (state) => {
+        (
+          window as Window & {
+            desktopEditorView?: {
+              setMenuState: (state: EditorViewMenuState | null) => void;
+            };
+          }
+        ).desktopEditorView?.setMenuState(state);
+      },
       setOnboardingTour: asyncWrapper(setOnboardingTour),
       pickDataSource: async (opts) => {
         return new Promise((resolve) => {

@@ -17,9 +17,9 @@ import { VERT_MENU_ICON } from "@/wab/client/icons";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import EyeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Eye";
 import EyeClosedIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__EyeClosed";
+import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import SearchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Search";
-import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
 import DragGripIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__DragGrip";
 import UploadSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__UploadSvg";
 import { usesProductTheme } from "@/wab/client/ui-theme";
@@ -547,6 +547,7 @@ interface ListBoxItemProps {
   className?: string;
   showGrip?: boolean;
   showDelete?: boolean;
+  removeLabel?: string;
   showHide?: boolean;
   clickable?: boolean;
   truncate?: boolean;
@@ -558,6 +559,7 @@ interface ListBoxItemProps {
 
 export function ListBoxItem(props: ListBoxItemProps) {
   const dragId = React.useId();
+  const { t } = useI18n();
     const {
       index,
       className,
@@ -597,6 +599,7 @@ export function ListBoxItem(props: ListBoxItemProps) {
                 onKeyDown={(event) => {
                   if (
                     props.onClick &&
+                    event.target === event.currentTarget &&
                     isKeyHotkey("enter", event.nativeEvent)
                   ) {
                     props.onClick();
@@ -637,7 +640,10 @@ export function ListBoxItem(props: ListBoxItemProps) {
 
                   {showGrip && (
                     <div
-                      className={"list-box-item__handle opaque-on-group-hover"}
+                      className="list-box-item__handle"
+                      data-test-id="drag-handle"
+                      data-disabled={isDragDisabled || undefined}
+                      aria-hidden="true"
                     >
                       <Icon icon={DragGripIcon} />
                     </div>
@@ -649,12 +655,13 @@ export function ListBoxItem(props: ListBoxItemProps) {
                       onClick={(e) => swallowClick(e)}
                     >
                       {showDelete && (
-                        <button
-                          className={"icon-button opaque-on-group-hover"}
-                          type="button"
+                        <IconButton
+                          type="seamless"
+                          className="list-box-item__remove"
+                          tooltip={props.removeLabel ?? t("Remove")}
                           onClick={(ev) => {
+                            ev.stopPropagation();
                             onRemove();
-                            return ev.stopPropagation();
                           }}
                           disabled={disabled}
                           data-test-id={
@@ -663,8 +670,8 @@ export function ListBoxItem(props: ListBoxItemProps) {
                               : undefined
                           }
                         >
-                          <Icon icon={TrashIcon} />
-                        </button>
+                          <Icon icon={MinusIcon} />
+                        </IconButton>
                       )}
                       {menu && (
                         <IFrameAwareDropdownMenu menu={menu}>

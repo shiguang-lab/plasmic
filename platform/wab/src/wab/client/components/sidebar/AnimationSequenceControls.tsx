@@ -3,10 +3,11 @@ import { useStore } from "zustand";
 import { showError } from "@/wab/client/ErrorNotifications";
 import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
+import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
 import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
-import { SizeSection } from "@/wab/client/components/sidebar-tabs/SizeSection";
-import { SpacingSection } from "@/wab/client/components/sidebar-tabs/SpacingSection";
+import { LayoutPanelSection } from "@/wab/client/components/sidebar-tabs/LayoutPanelSection";
+import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import { TypographySection } from "@/wab/client/components/sidebar-tabs/TypographySection";
 import { BackgroundSection } from "@/wab/client/components/sidebar-tabs/background-section";
@@ -29,6 +30,11 @@ import {
   borderRadiusStyleProps,
   borderStyleProps,
 } from "@/wab/client/components/style-controls/BorderControls";
+import {
+  MARGIN_KEYS,
+  PADDING_KEYS,
+  RADIUS_KEYS,
+} from "@/wab/client/components/style-controls/BoxGeometryCard";
 import { KeyFrameStops } from "@/wab/client/components/style-controls/KeyFrameStops";
 import { OpacityControl } from "@/wab/client/components/style-controls/OpacityControl";
 import {
@@ -291,22 +297,28 @@ function AnimationSequenceStylePanelSections({
 
           {renderMaybeCollapsibleRows([
             {
-              collapsible: !isSet(...sizeSectionProps),
+              collapsible: !isSet(
+                ...MARGIN_KEYS,
+                ...PADDING_KEYS,
+                ...RADIUS_KEYS,
+              ),
               content: (
-                <SizeSection
-                  key="sizing"
+                <BoxGeometrySection
+                  key="box-geometry"
                   expsProvider={expsProvider}
                   vsh={vsh}
                 />
               ),
             },
             {
-              collapsible: !isSet(...spacingSectionProps),
+              collapsible: !isSet(...sizeSectionProps, ...spacingSectionProps),
               content: (
-                <SpacingSection
-                  key="spacing"
+                <LayoutPanelSection
+                  key="layout"
                   expsProvider={expsProvider}
                   vsh={vsh}
+                  enabledStyleSections={[PublicStyleSection.Sizing, PublicStyleSection.Spacing]}
+                  allowConvert={false}
                 />
               ),
             },

@@ -1,9 +1,11 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { DatePicker } from "antd";
+import type { DatePickerSemanticType } from "antd/es/date-picker/generatePicker/interface";
 import cls from "classnames";
 import dayjs, { Dayjs } from "dayjs";
 import React from "react";
 import { useCanvasOverlay } from "./canvas-overlay";
+import { semanticAppearance } from "./semantic-appearance";
 import { capitalize, Registerable, registerComponentHelper } from "./utils";
 
 /**
@@ -211,6 +213,27 @@ export function registerDatePicker(loader?: Registerable) {
         advanced: true,
         description: "Whether to show the clear button",
       },
+      ...semanticAppearance(
+        {
+          root: "Picker container",
+          prefix: "Prefix",
+          input: "Input",
+          suffix: "Suffix",
+          popup: {
+            root: "Popup root",
+            container: "Popup container",
+            header: "Popup header",
+            body: "Popup body",
+            content: "Popup content",
+            item: "Calendar cell",
+            footer: "Popup footer",
+          },
+        } satisfies Record<
+          keyof NonNullable<DatePickerSemanticType["styles"]>,
+          string | Record<string, string>
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       value: {

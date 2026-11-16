@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var canvasOverlay$1 = require('./canvas-overlay-D2jWZ-TY.cjs.js');
 var registerMenu = require('./registerMenu.cjs.js');
@@ -59,12 +60,14 @@ function AntdDropdown(props) {
       destroyOnHidden,
       onOpenChange: canvasProps.onOpenChange,
       trigger: [trigger],
-      popupRender: () => {
+      menu: { items: [] },
+      popupRender: (nativeMenu) => {
         const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;
         const items = useMenuItemsSlot ? void 0 : keyedMenuItems;
         return /* @__PURE__ */ jsxRuntime.jsx(
           registerMenu.AntdMenu,
           {
+            ...nativeMenu.props,
             className: `${dropdownMenuScopeClassName}`,
             onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
             items,
@@ -85,6 +88,14 @@ function registerDropdown(loader) {
     ],
     displayName: "Dropdown",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        menu: "Menu",
+        item: "Item",
+        itemTitle: "Item Title",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content"
+      }),
       menuItems: {
         type: "slot",
         displayName: "Menu items",

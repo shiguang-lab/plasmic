@@ -237,6 +237,14 @@ class DesktopWorkspace {
   }
 }
 
+function canImportIntoDesign(state) {
+  return !!(
+    state?.ready &&
+    state.editorContext?.canEdit &&
+    (!state.editorContext.mode || state.editorContext.mode === "edit")
+  );
+}
+
 function fileMenu({
   controller,
   workspace,
@@ -308,6 +316,101 @@ function fileMenu({
           refresh();
         }),
       },
+      { type: "separator" },
+      {
+        id: "desktop-import-plasmic",
+        label: t("Import .plasmic…"),
+        click: run(async () => {
+          const output = await dialog.showOpenDialog(getWindow(), {
+            title: t("Import .plasmic"),
+            filters: [
+              { name: "Plasmic Project", extensions: ["plasmic"] },
+            ],
+            properties: ["openFile"],
+          });
+          if (output.canceled || !output.filePaths?.length) {
+            return;
+          }
+          const filePath = output.filePaths[0];
+          if (path.extname(filePath).toLowerCase() !== ".plasmic") {
+            throw new Error(t("Please select a valid .plasmic file."));
+          }
+          const content = fs.readFileSync(filePath, "utf-8");
+          const options = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: content }),
+            bypassCustomProtocolHandlers: true,
+            credentials: "include",
+            redirect: "manual",
+            signal: AbortSignal.timeout(60000),
+          };
+          const res = await session.fetch(
+            `${workspace.origin}/api/v1/projects/import`,
+            options,
+          );
+          if (!res.ok) {
+            throw new Error(t("Failed to import .plasmic file"));
+          }
+          const { projectId } = await res.json();
+          if (projectId) {
+            await controller.dispatch("open_design", { projectId });
+          }
+        }),
+      },
+      {
+        id: "desktop-import-figma",
+        label: t("Import from Figma…"),
+        enabled: canImportIntoDesign(menuState),
+        click: run(async () => {
+          const state = await controller.state();
+          if (!canImportIntoDesign(state)) {
+            refresh();
+            return;
+          }
+          const win = getWindow?.();
+          const output = await dialog.showOpenDialog(win, {
+            title: t("Import from Figma"),
+            filters: [{ name: "Figma Design", extensions: ["fig"] }],
+            properties: ["openFile"],
+          });
+          if (output.canceled || !output.filePaths?.length) {
+            return;
+          }
+          const filePath = output.filePaths[0];
+          if (path.extname(filePath).toLowerCase() !== ".fig") {
+            throw new Error(t("Choose a .fig file saved from Figma."));
+          }
+          const bytes = fs.readFileSync(filePath);
+          win?.focus?.();
+          await controller.invoke(
+            "editorFileAction",
+            {
+              action: "importFigma",
+              file: {
+                name: path.basename(filePath),
+                bytes: new Uint8Array(bytes),
+              },
+            },
+            30000,
+          );
+        }),
+      },
+      {
+        id: "desktop-import-pen",
+        label: t("Import from Pen…"),
+        enabled: canImportIntoDesign(menuState),
+        click: run(async () => {
+          const state = await controller.state();
+          if (!canImportIntoDesign(state)) {
+            refresh();
+            return;
+          }
+          getWindow?.()?.focus?.();
+          await controller.invoke("editorFileAction", { action: "importPen" }, 30000);
+        }),
+      },
+      { type: "separator" },
       {
         id: "desktop-export",
         label: t("Export Artboard…"),
@@ -423,47 +526,6 @@ function fileMenu({
           fs.writeFileSync(output.filePath, JSON.stringify(exportData, null, 2), "utf-8");
         }),
       },
-      {
-        id: "desktop-import-plasmic",
-        label: t("Import .plasmic…"),
-        click: run(async () => {
-          const output = await dialog.showOpenDialog(getWindow(), {
-            title: t("Import .plasmic"),
-            filters: [
-              { name: "Plasmic Project", extensions: ["plasmic"] },
-            ],
-            properties: ["openFile"],
-          });
-          if (output.canceled || !output.filePaths?.length) {
-            return;
-          }
-          const filePath = output.filePaths[0];
-          if (path.extname(filePath).toLowerCase() !== ".plasmic") {
-            throw new Error(t("Please select a valid .plasmic file."));
-          }
-          const content = fs.readFileSync(filePath, "utf-8");
-          const options = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: content }),
-            bypassCustomProtocolHandlers: true,
-            credentials: "include",
-            redirect: "manual",
-            signal: AbortSignal.timeout(60000),
-          };
-          const res = await session.fetch(
-            `${workspace.origin}/api/v1/projects/import`,
-            options,
-          );
-          if (!res.ok) {
-            throw new Error(t("Failed to import .plasmic file"));
-          }
-          const { projectId } = await res.json();
-          if (projectId) {
-            await controller.dispatch("open_design", { projectId });
-          }
-        }),
-      },
       { type: "separator" },
       { role: "close", label: t("Close Window") },
     ],
@@ -473,6 +535,15 @@ function updateFileMenuContext(menu, state) {
   menu.getMenuItemById("desktop-save").enabled = !!(
     state?.ready && state.editorContext?.canEdit
   );
+  const canImportDesign = canImportIntoDesign(state);
+  const importFigma = menu.getMenuItemById("desktop-import-figma");
+  if (importFigma) {
+    importFigma.enabled = canImportDesign;
+  }
+  const importPen = menu.getMenuItemById("desktop-import-pen");
+  if (importPen) {
+    importPen.enabled = canImportDesign;
+  }
   menu.getMenuItemById("desktop-export").enabled = !!(
     state?.ready &&
     state.editorContext?.mode === "edit" &&

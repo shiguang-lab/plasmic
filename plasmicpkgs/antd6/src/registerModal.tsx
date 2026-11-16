@@ -1,6 +1,7 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import type { StyleSection } from "@plasmicapp/host/registerComponent";
 import { Modal } from "antd";
+import type { ModalSemanticType } from "antd/es/modal/interface";
 import classNames from "classnames";
 import React, { ReactElement, useMemo } from "react";
 import { omit } from "lodash";
@@ -8,6 +9,7 @@ import { getButtonProps } from "./registerButton";
 import {
   useCanvasOverlay,
 } from "./canvas-overlay";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 // hide sizing section, as width can only be set via a width prop, and not css!
@@ -282,6 +284,23 @@ export function registerModal(loader?: Registerable) {
       defaultStylesClassName: {
         type: "themeResetClass",
       } as any,
+      ...semanticAppearance(
+        {
+          root: "Modal root",
+          wrapper: "Modal wrapper",
+          mask: "Backdrop mask",
+          container: "Modal container",
+          header: "Header",
+          title: "Title",
+          body: "Body",
+          footer: "Footer",
+          close: "Close button",
+        } satisfies Record<
+          keyof NonNullable<ModalSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       open: {

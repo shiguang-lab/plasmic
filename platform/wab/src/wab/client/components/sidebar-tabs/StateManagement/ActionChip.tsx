@@ -66,6 +66,7 @@ function ActionChip_(props: ActionChipProps, ref: HTMLElementRefOf<"div">) {
       root={{
         ref,
         "data-plasmic-prop": dataPlasmicProp,
+        title: actionName,
       }}
       {...rest}
       actionName={actionName}

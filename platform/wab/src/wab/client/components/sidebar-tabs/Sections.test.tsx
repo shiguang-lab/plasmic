@@ -1,8 +1,13 @@
-import { isCodeComponentMissingPositionClass } from "@/wab/client/components/sidebar-tabs/Sections";
+import {
+  Section,
+  getOrderedSections,
+  isCodeComponentMissingPositionClass,
+} from "@/wab/client/components/sidebar-tabs/Sections";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
-import { mkTplComponent } from "@/wab/shared/core/tpls";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { TplTagType, mkTplComponent, mkTplTag } from "@/wab/shared/core/tpls";
 import type { ValComponent } from "@/wab/shared/core/val-nodes";
 
 function fixture(elements: HTMLElement[], className = "studio-table studio-size") {
@@ -59,4 +64,66 @@ it("requires all generated classes on the same root", () => {
 it("waits for a mounted root before declaring styling unsupported", () => {
   const { vc, val } = fixture([]);
   expect(isCodeComponentMissingPositionClass(vc, val)).toBeFalsy();
+});
+
+it.each([
+  ["container", () => mkTplTag("div")],
+  ["text", () => mkTplTag("p", [], { type: TplTagType.Text })],
+  ["image", () => mkTplTag("img", [], { type: TplTagType.Image })],
+  [
+    "component instance",
+    () =>
+      mkTplComponent(
+        mkComponent({
+          name: "Card",
+          type: ComponentType.Plain,
+          tplTree: mkTplTag("div"),
+        }),
+        mkBaseVariant(),
+      ),
+  ],
+])(
+  "places Position, Layout, and Appearance below Box Geometry for %s nodes",
+  (_label, createTpl) => {
+    const vc = {
+      studioCtx: {
+        codeComponentsRegistry: new Map(),
+      },
+    } as unknown as ViewCtx;
+    const ordered = [...getOrderedSections(createTpl(), vc)];
+    const boxIndex = ordered.indexOf(Section.BoxGeometry);
+    const positionIndex = ordered.indexOf(Section.PositioningPanel);
+    const layoutIndex = ordered.indexOf(Section.LayoutPanel);
+    const appearanceIndex = ordered.indexOf(Section.AppearancePanel);
+
+    expect(boxIndex).toBeGreaterThanOrEqual(0);
+    expect(positionIndex).toBe(boxIndex + 1);
+    expect(layoutIndex).toBe(positionIndex + 1);
+    expect(appearanceIndex).toBe(layoutIndex + 1);
+    expect(ordered.indexOf(Section.Typography)).toBe(appearanceIndex + 1);
+    expect(ordered.slice(appearanceIndex + 2, appearanceIndex + 5)).toEqual([
+      Section.Background,
+      Section.Border,
+      Section.Outline,
+    ]);
+  },
+);
+
+it("includes BoxGeometry in ordered sections for styleSections: false code components", () => {
+  const unstyleableComp = mkCodeComponent(
+    "AppShell",
+    { name: "AppShell", importPath: "test", props: {}, styleSections: false },
+    {},
+  );
+  const tpl = mkTplComponent(unstyleableComp, mkBaseVariant());
+  const vc = {
+    studioCtx: {
+      codeComponentsRegistry: {
+        getRegisteredCodeComponentsMap: () =>
+          new Map([["AppShell", { meta: { styleSections: false } }]]),
+      },
+    },
+  } as unknown as ViewCtx;
+  const ordered = [...getOrderedSections(tpl, vc)];
+  expect(ordered).toContain(Section.BoxGeometry);
 });

@@ -1,3 +1,5 @@
+import type { TableSemanticType } from "antd/es/table/InternalTable";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import {
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
@@ -508,6 +510,27 @@ export function registerTable(loader?: Registerable) {
     name: "plasmic-antd6-table",
     displayName: "Table",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        section: "Section",
+        title: "Title",
+        footer: "Footer",
+        body: {
+          wrapper: "Wrapper",
+          cell: "Cell",
+          row: "Row",
+        },
+        content: "Content",
+        header: {
+          wrapper: "Wrapper",
+          cell: "Cell",
+          row: "Row",
+        },
+        pagination: {
+          root: "Root",
+          item: "Item",
+        },
+      } satisfies SemanticPartLabels<TableSemanticType["classNames"]>),
       data: {
         type: "dataSourceOpData" as any,
         displayName: "Data",
@@ -584,6 +607,7 @@ export function registerTable(loader?: Registerable) {
         type: "custom",
         displayName: "Pagination",
         control: TablePaginationControl,
+        display: "inline",
         description:
           "False hides pagination; otherwise use native pagination options: current, pageSize/defaultPageSize, total, pageSizeOptions, showSizeChanger, and showTotal(total, range) returning content. Bind showTotal to display the total before the pager controls; keep paging and total under this one owner.",
       },
@@ -591,6 +615,7 @@ export function registerTable(loader?: Registerable) {
         type: "custom",
         displayName: "Scroll",
         control: TableScrollControl,
+        display: "inline",
         description:
           "Native Ant Design scroll. Horizontal width accepts pixels, percentages, or max-content; unset keeps the table within its container without horizontal scrolling. The table body grows with content when height is unset.",
       },

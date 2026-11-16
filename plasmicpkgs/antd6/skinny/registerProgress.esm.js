@@ -1,4 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Progress } from 'antd';
 import { useMemo } from 'react';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
@@ -58,6 +59,13 @@ function registerProgress(loader) {
     name: progressComponentName,
     displayName: "Progress",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        body: "Body",
+        rail: "Rail",
+        track: "Track",
+        indicator: "Indicator"
+      }),
       type: {
         type: "choice",
         defaultValueHint: "line",

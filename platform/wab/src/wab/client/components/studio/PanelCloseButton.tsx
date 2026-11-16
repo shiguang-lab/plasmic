@@ -9,6 +9,7 @@ export function PanelCloseButton({ onClick, collapsed = false }: { onClick: () =
     <Button
       type="text"
       size="small"
+      data-test-id="right-panel-close-button"
       aria-label={t(collapsed ? "Open" : "Close")}
       title={t(collapsed ? "Open" : "Close")}
       icon={<FiSidebar size={16} />}

@@ -1,3 +1,5 @@
+import type { DropdownSemanticType } from "antd/es/dropdown/dropdown";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Dropdown } from "antd";
 import React from "react";
@@ -73,13 +75,16 @@ export function AntdDropdown(
       destroyOnHidden={destroyOnHidden}
       onOpenChange={canvasProps.onOpenChange}
       trigger={[trigger]}
-      popupRender={() => {
+      menu={{ items: [] }}
+      popupRender={(nativeMenu) => {
+        // Keep the semantic props resolved by Dropdown on the editable Menu.
         const itemsChildren = useMenuItemsSlot
           ? (menuItems?.() ?? [])
           : undefined;
         const items = useMenuItemsSlot ? undefined : keyedMenuItems;
         return (
           <Menu
+            {...(nativeMenu as React.ReactElement<React.ComponentProps<typeof Menu>>).props}
             className={`${dropdownMenuScopeClassName}`}
             onClick={isEditing ? undefined : (event) => onAction?.(event.key)}
             items={items}
@@ -103,6 +108,14 @@ export function registerDropdown(loader?: Registerable) {
     ],
     displayName: "Dropdown",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        menu: "Menu",
+        item: "Item",
+        itemTitle: "Item Title",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+      } satisfies SemanticPartLabels<DropdownSemanticType["classNames"]>),
       menuItems: {
         type: "slot",
         displayName: "Menu items",

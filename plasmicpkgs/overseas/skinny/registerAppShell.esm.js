@@ -4,7 +4,7 @@ import { GlobalOutlined, MenuUnfoldOutlined, MenuFoldOutlined, SwapOutlined, Dow
 import { usePlasmicCanvasContext, usePlasmicLink, useSelector } from '@plasmicapp/host';
 import registerComponent from '@plasmicapp/host/registerComponent';
 import { theme, Select, ConfigProvider, Layout, Avatar, Menu, Button, Breadcrumb, Dropdown } from 'antd';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 function AppSourceSelect({ options, value, language, onChange }) {
   const { token } = theme.useToken();
@@ -101,6 +101,30 @@ const DEFAULT_MENU_ITEMS = [
   { key: "settings", label: "\u4E2D\u53F0\u914D\u7F6E\u7BA1\u7406" }
 ];
 const menuOpenKeysByWindow = /* @__PURE__ */ new WeakMap();
+function LocalClock({ language, timeZone, color }) {
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1e3);
+    return () => clearInterval(timer);
+  }, []);
+  const formatter = useMemo(() => new Intl.DateTimeFormat(language, {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  }), [language, timeZone]);
+  const { year, month, day, hour, minute, second } = Object.fromEntries(
+    formatter.formatToParts(now).map(({ type, value }) => [type, value])
+  );
+  return /* @__PURE__ */ jsxs("time", { style: { color, whiteSpace: "nowrap", fontSize: 14 }, children: [
+    "\u5F53\u5730\u65F6\u95F4\uFF1A",
+    `${year}-${month}-${day} ${hour}:${minute}:${second}`
+  ] });
+}
 function AppShell({
   className,
   productName = "\u589E\u957F\u7BA1\u7406\u5E73\u53F0",
@@ -136,7 +160,6 @@ function AppShell({
   const [localSource, setSource] = useState();
   const [localMenu, setMenu] = useState();
   const [localDirection, setDirection] = useState("ltr");
-  const [now, setNow] = useState(() => /* @__PURE__ */ new Date());
   const brandRef = React.useRef(null);
   const [brandText, setBrandText] = useState("");
   useEffect(() => {
@@ -158,10 +181,6 @@ function AppShell({
       contentRef.current.scrollTop = initialContentScrollTop;
     }
   }, [initialContentScrollTop]);
-  useEffect(() => {
-    const timer = setInterval(() => setNow(/* @__PURE__ */ new Date()), 1e3);
-    return () => clearInterval(timer);
-  }, []);
   const isCollapsed = collapsed ?? localCollapsed;
   const currentLanguage = language || localLanguage || languages[0]?.value || "en";
   const currentSource = appSource || localSource || appSources[0]?.value;
@@ -210,19 +229,6 @@ function AppShell({
       title: item.href && item !== menuPath.at(-1) ? /* @__PURE__ */ jsx(PlasmicLink, { href: item.href, children: item.label }) : item.label
     }))
   ];
-  const timeParts = Object.fromEntries(
-    new Intl.DateTimeFormat(currentLanguage, {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hourCycle: "h23"
-    }).formatToParts(now).map(({ type, value }) => [type, value])
-  );
-  const clock = `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
   const linkedMenu = (items) => items.map(
     (item) => item && {
       key: item.key,
@@ -408,18 +414,12 @@ function AppShell({
                           minWidth: 0
                         },
                         children: [
-                          /* @__PURE__ */ jsxs(
-                            "time",
+                          /* @__PURE__ */ jsx(
+                            LocalClock,
                             {
-                              style: {
-                                color: token.colorTextSecondary,
-                                whiteSpace: "nowrap",
-                                fontSize: 14
-                              },
-                              children: [
-                                "\u5F53\u5730\u65F6\u95F4\uFF1A",
-                                clock
-                              ]
+                              language: currentLanguage,
+                              timeZone,
+                              color: token.colorTextSecondary
                             }
                           ),
                           appSources.length > 0 && /* @__PURE__ */ jsx(

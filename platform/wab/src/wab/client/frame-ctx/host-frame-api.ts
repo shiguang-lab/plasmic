@@ -18,7 +18,15 @@ import type { AiOutputFormat, CopilotCaller } from "@/wab/shared/copilot/copilot
 import { ChangeLogEntry, SemVerReleaseType } from "@/wab/shared/site-diffs";
 import { LeftTabKey } from "@/wab/shared/ui-config-utils";
 import type { PreviewPage } from "@plasmic-shared/preview";
+import type {
+  EditorViewMenuAction,
+  EditorViewMenuState,
+} from "@/wab/shared/desktop-view-menu";
 import { ExtendedKeyboardEvent } from "mousetrap";
+
+export type EditorFileActionInput =
+  | { action: "importPen" }
+  | { action: "importFigma"; file: { name: string; bytes: Uint8Array } };
 
 export type HostFrameApi = {
   openCopilotChat(opts?: CopilotChatOpenOpts): Promise<void>;
@@ -79,6 +87,8 @@ export type HostFrameApi = {
   waitForStudioReady(): Promise<void>;
   flushDesktopDraft(): Promise<boolean>;
   showDesktopDrafts(): Promise<void>;
+  runEditorViewMenuAction(action: EditorViewMenuAction): Promise<EditorViewMenuState>;
+  runEditorFileAction(input: EditorFileActionInput): Promise<{ handled: boolean }>;
   /**
    * Makes the studio read-only
    */

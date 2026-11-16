@@ -38,6 +38,7 @@
   width: auto;
   height: auto;
   max-width: 100%;
+  flex-shrink: 0;
   padding: 0px;
 }
 .freeBox___4W5Bn {
@@ -69,9 +70,11 @@
 .freeBox__lWbe1 {
   width: auto;
   height: auto;
-  max-width: 800px;
-  display: flex;
-  flex-direction: row;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .freeBox__yakOm {
   display: flex;

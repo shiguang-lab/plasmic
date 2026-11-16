@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
@@ -18,6 +19,13 @@ function registerSlider(loader) {
     displayName: "Slider",
     defaultStyles: { width: "stretch" },
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        tracks: "Tracks",
+        track: "Track",
+        rail: "Rail",
+        handle: "Handle"
+      }),
       range: { type: "object", description: "Boolean or Antd range configuration, such as { draggableTrack: true }." },
       value: { type: "object", editOnly: true, uncontrolledProp: "defaultValue", description: "Number for a single handle, array of numbers for range mode." },
       min: { type: "number", defaultValueHint: 0 },

@@ -124,6 +124,10 @@
   padding-bottom: 0 !important;
 }
 
+.root :global(.SidebarSection__Body).bodyNoHeaderSymmetric {
+  padding-top: $sidebar-section-vpadding + 5px;
+}
+
 .emptyDescription {
   display: -webkit-box;
   overflow: hidden;

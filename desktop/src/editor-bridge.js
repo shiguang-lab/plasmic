@@ -29,6 +29,16 @@
       const tools = window.PLASMIC_AI_TOOLS;
       if (method === "flushDraft" || method === "showDrafts") {
         result = { protected: window.desktopDraftAction ? await window.desktopDraftAction(method === "flushDraft" ? "flush" : "show") : true };
+      } else if (method === "editorViewAction") {
+        if (!window.desktopEditorViewAction) {
+          throw new Error("Open a design before running view actions");
+        }
+        result = { success: true, state: await window.desktopEditorViewAction(input?.action) };
+      } else if (method === "editorFileAction") {
+        if (!window.desktopEditorFileAction) {
+          throw new Error("Open a design before running file actions");
+        }
+        result = { success: true, ...(await window.desktopEditorFileAction(input)) };
       } else if (method === "metadata") {
         let editorContext = null;
         if (tools) {

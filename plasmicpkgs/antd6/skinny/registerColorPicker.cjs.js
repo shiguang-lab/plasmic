@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
@@ -29,6 +30,16 @@ function registerColorPicker(loader) {
     name: "plasmic-antd6-color-picker",
     displayName: "Color Picker",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        body: "Body",
+        content: "Content",
+        description: "Description",
+        popup: {
+          root: "Root",
+          container: "Container"
+        }
+      }),
       children: {
         type: "slot",
         hidePlaceholder: true,

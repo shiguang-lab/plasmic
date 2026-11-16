@@ -2,6 +2,7 @@ import { jsx } from 'react/jsx-runtime';
 import { Checkbox } from 'antd';
 import React from 'react';
 import { c as checkboxComponentName, a as checkboxGroupComponentName } from './names-DQIzgrvq.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -63,7 +64,15 @@ function registerCheckbox(loader) {
       onChange: {
         type: "eventHandler",
         argTypes: [{ name: "checked", type: "boolean" }]
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Checkbox container",
+          icon: "Checkbox box",
+          label: "Label"
+        },
+        { advanced: true }
+      )
     },
     states: {
       checked: {
@@ -82,6 +91,12 @@ function registerCheckbox(loader) {
     name: checkboxGroupComponentName,
     displayName: "Checkbox Group",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        item: "Item",
+        itemIcon: "Item icon",
+        itemLabel: "Item label"
+      }),
       value: {
         type: "choice",
         editOnly: true,

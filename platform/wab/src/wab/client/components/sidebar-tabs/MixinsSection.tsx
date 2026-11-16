@@ -5,8 +5,11 @@ import { MixinPopup } from "@/wab/client/components/sidebar/MixinControls";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { ApplyMixinsTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
+import { IconLinkButton } from "@/wab/client/components/widgets";
+import { Icon } from "@/wab/client/components/widgets/Icon";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { MIXINS_CAP, MIXIN_CAP } from "@/wab/shared/Labels";
@@ -43,6 +46,10 @@ export const MixinsSection = React.memo(function (props: {
   const [editMixin, setEditMixin] = React.useState<Mixin | undefined>(
     undefined,
   );
+  const [isAdding, setIsAdding] = React.useState(false);
+  React.useEffect(() => {
+    setIsAdding(false);
+  }, [tpl]);
   if (!inputs.active) { return null; }
   const vtm = viewCtx.variantTplMgr();
   const activeVariants = [...vtm.getActivatedVariantsForNode(tpl)];
@@ -92,42 +99,64 @@ export const MixinsSection = React.memo(function (props: {
   ];
 
   const itemsLength = targetVs.rs.mixins.length + fixedMixins.length;
+  const hasMixins = itemsLength > 0;
+  const showPicker = hasMixins || isAdding;
 
   return (
-    <SidebarSection
-      title={
-        <LabelWithDetailedTooltip tooltip={<ApplyMixinsTooltip />}>
-          {<UiLabel text={MIXINS_CAP} />}
-        </LabelWithDetailedTooltip>
-      }
-      defaultExpanded
-      isHeaderActive={itemsLength > 0}
-    >
-      {fixedMixins.length > 0 && (
-        <div className={"fixed-mixins-container flex"}>
-          <Tooltip
-            title={
-              <>
-                <UiText message={"Applied Mixins from other variants"} />
-              </>
-            }
+    <>
+      <SidebarSection
+        title={
+          <LabelWithDetailedTooltip tooltip={<ApplyMixinsTooltip />}>
+            {<UiLabel text={MIXINS_CAP} />}
+          </LabelWithDetailedTooltip>
+        }
+        defaultExpanded
+        isHeaderActive={hasMixins}
+        emptyBody={!showPicker}
+        controls={
+          <IconLinkButton
+            data-test-id="add-mixin-button"
+            aria-label="Add style preset"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsAdding(true);
+            }}
           >
-            <TriggerTarget>
-              {fixedMixins.map((mixin, index) => (
-                <div key={mixin.uuid} className={"fixed-mixins-pill"}>
-                  <span className={"fixed-mixins-pill__contents"}>
-                    <div>{mixin.name}</div>
-                  </span>
-                </div>
-              ))}
-            </TriggerTarget>
-          </Tooltip>
-        </div>
-      )}
-      <XMultiSelect<Mixin | CreateOption>
-        className="right-panel-input-background__no-height"
-        autoFocus={itemsLength === 0}
-        options={mixinOptions}
+            <Icon icon={PlusIcon} />
+          </IconLinkButton>
+        }
+      >
+        {showPicker && (
+          <>
+            {fixedMixins.length > 0 && (
+              <div className={"fixed-mixins-container flex"}>
+                <Tooltip
+                  title={
+                    <>
+                      <UiText message={"Applied Mixins from other variants"} />
+                    </>
+                  }
+                >
+                  <TriggerTarget>
+                    {fixedMixins.map((mixin) => (
+                      <div key={mixin.uuid} className={"fixed-mixins-pill"}>
+                        <span className={"fixed-mixins-pill__contents"}>
+                          <div>{mixin.name}</div>
+                        </span>
+                      </div>
+                    ))}
+                  </TriggerTarget>
+                </Tooltip>
+              </div>
+            )}
+            <XMultiSelect<Mixin | CreateOption>
+              key={isAdding ? "adding" : "idle"}
+              className="right-panel-input-background__no-height"
+              autoFocus={isAdding}
+              downshiftProps={isAdding ? { initialIsOpen: true } : undefined}
+              onBlur={() => setIsAdding(false)}
+              onOuterClick={() => setIsAdding(false)}
+              options={mixinOptions}
         renderOption={(mixin) => {
           if (isKnownMixin(mixin)) {
             return mixin.name;
@@ -222,6 +251,9 @@ export const MixinsSection = React.memo(function (props: {
           ];
         }}
       />
+          </>
+        )}
+      </SidebarSection>
       {editMixin && isEditable(viewCtx.studioCtx.site, editMixin) && (
         <MixinPopup
           studioCtx={viewCtx.studioCtx}
@@ -231,6 +263,6 @@ export const MixinsSection = React.memo(function (props: {
           onClose={onMixinEdited}
         />
       )}
-    </SidebarSection>
+    </>
   );
 });

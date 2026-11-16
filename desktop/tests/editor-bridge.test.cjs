@@ -154,3 +154,105 @@ test("editor cancellation targets one invocation and still returns its eventual 
   await message({ source: window, origin, data: { channel: "plasmic-desktop-caller-disconnected", callerId: "session" } });
   assert.deepEqual(disconnected, ["session"], "disconnect cleanup does not require a pending invocation");
 });
+
+test("editor bridge forwards editorViewAction without requiring MCP tool access", async () => {
+  let message;
+  const actions = [];
+  const responses = [];
+  const window = {
+    desktopEditorViewAction: async (action) => {
+      actions.push(action);
+      return { available: true, outlineMode: true };
+    },
+    addEventListener: (_name, handler) => { message = handler; },
+    postMessage: (response) => responses.push(response),
+  };
+  window.top = window;
+  const origin = "https://studio.example";
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/editor-bridge.js"), "utf8"), {
+    window, location: { origin }, AbortController,
+  });
+  await message({
+    source: window,
+    origin,
+    data: {
+      channel: "plasmic-desktop-request",
+      id: "view-1",
+      method: "editorViewAction",
+      input: { action: "toggleOutlineMode" },
+    },
+  });
+  assert.deepEqual(actions, ["toggleOutlineMode"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(responses)), [
+    {
+      channel: "plasmic-desktop-response",
+      id: "view-1",
+      result: { success: true, state: { available: true, outlineMode: true } },
+    },
+  ]);
+
+  delete window.desktopEditorViewAction;
+  await message({
+    source: window,
+    origin,
+    data: {
+      channel: "plasmic-desktop-request",
+      id: "view-2",
+      method: "editorViewAction",
+      input: { action: "refreshData" },
+    },
+  });
+  assert.equal(responses[1].result.success, false);
+  assert.match(responses[1].result.error.message, /Open a design before running view actions/);
+});
+
+test("editor bridge forwards editorFileAction without requiring MCP tool access", async () => {
+  let message;
+  const inputs = [];
+  const responses = [];
+  const window = {
+    desktopEditorFileAction: async (input) => {
+      inputs.push(input);
+      return { started: true };
+    },
+    addEventListener: (_name, handler) => { message = handler; },
+    postMessage: (response) => responses.push(response),
+  };
+  window.top = window;
+  const origin = "https://studio.example";
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../src/editor-bridge.js"), "utf8"), {
+    window, location: { origin }, AbortController,
+  });
+  await message({
+    source: window,
+    origin,
+    data: {
+      channel: "plasmic-desktop-request",
+      id: "file-1",
+      method: "editorFileAction",
+      input: { action: "importPen" },
+    },
+  });
+  assert.deepEqual(inputs, [{ action: "importPen" }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(responses)), [
+    {
+      channel: "plasmic-desktop-response",
+      id: "file-1",
+      result: { success: true, started: true },
+    },
+  ]);
+
+  delete window.desktopEditorFileAction;
+  await message({
+    source: window,
+    origin,
+    data: {
+      channel: "plasmic-desktop-request",
+      id: "file-2",
+      method: "editorFileAction",
+      input: { action: "importFigma", file: { name: "design.fig", bytes: new Uint8Array([1]) } },
+    },
+  });
+  assert.equal(responses[1].result.success, false);
+  assert.match(responses[1].result.error.message, /Open a design before running file actions/);
+});

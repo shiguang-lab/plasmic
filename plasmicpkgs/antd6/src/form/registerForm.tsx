@@ -1,4 +1,6 @@
+import type { FormSemanticType } from "antd/es/form/Form";
 import { buttonComponentName, formComponentName } from "../names";
+import { semanticAppearance } from "../semantic-appearance";
 import { Registerable, registerComponentHelper } from "../utils";
 import { FormWrapperProps, InputType, formHelpers } from "./Form";
 import { FormWrapper } from "./SchemaForm";
@@ -168,13 +170,24 @@ export function registerForm(loader?: Registerable) {
         options: ["horizontal", "vertical", "inline"],
         defaultValueHint: "horizontal",
       },
-      styles: {
-        displayName: "Semantic styles",
-        type: "object",
-        advanced: true,
-        description:
-          "Native Ant Design Form semantic styles, shared by its fields. For inline field instructions, content can use display: flex, alignItems: center and gap: 12. Check every field before applying form-wide content styles.",
-      },
+      ...semanticAppearance(
+        {
+          root: "Form container",
+          label: "Field label",
+          content: "Control content",
+          help: "Help text",
+          helpItem: "Help item",
+          extra: "Extra text",
+        } satisfies Record<
+          keyof NonNullable<FormSemanticType["classNames"]>,
+          string
+        >,
+        {
+          advanced: true,
+          stylesDescription:
+            "Native Ant Design Form semantic styles, shared by its fields. For inline field instructions, content can use display: flex, alignItems: center and gap: 12. Check every field before applying form-wide content styles.",
+        },
+      ),
       labelAlign: {
         type: "choice",
         options: ["left", "right"],

@@ -1,8 +1,8 @@
+import { StyleOverrideMenu } from "@/wab/client/components/style-controls/StyleOverrideMenu";
 import { useFocusedViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useBaseTransitionInputs } from "@/wab/client/studio-ctx/transition-inputs";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { NonBaseVariantTransitionsMessage } from "@/wab/client/components/sidebar-tabs/style-tab";
-import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import {
   createStyleTarget,
@@ -10,25 +10,25 @@ import {
   StylePanelSection,
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import { StyleWrapper } from "@/wab/client/components/style-controls/StyleWrapper";
 import { TransitionPanel } from "@/wab/client/components/style-controls/transition-panel";
-import {
-  IconLinkButton,
-  ListBox,
-  ListBoxItem,
-} from "@/wab/client/components/widgets";
+import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { getUiLocale } from "@/wab/client/i18n";
+import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
+import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { tryGetBaseVariantSetting } from "@/wab/shared/Variants";
-import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
-import { assert, ensure, maybe, tuple, uniqueKey } from "@/wab/shared/common";
+import { arrayMoveIndex } from "@/wab/shared/collections";
+import { assert, ensure, maybe, tuple } from "@/wab/shared/common";
 import { transitionProps } from "@/wab/shared/core/style-props";
 import { getCssInitial } from "@/wab/shared/css";
 import { joinCssValues, splitCssValue } from "@/wab/shared/css/parse";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Popover } from "antd";
 import React from "react";
 
 export class Transition {
@@ -40,6 +40,7 @@ export class Transition {
 
 export function TransitionsPanelSection(props: StyleComponentProps) {
   const { expsProvider } = props;
+  const { t: uiT } = useI18n();
   const studio = expsProvider.studioCtx;
   const styling = createStyleTarget(props);
   const [inspectedIndex, setIndex] = React.useState<number>();
@@ -89,7 +90,10 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
     });
   };
 
+    const hasOverride = rawValues.some((value) => value !== undefined);
+    const isNone = rawValues[transitionProps.indexOf("transition-property")] === "none";
     const transitions = ((): Transition[] => {
+      if (isNone) { return []; }
       const parsedRules = Object.fromEntries(
         transitionProps.map((prop, i) => tuple(prop, maybe(rawValues[i], (val) => splitCssValue(prop, val)) ?? [])),
       );
@@ -135,13 +139,23 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
         expsProvider={expsProvider}
         title={<UiText message={"Transitions"} />}
         styleProps={transitionProps}
-        onHeaderClick={transitions.length === 0 ? addTransition : undefined}
+        headerMenuOnRightClickOnly
         controls={
-          <IconLinkButton onClick={addTransition}>
+          <>
+          <StyleOverrideMenu label={uiT("Transitions")} hasOverride={hasOverride} isNone={isNone}
+            onChange={(mode) => {
+              setIndex(undefined);
+              styling.change(() => {
+                const exp = baseExp();
+                transitionProps.forEach((prop) => exp.clear(prop));
+                if (mode === "none") { exp.set("transition-property", "none"); }
+              });
+            }} />
+          <IconButton size="small" tooltip={uiT("Add transition")} onClick={addTransition}>
             <Icon icon={PlusIcon} />
-          </IconLinkButton>
+          </IconButton>
+          </>
         }
-        defaultHeaderAction={addTransition}
       >
         {transitions.length > 0 && (
           <>
@@ -150,62 +164,157 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
                 <NonBaseVariantTransitionsMessage />
               </div>
             )}
-            {inspectedIndex !== undefined && (
-              <SidebarModal
-                show
-                title={translate(getUiLocale(), "Transition")}
-                onClose={() => setIndex(undefined)}
-              >
-                {
-                  <div className="panel-content">
-                    <TransitionPanel
-                      transition={transitions[inspectedIndex]}
-                      onChange={(newValue: Transition) => {
-                        updateTransitions(transitions.map((transition, index) => index === inspectedIndex ? newValue : transition));
-                      }}
-                    />
-                  </div>
-                }
-              </SidebarModal>
-            )}
             <StyleWrapper
               styleName={transitionProps}
               displayStyleName="transition"
               className="flex-fill"
-              showDefinedIndicator={true}
+              showDefinedIndicator={false}
             >
               <ListBox
                 appendPrepend={"append"}
                 onReorder={(from, to) => {
                   const moved = arrayMoveIndex(transitions, from, to);
+                  setIndex((current) => {
+                    if (current === undefined) {
+                      return undefined;
+                    }
+                    if (current === from) {
+                      return to;
+                    }
+                    if (from < current && current <= to) {
+                      return current - 1;
+                    }
+                    if (to <= current && current < from) {
+                      return current + 1;
+                    }
+                    return current;
+                  });
                   updateTransitions(moved);
                 }}
               >
-                {transitions.map((transition: Transition, i: number) => {
-                  return (
-                    <ListBoxItem
-                      key={uniqueKey(transition)}
-                      index={i}
-                      onRemove={() => {
-                        arrayRemove(transitions, transition);
-                        return updateTransitions(transitions);
-                      }}
-                      onClick={() => setIndex(i)}
-                      mainContent={
-                        <div className="labeled-item labeled-item--horizontal--vcenter">
-                          <div className="labeled-item__label labeled-item__label--horizontal">
-                            <UiText message={"Property"} />
-                          </div>
-                          <code>{transition.transitionProperty}</code>
-                        </div>
-                      }
-                    />
-                  );
-                })}
+                {transitions.map((transition: Transition, i: number) => (
+                  <ListBoxItem
+                    key={i}
+                    index={i}
+                    className={paintStyles.fillItem}
+                    isDragDisabled={transitions.length < 2}
+                    removeLabel={uiT("Remove transition")}
+                    onRemove={() => {
+                      setIndex((current) => {
+                        if (current === undefined || current === i) {
+                          return undefined;
+                        }
+                        return current > i ? current - 1 : current;
+                      });
+                      return updateTransitions(
+                        transitions.filter((_, idx) => idx !== i),
+                      );
+                    }}
+                    clickable={false}
+                    truncate={false}
+                    mainContent={
+                      <TransitionRow
+                        transition={transition}
+                        open={inspectedIndex === i}
+                        onOpenChange={(nextOpen) => {
+                          setIndex((current) =>
+                            nextOpen ? i : current === i ? undefined : current,
+                          );
+                        }}
+                        onChange={(newValue: Transition) => {
+                          updateTransitions(
+                            transitions.map((current, index) =>
+                              index === i ? newValue : current,
+                            ),
+                          );
+                        }}
+                      />
+                    }
+                  />
+                ))}
               </ListBox>
             </StyleWrapper>
           </>
         )}
       </StylePanelSection>
     );
+}
+
+function formatTransitionSummary(transition: Transition) {
+  const hasDelay =
+    transition.transitionDelay !== "0s" && transition.transitionDelay !== "0ms";
+  return hasDelay
+    ? `${transition.transitionDuration} + ${transition.transitionDelay} · ${transition.transitionTimingFunction}`
+    : `${transition.transitionDuration} · ${transition.transitionTimingFunction}`;
+}
+
+function TransitionRow({
+  transition,
+  open,
+  onOpenChange,
+  onChange,
+}: {
+  transition: Transition;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onChange: (newValue: Transition) => void;
+}) {
+  const { t: uiT } = useI18n();
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const popupRef = React.useRef<HTMLDivElement>(null);
+  const title = uiT("Transition");
+  useStudioEscape(popupRef, open, () => {
+    onOpenChange(false);
+    triggerRef.current?.focus();
+  });
+
+  return (
+    <div className={paintStyles.fillValue}>
+      <Popover
+        trigger="click"
+        placement="leftTop"
+        title={title}
+        open={open}
+        destroyOnHidden
+        onOpenChange={(nextOpen) => {
+          // Keep the popup open while interacting with a child StyleSelect menu
+          // portaled to document.body.
+          if (!nextOpen && document.querySelector('[data-plasmic-role="overlay"]')) {
+            return;
+          }
+          onOpenChange(nextOpen);
+        }}
+        content={
+          open && (
+            <div
+              ref={popupRef}
+              className={paintStyles.fillPopover}
+              role="dialog"
+              aria-label={title}
+            >
+              <Scrollbar scrollX={false} className={paintStyles.fillPopoverBody}>
+                <TransitionPanel transition={transition} onChange={onChange} />
+              </Scrollbar>
+            </div>
+          )
+        }
+      >
+        <button
+          ref={triggerRef}
+          type="button"
+          className={paintStyles.fillEdit}
+          aria-label={`${title}: ${transition.transitionProperty}`}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+        >
+          <span className={paintStyles.fillLabel}>
+            {transition.transitionProperty}
+          </span>
+          <span className={paintStyles.valueSummary}>
+            {formatTransitionSummary(transition)}
+          </span>
+        </button>
+      </Popover>
+    </div>
+  );
 }

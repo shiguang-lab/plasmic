@@ -456,9 +456,10 @@ async function chooseColor(
 ) {
   await models.studio.rightPanel.designTabButton.click();
 
-  const colorSelector = models.studio.frame.locator(
-    `.canvas-editor__right-pane [data-test-id='color-selector'] button`,
-  );
+  await models.studio.rightPanel.typographySettingsButton.first().click();
+  const colorSelector = models.studio.frame
+    .getByRole("dialog", { name: "Typography settings" })
+    .locator("[data-test-id='color-selector'] button");
   await colorSelector.first().click({ force: true });
 
   if (opts?.color) {

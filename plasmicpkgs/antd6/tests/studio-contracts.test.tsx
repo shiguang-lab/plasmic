@@ -157,17 +157,15 @@ test("Collapse rich slots render without competing default items; explicit nativ
 
 test("Collapse registers every native semantic region, a color picker and a state-aware expand indicator", () => {
   const { props } = metadata(registerCollapse).get("plasmic-antd6-collapse");
-  expect(props.styles.display).toBe("inline");
+  expect(props.styles.editor).toBe("semantic");
+  expect(props.classNames.editor).toBe("semantic");
   expect(Object.keys(props.styles.fields)).toEqual(["root", "header", "title", "body", "icon"]);
   for (const field of Object.values(props.styles.fields)) {
     expect(field).toMatchObject({ type: "object" });
-    expect(Object.keys((field as { fields: object }).fields).length).toBeGreaterThan(0);
   }
-  expect(props.styles.fields.root.fields.maxWidth.type).toBe("number");
-  expect(props.styles.fields.header.fields.paddingInline.type).toBe("number");
-  expect(props.styles.fields.title.fields.fontWeight.type).toBe("number");
-  expect(props.styles.fields.body.fields.backgroundColor.type).toBe("color");
-  expect(props.styles.fields.icon.fields.color.type).toBe("color");
+  for (const field of Object.values(props.classNames.fields)) {
+    expect(field).toMatchObject({ type: "string" });
+  }
   expect(props.headerBackgroundColor.type).toBe("color");
   expect(props.expandIcon).toMatchObject({ type: "slot", renderPropParams: ["panelProps"] });
   expect(props.expandIconPlacement.options).toEqual(["start", "end"]);

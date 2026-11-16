@@ -1,21 +1,17 @@
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
+import { AppearancePanelSection } from "@/wab/client/components/sidebar-tabs/AppearancePanelSection";
+import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
 import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
-import { LayoutSection } from "@/wab/client/components/sidebar-tabs/LayoutSection";
-import { OverflowSection } from "@/wab/client/components/sidebar-tabs/OverflowSection";
+import { LayoutPanelSection } from "@/wab/client/components/sidebar-tabs/LayoutPanelSection";
 import { PositioningPanelSection } from "@/wab/client/components/sidebar-tabs/PositioningSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
-import { SizeSection } from "@/wab/client/components/sidebar-tabs/SizeSection";
-import { SpacingSection } from "@/wab/client/components/sidebar-tabs/SpacingSection";
 import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import { TransitionsPanelSection } from "@/wab/client/components/sidebar-tabs/TransitionsSection";
 import { TypographySection } from "@/wab/client/components/sidebar-tabs/TypographySection";
 import { BackgroundSection } from "@/wab/client/components/sidebar-tabs/background-section";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
-import {
-  BorderPanelSection,
-  BorderRadiusSection,
-} from "@/wab/client/components/style-controls/BorderControls";
+import { BorderPanelSection } from "@/wab/client/components/style-controls/BorderControls";
 import {
   SingleRsExpsProvider,
   createStyleTarget,
@@ -238,41 +234,53 @@ const StyleExprForm = React.memo(function StyleExprForm(props: {
   const show = (section: PublicStyleSection) => {
     return !spec.styleSections || spec.styleSections.includes(section);
   };
+  const boxSections = spec.styleSections
+    ? spec.styleSections.filter((sec) =>
+        [
+          PublicStyleSection.Sizing,
+          PublicStyleSection.Spacing,
+          PublicStyleSection.Border,
+        ].includes(sec),
+      )
+    : undefined;
 
   return providesStyleTarget(
     styleComponent,
     `${expr.uuid}`,
   )(
     <>
+      <BoxGeometrySection
+        expsProvider={expsProvider}
+        enabledStyleSections={
+          boxSections ? (boxSections.length > 0 ? boxSections : false) : undefined
+        }
+      />
+      {show(PublicStyleSection.Positioning) && (
+        <PositioningPanelSection
+          expsProvider={expsProvider}
+          showTransformQuickBar={show(PublicStyleSection.Transform)}
+        />
+      )}
+      <LayoutPanelSection
+        expsProvider={expsProvider}
+        enabledStyleSections={spec.styleSections}
+        allowConvert
+      />
+      <AppearancePanelSection
+        expsProvider={expsProvider}
+        enabledStyleSections={spec.styleSections}
+      />
       {show(PublicStyleSection.Typography) && (
         <TypographySection
           expsProvider={expsProvider}
           inheritableOnly={false}
         />
       )}
-      {show(PublicStyleSection.Sizing) && (
-        <SizeSection expsProvider={expsProvider} />
-      )}
-      {show(PublicStyleSection.Spacing) && (
-        <SpacingSection expsProvider={expsProvider} />
-      )}
-      {show(PublicStyleSection.Positioning) && (
-        <PositioningPanelSection expsProvider={expsProvider} />
-      )}
-      {show(PublicStyleSection.Layout) && (
-        <LayoutSection expsProvider={expsProvider} allowConvert />
-      )}
-      {show(PublicStyleSection.Overflow) && (
-        <OverflowSection expsProvider={expsProvider} />
-      )}
       {show(PublicStyleSection.Background) && (
         <BackgroundSection expsProvider={expsProvider} />
       )}
       {show(PublicStyleSection.Border) && (
         <BorderPanelSection expsProvider={expsProvider} />
-      )}
-      {show(PublicStyleSection.Border) && (
-        <BorderRadiusSection expsProvider={expsProvider} />
       )}
       {show(PublicStyleSection.Shadows) && (
         <ShadowsPanelSection expsProvider={expsProvider} />

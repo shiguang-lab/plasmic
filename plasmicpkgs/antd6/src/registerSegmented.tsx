@@ -1,3 +1,5 @@
+import type { SegmentedSemanticType } from "antd/es/segmented/index";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { Segmented } from "antd";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -12,6 +14,12 @@ export function registerSegmented(loader?: Registerable) {
     name: segmentedComponentName,
     displayName: "Segmented",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        icon: "Icon",
+        label: "Label",
+        item: "Item",
+      } satisfies SemanticPartLabels<SegmentedSemanticType["classNames"]>),
       options: {
         type: "array",
         description: "Antd options: strings, numbers, or objects with label, value and disabled.",

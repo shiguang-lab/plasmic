@@ -105,10 +105,13 @@ export class RightPanel extends BaseModel {
   readonly fontFamilyInput: Locator = this.frame.locator(
     `.canvas-editor__right-pane [data-test-id="font-family-selector"]`,
   );
+  readonly typographySettingsButton: Locator = this.frame.getByRole("button", {
+    name: "Typography settings",
+    exact: true,
+  });
   readonly underlineTextDecorationButton: Locator = this.frame
-    .locator('[data-test-id="text-decoration-selector"]')
-    .locator("button")
-    .nth(0);
+    .getByRole("dialog", { name: "Typography settings" })
+    .getByRole("button", { name: "Underline", exact: true });
   readonly componentDataTabButton: Locator = this.frame
     .locator(".editor-inspector-tabs")
     .getByRole("tab", { name: "Data", exact: true });

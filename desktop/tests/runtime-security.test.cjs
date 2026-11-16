@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const { productionFuses, configureProductionRuntime } = require("../src/runtime-security.cjs");
+const { viewMenu } = require("../src/view-menu.cjs");
 
 test("packaged startup removes remote debugging and automatic DevTools switches", () => {
   const switches = new Map([
@@ -78,15 +79,13 @@ test("the public Windows MCP command attaches inherited pipes to the native help
 });
 
 test("the production View menu has no developer tools entry", () => {
-  const source = fs.readFileSync(path.join(__dirname, "../src/main.cjs"), "utf8");
-  const menu = source.match(/\{\s+label: t\("View"\),[\s\S]*?\n      \},/)[0];
   for (const isPackaged of [true, false]) {
     let toggled = 0;
-    const view = vm.runInNewContext("(" + menu.slice(0, -1) + ")", {
-      studioWindow: { webContents: { toggleDevTools: () => toggled++ } },
-      app: { isPackaged }, t: (key) => key, process: { platform: "darwin" },
-      MODES: ["window", "fullscreen", "island"], presentation: { mode: "window" },
-      CLOSE_ACTIONS: ["ask", "island", "quit"],
+    const view = viewMenu({
+      isPackaged,
+      getStudioWindow: () => ({
+        webContents: { toggleDevTools: () => toggled++ },
+      }),
     });
     const devtools = view.submenu.find((item) => item.id === "desktop-devtools");
     assert.equal(!!devtools, !isPackaged);

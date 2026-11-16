@@ -3,6 +3,7 @@ import { Drawer } from 'antd';
 import cls from 'classnames';
 import React from 'react';
 import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -182,7 +183,23 @@ function registerDrawer(loader) {
       },
       defaultStylesClassName: {
         type: "themeResetClass"
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Drawer root",
+          mask: "Backdrop mask",
+          wrapper: "Drawer wrapper",
+          section: "Panel section",
+          header: "Header",
+          title: "Title",
+          extra: "Extra content",
+          body: "Body",
+          footer: "Footer",
+          dragger: "Resize dragger",
+          close: "Close button"
+        },
+        { advanced: true }
+      )
     },
     states: {
       open: {

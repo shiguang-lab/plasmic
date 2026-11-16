@@ -3799,7 +3799,7 @@ export function getPropTypeLayout(propType: StudioPropType<any> | undefined) {
   }
   if (
     isPlainObjectPropType(propType) &&
-    propType.type === "object" &&
+    (propType.type === "object" || propType.type === "custom") &&
     propType.display === "inline"
   ) {
     return "vertical";

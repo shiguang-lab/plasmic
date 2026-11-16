@@ -1,4 +1,5 @@
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import { Tooltip, Input, Checkbox, Table } from 'antd';
 import React from 'react';
@@ -28,6 +29,31 @@ const checkboxStyles = {
   },
   label: { flex: 1, paddingInlineStart: 0, paddingInlineEnd: 8 }
 };
+function TableControlFields({ children }) {
+  const fields = React.Children.toArray(children);
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        width: "100%"
+      },
+      children: fields.map((field, index) => /* @__PURE__ */ jsxs("div", { className: "with-connector-line", children: [
+        /* @__PURE__ */ jsx("div", { className: "property-connector-line-icon", "aria-hidden": "true" }),
+        index < fields.length - 1 && /* @__PURE__ */ jsx(
+          "div",
+          {
+            className: "property-connector-vertical-line",
+            "aria-hidden": "true"
+          }
+        ),
+        field
+      ] }, index))
+    }
+  );
+}
 function TablePaginationControl({
   value,
   updateValue,
@@ -43,7 +69,7 @@ function TablePaginationControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+  return /* @__PURE__ */ jsxs(TableControlFields, { children: [
     /* @__PURE__ */ jsx(
       Checkbox,
       {
@@ -53,51 +79,49 @@ function TablePaginationControl({
         children: "Show pagination"
       }
     ),
-    value !== false && /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
-        "Page size",
-        " ",
-        /* @__PURE__ */ jsx(
-          Input,
-          {
-            type: "number",
-            style: inputStyle,
-            "aria-label": "Page size",
-            min: 1,
-            step: 1,
-            value: options.pageSize ?? options.defaultPageSize ?? "",
-            placeholder: "10",
-            onChange: (e) => {
-              if (!e.target.validity.valid) {
-                return;
-              }
-              update(
-                options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
-                e.target.value === "" ? null : Number(e.target.value)
-              );
+    value !== false && /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
+      "Page size",
+      " ",
+      /* @__PURE__ */ jsx(
+        Input,
+        {
+          type: "number",
+          style: inputStyle,
+          "aria-label": "Page size",
+          min: 1,
+          step: 1,
+          value: options.pageSize ?? options.defaultPageSize ?? "",
+          placeholder: "10",
+          onChange: (e) => {
+            if (!e.target.validity.valid) {
+              return;
             }
+            update(
+              options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
+              e.target.value === "" ? null : Number(e.target.value)
+            );
           }
-        )
-      ] }),
-      /* @__PURE__ */ jsx(
-        Checkbox,
-        {
-          styles: checkboxStyles,
-          checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
-          onChange: (e) => update("showSizeChanger", e.target.checked),
-          children: "Show size changer"
-        }
-      ),
-      /* @__PURE__ */ jsx(
-        Checkbox,
-        {
-          styles: checkboxStyles,
-          checked: options.showQuickJumper ?? false,
-          onChange: (e) => update("showQuickJumper", e.target.checked),
-          children: "Show quick jumper"
         }
       )
-    ] })
+    ] }),
+    value !== false && /* @__PURE__ */ jsx(
+      Checkbox,
+      {
+        styles: checkboxStyles,
+        checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
+        onChange: (e) => update("showSizeChanger", e.target.checked),
+        children: "Show size changer"
+      }
+    ),
+    value !== false && /* @__PURE__ */ jsx(
+      Checkbox,
+      {
+        styles: checkboxStyles,
+        checked: options.showQuickJumper ?? false,
+        onChange: (e) => update("showQuickJumper", e.target.checked),
+        children: "Show quick jumper"
+      }
+    )
   ] });
 }
 function TableScrollControl({
@@ -114,7 +138,7 @@ function TableScrollControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+  return /* @__PURE__ */ jsxs(TableControlFields, { children: [
     /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
       /* @__PURE__ */ jsx(Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling.", children: /* @__PURE__ */ jsx("span", { children: "x" }) }),
       /* @__PURE__ */ jsx(
@@ -200,17 +224,18 @@ function TableHeaderCell(props) {
   return renderTableCell(props, "th");
 }
 function getColumns(children, bodyCell, headerCell, isEditing) {
-  const elements = [];
-  React.Children.forEach(children, (child) => elements.push(child));
-  return elements.flatMap((child) => {
+  const columns = [];
+  const visit = (child) => {
     if (!React.isValidElement(child)) {
-      return [];
+      return;
     }
     if (child.type === React.Fragment) {
-      return getColumns(child.props.children, bodyCell, headerCell, isEditing);
+      React.Children.forEach(child.props.children, visit);
+      return;
     }
     if (child.type === AntdExpandColumn) {
-      return [Table.EXPAND_COLUMN];
+      columns.push(Table.EXPAND_COLUMN);
+      return;
     }
     const {
       onCellClick: _click,
@@ -223,53 +248,52 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
       __plasmic_column__: { element: child, type: headerCell }
     });
     if (child.type.__ANT_TABLE_COLUMN_GROUP) {
-      return [
-        {
-          ...column,
-          key: child.key ?? column.key,
-          onHeaderCell,
-          children: getColumns(nested, bodyCell, headerCell, isEditing)
-        }
-      ];
-    }
-    return [
-      {
+      columns.push({
         ...column,
         key: child.key ?? column.key,
-        // Preview initial sorting edits without controlling sorting at runtime.
-        ...isEditing && column.sortOrder === void 0 ? { sortOrder: column.defaultSortOrder ?? null } : {},
-        // Reflect initial filter edits on the canvas without controlling runtime filters.
-        ...isEditing && column.filteredValue === void 0 && (column.filters || column.filterDropdown || column.onFilter) ? { filteredValue: column.defaultFilteredValue ?? null } : {},
         onHeaderCell,
-        onCell: (row, index) => {
-          const cellProps = column.onCell?.(row, index);
-          return {
-            ...cellProps,
-            ...render && !isEditing && child.props.onCellClick ? {
-              onClick: (event) => {
-                cellProps?.onClick?.(event);
-                const action = event.target.closest?.(
-                  "button, a[href], .ant-avatar"
-                );
-                if (!action || !event.currentTarget.contains(action) || action.matches(":disabled, [aria-disabled=true]")) {
-                  return;
-                }
-                const path = asArray(column.dataIndex ?? []);
-                child.props.onCellClick?.(
-                  path.reduce((value, field) => value?.[field], row),
-                  row,
-                  index ?? 0
-                );
+        children: getColumns(nested, bodyCell, headerCell, isEditing)
+      });
+      return;
+    }
+    columns.push({
+      ...column,
+      key: child.key ?? column.key,
+      // Preview initial sorting edits without controlling sorting at runtime.
+      ...isEditing && column.sortOrder === void 0 ? { sortOrder: column.defaultSortOrder ?? null } : {},
+      // Reflect initial filter edits on the canvas without controlling runtime filters.
+      ...isEditing && column.filteredValue === void 0 && (column.filters || column.filterDropdown || column.onFilter) ? { filteredValue: column.defaultFilteredValue ?? null } : {},
+      onHeaderCell,
+      onCell: (row, index) => {
+        const cellProps = column.onCell?.(row, index);
+        return {
+          ...cellProps,
+          ...render && !isEditing && child.props.onCellClick ? {
+            onClick: (event) => {
+              cellProps?.onClick?.(event);
+              const action = event.target.closest?.(
+                "button, a[href], .ant-avatar"
+              );
+              if (!action || !event.currentTarget.contains(action) || action.matches(":disabled, [aria-disabled=true]")) {
+                return;
               }
-            } : {},
-            __plasmic_column__: { element: child, type: bodyCell }
-          };
-        },
-        // Without a render slot, Ant Design renders the field value natively.
-        ...render ? { render } : {}
-      }
-    ];
-  });
+              const path = asArray(column.dataIndex ?? []);
+              child.props.onCellClick?.(
+                path.reduce((value, field) => value?.[field], row),
+                row,
+                index ?? 0
+              );
+            }
+          } : {},
+          __plasmic_column__: { element: child, type: bodyCell }
+        };
+      },
+      // Without a render slot, Ant Design renders the field value natively.
+      ...render ? { render } : {}
+    });
+  };
+  React.Children.forEach(children, visit);
+  return columns;
 }
 function TableWithColumns({
   children,
@@ -390,8 +414,9 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
     ...onExpandedRowsChange ? { onExpandedRowsChange } : {}
   } : void 0;
   const revealRows = !!canvas && !!rowExpansion?.expandedRowRender && (info?.editing || info?.selected && info.slot === "expandedRowRender");
+  const needsDefaultRowKeys = rowExpansion?.defaultExpandAllRows && rowExpansion.expandedRowKeys == null && rowExpansion.defaultExpandedRowKeys == null;
   const canvasRowKeys = [];
-  if (canvas && rowExpansion) {
+  if (canvas && rowExpansion && (revealRows || needsDefaultRowKeys)) {
     const collect = (rows) => rows.forEach((row) => {
       const key = row[rowKey ?? "key"];
       if (key != null && (!rowExpansion?.rowExpandable || rowExpansion.rowExpandable(row))) {
@@ -509,6 +534,27 @@ function registerTable(loader) {
     name: "plasmic-antd6-table",
     displayName: "Table",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        section: "Section",
+        title: "Title",
+        footer: "Footer",
+        body: {
+          wrapper: "Wrapper",
+          cell: "Cell",
+          row: "Row"
+        },
+        content: "Content",
+        header: {
+          wrapper: "Wrapper",
+          cell: "Cell",
+          row: "Row"
+        },
+        pagination: {
+          root: "Root",
+          item: "Item"
+        }
+      }),
       data: {
         type: "dataSourceOpData",
         displayName: "Data"
@@ -582,12 +628,14 @@ function registerTable(loader) {
         type: "custom",
         displayName: "Pagination",
         control: TablePaginationControl,
+        display: "inline",
         description: "False hides pagination; otherwise use native pagination options: current, pageSize/defaultPageSize, total, pageSizeOptions, showSizeChanger, and showTotal(total, range) returning content. Bind showTotal to display the total before the pager controls; keep paging and total under this one owner."
       },
       scroll: {
         type: "custom",
         displayName: "Scroll",
         control: TableScrollControl,
+        display: "inline",
         description: "Native Ant Design scroll. Horizontal width accepts pixels, percentages, or max-content; unset keeps the table within its container without horizontal scrolling. The table body grows with content when height is unset."
       },
       onChange: {

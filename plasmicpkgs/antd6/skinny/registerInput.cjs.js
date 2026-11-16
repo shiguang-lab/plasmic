@@ -4,6 +4,7 @@ var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
 var names = require('./names-DbJduus8.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -147,6 +148,17 @@ function registerInput(loader) {
       },
       ...COMMON_ADVANCED_PROPS,
       ...COMMON_DECORATOR_PROPS,
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Input container",
+          prefix: "Prefix",
+          suffix: "Suffix",
+          clear: "Clear button",
+          input: "Input",
+          count: "Character count"
+        },
+        { advanced: true }
+      ),
       ...COMMON_EVENT_HANDLERS
     },
     states: {
@@ -202,6 +214,15 @@ function registerTextArea(loader) {
         type: "boolean",
         displayName: "Auto grow height?"
       },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Textarea container",
+          textarea: "Textarea",
+          clear: "Clear button",
+          count: "Character count"
+        },
+        { advanced: true }
+      ),
       ...COMMON_EVENT_HANDLERS
     },
     states: {
@@ -220,6 +241,14 @@ function registerPasswordInput(loader) {
     displayName: "Password Input",
     styleSections: ["visibility"],
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        clear: "Clear",
+        input: "Input",
+        count: "Count"
+      }),
       value: {
         type: "string",
         hidden: (ps) => !!ps.__plasmicFormField
@@ -257,6 +286,14 @@ function registerNumberInput(loader) {
     displayName: "Number Input",
     styleSections: ["visibility"],
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        prefix: "Prefix",
+        suffix: "Suffix",
+        input: "Input",
+        actions: "Actions",
+        clear: "Clear"
+      }),
       value: {
         type: "number",
         hidden: (ps) => !!ps.__plasmicFormField

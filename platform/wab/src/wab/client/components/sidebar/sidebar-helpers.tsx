@@ -79,6 +79,7 @@ export function LabeledItem(props: {
   definedIndicator?: DefinedIndicatorType | readonly DefinedIndicatorType[];
   rightExtras?: React.ReactNode;
   labelAriaProps?: { id?: string; htmlFor?: string };
+  "aria-label"?: string;
   isDisabled?: boolean;
   disabledTooltip?: React.ReactNode | (() => React.ReactNode);
   indicatorClassName?: string;
@@ -575,6 +576,7 @@ export const LabeledStyleColorItem = React.memo(function LabeledStyleColorItem(
     label: rest.label,
     indicators,
   });
+  const popupTitle = colorOpts.popupTitle ?? props.label;
   return (
     <LabeledStyleItem
       {...rest}
@@ -588,9 +590,9 @@ export const LabeledStyleColorItem = React.memo(function LabeledStyleColorItem(
         sc={sc.studioCtx()}
         valueSetState={getValueSetState(...indicators)}
         popupTitle={
-          (colorOpts.popupTitle ?? props.label) ? (
+          popupTitle ? (
             <div className="text-xlg strong tight-line-height">
-              {props.label}
+              {popupTitle}
             </div>
           ) : undefined
         }
@@ -808,6 +810,7 @@ export const LabeledFontFamilySelector =
           )}
         >
           <FontFamilySelector
+            aria-label={props["aria-label"]}
             studioCtx={sc.studioCtx()}
             selectOpts={{
               value: value,

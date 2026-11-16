@@ -4,6 +4,7 @@ var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
 var names = require('./names-DbJduus8.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -63,7 +64,15 @@ function registerRadio(loader) {
           }
         ],
         ...{ mergeWithParent: true }
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Radio container",
+          icon: "Radio indicator",
+          label: "Label"
+        },
+        { advanced: true }
+      )
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerRadio",
     importName: "AntdRadio",
@@ -205,7 +214,16 @@ function registerRadio(loader) {
       onChange: {
         type: "eventHandler",
         argTypes: [{ name: "value", type: "string" }]
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Radio group container",
+          item: "Radio item",
+          itemIcon: "Item indicator",
+          itemLabel: "Item label"
+        },
+        { advanced: true }
+      )
     },
     states: {
       value: {

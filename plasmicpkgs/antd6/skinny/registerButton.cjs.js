@@ -4,6 +4,7 @@ var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
 var names = require('./names-DbJduus8.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -146,6 +147,14 @@ function getButtonProps() {
       type: "slot",
       hidePlaceholder: true
     },
+    ...semanticAppearance.semanticAppearance(
+      {
+        root: "Button container",
+        icon: "Icon",
+        content: "Content"
+      },
+      { advanced: true }
+    ),
     onClick: {
       type: "eventHandler",
       argTypes: []

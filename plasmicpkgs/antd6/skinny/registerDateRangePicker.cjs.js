@@ -7,6 +7,7 @@ var dayjs = require('dayjs');
 var kebabCase = require('lodash/kebabCase');
 var React = require('react');
 var canvasOverlay = require('./canvas-overlay-D2jWZ-TY.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 var localeData = require('dayjs/plugin/localeData');
 var weekday = require('dayjs/plugin/weekday');
@@ -321,7 +322,25 @@ function registerDateRangePicker(loader) {
         type: "eventHandler",
         advanced: true,
         argTypes: [{ name: "value", type: "object" }]
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Picker container",
+          prefix: "Prefix",
+          input: "Input",
+          suffix: "Suffix",
+          popup: {
+            root: "Popup root",
+            container: "Popup container",
+            header: "Popup header",
+            body: "Popup body",
+            content: "Popup content",
+            item: "Calendar cell",
+            footer: "Popup footer"
+          }
+        },
+        { advanced: true }
+      )
     },
     states: {
       startDate: {

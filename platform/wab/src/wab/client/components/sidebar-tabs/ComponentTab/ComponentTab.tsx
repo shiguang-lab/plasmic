@@ -36,9 +36,12 @@ export const ComponentTab = function ComponentTab(props: {
   studioCtx: StudioCtx;
   viewCtx: ViewCtx;
   isHalf?: boolean;
+  hideHeader?: boolean;
+  showSettings?: boolean;
+  onShowSettingsChange?: (open: boolean) => void;
 }) {
   const { t: uiT } = useI18n();
-  const { component, studioCtx, viewCtx, isHalf = false } = props;
+  const { component, studioCtx, viewCtx, isHalf = false, hideHeader = false } = props;
   const hasFocusedTpl = useFocusedViewSelection(studioCtx, (state) => state.tpls[0] != null);
   const permissions = useStore(studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
   const enableDataQueries = useStore(studioCtx.uiEnvironment.store, (state) => state.enableDataQueries);
@@ -59,7 +62,9 @@ export const ComponentTab = function ComponentTab(props: {
     "ComponentTab.isExpanded",
     false,
   );
-  const [showSettings, setShowSettings] = React.useState(false);
+  const [internalShowSettings, setInternalShowSettings] = React.useState(false);
+  const showSettings = props.showSettings ?? internalShowSettings;
+  const setShowSettings = props.onShowSettingsChange ?? setInternalShowSettings;
 
 
 
@@ -93,6 +98,7 @@ export const ComponentTab = function ComponentTab(props: {
         {!contentEditorMode &&
           ((renderMaybeCollapsibleRows) => (
             <>
+              {!hideHeader && (
               <SidebarSection>
                 <div className={S.componentTabHeaderContainer}>
                   <NamedPanelHeader
@@ -131,6 +137,7 @@ export const ComponentTab = function ComponentTab(props: {
                   )}
                 </div>
               </SidebarSection>
+              )}
               {renderMaybeCollapsibleRows([
                 {
                   collapsible:

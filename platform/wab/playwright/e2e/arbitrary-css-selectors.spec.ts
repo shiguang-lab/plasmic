@@ -120,6 +120,7 @@ test.describe("artbitrary-css-selectors", () => {
       () => false,
     );
 
+    await models.studio.rightPanel.typographySettingsButton.click();
     await models.studio.rightPanel.underlineTextDecorationButton.click();
 
     await checkCssInCanvas(pageFrameBody, "text-decoration-line", "underline");

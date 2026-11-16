@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var React = require('react');
 var utils = require('./utils-B1jTF3MA.cjs.js');
@@ -60,6 +61,13 @@ function registerProgress(loader) {
     name: progressComponentName,
     displayName: "Progress",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        body: "Body",
+        rail: "Rail",
+        track: "Track",
+        indicator: "Indicator"
+      }),
       type: {
         type: "choice",
         defaultValueHint: "line",

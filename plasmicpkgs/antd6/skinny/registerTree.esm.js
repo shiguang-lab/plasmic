@@ -1,4 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { Tree } from 'antd';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -105,6 +106,13 @@ function registerTreeHelper({
     name,
     displayName,
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemTitle: "Item Title",
+        itemSwitcher: "Item Switcher"
+      }),
       treeData: {
         type: "array",
         defaultValue: treeData

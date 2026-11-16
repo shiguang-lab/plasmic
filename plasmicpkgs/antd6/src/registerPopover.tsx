@@ -1,10 +1,12 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Popover } from "antd";
+import type { PopoverSemanticType } from "antd/es/popover";
 import cls from "classnames";
 import React from "react";
 import {
   useCanvasOverlay,
 } from "./canvas-overlay";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 const canvasOverlay = { triggerSlot: "children" };
@@ -176,6 +178,19 @@ export function registerPopover(loader?: Registerable) {
       defaultStylesClassName: {
         type: "themeResetClass",
       } as any,
+      ...semanticAppearance(
+        {
+          root: "Popover root",
+          container: "Container",
+          title: "Title",
+          content: "Content",
+          arrow: "Arrow",
+        } satisfies Record<
+          keyof NonNullable<PopoverSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       open: {

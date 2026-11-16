@@ -1,3 +1,5 @@
+import type { TreeSemanticType } from "antd/es/tree/Tree";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import type { TreeDataNode, TreeProps } from "antd";
 import { Tree } from "antd";
 import type { DirectoryTreeProps } from "antd/es/tree";
@@ -131,6 +133,13 @@ function registerTreeHelper({
     name: name,
     displayName: displayName,
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemTitle: "Item Title",
+        itemSwitcher: "Item Switcher",
+      } satisfies SemanticPartLabels<TreeSemanticType["classNames"]>),
       treeData: {
         type: "array",
         defaultValue: treeData,

@@ -1,6 +1,7 @@
 'use strict';
 
 var jsxRuntime = require('react/jsx-runtime');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var Ant = require('antd');
 var host = require('@plasmicapp/host');
 var canvasOverlay = require('./canvas-overlay-D2jWZ-TY.cjs.js');
@@ -155,6 +156,24 @@ function registerMenu(loader) {
     name: "plasmic-antd6-menu",
     displayName: "Menu",
     props: {
+      ...semanticAppearance.semanticAppearance({
+        root: "Root",
+        itemTitle: "Item Title",
+        list: "List",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+        popup: {
+          root: "Root"
+        },
+        subMenu: {
+          item: "Item",
+          itemTitle: "Item Title",
+          list: "List",
+          itemContent: "Item Content",
+          itemIcon: "Item Icon"
+        }
+      }),
       expandIcon: {
         type: "slot",
         hidePlaceholder: true

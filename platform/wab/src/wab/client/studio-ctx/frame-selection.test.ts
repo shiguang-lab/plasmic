@@ -13,7 +13,10 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
+import { mkTplTag } from "@/wab/shared/core/tpls";
+import { ValTag } from "@/wab/shared/core/val-nodes";
 import { Box, Pt } from "@/wab/shared/geom";
+import { ensureKnownTplTag } from "@/wab/shared/model/classes";
 import $ from "jquery";
 import { mock } from "vitest-mock-extended";
 
@@ -313,6 +316,90 @@ it("selects by title, moves a single artboard from its body, and adds another by
     await f.emit("Down", otherTitle, undefined, 120, 0, true);
     await f.emit("Up", otherTitle, undefined, 120, 0, true);
     expect(f.studioCtx.focusedFrames()).toEqual(f.frames);
+  } finally {
+    await f.dispose();
+  }
+});
+
+it.each(["root", "full-viewport child"])("selects the %s on click and moves the artboard on the first drag", async (target) => {
+  const f = await setupArtboardGestures();
+  const { view, container } = f.views[0];
+  const root = container.appendChild(document.createElement("div"));
+  const pageRoot = ensureKnownTplTag(view.component.tplTree);
+  const tpl = target === "root" ? pageRoot : mkTplTag("div");
+  if (tpl !== pageRoot) {
+    await f.studioCtx.changeUnsafe(() => {
+      pageRoot.children.push(tpl);
+      tpl.parent = pageRoot;
+    });
+    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(100);
+    vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(100);
+    vi.spyOn(root, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 100));
+  }
+  const val = new ValTag({
+    tpl,
+    children: [],
+    className: "",
+    key: tpl.uuid,
+    fullKey: tpl.uuid,
+    frameUid: f.frames[0].uid,
+    fibers: [],
+    parent: undefined,
+    valOwner: undefined,
+    slotInfo: undefined,
+  });
+  const hitTest = vi.spyOn(canvasUtil, "closestTaggedNonTextDomElt").mockReturnValue($(root));
+  vi.spyOn(view.getViewOps(), "getFinalFocusable").mockReturnValue({
+    val,
+    focusedDom: $(root),
+    focusedTpl: tpl,
+    focusedCloneKey: undefined,
+  });
+  vi.spyOn(view.getViewOps(), "tryFocusDomElt").mockImplementation(() => {
+    view.changeSelection(() => view.setStudioFocusByTpl(tpl));
+    return val;
+  });
+  try {
+    await f.emit("Down", root, view, 10, 10);
+    await f.emit("Up", root, view, 10, 10);
+    expect(view.focusedTpls()).toEqual([tpl]);
+    expect(f.studioCtx.focusedFrames()).toEqual([]);
+    expect(f.positions()).toEqual([[0, 0], [120, 0]]);
+
+    f.studioCtx.changeSelection(() =>
+      f.studioCtx.setStudioFocusOnFrame({ frame: undefined, autoZoom: false }),
+    );
+    await f.emit("Down", root, view, 15, 15);
+    expect(f.studioCtx.focusedViewCtx()).toBeUndefined();
+    await f.emit("Move", root, view, 35, 45);
+    expect(f.positions()).toEqual([[20, 30], [120, 0]]);
+    await f.emit("Up", root, view, 35, 45);
+    await f.studioCtx.changeUnsafe(() => undefined);
+    expect(f.studioCtx.focusedFrames()).toEqual([f.frames[0]]);
+    await f.studioCtx.undo();
+    expect(f.positions()).toEqual([[0, 0], [120, 0]]);
+  } finally {
+    hitTest.mockRestore();
+    vi.restoreAllMocks();
+    await f.dispose();
+  }
+});
+
+it("moves an unselected artboard from the empty space outside its root", async () => {
+  const f = await setupArtboardGestures();
+  const { view, container } = f.views[0];
+  view.canvasCtx.$wabInternalElements = () => [$(container)];
+  try {
+    f.studioCtx.changeSelection(() =>
+      f.studioCtx.setStudioFocusOnFrame({ frame: f.frames[1], autoZoom: false }),
+    );
+    await f.emit("Down", container, view, 15, 15);
+    expect(f.studioCtx.focusedFrames()).toEqual([f.frames[1]]);
+    await f.emit("Move", container, view, 35, 45);
+    expect(f.positions()).toEqual([[20, 30], [120, 0]]);
+    await f.emit("Up", container, view, 35, 45);
+    await f.studioCtx.changeUnsafe(() => undefined);
+    expect(f.studioCtx.focusedFrames()).toEqual([f.frames[0]]);
   } finally {
     await f.dispose();
   }

@@ -1,3 +1,5 @@
+import type { SliderSemanticType } from "antd/es/slider/index";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { Slider } from "antd";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -12,6 +14,13 @@ export function registerSlider(loader?: Registerable) {
     displayName: "Slider",
     defaultStyles: { width: "stretch" },
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        tracks: "Tracks",
+        track: "Track",
+        rail: "Rail",
+        handle: "Handle",
+      } satisfies SemanticPartLabels<SliderSemanticType["classNames"]>),
       range: { type: "object", description: "Boolean or Antd range configuration, such as { draggableTrack: true }." },
       value: { type: "object", editOnly: true, uncontrolledProp: "defaultValue", description: "Number for a single handle, array of numbers for range mode." },
       min: { type: "number", defaultValueHint: 0 },

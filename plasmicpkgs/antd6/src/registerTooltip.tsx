@@ -1,10 +1,12 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Tooltip } from "antd";
+import type { TooltipSemanticType } from "antd/es/tooltip";
 import cls from "classnames";
 import React from "react";
 import {
   useCanvasOverlay,
 } from "./canvas-overlay";
+import { semanticAppearance } from "./semantic-appearance";
 import { Registerable, registerComponentHelper } from "./utils";
 
 const canvasOverlay = { triggerSlot: "children" };
@@ -112,6 +114,17 @@ export function registerTooltip(loader?: Registerable) {
         description: "Default placement of tooltip",
         defaultValueHint: "top",
       },
+      ...semanticAppearance(
+        {
+          root: "Tooltip root",
+          container: "Container",
+          arrow: "Arrow",
+        } satisfies Record<
+          keyof NonNullable<TooltipSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       open: {

@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import kebabCase from 'lodash/kebabCase';
 import { useMemo } from 'react';
 import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
+import { s as semanticAppearance } from './semantic-appearance-D-8fw6YR.esm.js';
 import { r as registerComponentHelper, c as capitalize } from './utils-DPGVAauG.esm.js';
 import localeData from 'dayjs/plugin/localeData';
 import weekday from 'dayjs/plugin/weekday';
@@ -311,7 +312,25 @@ function registerDateRangePicker(loader) {
         type: "eventHandler",
         advanced: true,
         argTypes: [{ name: "value", type: "object" }]
-      }
+      },
+      ...semanticAppearance(
+        {
+          root: "Picker container",
+          prefix: "Prefix",
+          input: "Input",
+          suffix: "Suffix",
+          popup: {
+            root: "Popup root",
+            container: "Popup container",
+            header: "Popup header",
+            body: "Popup body",
+            content: "Popup content",
+            item: "Calendar cell",
+            footer: "Popup footer"
+          }
+        },
+        { advanced: true }
+      )
     },
     states: {
       startDate: {

@@ -1,3 +1,5 @@
+import type { MenuClassNamesType } from "antd/es/menu/menu";
+import { semanticAppearance, type SemanticPartLabels } from "./semantic-appearance";
 import { Menu as NativeMenu } from "antd";
 import { PlasmicCanvasProps, usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
 import { renderCanvasSlot } from "./canvas-overlay";
@@ -153,6 +155,26 @@ export function registerMenu(loader?: Registerable) {
     name: "plasmic-antd6-menu",
     displayName: "Menu",
     props: {
+      ...semanticAppearance({
+        root: "Root",
+        itemTitle: "Item Title",
+        list: "List",
+        item: "Item",
+        itemIcon: "Item Icon",
+        itemContent: "Item Content",
+        popup: {
+          root: "Root",
+        },
+        subMenu: {
+          item: "Item",
+          itemTitle: "Item Title",
+          list: "List",
+          itemContent: "Item Content",
+          itemIcon: "Item Icon",
+        },
+      } satisfies SemanticPartLabels<
+        Exclude<MenuClassNamesType, (...args: any[]) => unknown>
+      >),
       expandIcon: {
         type: "slot",
         hidePlaceholder: true,

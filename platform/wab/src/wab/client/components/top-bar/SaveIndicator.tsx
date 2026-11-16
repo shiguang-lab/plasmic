@@ -8,12 +8,6 @@ import {
   useDesktopDraftController,
   useDesktopDraftSelector,
 } from "@/wab/client/studio-ctx/desktop-drafts-react";
-import {
-  ClockCircleOutlined,
-  ExclamationCircleOutlined,
-  EyeOutlined,
-  LoadingOutlined,
-} from "@ant-design/icons";
 import { Button, Tooltip } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
@@ -51,17 +45,24 @@ const useStyles = createStyles(({ token }) => ({
     "& .save-indicator-content": {
       display: "inline-flex",
       alignItems: "center",
-      gap: 6,
+      justifyContent: "center",
+      minWidth: 0,
+      width: "auto",
+      height: 28,
+      padding: "0 2px",
     },
-    "& .save-indicator-label": {
-      maxWidth: 140,
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-    },
-    "& .ant-btn": { color: "inherit", paddingInline: 4, height: 28 },
-    "@media (max-width: 1100px)": {
-      "& .save-indicator-label": { display: "none" },
+    "& .ant-btn": {
+      color: "inherit",
+      padding: 0,
+      border: 0,
+      background: "transparent",
+      boxShadow: "none",
+      minWidth: 0,
+      width: "auto",
+      height: 28,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
     },
   },
 }));
@@ -84,15 +85,6 @@ const SaveIndicator = React.forwardRef<HTMLDivElement, SaveIndicatorProps>(
         blocked: t("Saving blocked. Resolve the issue above."),
         unlogged: t("Unlogged changes"),
         readonly: t("Read-only"),
-      };
-      const icons = {
-        saved: <span className="save-indicator-dot" aria-hidden="true" />,
-        pending: <ClockCircleOutlined />,
-        saving: <LoadingOutlined spin />,
-        error: <ExclamationCircleOutlined />,
-        blocked: <ExclamationCircleOutlined />,
-        unlogged: <ClockCircleOutlined />,
-        readonly: <EyeOutlined />,
       };
       const controller = useDesktopDraftController(studioCtx);
       const draft = useDesktopDraftSelector(
@@ -160,12 +152,7 @@ const SaveIndicator = React.forwardRef<HTMLDivElement, SaveIndicatorProps>(
         draftState === "conflict";
       const content = (
         <span className="save-indicator-content">
-          {displayState === "conflict" || displayState === "error" ? (
-            <ExclamationCircleOutlined />
-          ) : (
-            icons[status]
-          )}
-          <span className="save-indicator-label">{label}</span>
+          <span className="save-indicator-dot" aria-hidden="true" />
         </span>
       );
       return (
@@ -181,7 +168,7 @@ const SaveIndicator = React.forwardRef<HTMLDivElement, SaveIndicatorProps>(
             >
               {canRetry ? (
                 <Button
-                  type="text"
+                  type="link"
                   size="small"
                   aria-label={label}
                   onClick={() => {

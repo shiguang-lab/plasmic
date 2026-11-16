@@ -25,6 +25,9 @@ export function useBackgroundInputs(studio: StudioCtx, layers: readonly Backgrou
   const clientValues = useClientTokenValues(colors.selected.rows.map((row) => row.resolved), colors.lifetime);
   const resolveColor = (id: string) => clientValues[colors.selected.rows.findIndex((row) => row.input === tokenRef(id))];
   const clientResolved = raw.map((value) => replaceAllTokenRefs(value, resolveColor));
+  const solidColors = layers.map((layer) => layer.image instanceof ColorFill
+    ? replaceAllTokenRefs(layer.image.color, resolveColor)
+    : undefined);
   // CssVarResolver's asset dictionary keeps the last UUID occurrence. Demand
   // only IDs actually used by these thumbnails, rather than copying a catalog.
   const assets = new Map(extractAllAssetRefs(clientResolved.join(" ")).flatMap((id) => {
@@ -51,5 +54,5 @@ export function useBackgroundInputs(studio: StudioCtx, layers: readonly Backgrou
     .when(RadialGradient, () => "Radial gradient")
     .when(NoneBackground, () => "Invalid layer")
     .result());
-  return { labels, thumbnails };
+  return { labels, thumbnails, solidColors };
 }

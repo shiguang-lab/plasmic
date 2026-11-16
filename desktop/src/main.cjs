@@ -47,6 +47,12 @@ const {
   fileMenu,
   updateFileMenuContext,
 } = require("./workspace.cjs");
+const {
+  DEFAULT_EDITOR_VIEW_MENU_STATE,
+  normalizeEditorViewMenuState,
+  sameEditorViewMenuState,
+  viewMenu,
+} = require("./view-menu.cjs");
 const { attachWindowRecovery } = require("./window-recovery.cjs");
 const { createLifecycleLog, lifecycleError } = require("./lifecycle-log.cjs");
 const { createProjectOpenLog } = require("./project-open-log.cjs");
@@ -378,10 +384,21 @@ async function startDesktop() {
     controller?.browser?.hide();
     drafts?.reset();
     dashboardPreviews?.cancelFor(contents);
+    if (contents === studio.editor?.webContents) {
+      setEditorViewState(DEFAULT_EDITOR_VIEW_MENU_STATE);
+    }
+  });
+  studio.on("contents-activated", (contents) => {
+    if (contents !== studio.editor?.webContents) {
+      setEditorViewState(DEFAULT_EDITOR_VIEW_MENU_STATE);
+    }
   });
   studio.on("contents-released", contents => {
     controller?.cancelPending(contents, "Desktop view closed");
     dashboardPreviews?.cancelFor(contents);
+    if (contents === studio.editor?.webContents || !studio.editor) {
+      setEditorViewState(DEFAULT_EDITOR_VIEW_MENU_STATE);
+    }
   });
   const appearanceWindow = mainWindow;
   if (process.platform === "darwin") {
@@ -589,6 +606,15 @@ async function startDesktop() {
       if (!trustedAuthSender(event)) {throw new Error("Invalid Studio page");}
       return controller.dispatch("browser", { action: "open" });
     });
+    ipcMain.on("desktop:editor-view-menu-state", (event, nextState) => {
+      if (!trustedAuthSender(event)) {
+        return;
+      }
+      if (nextState?.available && !workspace.projectId(event.senderFrame.url)) {
+        return;
+      }
+      setEditorViewState(nextState);
+    });
     stopRpc = await startRpc(app.getPath("userData"), (method, input, caller, signal) =>
       controller.dispatch(method, input, caller, signal),
       (caller) => controller.clearCallerActivity(caller.id),
@@ -638,6 +664,27 @@ async function startDesktop() {
   studio.on("contents-created", attachContents);
   attachContents(studio.webContents);
   let menuState;
+  let editorViewState = DEFAULT_EDITOR_VIEW_MENU_STATE;
+  let openMenus = 0;
+  let pendingMenuRebuild = false;
+  const scheduleMenuRebuild = () => {
+    if (win.isDestroyed()) {
+      return;
+    }
+    if (openMenus > 0) {
+      pendingMenuRebuild = true;
+      return;
+    }
+    buildMenu();
+  };
+  const setEditorViewState = (nextState) => {
+    const normalized = normalizeEditorViewMenuState(nextState);
+    if (sameEditorViewMenuState(editorViewState, normalized)) {
+      return;
+    }
+    editorViewState = normalized;
+    scheduleMenuRebuild();
+  };
   let checkpoint;
   const capture = () => {
     workspace.rememberUrl(studio.webContents.getURL());
@@ -664,7 +711,7 @@ async function startDesktop() {
     }
     void capture().then((changed) => {
       if (changed) {
-        buildMenu();
+        scheduleMenuRebuild();
       }
     });
   }, 5000);
@@ -806,7 +853,7 @@ async function startDesktop() {
         getWindow: () => mainWindow,
         navigate: (url) => studioWindow.loadURL(url),
         dialog,
-        refresh: buildMenu,
+        refresh: scheduleMenuRebuild,
         state: menuState,
         t,
       }),
@@ -822,42 +869,19 @@ async function startDesktop() {
           { role: "selectAll", label: t("Select All") },
         ],
       },
-      {
-        label: t("View"),
-        submenu: [
-          { label: t("Display mode"), submenu: MODES.map((value, index) => ({
-            id: `presentation-${value}`, type: "radio", checked: presentation.mode === value,
-            label: t(["Standard window", "Full screen", "Dynamic Island"][index]),
-            ...(value === "island" ? { accelerator: "CmdOrCtrl+Shift+I" } : {}),
-            click: () => void presentation.setMode(value).catch(console.error),
-          })) },
-          { label: t("When closing the main window"), submenu: CLOSE_ACTIONS.map((value, index) => ({
-            id: `close-action-${value}`, type: "radio", checked: presentation.closeAction === value,
-            label: t(["Ask every time", "Switch to Dynamic Island", "Quit Plasmic"][index]),
-            click: () => presentation.setCloseAction(value),
-          })) },
-          { type: "separator" },
-          {
-            label: t("Import from the web"),
-            accelerator: "CmdOrCtrl+Shift+U",
-            click: () => {
-              void controller.dispatch("browser", { action: "open" });
-            },
-          },
-          { type: "separator" },
-          { label: t("Reload"), accelerator: "CmdOrCtrl+R", click: () => studioWindow?.webContents.reload() },
-          { label: t("Force Reload"), accelerator: "CmdOrCtrl+Shift+R", click: () => studioWindow?.webContents.reloadIgnoringCache() },
-          ...(!app.isPackaged
-            ? [{ id: "desktop-devtools", label: t("Toggle Developer Tools"), accelerator: "Alt+CmdOrCtrl+I", click: () => studioWindow?.webContents.toggleDevTools() }]
-            : []),
-          { type: "separator" },
-          { label: t("Actual Size"), accelerator: "CmdOrCtrl+0", click: () => studioWindow?.webContents.setZoomLevel(0) },
-          { label: t("Zoom In"), accelerator: "CmdOrCtrl+Plus", click: () => studioWindow?.webContents.setZoomLevel(studioWindow.webContents.getZoomLevel() + .5) },
-          { label: t("Zoom Out"), accelerator: "CmdOrCtrl+-", click: () => studioWindow?.webContents.setZoomLevel(studioWindow.webContents.getZoomLevel() - .5) },
-          { label: t("Toggle Full Screen"), accelerator: process.platform === "darwin" ? "Ctrl+Command+F" : "F11",
-            click: () => void presentation.setMode(presentation.mode === "fullscreen" ? "window" : "fullscreen").catch(console.error) },
-        ],
-      },
+      viewMenu({
+        controller,
+        presentation,
+        getStudioWindow: () => studioWindow,
+        modes: MODES,
+        closeActions: CLOSE_ACTIONS,
+        isPackaged: app.isPackaged,
+        platform: process.platform,
+        dialog,
+        editorViewState,
+        onEditorViewState: setEditorViewState,
+        t,
+      }),
       {
         label: t("Window"),
         submenu: [
@@ -882,6 +906,21 @@ async function startDesktop() {
     if (process.platform === "darwin") {
       menu.items[0].submenu.insert(1, new MenuItem(checkForUpdatesItem));
     }
+    for (const item of menu.items) {
+      if (!item.submenu) {
+        continue;
+      }
+      item.submenu.on("menu-will-show", () => {
+        openMenus++;
+      });
+      item.submenu.on("menu-will-close", () => {
+        openMenus = Math.max(0, openMenus - 1);
+        if (openMenus === 0 && pendingMenuRebuild && !win.isDestroyed()) {
+          pendingMenuRebuild = false;
+          buildMenu();
+        }
+      });
+    }
     menu.getMenuItemById("desktop-file").submenu.on("menu-will-show", () => {
       void capture();
       void desktopLogin
@@ -889,7 +928,7 @@ async function startDesktop() {
         .then(() => workspace.refreshRecent(desktopSession))
         .then((changed) => {
           if (changed && !win.isDestroyed()) {
-            buildMenu();
+            scheduleMenuRebuild();
           }
         })
         .catch((error) => {

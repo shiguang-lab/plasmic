@@ -3,6 +3,7 @@
 var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -210,7 +211,14 @@ function registerPagination(loader) {
             type: "number"
           }
         ]
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Pagination container",
+          item: "Page item"
+        },
+        { advanced: true }
+      )
     },
     states: {
       currentPage: {

@@ -5,6 +5,7 @@ var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
 var canvasOverlay$1 = require('./canvas-overlay-D2jWZ-TY.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
@@ -189,7 +190,23 @@ function registerDrawer(loader) {
       },
       defaultStylesClassName: {
         type: "themeResetClass"
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Drawer root",
+          mask: "Backdrop mask",
+          wrapper: "Drawer wrapper",
+          section: "Panel section",
+          header: "Header",
+          title: "Title",
+          extra: "Extra content",
+          body: "Body",
+          footer: "Footer",
+          dragger: "Resize dragger",
+          close: "Close button"
+        },
+        { advanced: true }
+      )
     },
     states: {
       open: {

@@ -1,11 +1,16 @@
 import { Radio } from "antd";
 import type { RadioChangeEvent } from "antd/es/radio";
+import type {
+  RadioGroupSemanticType,
+  RadioSemanticType,
+} from "antd/es/radio/interface";
 import React from "react";
 import {
   radioButtonComponentName,
   radioComponentName,
   radioGroupComponentName,
 } from "./names";
+import { semanticAppearance } from "./semantic-appearance";
 import {
   Registerable,
   registerComponentHelper,
@@ -68,6 +73,17 @@ export function registerRadio(loader?: Registerable) {
         ],
         ...({ mergeWithParent: true } as any),
       },
+      ...semanticAppearance(
+        {
+          root: "Radio container",
+          icon: "Radio indicator",
+          label: "Label",
+        } satisfies Record<
+          keyof NonNullable<RadioSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     importPath: "@shiguang-lab/plasmic-antd6/skinny/registerRadio",
     importName: "AntdRadio",
@@ -212,6 +228,18 @@ export function registerRadio(loader?: Registerable) {
         type: "eventHandler",
         argTypes: [{ name: "value", type: "string" }],
       } as any,
+      ...semanticAppearance(
+        {
+          root: "Radio group container",
+          item: "Radio item",
+          itemIcon: "Item indicator",
+          itemLabel: "Item label",
+        } satisfies Record<
+          keyof NonNullable<RadioGroupSemanticType["classNames"]>,
+          string
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       value: {

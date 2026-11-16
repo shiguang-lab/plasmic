@@ -51,12 +51,20 @@ import React from "react";
 import { mutate as swrMutate } from "swr";
 
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
+import {
+  observeEditorViewMenuState,
+  runEditorViewMenuAction,
+} from "@/wab/client/components/top-bar/editor-view-menu";
 import { LocalizationConfig } from "@/wab/shared/localization";
+import { getLeftTabPermission } from "@/wab/shared/ui-config-utils";
 
 export interface TopFrameObserverProps {
   preview?: boolean;
   studioReady?: boolean;
 }
+
+const loadFigmaImporter = () => import("@/wab/client/figma-importer/import-file");
+const loadPenImporter = () => import("@/wab/client/pen-importer/import-file");
 
 function notifyMentionedResourceGone() {
   notification.info({
@@ -356,6 +364,63 @@ export const TopFrameObserver = React.memo(function TopFrameObserverContent({
       async showDesktopDrafts() {
         if (studioCtx.desktopDraft?.store.getState().drafts.length) {studioCtx.desktopDraft.setDialogOpen(true);}
       },
+      async runEditorViewMenuAction(action) {
+        return await runEditorViewMenuAction(studioCtx, action);
+      },
+      async runEditorFileAction(input) {
+        const uiConfig = studioCtx.getCurrentUiConfig();
+        if (
+          preview ||
+          studioCtx.renderPolicy.docs ||
+          !studioCtx.isAtTip ||
+          !studioCtx.canEditProject() ||
+          !studioCtx.canEditBranch()
+        ) {
+          return { handled: false };
+        }
+        if (input.action === "importFigma") {
+          if (
+            getLeftTabPermission(uiConfig, "figma", {
+              isContentCreator: studioCtx.contentEditorMode,
+            }) === "hidden"
+          ) {
+            return { handled: false };
+          }
+          const rawBytes = input.file.bytes;
+          const bytes = ArrayBuffer.isView(rawBytes)
+            ? new Uint8Array(
+                rawBytes.buffer,
+                rawBytes.byteOffset,
+                rawBytes.byteLength,
+              ).slice()
+            : new Uint8Array(Object.values(rawBytes));
+          const file = new File([bytes], input.file.name, {
+            type: "application/octet-stream",
+          });
+          void loadFigmaImporter()
+            .then(({ importFigmaFile }) => importFigmaFile(studioCtx, file))
+            .catch((error) => {
+              console.error("Failed to start Figma import", error);
+            });
+          return { handled: true };
+        }
+        if (input.action === "importPen") {
+          if (
+            getLeftTabPermission(uiConfig, "pen", {
+              isContentCreator: studioCtx.contentEditorMode,
+            }) === "hidden"
+          ) {
+            return { handled: false };
+          }
+          void loadPenImporter()
+            .then(({ importPenFile }) => importPenFile(studioCtx))
+            .catch((error) => {
+              console.error("Failed to start Pen import", error);
+            });
+          return { handled: true };
+        }
+        return { handled: false };
+      },
       async blockChanges(): Promise<void> {
         studioCtx.setBlockChanges(true);
       },
@@ -439,7 +504,7 @@ export const TopFrameObserver = React.memo(function TopFrameObserverContent({
         fileDragMonitor.onRemoteEvent(event);
       },
     }),
-    [studioCtx, toolControllers],
+    [studioCtx, toolControllers, preview],
   );
 
   React.useEffect(() => {
@@ -533,6 +598,20 @@ export const TopFrameObserver = React.memo(function TopFrameObserverContent({
     ]);
     return () => disposes.forEach((f) => f());
   }, [studioCtx, previewCtx, preview, topFrameApi]);
+
+  React.useEffect(
+    () =>
+      observeEditorViewMenuState(
+        studioCtx,
+        () => !preview && studioReady && !studioCtx.renderPolicy.docs,
+        (state) => {
+          void Promise.resolve(
+            topFrameApi.setEditorViewMenuState?.(state),
+          ).catch(() => undefined);
+        },
+      ),
+    [studioCtx, preview, studioReady, topFrameApi],
+  );
 
   return null;
 });

@@ -34,6 +34,7 @@ export interface StringPropEditorProps {
   valueSetState?: ValueSetState;
   defaultValueHint?: string;
   "data-plasmic-prop"?: string;
+  "aria-label"?: string;
   readOnly?: boolean;
 }
 
@@ -104,6 +105,7 @@ export const StringPropEditor = React.forwardRef<
       onBlur={submitDraft}
       ref={ref}
       data-plasmic-prop={props["data-plasmic-prop"]}
+      aria-label={props["aria-label"]}
       readOnly={props.readOnly}
     />
   );

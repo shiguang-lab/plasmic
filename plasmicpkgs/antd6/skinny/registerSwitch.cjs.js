@@ -3,6 +3,7 @@
 var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var names = require('./names-DbJduus8.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -38,6 +39,14 @@ function registerSwitch(loader) {
         defaultValueHint: false,
         advanced: true
       },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Switch container",
+          content: "Content",
+          indicator: "Thumb indicator"
+        },
+        { advanced: true }
+      ),
       onChange: {
         type: "eventHandler",
         argTypes: [{ name: "checked", type: "boolean" }]

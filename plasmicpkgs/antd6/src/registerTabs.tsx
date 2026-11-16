@@ -1,9 +1,11 @@
 import { PlasmicCanvasProps, usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
 import { ActionProps } from "@plasmicapp/host/registerComponent";
 import { Tabs } from "antd";
+import type { TabsSemanticType } from "antd/es/tabs";
 import cls from "classnames";
 import React, { ReactElement, useMemo } from "react";
 import { getSelectedCanvasItemKey } from "./canvas-overlay";
+import { semanticAppearance } from "./semantic-appearance";
 import {
   Registerable,
   asArray,
@@ -351,6 +353,24 @@ export function registerTabs(loader?: Registerable) {
         advanced: true,
         argTypes: [{ name: "scrollInfo", type: "object" }],
       },
+      ...semanticAppearance(
+        {
+          root: "Tabs container",
+          header: "Tab bar header",
+          item: "Tab item",
+          remove: "Remove button",
+          indicator: "Active indicator",
+          body: "Panels body",
+          content: "Panel content",
+          popup: {
+            root: "Overflow tabs popup",
+          },
+        } satisfies Record<
+          keyof NonNullable<TabsSemanticType["classNames"]>,
+          string | Record<string, string>
+        >,
+        { advanced: true },
+      ),
     },
     states: {
       activeKey: {

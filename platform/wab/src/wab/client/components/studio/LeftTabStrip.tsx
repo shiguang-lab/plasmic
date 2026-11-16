@@ -4,7 +4,6 @@ import {
 } from "@/wab/client/components/studio/EditorToolRail";
 import LeftTabButton from "@/wab/client/components/studio/LeftTabButton";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
-import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { DataTokenIcon } from "@/wab/client/icons";
@@ -16,11 +15,9 @@ import ComponentsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Plasm
 import ComponentssvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ComponentsSvg";
 import DevicessvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DevicesSvg";
 import DotsHorizontalCirclesvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__DotsHorizontalCircleSvg";
-import FigmasvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__FigmaSvg";
 import FontFamily2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__FontFamily2Svg";
 import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Keyframes";
 import Paintbrush2SvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__Paintbrush2Svg";
-import PencilSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PencilSvg";
 import PhotosvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PhotoSvg";
 import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
 import SplitSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
@@ -49,9 +46,6 @@ import { useStore } from "zustand";
 interface LeftTabStripProps extends DefaultLeftTabStripProps {
   useVersionsCTA: boolean;
 }
-
-function loadPenImporter() { return import("@/wab/client/pen-importer/import-file"); }
-function loadFigmaImporter() { return import("@/wab/client/figma-importer/import-file"); }
 
 export interface NavMenuItem {
   type: "item";
@@ -111,7 +105,6 @@ const CanvasTools = React.memo(function CanvasTools() {
 
 const LeftTabStrip = React.memo(function LeftTabStrip(props: LeftTabStripProps) {
   const { t } = useI18n();
-  const topFrameApi = useTopFrameApi();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
   const libraryTab = useStore(studioCtx.libraryTabStore);
@@ -125,9 +118,6 @@ const LeftTabStrip = React.memo(function LeftTabStrip(props: LeftTabStripProps) 
   const subscribeChatConfig = React.useCallback((listener: () => void) => studioCtx.appCtx.subscribeUiEnvironmentInputs(listener), [studioCtx]);
   const getChatEnabled = React.useCallback(() => studioCtx.chatCopilotEnabled(), [studioCtx, canEditProject]);
   const chatEnabled = React.useSyncExternalStore(subscribeChatConfig, getChatEnabled, getChatEnabled);
-  const figmaFileInputId = React.useId();
-  const [importingFigma, setImportingFigma] = React.useState(false);
-  const [importingPen, setImportingPen] = React.useState(false);
   const leftTabKey = useStore(
     studioCtx.leftPanelState.store,
     selectLeftTabKey,
@@ -299,40 +289,6 @@ More
           label: t("Expressions"),
           cond: canViewTab("expressions"),
         },
-        figma: {
-          type: "item",
-          icon: <FigmasvgIcon />,
-          label: t("Import from Figma"),
-          cond: canViewTab("figma"),
-          onClick: () => {
-            if (!importingFigma && !importingPen) {
-              document.getElementById(figmaFileInputId)?.click();
-            }
-          },
-        },
-        pen: {
-          type: "item",
-          icon: <PencilSvgIcon />,
-          label: t("Import from Pen"),
-          cond: canViewTab("pen"),
-          onClick: () => {
-            if (importingFigma || importingPen) {
-              return;
-            }
-            setImportingPen(true);
-            spawn(
-              (async () => {
-                return await (async () => {
-                  const { importPenFile } =
-                    await loadPenImporter();
-                  await importPenFile(studioCtx);
-                })().finally(() => {
-                  setImportingPen(false);
-                });
-              })(),
-            );
-          },
-        },
       },
     },
   };
@@ -496,39 +452,11 @@ More
   };
   return (
     <EditorToolRail
-      onOpenWebBrowser={() => spawn(topFrameApi.openDesktopBrowser())}
       showAvatar={false}
       insert={{ render: () => null }}
       root={{ className: props.className, id: "left-tab-strip" }}
       buttons={
         <>
-          <input
-            id={figmaFileInputId}
-            type="file"
-            accept=".fig"
-            hidden
-            aria-label={t("Import from Figma")}
-            onChange={(event) => {
-              const file = event.currentTarget.files?.[0];
-              event.currentTarget.value = "";
-              if (!file || importingFigma || importingPen) {
-                return;
-              }
-              setImportingFigma(true);
-              spawn(
-                (async () => {
-                  return await (async () => {
-                    const { importFigmaFile } =
-                      await loadFigmaImporter();
-                    await importFigmaFile(studioCtx, file);
-                  })().finally(() => {
-                    setImportingFigma(false);
-                  });
-                })(),
-              );
-            }}
-          />
-
           <CanvasTools />
           <div className="editor-rail-divider" role="separator" />
           <LeftTabButton
@@ -633,8 +561,6 @@ More
             settings: mainGroups.settingsGroup.items.settings,
             splits: mainGroups.more.items.splits,
             expressions: mainGroups.more.items.expressions,
-            figma: mainGroups.more.items.figma,
-            pen: mainGroups.more.items.pen,
           },
         },
       })}

@@ -4,6 +4,7 @@ var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var cls = require('classnames');
 var canvasOverlay$1 = require('./canvas-overlay-D2jWZ-TY.cjs.js');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
 require('react');
@@ -172,7 +173,17 @@ function registerPopover(loader) {
       },
       defaultStylesClassName: {
         type: "themeResetClass"
-      }
+      },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Popover root",
+          container: "Container",
+          title: "Title",
+          content: "Content",
+          arrow: "Arrow"
+        },
+        { advanced: true }
+      )
     },
     states: {
       open: {

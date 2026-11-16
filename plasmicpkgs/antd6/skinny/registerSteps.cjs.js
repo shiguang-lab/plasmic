@@ -2,6 +2,7 @@
 
 var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
+var semanticAppearance = require('./semantic-appearance-Ba48UgLS.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -90,6 +91,21 @@ function registerSteps(loader) {
         type: "boolean",
         description: "Change to vertical when screen narrower than 532px"
       },
+      ...semanticAppearance.semanticAppearance(
+        {
+          root: "Steps container",
+          item: "Step item",
+          itemWrapper: "Step wrapper",
+          itemIcon: "Step icon",
+          itemSection: "Step section",
+          itemHeader: "Step header",
+          itemTitle: "Step title",
+          itemSubtitle: "Step subtitle",
+          itemContent: "Step content",
+          itemRail: "Step rail"
+        },
+        { advanced: true }
+      ),
       onChange: {
         type: "eventHandler",
         argTypes: [

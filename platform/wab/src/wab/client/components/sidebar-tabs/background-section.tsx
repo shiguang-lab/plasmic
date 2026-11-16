@@ -1,9 +1,11 @@
+import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
 import { EllipseControl } from "@/wab/client/components/EllipseControl";
 import { useBackgroundInputs } from "@/wab/client/studio-ctx/background-inputs";
 import { useImageAssetList } from "@/wab/client/studio-ctx/image-asset-inputs";
 import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
-import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
+import { useMaybeSidebarModalContext } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
+import styles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import {
   FullRow,
   LabeledItem,
@@ -18,6 +20,7 @@ import {
   ExpsProvider,
   StylePanelSection,
   TabbedStylePanelSection,
+  changeStyle,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useStyleCells, useStyleIndicator } from "@/wab/client/studio-ctx/style-inputs-react";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
@@ -30,10 +33,11 @@ import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
-import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
+import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import ContainIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Contain";
 import CoverIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Cover";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
@@ -48,11 +52,10 @@ import {
   assert,
   ensure,
   maybe,
-  spawn,
   switchType,
   unexpected,
-  uniqueKey,
 } from "@/wab/shared/common";
+import { isTokenRef } from "@/wab/commons/StyleToken";
 import {
   Background,
   BackgroundLayer,
@@ -79,13 +82,11 @@ import {
 import { isStandardSide, oppSides } from "@/wab/shared/geom";
 import { isKnownImageAsset } from "@/wab/shared/model/classes";
 import { userImgUrl } from "@/wab/shared/urls";
+import Chroma from "@/wab/shared/utils/color-utils";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { cloneDeep } from "lodash";
-import { Tooltip } from "antd";
+import { InputNumber, Popover, Tooltip } from "antd";
 import React, { useState } from "react";
-
-function mkEmptyLayer() {
-  return new BackgroundLayer({ image: new NoneBackground() });
-}
 
 interface BackgroundProps {
   expsProvider: ExpsProvider;
@@ -109,55 +110,62 @@ export const BackgroundSection = function BackgroundSection(
   const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
   const vsh = props.vsh ?? currentVsh;
   const backgroundIndicator = useStyleIndicator(expsProvider, "background");
-  const { labels, thumbnails } = useBackgroundInputs(studioCtx, bg.layers, vsh);
+  const { labels, thumbnails, solidColors } = useBackgroundInputs(studioCtx, bg.layers, vsh);
 
-  const updateLayers = (layers: BackgroundLayer[]) => {
-    const next = new Background({ layers });
-    assert(
-      layers.every((l) => !l.preferBackgroundColorOverColorFill),
-      "No background layer can have a preferBackgroundColorOverColorFill",
-    );
-    spawn(
-      studioCtx.changeUnsafe(() => {
-        const exp = expsProvider.mergedExp();
-        if (layers.length > 0) {
-          exp.set("background", next.showCss());
-        } else {
-          // Create an empty layer as we might inherit from other variant
-          // or mixin.
-          exp.set("background", mkEmptyLayer().showCss());
-        }
-      }),
-    );
+  const updateLayers = (update: (layers: BackgroundLayer[]) => BackgroundLayer[]) => {
+    changeStyle(expsProvider, () => {
+      const exp = expsProvider.mergedExp();
+      const latest = parseCss(exp.getRaw("background") ?? "", { startRule: "background" });
+      latest.filterNoneLayers();
+      const layers = update(latest.layers);
+      assert(
+        layers.every((layer) => !layer.preferBackgroundColorOverColorFill),
+        "No background layer can have a preferBackgroundColorOverColorFill",
+      );
+      if (layers.length > 0) {
+        exp.set("background", new Background({ layers }).showCss());
+      } else if (expsProvider.maybeTargetExp()?.has("background")) {
+        exp.clear("background");
+      } else if (latest.layers.length > 0) {
+        // Removing an inherited layer explicitly suppresses that fill.
+        exp.set("background", "none");
+      }
+    });
   };
 
   const moveLayer = (fromIndex: number, toIndex: number) => {
-    updateLayers(arrayMoveIndex(bg.layers, fromIndex, toIndex));
+    setInspected(undefined);
+    updateLayers((layers) => arrayMoveIndex(layers, fromIndex, toIndex));
   };
 
   const removeLayer = (index: number) => {
-    updateLayers(bg.layers.filter((_, i) => i !== index));
+    setInspected(undefined);
+    updateLayers((layers) => layers.filter((_, i) => i !== index));
   };
 
-  const inspectedLayer = maybe(inspected, (i) => bg.layers[i]);
+  const changeLayerAlpha = (index: number, alpha: number) => {
+    updateLayers((layers) => layers.map((layer, layerIndex) => {
+      if (
+        layerIndex !== index ||
+        !(layer.image instanceof ColorFill) ||
+        isTokenRef(layer.image.color) ||
+        !Chroma.valid(layer.image.color)
+      ) {
+        return layer;
+      }
+      return new BackgroundLayer({
+        ...layer,
+        image: new ColorFill({ color: Chroma(layer.image.color).alpha(alpha).hex() }),
+      });
+    }));
+  };
 
-  const addBackgroundLayer = (type: "image" | "linear" | "radial" | "fill") => {
-    const layer = mkBackgroundLayer(
-      parseCss(defaultValuesByBgType[type], {
-        startRule: "backgroundImage",
-      }),
-      type === "image"
-        ? {
-            size: "cover",
-            position: css.showBgPos({
-              top: "50%",
-              left: "50%",
-            }),
-          }
-        : undefined,
-    );
-    updateLayers([layer, ...bg.layers]);
-    setInspected(0);
+  const addFill = () => {
+    setInspected(undefined);
+    updateLayers((layers) => [
+      mkBackgroundLayer(parseCss(defaultValuesByBgType.fill, { startRule: "backgroundImage" })),
+      ...layers,
+    ]);
   };
 
   const { isDisabled } = shouldBeDisabled({
@@ -171,63 +179,22 @@ export const BackgroundSection = function BackgroundSection(
     <StylePanelSection
       key={String(isSet)}
       expsProvider={expsProvider}
-      title={uiT("Backgrounds")}
+      title={uiT("Fill")}
       styleProps={["background"]}
+      headerMenuOnRightClickOnly
       controls={
         <>
-          <IconButton
-            tooltip={uiT("Add background color")}
-            onClick={() => addBackgroundLayer("fill")}
-            disabled={isDisabled}
-          >
-            <Icon icon={PaintBucketFillIcon} />
+          <StyleOverrideControl expsProvider={expsProvider} label={uiT("Fill")}
+            styleProps={["background"]} noneValues={{ background: "none" }} noneLabel={uiT("No fill")}
+            onChange={() => setInspected(undefined)} />
+          <IconButton size="small" tooltip={uiT("Add fill")} onClick={addFill} disabled={isDisabled}>
+            <Icon icon={PlusIcon} />
           </IconButton>
-          {!animatableOnly && (
-            <>
-              <IconButton
-                tooltip={uiT("Add background image")}
-                onClick={() => addBackgroundLayer("image")}
-                disabled={isDisabled}
-              >
-                <Icon icon={ImageBlockIcon} />
-              </IconButton>
-              <IconButton
-                tooltip={uiT("Add linear gradient background")}
-                onClick={() => addBackgroundLayer("linear")}
-                disabled={isDisabled}
-              >
-                <Icon icon={LinearIcon} />
-              </IconButton>
-              <IconButton
-                tooltip={uiT("Add radial gradient background")}
-                onClick={() => addBackgroundLayer("radial")}
-                disabled={isDisabled}
-              >
-                <Icon icon={RadialIcon} />
-              </IconButton>
-            </>
-          )}
         </>
       }
     >
       {isSet && (
         <div>
-          <SidebarModal
-            show={!!inspectedLayer}
-            onClose={() => setInspected(undefined)}
-          >
-            {inspected != null && inspectedLayer && (
-              <BackgroundLayerPanel
-                layer={inspectedLayer}
-                expsProvider={expsProvider}
-                onUpdated={(layer) => {
-                  updateLayers(bg.layers.map((current, index) => index === inspected ? layer : current));
-                }}
-                vsh={vsh}
-                animatableOnly={animatableOnly}
-              />
-            )}
-          </SidebarModal>
           <>
             <StyleWrapper
               styleName={["background"]}
@@ -244,38 +211,48 @@ export const BackgroundSection = function BackgroundSection(
               >
                 {bg.layers.map(
                   (layer: BackgroundLayer, index: /*TWZ*/ number) => {
-                    const mainContentText = labels[index];
+                    const label = switchType(layer.image)
+                      .when(LinearGradient, () => uiT("Linear gradient"))
+                      .when(RadialGradient, () => uiT("Radial gradient"))
+                      .when(ColorFill, ({ color }) => Chroma.valid(color) ? Chroma(color).hex("rgb") : labels[index])
+                      .when([ImageBackground, NoneBackground], () => labels[index])
+                      .result();
                     return (
                       <widgets.ListBoxItem
                         index={index}
-                        key={uniqueKey(layer)}
-                        {...(isDisabled
-                          ? {}
-                          : {
-                              onClick: () => setInspected(index),
-                            })}
+                        key={index}
+                        className={styles.fillItem}
+                        isDragDisabled={isDisabled || bg.layers.length < 2}
+                        disabled={isDisabled}
+                        removeLabel={uiT("Remove fill")}
                         onRemove={() => removeLayer(index)}
-                        thumbnail={
-                          <div className={"img-thumb__checkers"}>
-                            <div
-                              className={"img-thumb img-thumb-border"}
-                              style={{
-                                backgroundImage: thumbnails[index],
-                              }}
-                            />
-                          </div>
-                        }
+                        clickable={false}
+                        truncate={false}
                         mainContent={
-                          <div className={"bg-layer__label"}>
-                            <Tooltip
-                              title={mainContentText}
-                              mouseEnterDelay={0.5}
-                            >
-                              <TriggerTarget>{mainContentText}</TriggerTarget>
-                            </Tooltip>
-                          </div>
+                          <FillRow
+                            label={label}
+                            thumbnail={thumbnails[index]}
+                            image={layer.image}
+                            solidColor={solidColors[index]}
+                            isDisabled={isDisabled}
+                            open={inspected === index}
+                            onOpenChange={(open) => setInspected((current) =>
+                              open ? index : current === index ? undefined : current
+                            )}
+                            editor={inspected === index && (
+                              <BackgroundLayerPanel
+                                layer={layer}
+                                expsProvider={expsProvider}
+                                onUpdated={(updated) => {
+                                  updateLayers((layers) => layers.map((current, i) => i === index ? updated : current));
+                                }}
+                                vsh={vsh}
+                                animatableOnly={animatableOnly}
+                              />
+                            )}
+                            onAlphaChange={(alpha) => changeLayerAlpha(index, alpha)}
+                          />
                         }
-                        gridThumbnail
                       />
                     );
                   },
@@ -288,6 +265,104 @@ export const BackgroundSection = function BackgroundSection(
     </StylePanelSection>
   );
 };
+
+function FillRow({
+  label,
+  thumbnail,
+  image,
+  solidColor,
+  isDisabled,
+  open,
+  onOpenChange,
+  editor,
+  onAlphaChange,
+}: {
+  label: string;
+  thumbnail: string;
+  image: BackgroundLayer["image"];
+  solidColor: string | undefined;
+  isDisabled?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editor: React.ReactNode;
+  onAlphaChange: (alpha: number) => void;
+}) {
+  const { t } = useI18n();
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const popupRef = React.useRef<HTMLDivElement>(null);
+  const sidebarDepth = useMaybeSidebarModalContext()?.state.stack.length ?? 0;
+  const initialSidebarDepth = React.useRef(sidebarDepth);
+  useStudioEscape(popupRef, open && !isDisabled, () => {
+    onOpenChange(false);
+    triggerRef.current?.focus();
+  });
+  const isSolid = image instanceof ColorFill;
+  const title = t(isSolid ? "Fill color" : "Edit fill");
+  const token = isSolid && isTokenRef(image.color);
+  const alpha = solidColor && Chroma.valid(solidColor)
+    ? Math.round(Chroma(solidColor).alpha() * 100)
+    : null;
+  return (
+    <div className={styles.fillValue}>
+      <Popover
+        trigger="click"
+        placement="leftTop"
+        title={title}
+        open={open && !isDisabled}
+        destroyOnHidden
+        onOpenChange={(nextOpen) => {
+          if (nextOpen) {
+            initialSidebarDepth.current = sidebarDepth;
+          }
+          // Keep the fill editor mounted while its image asset editor is open.
+          if (sidebarDepth <= initialSidebarDepth.current) {
+            onOpenChange(nextOpen);
+          }
+        }}
+        content={
+          <div ref={popupRef} className={styles.fillPopover} role="dialog" aria-label={title}>
+            <Scrollbar scrollX={false} className={styles.fillPopoverBody}>
+              {editor}
+            </Scrollbar>
+          </div>
+        }
+      >
+        <button
+          ref={triggerRef}
+          type="button"
+          className={styles.fillEdit}
+          disabled={isDisabled}
+          aria-label={`${t("Edit fill")}: ${label}`}
+          aria-haspopup="dialog"
+          aria-expanded={open && !isDisabled}
+        >
+          <span className={styles.fillSwatch} aria-hidden="true">
+            <span className="img-thumb" style={{ backgroundImage: thumbnail }} />
+          </span>
+          <span className={styles.fillLabel}>{label}</span>
+        </button>
+      </Popover>
+      {isSolid && (
+        <Tooltip title={token ? t("Opacity is controlled by the color token") : t("Opacity")}>
+          <InputNumber
+            aria-label={t("Opacity")}
+            className={styles.fillOpacity}
+            disabled={isDisabled || token || alpha === null}
+            value={alpha}
+            placeholder="–"
+            min={0}
+            max={100}
+            controls={false}
+            suffix="%"
+            onChange={(value) => {
+              if (value !== null) onAlphaChange(Math.min(100, Math.max(0, value)) / 100);
+            }}
+          />
+        </Tooltip>
+      )}
+    </div>
+  );
+}
 
 interface BackgroundLayerPanelProps {
   layer: BackgroundLayer;
@@ -366,8 +441,9 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
 
   const colorFillPanel = (col: ColorFill) => {
     return (
-      <SidebarSection title={uiT("Fill color")}>
+      <div className={styles.fillColorPicker}>
         <ColorPicker
+          compact
           autoFocus
           color={col.color}
           onChange={(color) => {
@@ -379,7 +455,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           }}
           vsh={vsh}
         />
-      </SidebarSection>
+      </div>
     );
   };
 
@@ -784,8 +860,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           <StyleToggleButtonGroup
             value={modelType}
             onChange={(bgType) => {
-              updateImg(
-                ensure(
+              const image = ensure(
                   parseCss(
                     cachedValuesByBgType.current[
                       ensure(bgType, "Must not be undefined")
@@ -796,34 +871,39 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
                     { startRule: "backgroundImage" },
                   ),
                   "backgroundImage shouldn't be null",
-                ),
-                () => {},
               );
+              onUpdated(new BackgroundLayer({
+                ...layer,
+                image,
+                ...(bgType === "image" && { size: layer.size ?? "cover", position: layer.position ?? "50% 50%" }),
+              }));
             }}
           >
-            <StyleToggleButton className="flex-fill" value="fill">
+            <StyleToggleButton className="flex-fill" value="fill" tooltip={uiT("Solid")}>
               <Icon icon={PaintBucketFillIcon} />
             </StyleToggleButton>
-            <StyleToggleButton className="flex-fill" value="image">
+            <StyleToggleButton className="flex-fill" value="image" tooltip={uiT("Image")}>
               <Icon icon={ImageBlockIcon} />
             </StyleToggleButton>
-            <StyleToggleButton className="flex-fill" value="linear">
+            <StyleToggleButton className="flex-fill" value="linear" tooltip={uiT("Linear gradient")}>
               <Icon icon={LinearIcon} />
             </StyleToggleButton>
-            <StyleToggleButton className="flex-fill" value="radial">
+            <StyleToggleButton className="flex-fill" value="radial" tooltip={uiT("Radial gradient")}>
               <Icon icon={RadialIcon} />
             </StyleToggleButton>
           </StyleToggleButtonGroup>
         </FullRow>
       )}
       {tabContent}
+      {modelType === "image" && sizeSection()}
       {modelType !== "fill" && (
-        <>
-          {sizeSection()}
+        <details className={styles.fillAdvanced}>
+          <summary>{uiT("More settings")}</summary>
+          {modelType !== "image" && sizeSection()}
           {positionSection()}
           {repeatSection()}
           {miscSection()}
-        </>
+        </details>
       )}
     </div>
   );
