@@ -1,6 +1,7 @@
 import { Transition } from "@/wab/client/components/sidebar-tabs/TransitionsSection";
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
+import styles from "@/wab/client/components/style-controls/TransitionPanel.module.scss";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useI18n } from "@/wab/client/i18n";
 import { asValidCssTime } from "@/wab/shared/css";
@@ -70,7 +71,7 @@ export function TransitionPanel(
 
   return (
     <>
-      <LabeledItemRow label={uiT("What to animate")} labelSize="small">
+      <LabeledItemRow label={uiT("Property")} className={styles.row}>
         <StyleSelect
           value={transition.transitionProperty}
           onChange={(value) => {
@@ -84,16 +85,18 @@ export function TransitionPanel(
             }
           }}
           valueSetState={"isSet"}
-          aria-label={uiT("What to animate")}
+          aria-label={uiT("Property")}
         >
           {supportedProps.map((value) => (
             <StyleSelect.Option value={value} key={value}>
               {value}
             </StyleSelect.Option>
           ))}
+          <StyleSelect.Option value="none">{uiT("None")}</StyleSelect.Option>
         </StyleSelect>
       </LabeledItemRow>
-      <LabeledItemRow label={uiT("Duration")} labelSize="small">
+      {transition.transitionProperty !== "none" && <>
+      <LabeledItemRow label={uiT("Duration")} className={styles.row}>
         <Textbox
           styleType={["mono", "gray"]}
           value={styleDuration}
@@ -118,7 +121,7 @@ export function TransitionPanel(
           aria-label={uiT("Duration")}
         />
       </LabeledItemRow>
-      <LabeledItemRow label={uiT("Delay")} labelSize="small">
+      <LabeledItemRow label={uiT("Delay")} className={styles.row}>
         <Textbox
           styleType={["mono", "gray"]}
           value={styleDelay}
@@ -143,7 +146,7 @@ export function TransitionPanel(
           aria-label={uiT("Delay")}
         />
       </LabeledItemRow>
-      <LabeledItemRow label={uiT("Curve")} labelSize="small">
+      <LabeledItemRow label={uiT("Curve")} className={styles.row}>
         <StyleSelect
           value={transition.transitionTimingFunction}
           onChange={(value) => {
@@ -170,6 +173,7 @@ export function TransitionPanel(
           ))}
         </StyleSelect>
       </LabeledItemRow>
+      </>}
     </>
   );
 }

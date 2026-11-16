@@ -1,3 +1,4 @@
+import userEvent from "@testing-library/user-event";
 import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
@@ -107,7 +108,7 @@ it("updates real opacity and typography indicators and avoids context demand whe
     expect(italic.getAttribute("aria-pressed")).toBe("false");
 
     const color = screen.getByRole("button", { name: "Text color" });
-    expect(color.classList.contains("ant-color-picker-sm")).toBe(true);
+    expect(color.tagName).toBe("BUTTON");
     const colorIcon = ensure(color.querySelector('[data-icon="font-colors"]'), "Text color icon inside the picker trigger");
     expect(color.textContent).toBe("");
     expect(document.querySelector('[data-test-id="Color-input"]')).toBeNull();
@@ -118,18 +119,17 @@ it("updates real opacity and typography indicators and avoids context demand whe
     fireEvent.change(hex, { target: { value: "263a70" } });
     fireEvent.blur(hex);
     await waitFor(() => expect(exp.get("color").toLowerCase()).toBe("#263a70"));
-    const variables = within(picker).getByRole("button", { name: "Theme variables" });
-    fireEvent.click(variables);
-    const token = await within(picker).findByRole("option", { name: /Theme accent.*#ff99bb/i });
+    expect(within(picker).queryByRole("button", { name: "Theme variables" })).toBeNull();
+    const token = await within(picker).findByRole("button", { name: /Theme accent.*#ff99bb/i });
     fireEvent.click(token);
     await waitFor(() => expect(exp.get("color")).toBe(mkTokenRef(accent)));
-    const swatchColor = () => color.querySelector<HTMLElement>(".ant-color-picker-color-block-inner")?.style.backgroundColor;
+    const swatchColor = () => color.querySelector<HTMLElement>("[data-color-swatch]")?.style.backgroundColor;
     await waitFor(() => expect(swatchColor()).toBe("rgb(255, 153, 187)"));
     await act(async () => { await studio.changeUnsafe(() => { accent.variantedValues[0].value = "#112233"; }); });
     await waitFor(() => expect(swatchColor()).toBe("rgb(17, 34, 51)"));
     fireEvent.keyDown(picker, { key: "Escape" });
     await waitFor(() => expect(document.activeElement).toBe(color));
-    fireEvent.keyDown(color, { key: "Enter" });
+    await userEvent.keyboard("{Enter}");
     fireEvent.keyDown(await screen.findByRole("dialog", { name: "Text color" }), { key: "Escape" });
 
     const title = screen.getByText("Typography");

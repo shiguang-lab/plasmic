@@ -1,4 +1,6 @@
 import definedIndicator from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
+import paintRows from "@/wab/client/components/style-controls/PaintRows.module.scss";
+import typography from "@/wab/client/components/style-controls/Typography.module.scss";
 import textbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css";
 import addCommentMarker from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicAddCommentMarker.module.css";
 import markdownHints from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicMarkdownHintsPopoverContent.module.css";
@@ -26,6 +28,9 @@ import mergeFlow from "@/wab/client/plasmic/plasmic_kit_merge_flow/PlasmicMergeF
 import branchPanel from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicBranchPanel.module.css";
 import searchInput from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
 import dimTokenSelector from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicDimTokenSelector.module.css";
+import styleSelect from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect.module.css";
+import styleToggle from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButton.module.css";
+import styleToggleGroup from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButtonGroup.module.css";
 import styleSelectOption from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css";
 import styleOptionGroup from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__OptionGroup.module.css";
 import styleSelectOverlay from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Overlay.module.css";
@@ -99,6 +104,43 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   "--ui-warning": token.colorWarningText,
   "--ui-warning-bg": token.colorWarningBg,
   "--ui-warning-border": token.colorWarningBorder,
+  // Include portaled editors and standalone typography controls. Keep density
+  // local to style editing; other product forms and menu rows retain their size.
+  [`& :is(.style-panel-section, .${paintRows.fillPopover}, .${paintRows.fillPanel}, .${typography.fields}, .${typography.settings})`]: {
+    "--token-aDa535tnF": "28px",
+    "& .plasmic_tokens_tXkSR39sgCDWSitZxC5xFV": {
+      "--token-aDa535tnF": "28px",
+    },
+    [`& :where(.${dimTokenSelector.root}, .${styleSelect.trigger})`]: {
+      paddingBlock: 4,
+    },
+    [`& .${select.trigger}`]: { height: 28, paddingBlock: 4 },
+    [`& .${textbox.root}`]: { minHeight: 28 },
+    [`& .${textbox.textbox}`]: { paddingBlock: 6 },
+    "& .ant-select:not(.ant-select-multiple)": {
+      height: 28,
+      minHeight: 28,
+      fontSize: "inherit",
+      "& .ant-select-selector": { height: "100%", minHeight: 0 },
+    },
+    "& input.ant-input, & .ant-input-affix-wrapper": {
+      height: 28,
+      minHeight: 28,
+      paddingBlock: 3,
+    },
+    "& .ant-input-affix-wrapper input.ant-input": {
+      height: "auto",
+      minHeight: 0,
+      paddingBlock: 0,
+    },
+    "& .ant-space-compact .ant-btn": { height: 28 },
+    [`& .${styleToggle.root}`]: { height: 28, paddingBlock: 0 },
+    [`& .${styleToggleGroup.buttonsContainer}`]: {
+      boxSizing: "border-box",
+      height: 28,
+      [`& .${styleToggle.root}`]: { height: 24 },
+    },
+  },
   "& .right-pane__mask": {
     background: "rgba(0, 0, 0, 0.15)",
   },
@@ -582,14 +624,15 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   [`& .${select.slotTargetSelectedContentshowPlaceholder}`]: {
     color: token.colorTextPlaceholder,
   },
-  [`& .${textbox.rootwhiteBackground}`]: { background: token.colorBgContainer },
+  [`& .${textbox.root}`]: { background: token.colorBgContainer },
+  [`& .${textbox.root}:has(input:disabled)`]: { background: token.colorBgContainerDisabled },
   [`& .${textbox.textbox}`]: {
-    background: token.colorBgContainer,
+    background: "transparent",
     color: token.colorText,
     borderRadius: "inherit",
   },
   [`& .${textbox.textboxdisabled}`]: {
-    background: token.colorBgContainerDisabled,
+    background: "transparent",
     color: token.colorTextDisabled,
   },
   [`& .${dimTokenSelector.textboxdisabled}`]: {

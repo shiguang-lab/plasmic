@@ -1,4 +1,3 @@
-import { StyleOverrideMenu } from "@/wab/client/components/style-controls/StyleOverrideMenu";
 import { useFocusedViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useBaseTransitionInputs } from "@/wab/client/studio-ctx/transition-inputs";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
@@ -30,6 +29,7 @@ import { joinCssValues, splitCssValue } from "@/wab/shared/css/parse";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Popover } from "antd";
 import React from "react";
+import { FiSlash } from "react-icons/fi";
 
 export class Transition {
   transitionProperty: string;
@@ -37,6 +37,13 @@ export class Transition {
   transitionDuration: string;
   transitionDelay: string;
 }
+
+const defaultTransition: Transition = {
+  transitionProperty: "all",
+  transitionTimingFunction: "ease",
+  transitionDuration: "1s",
+  transitionDelay: "0s",
+};
 
 export function TransitionsPanelSection(props: StyleComponentProps) {
   const { expsProvider } = props;
@@ -58,6 +65,11 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
   const updateTransitions = (transitions: Transition[]) => {
     return styling.change(() => {
       const exp = baseExp();
+      if (transitions.some((transition) => transition.transitionProperty === "none")) {
+        transitionProps.forEach((prop) => exp.clear(prop));
+        exp.set("transition-property", "none");
+        return;
+      }
       const updateRule = (key: string, values: string[]) => {
         // "transition-property" should be always set when transitions are used,
         // so we avoid deleting them. Other properties might be omitted if they
@@ -90,10 +102,9 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
     });
   };
 
-    const hasOverride = rawValues.some((value) => value !== undefined);
     const isNone = rawValues[transitionProps.indexOf("transition-property")] === "none";
     const transitions = ((): Transition[] => {
-      if (isNone) { return []; }
+      if (isNone) { return [{ ...defaultTransition, transitionProperty: "none" }]; }
       const parsedRules = Object.fromEntries(
         transitionProps.map((prop, i) => tuple(prop, maybe(rawValues[i], (val) => splitCssValue(prop, val)) ?? [])),
       );
@@ -120,14 +131,9 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
     })();
 
     const addTransition = () => {
-      const newTransition: Transition = {
-        transitionProperty: "all",
-        transitionTimingFunction: "ease",
-        transitionDuration: "1s",
-        transitionDelay: "0s",
-      };
-      updateTransitions([...transitions, newTransition]);
-      setIndex(transitions.length);
+      const newTransition = { ...defaultTransition };
+      updateTransitions(isNone ? [newTransition] : [...transitions, newTransition]);
+      setIndex(isNone ? 0 : transitions.length);
 
       sectionRef.current?.expand();
     };
@@ -141,20 +147,9 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
         styleProps={transitionProps}
         headerMenuOnRightClickOnly
         controls={
-          <>
-          <StyleOverrideMenu label={uiT("Transitions")} hasOverride={hasOverride} isNone={isNone}
-            onChange={(mode) => {
-              setIndex(undefined);
-              styling.change(() => {
-                const exp = baseExp();
-                transitionProps.forEach((prop) => exp.clear(prop));
-                if (mode === "none") { exp.set("transition-property", "none"); }
-              });
-            }} />
           <IconButton size="small" tooltip={uiT("Add transition")} onClick={addTransition}>
             <Icon icon={PlusIcon} />
           </IconButton>
-          </>
         }
       >
         {transitions.length > 0 && (
@@ -198,7 +193,7 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
                     index={i}
                     className={paintStyles.fillItem}
                     isDragDisabled={transitions.length < 2}
-                    removeLabel={uiT("Remove transition")}
+                    removeLabel={uiT(isNone ? "Remove None override" : "Remove transition")}
                     onRemove={() => {
                       setIndex((current) => {
                         if (current === undefined || current === i) {
@@ -222,6 +217,11 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
                           );
                         }}
                         onChange={(newValue: Transition) => {
+                          if (newValue.transitionProperty === "none") {
+                            updateTransitions([newValue]);
+                            setIndex(0);
+                            return;
+                          }
                           updateTransitions(
                             transitions.map((current, index) =>
                               index === i ? newValue : current,
@@ -263,6 +263,8 @@ function TransitionRow({
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const popupRef = React.useRef<HTMLDivElement>(null);
   const title = uiT("Transition");
+  const isNone = transition.transitionProperty === "none";
+  const label = isNone ? uiT("None") : transition.transitionProperty;
   useStudioEscape(popupRef, open, () => {
     onOpenChange(false);
     triggerRef.current?.focus();
@@ -293,7 +295,7 @@ function TransitionRow({
               aria-label={title}
             >
               <Scrollbar scrollX={false} className={paintStyles.fillPopoverBody}>
-                <TransitionPanel transition={transition} onChange={onChange} />
+                <TransitionPanel key={String(isNone)} transition={transition} onChange={onChange} />
               </Scrollbar>
             </div>
           )
@@ -303,16 +305,17 @@ function TransitionRow({
           ref={triggerRef}
           type="button"
           className={paintStyles.fillEdit}
-          aria-label={`${title}: ${transition.transitionProperty}`}
+          aria-label={`${title}: ${label}`}
           aria-haspopup="dialog"
           aria-expanded={open}
         >
+          {isNone && <FiSlash aria-hidden="true" />}
           <span className={paintStyles.fillLabel}>
-            {transition.transitionProperty}
+            {label}
           </span>
-          <span className={paintStyles.valueSummary}>
+          {!isNone && <span className={paintStyles.valueSummary}>
             {formatTransitionSummary(transition)}
-          </span>
+          </span>}
         </button>
       </Popover>
     </div>

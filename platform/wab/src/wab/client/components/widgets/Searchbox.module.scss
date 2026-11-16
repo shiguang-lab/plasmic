@@ -1,0 +1,9 @@
+.root.root {
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  min-width: 0;
+
+  &:focus-within {
+    border-color: var(--ui-accent);
+  }
+}

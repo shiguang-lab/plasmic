@@ -161,7 +161,7 @@ const VariantAnimationsContent = React.memo(function VariantAnimationsContent(
         title={uiT("Apply Animation")}
       >
         {inspectedAnimation && (
-          <div className="panel-content">
+          <div className="panel-content style-panel-section">
             <AnimationControls
               studioCtx={viewCtx.studioCtx}
               animation={inspectedAnimation}

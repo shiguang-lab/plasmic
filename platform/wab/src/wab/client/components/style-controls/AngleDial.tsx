@@ -7,7 +7,6 @@ import {
   XDraggableEvent,
 } from "@/wab/commons/components/XDraggable";
 import { deg2rad, ensure, rad2deg } from "@/wab/shared/common";
-import $ from "jquery";
 import L from "lodash";
 import * as React from "react";
 import { useRef } from "react";
@@ -21,8 +20,8 @@ function angleToOffset(angle: /*TWZ*/ number, radius: /*TWZ*/ number) {
 }
 
 function offsetToAngle({ top, left }: /*TWZ*/ { left: number; top: number }) {
-  const x = left - 25;
-  const y = -top + 25;
+  const x = left;
+  const y = -top;
   // x = cos(90 - angle) --> angle = 90 - acos x
   const rawAngle = 90 - rad2deg(Math.atan(y / x));
   // tan is lossy; recover the correct angle.
@@ -45,9 +44,9 @@ export function AngleDial({ angle, onChange }: AngleDialProps) {
   const container = useRef<HTMLDivElement>(null);
 
   const track = (e: XDraggableEvent) => {
-    const containerOffset = ensure($(ensure(container.current)).offset());
-    const left = e.mouseEvent.pageX - containerOffset.left;
-    const top = e.mouseEvent.pageY - containerOffset.top;
+    const rect = ensure(container.current, "Angle dial must be mounted while dragging").getBoundingClientRect();
+    const left = e.mouseEvent.clientX - rect.left - rect.width / 2;
+    const top = e.mouseEvent.clientY - rect.top - rect.height / 2;
     // eslint-disable-next-line @typescript-eslint/no-shadow
     const angle = offsetToAngle({ top, left });
     return onChange(angle);

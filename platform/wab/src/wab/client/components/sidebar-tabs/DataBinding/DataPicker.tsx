@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
@@ -569,6 +570,8 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
           },
         }}
         searchbox={{
+          className: configSearch.search,
+          extraPadding: false,
           ref: searchboxRef,
           value: query,
           onChange: (e) => setQuery(e.target.value),
@@ -622,7 +625,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
             }
             e.preventDefault();
           },
-          noOutline: true,
+          noOutline: false,
           autoFocus: true,
         }}
         withSearchResult={showingSearch}

@@ -80,11 +80,15 @@ it("renders committed image/token fields and keeps original image selection and 
     fireEvent.keyDown(screen.getByRole("dialog", { name: "Edit fill" }), { key: "Escape" });
     await waitFor(() => expect(document.querySelector('[data-test-id="image-picker"]')).toBeNull());
     const before = parseCss(f.exp.get("background"), { startRule: "background" }).layers.length;
-    expect(screen.getByRole("spinbutton", { name: "Opacity" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.queryByRole("spinbutton", { name: "Opacity" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Add fill" }));
     await waitFor(() => expect(parseCss(f.exp.get("background"), { startRule: "background" }).layers).toHaveLength(before + 1));
-    const opacity = screen.getAllByRole("spinbutton", { name: "Opacity" })[0];
+    const fillTrigger = screen.getByRole("button", { name: "Edit fill: #ffffff" });
+    expect(fillTrigger.getAttribute("aria-expanded")).toBe("true");
+    const colorDialog = await screen.findByRole("dialog", { name: "Fill color" });
+    const opacity = within(colorDialog).getByRole("textbox", { name: "Opacity" });
     fireEvent.change(opacity, { target: { value: "50" } });
+    fireEvent.blur(opacity);
     await waitFor(() => expect(f.exp.get("background").toLowerCase()).toContain("#ffffff80"));
     expect(f.exp.get("background")).toContain(mkTokenRef(f.head));
   } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
@@ -111,8 +115,8 @@ it("edits solid fill colors and theme variables in the anchored popover", async 
     await waitFor(() => expect(f.exp.get("background").toLowerCase()).toContain("#263a70"));
     expect(screen.getByTestId("background-projection").getAttribute("data-css")?.toLowerCase()).toContain("#263a70");
 
-    fireEvent.click(within(picker).getByRole("button", { name: "Theme variables" }));
-    fireEvent.click(await within(picker).findByRole("option", { name: /Paint token.*#654321/i }));
+    expect(within(picker).queryByRole("button", { name: "Theme variables" })).toBeNull();
+    fireEvent.click(await within(picker).findByRole("button", { name: /Paint token.*#654321/i }));
     await waitFor(() => expect(f.exp.get("background")).toContain(mkTokenRef(f.head)));
     expect(screen.getByTestId("background-projection").getAttribute("data-css")).toContain("#654321");
 
@@ -122,31 +126,39 @@ it("edits solid fill colors and theme variables in the anchored popover", async 
   } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });
 
-it("distinguishes default, no fill, and custom fill in the status menu", async () => {
+it("selects exclusive None in fill types, replaces it on add, and clears the last configuration on removal", async () => {
   const f = await setup();
-  await f.studio.changeUnsafe(() => f.exp.set("background", "#263a70"));
   const mounted = render(f.section());
   try {
-    fireEvent.click(screen.getByRole("button", { name: "Remove fill" }));
-    const defaultStatus = await screen.findByRole("button", { name: "Fill: Default" });
-    expect(f.exp.has("background")).toBe(false);
-
-    fireEvent.click(defaultStatus);
-    fireEvent.click(await screen.findByRole("menuitem", { name: "No fill" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Fill: No fill" }));
-    expect(f.exp.getRaw("background")).toBe("none");
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Restore default" }));
-    await screen.findByRole("button", { name: "Fill: Default" });
-    expect(f.exp.has("background")).toBe(false);
-
+    expect(screen.queryByRole("button", { name: "Fill: Custom" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Edit fill: First image" }));
+    fireEvent.click(within(await screen.findByRole("dialog", { name: "Edit fill" })).getByRole("button", { name: "None" }));
+    await waitFor(() => expect(f.exp.getRaw("background")).toBe("none"));
+    expect(screen.getByRole("button", { name: "Edit fill: None" })).toBeTruthy();
+    expect(mounted.container.querySelectorAll(".list-box-item")).toHaveLength(1);
+    const noneDialog = screen.getByRole("dialog", { name: "Edit fill" });
+    expect(noneDialog.querySelector('[data-test-id="image-picker"]')).toBeNull();
+    expect(within(noneDialog).queryByText("More settings")).toBeNull();
+    expect(screen.getByRole("button", { name: "Add fill" }).hasAttribute("disabled")).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Add fill" }));
     await screen.findByRole("button", { name: "Edit fill: #ffffff" });
-    expect(f.exp.has("background")).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: "Fill: Custom" }));
-    fireEvent.click(await screen.findByRole("menuitem", { name: "No fill" }));
-    await screen.findByRole("button", { name: "Fill: No fill" });
-    expect(f.exp.getRaw("background")).toBe("none");
+    expect(screen.queryByRole("button", { name: "Edit fill: None" })).toBeNull();
+    expect(parseCss(f.exp.get("background"), { startRule: "background" }).layers).toHaveLength(1);
+    fireEvent.click(within(await screen.findByRole("dialog", { name: "Fill color" })).getByRole("button", { name: "None" }));
+    await waitFor(() => expect(f.exp.getRaw("background")).toBe("none"));
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Edit fill" })).getByRole("button", { name: "Solid" }));
+    await screen.findByRole("button", { name: "Edit fill: #ffffff" });
+    fireEvent.click(screen.getByRole("button", { name: "Remove fill" }));
+    await waitFor(() => expect(f.exp.has("background")).toBe(false));
+    expect(screen.queryByRole("button", { name: "Edit fill: None" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Edit fill: #ffffff" })).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Add fill" }));
+    fireEvent.click(within(await screen.findByRole("dialog", { name: "Fill color" })).getByRole("button", { name: "None" }));
+    await screen.findByRole("button", { name: "Edit fill: None" });
+    fireEvent.click(screen.getByRole("button", { name: "Remove None override" }));
+    await waitFor(() => expect(f.exp.has("background")).toBe(false));
+    expect(screen.queryByRole("button", { name: "Edit fill: None" })).toBeNull();
   } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });
 
@@ -195,4 +207,104 @@ it("closes the actual image panel and command-ref roster before a real model own
     mounted.rerender(f.section());
     expect(nextField.mock.calls.some(([model]) => model === f.first || model === f.head || model === f.end || model === f.active || model === f.group)).toBe(false);
   } finally { stop(); stopLater(); mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+
+it("switches between all fill modes and restores edited values within the popup", async () => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => f.exp.set("background", "#12345680"));
+  const mounted = render(f.section());
+  try {
+    const trigger = screen.getByRole("button", { name: "Edit fill: #123456" });
+    fireEvent.click(within(trigger).getByText("50 %"));
+    const dialog = await screen.findByRole("dialog", { name: "Fill color" });
+    const switchMode = (name: string) => fireEvent.click(within(dialog).getByRole("button", { name }));
+    switchMode("Linear gradient");
+    await waitFor(() => expect(f.exp.get("background")).toContain("linear-gradient(0deg"));
+    expect(dialog.querySelector(".compact-color-picker")).toBeTruthy();
+    const hex = ensure(dialog.querySelector('[data-test-id="Color-input"]'), "Gradient stop color");
+    fireEvent.change(hex, { target: { value: "112233" } });
+    fireEvent.blur(hex);
+    await waitFor(() => expect(f.exp.get("background").toLowerCase()).toContain("#112233"));
+    const linear = f.exp.get("background");
+    switchMode("Radial gradient");
+    await waitFor(() => expect(f.exp.get("background")).toContain("radial-gradient"));
+    expect(dialog.querySelector(".ellipse-control")).toBeTruthy();
+    switchMode("Image");
+    await waitFor(() => expect(dialog.querySelector('[data-test-id="image-picker"]')).toBeTruthy());
+    expect(f.exp.get("background")).toContain("url(");
+    switchMode("Solid");
+    await waitFor(() => expect(f.exp.get("background").toLowerCase()).toContain("#12345680"));
+    switchMode("Linear gradient");
+    await waitFor(() => expect(f.exp.get("background")).toBe(linear));
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+
+it("edits advanced fill settings and restores them when the popup reopens", async () => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => f.exp.set("background", "linear-gradient(0deg, #112233 0%, #445566 100%) left 25% top 50% / 80px 60px no-repeat"));
+  const mounted = render(f.section());
+  try {
+    fireEvent.click(screen.getByRole("button", { name: "Edit fill: Linear gradient" }));
+    let dialog = await screen.findByRole("dialog", { name: "Edit fill" });
+    fireEvent.click(within(dialog).getByText("More settings"));
+    const layer = () => parseCss(f.exp.get("background"), { startRule: "background" }).layers[0];
+    const edit = async (name: string, value: string) => {
+      const input = within(dialog).getByRole("textbox", { name });
+      act(() => input.focus());
+      fireEvent.change(input, { target: { value } });
+      act(() => input.blur());
+    };
+    const select = async (name: string, option: string) => {
+      const input = within(dialog).getByRole("combobox", { name });
+      fireEvent.mouseDown(input);
+      const optionNode = await waitFor(() => {
+        const visibleOptions = screen.getAllByText(option, { selector: ".ant-select-item-option-content" })
+          .filter((node) => !node.closest(".ant-select-dropdown-hidden"));
+        expect(visibleOptions).toHaveLength(1);
+        return visibleOptions[0];
+      });
+      fireEvent.mouseUp(optionNode);
+      fireEvent.click(optionNode);
+    };
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Cover" }));
+    await waitFor(() => expect(layer().size).toBe("cover"));
+    expect(within(dialog).queryByRole("textbox", { name: "Width" })).toBeNull();
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Contain" }));
+    await waitFor(() => expect(layer().size).toBe("contain"));
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Custom" }));
+    await waitFor(() => expect(layer().size).toBe("80px 60px"));
+    await edit("Width", "120px");
+    await waitFor(() => expect(layer().size).toBe("120px 60px"));
+    await select("Horizontal Position", "Right");
+    await waitFor(() => expect(layer().position).toContain("right 25%"));
+    await select("Vertical Position", "Bottom");
+    await waitFor(() => expect(layer().position).toContain("bottom 50%"));
+    await edit("Horizontal", "12px");
+    await waitFor(() => expect(layer().position).toContain("right 12px"));
+    await edit("Vertical", "20%");
+    await waitFor(() => {
+      expect(layer().position).toContain("right 12px");
+      expect(layer().position).toContain("bottom 20%");
+      expect(layer().position).not.toMatch(/left|top|auto/);
+    });
+    fireEvent.click(within(dialog).getByRole("radio", { name: "Horizontal" }));
+    await select("Clipping", "Within content");
+    await select("Scrolling", "Fixed to page");
+    await select("Origin", "Within border");
+    await waitFor(() => {
+      expect(layer().repeat).toBe("repeat-x");
+      expect(layer().clip).toBe("content-box");
+      expect(layer().attachment).toBe("fixed");
+      expect(layer().origin).toBe("border-box");
+    });
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    fireEvent.click(screen.getByRole("button", { name: "Edit fill: Linear gradient" }));
+    dialog = await screen.findByRole("dialog", { name: "Edit fill" });
+    fireEvent.click(within(dialog).getByText("More settings"));
+    expect((within(dialog).getByRole("textbox", { name: "Width" }) as HTMLInputElement).value).toBe("120px");
+    expect((within(dialog).getByRole("textbox", { name: "Horizontal" }) as HTMLInputElement).value).toBe("12px");
+    expect(within(dialog).getByText("Fixed to page")).toBeTruthy();
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });

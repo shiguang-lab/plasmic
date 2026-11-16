@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { PopupFocuser } from "@/wab/client/components/widgets";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
@@ -40,6 +41,7 @@ export function HrefQueryPopover({
         <FocusScope contain restoreFocus>
           <PopupFocuser targetId="href-query-select" targetRef={selectRef} />
           <Select
+            className={configSearch.select}
             id="href-query-select"
             showSearch={true}
             searchValue={searchValue}
@@ -51,7 +53,7 @@ export function HrefQueryPopover({
             style={{
               width: 200,
             }}
-            bordered={false}
+            variant="outlined"
             ref={selectRef}
             placeholder={uiT("Choose a query param")}
             notFoundContent={null}

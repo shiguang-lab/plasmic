@@ -49,7 +49,13 @@ it("updates actual selected preview fields and edit membership, and preserves pi
     expect(picked).toHaveBeenLastCalledWith(f.other);
     mounted.rerender(f.wrap(<ImageAssetOrUrlPicker studioCtx={f.studioCtx} type={ImageAssetType.Picture} onPicked={picked} />));
     const url = screen.getByPlaceholderText("Enter a URL");
+    const previousCalls = picked.mock.calls.length;
+    fireEvent.change(url, { target: { value: "not an image URL" } });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(screen.getByRole("alert").textContent).toBe("Enter a valid URL");
+    expect(picked).toHaveBeenCalledTimes(previousCalls);
     fireEvent.change(url, { target: { value: "https://example.com/new.png" } });
+    expect(screen.queryByRole("alert")).toBeNull();
     fireEvent.submit(ensure(url.closest("form"), "Image URL form"));
     expect(picked).toHaveBeenLastCalledWith("https://example.com/new.png");
   } finally { mounted.unmount(); await f.studioCtx.awaitEval(); f.studioCtx.dispose(); }

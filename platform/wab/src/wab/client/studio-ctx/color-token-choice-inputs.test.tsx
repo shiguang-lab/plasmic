@@ -15,7 +15,7 @@ import { createSite } from "@/wab/shared/core/sites";
 import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
 import { MutableToken, OverrideableToken } from "@/wab/shared/core/tokens";
 import { ProjectDependency, StyleToken } from "@/wab/shared/model/classes";
-import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -89,16 +89,16 @@ it("uses the original registered DOM path and readonly selected rows without los
   const mounted = render(f.wrap(<Selector onSelect={selected} />));
   const swatch = ensure(mounted.container.querySelector<HTMLElement>(".SwatchButton"), "Real selected swatch"); expect(swatch.querySelector('[class*="rootisSelected"]')).toBeTruthy();
   expect([...swatch.querySelectorAll<HTMLElement>("[style]")].some((element) => element.style.backgroundColor === "rgb(171, 205, 239)")).toBe(true);
-  fireEvent.mouseDown(swatch); expect(selected).toHaveBeenCalledOnce(); mounted.rerender(f.wrap(<Selector onSelect={next} />)); fireEvent.mouseDown(ensure(mounted.container.querySelector(".SwatchButton"), "Current swatch")); expect(next).toHaveBeenCalledOnce(); expect(selected).toHaveBeenCalledOnce(); mounted.unmount();
+  fireEvent.click(swatch); expect(selected).toHaveBeenCalledOnce(); mounted.rerender(f.wrap(<Selector onSelect={next} />)); fireEvent.click(ensure(mounted.container.querySelector(".SwatchButton"), "Current swatch")); expect(next).toHaveBeenCalledOnce(); expect(selected).toHaveBeenCalledOnce(); mounted.unmount();
 });
 
 it("keeps the actual picker's select and add commands on original models", async () => {
   const f = await setup(), changed = vi.fn();
   function Picker() { const [color, setColor] = React.useState(mkTokenRef(f.first)); return <ColorPicker color={color} onChange={(next) => { changed(next); setColor(next); }} vsh={f.helper} />; }
   const mounted = render(f.wrap(<Picker />));
-  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(1));
-  await act(async () => { fireEvent.mouseDown(ensure(mounted.container.querySelector(".SwatchButton"), "Second original token")); }); expect(changed).toHaveBeenLastCalledWith(mkTokenRef(f.second));
-  const add = ensure(mounted.container.querySelector(".SwatchItemList")?.previousElementSibling?.querySelector("button"), "Original add token button");
+  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(2));
+  await act(async () => { fireEvent.click(ensure(mounted.container.querySelectorAll(".SwatchButton")[1], "Second original token")); }); expect(changed).toHaveBeenLastCalledWith(mkTokenRef(f.second));
+  const add = screen.getByRole("button", { name: "Create a new color token" });
   await act(async () => { fireEvent.click(add); });
   await waitFor(() => expect(f.site.styleTokens.filter((token) => token.type === "Color")).toHaveLength(3));
   const created = ensure(f.site.styleTokens.find((token) => token !== f.first && token !== f.second && token.type === "Color"), "Created color"); expect(created.value).toBe("#445566"); expect(changed).toHaveBeenLastCalledWith(mkTokenRef(created)); mounted.unmount();
@@ -109,11 +109,42 @@ it("updates the actual default picker roster when colors are added and removed w
   const f = await setup(), changed = vi.fn();
   const mounted = render(f.wrap(<ColorPicker color={mkTokenRef(f.first)} onChange={changed} vsh={f.helper} />));
   const added = mkStyleToken({ name: "New palette color", type: "Color", value: "#778899" });
-  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(1));
-  await act(async () => { await f.studio.changeUnsafe(() => { f.site.styleTokens.push(added); }); });
   await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(2));
+  await act(async () => { await f.studio.changeUnsafe(() => { f.site.styleTokens.push(added); }); });
+  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(3));
   expect(f.site.styleTokens).toContain(added); expect(changed).not.toHaveBeenCalled();
   await act(async () => { await f.studio.changeUnsafe(() => { f.site.styleTokens.splice(f.site.styleTokens.indexOf(added), 1); }); });
-  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(1));
+  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(2));
   expect(changed).not.toHaveBeenCalled(); mounted.unmount();
+});
+
+it.each([false, true])("keeps resolved color visible and read-only while a theme color is bound (compact=%s)", async (compact) => {
+  const f = await setup(), changed = vi.fn();
+  function Picker() {
+    const [color, setColor] = React.useState("#abcdef");
+    return <ColorPicker compact={compact} color={color} onChange={(next) => { changed(next); setColor(next); }} vsh={f.helper} />;
+  }
+  const mounted = render(f.wrap(<Picker />));
+  const hex = ensure(mounted.container.querySelector<HTMLInputElement>('[data-test-id="Color-input"]'), "Visible color value");
+  const palette = ensure(mounted.container.querySelector(".pcr-app"), "Mounted color controls");
+  expect(screen.queryByRole("button", { name: "Theme variables" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /Second color/ }));
+  await waitFor(() => expect(changed).toHaveBeenLastCalledWith(mkTokenRef(f.second)));
+  await waitFor(() => expect(hex.value.toLowerCase()).toBe("#445566"));
+  expect(hex.readOnly).toBe(true);
+  expect((screen.getByRole("textbox", { name: "Opacity" }) as HTMLInputElement).readOnly).toBe(true);
+  expect(mounted.container.querySelector(".pcr-app")).toBe(palette);
+  expect(palette.closest("[inert]")).not.toBeNull();
+  const count = changed.mock.calls.length;
+  fireEvent.keyDown(hex, { key: "ArrowUp" });
+  fireEvent.blur(hex);
+  expect(changed).toHaveBeenCalledTimes(count);
+  await act(async () => { await f.studio.changeUnsafe(() => { f.second.value = "#778899"; }); });
+  await waitFor(() => expect(hex.value.toLowerCase()).toBe("#778899"));
+  fireEvent.click(screen.getByRole("button", { name: "Remove token" }));
+  await waitFor(() => expect(hex.readOnly).toBe(false));
+  expect(palette.closest("[inert]")).toBeNull();
+  fireEvent.change(hex, { target: { value: "263a70" } });
+  fireEvent.blur(hex);
+  await waitFor(() => expect(changed).toHaveBeenLastCalledWith("#263A70"));
 });

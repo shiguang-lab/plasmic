@@ -1,4 +1,5 @@
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
+import { ensure } from "@/wab/shared/common";
 import {
   cleanup,
   fireEvent,
@@ -9,6 +10,36 @@ import {
 import React from "react";
 
 afterEach(cleanup);
+
+it.each([
+  [56, 200],
+  [116, 200],
+  [280, 280],
+])("keeps conversion options readable for a %ipx input", async (inputWidth, menuWidth) => {
+  vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(inputWidth);
+  const changed = vi.fn();
+  const { container } = render(
+    <div style={{ width: inputWidth, overflow: "hidden" }}>
+      <DimTokenSpinner
+        allowFunctions={false}
+        value="0px"
+        onChange={changed}
+        allowedUnits={["px", "em", "%"]}
+        noClear
+      />
+    </div>,
+  );
+  fireEvent.click(screen.getByRole("textbox"));
+  const option = await screen.findByRole("option", { name: "0em" });
+  const menu = ensure(option.closest(".dropdown-overlay"), "Dimension menu");
+  const scrollHost = ensure(menu.querySelector<HTMLElement>("[data-overlayscrollbars]"), "Shared scroll host");
+  expect(scrollHost.style.width).toBe(`${menuWidth}px`);
+  expect(container.contains(menu)).toBe(false);
+  expect(menu.querySelectorAll("[data-overlayscrollbars]")).toHaveLength(1);
+  expect(option.textContent).toBe("Convert to 0em");
+  fireEvent.click(option);
+  expect(changed).toHaveBeenCalledWith("0em", "selected");
+});
 
 it("mounts one shared scrolling viewport only while the options are open", async () => {
   const changed = vi.fn();

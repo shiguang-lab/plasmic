@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { useElementPropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useLinkedCodePropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/linked-code-prop-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
@@ -273,6 +274,7 @@ const AddHandlerFunctionButton = React.memo(
     return (
       <Select
         aria-label={uiT("Add event handler")}
+        className={configSearch.select}
         data-test-id="add-interaction"
         showSearch
         value={null}

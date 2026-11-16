@@ -5,3 +5,41 @@
 .floatingTitle {
   margin-block-end: 8px;
 }
+
+.triggerGroup {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ui-fill);
+  color: var(--ui-text);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--ui-hover); }
+  &:focus-visible, &[aria-expanded="true"] {
+    box-shadow: inset 0 0 0 1px var(--ui-accent);
+    outline: none;
+  }
+  &:disabled { cursor: not-allowed; opacity: 0.45; }
+}
+
+.withValue {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+  background: transparent;
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+}

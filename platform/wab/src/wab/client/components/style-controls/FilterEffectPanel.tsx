@@ -1,248 +1,71 @@
-import {
-  FullRow,
-  LabeledItemRow,
-} from "@/wab/client/components/sidebar/sidebar-helpers";
-import styles from "@/wab/client/components/style-controls/FilterEffectPanel.module.sass";
-import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
+import { FullRow, LabeledItem, LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
+import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
+import styles from "@/wab/client/components/style-controls/FilterEffectPanel.module.scss";
+import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
-import Select from "@/wab/client/components/widgets/Select";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { cx, ensure } from "@/wab/shared/common";
-import {
-  FilterEffect,
-  defaultFilterEffects,
-  filterEffectEditorConfig,
-  getFilterEffectLabel,
-} from "@/wab/shared/core/filter-effect-utils";
+import { FilterEffect, FilterEffectType, defaultFilterEffects, filterEffectEditorConfig, getFilterEffectLabel } from "@/wab/shared/core/filter-effect-utils";
 import { parseCssNumericNew } from "@/wab/shared/css";
 import { LENGTH_UNITS } from "@/wab/shared/css/types";
 import { Slider } from "antd";
-import React, { useEffect } from "react";
+import React from "react";
 
 interface FilterEffectPanelProps {
   studioCtx: StudioCtx;
-  filterEffect: FilterEffect;
-  onChange: (newFilterEffect: FilterEffect) => void;
+  filterEffect: FilterEffect | null;
+  onChange: (newFilterEffect: FilterEffect | null) => void;
 }
 
-const menuDescription = {
-  General: ["blur", "drop-shadow"],
-  "Color Adjustments": ["brightness", "contrast", "hue-rotate", "saturate"],
-  "Color Effects": ["grayscale", "invert", "sepia"],
-};
-
-function withFilterArgument(effect: FilterEffect, index: number, value: string): FilterEffect {
-  const args = [...effect.args];
-  args[index] = value;
-  return { ...effect, args };
-}
-
-export function FilterEffectPanel(props: FilterEffectPanelProps) {
-  const { t: uiT } = useI18n();
-  const { filterEffect, onChange } = props;
-
-  return (
-    <>
-      <LabeledItemRow label={uiT("Filter")} labelSize="small">
-        <Select
-          className={styles.Dropdown}
-          value={filterEffect.type}
-          onChange={(effect) => {
-            if (effect) {
-              onChange(defaultFilterEffects[effect]);
-            }
-          }}
-        >
-          {["General", "Color Adjustments", "Color Effects"].map((title) => (
-            <Select.OptionGroup title={<span>{title}</span>} key={title}>
-              {menuDescription[title].map((effect) => (
-                <Select.Option key={effect} value={effect}>
-                  <span>{getFilterEffectLabel(effect)}</span>
-                </Select.Option>
-              ))}
-            </Select.OptionGroup>
-          ))}
-        </Select>
+export function FilterEffectPanel({ studioCtx, filterEffect, onChange }: FilterEffectPanelProps) {
+  const { t } = useI18n();
+  React.useEffect(() => () => studioCtx.stopUnlogged(), [studioCtx]);
+  const update = (index: number, value: string) => {
+    if (!filterEffect) { return; }
+    const args = [...filterEffect.args];
+    args[index] = value;
+    onChange({ ...filterEffect, args });
+  };
+  const config = filterEffect && filterEffect.type !== "drop-shadow" ? filterEffectEditorConfig[filterEffect.type] : undefined;
+  const parsed = filterEffect ? parseCssNumericNew(filterEffect.args[0]) : undefined;
+  return <>
+    <LabeledItemRow label={t("Type")} labelSize="small">
+        <StyleSelect aria-label={t("Effect type")} value={filterEffect?.type ?? "none"} valueSetState="isSet"
+          onChange={value => {
+            if (!value) { return; }
+            const type = value as FilterEffectType | "none";
+            onChange(type === "none" ? null : { ...defaultFilterEffects[type], visible: filterEffect?.visible ?? true });
+          }}>
+          {Object.keys(defaultFilterEffects).map(type => <StyleSelect.Option key={type} value={type}>{t(getFilterEffectLabel(type as FilterEffectType))}</StyleSelect.Option>)}
+          <StyleSelect.Option value="none">{t("None")}</StyleSelect.Option>
+        </StyleSelect>
+    </LabeledItemRow>
+    {filterEffect && (filterEffect.type === "drop-shadow" ? <>
+      <FullRow className={styles.metrics} autoHeight>
+        {(["Left", "Top", "Blur"] as const).map((label, index) => <LabeledItem key={label} label={t(label)} labelSize="small">
+          <DimTokenSpinner value={filterEffect.args[index]} studioCtx={studioCtx}
+            fieldAriaProps={{ "aria-label": t(label) }} noClear allowedUnits={LENGTH_UNITS} allowFunctions
+            min={index === 2 ? 0 : undefined} onChange={value => value && update(index, value)} />
+        </LabeledItem>)}
+      </FullRow>
+      <LabeledItemRow label={t("Color")} labelSize="small">
+        <ColorButton color={filterEffect.args[3]} sc={studioCtx} onChange={color => update(3, color)}
+          floatingPicker showValue aria-label={t("Color")} />
       </LabeledItemRow>
-      <FilterEffectEditor {...props} />
-    </>
-  );
+    </> : config && <LabeledItemRow label={t(config.label)} labelSize="small">
+      <div className={styles.amount}>
+      <Slider className={styles.slider} included={false} min={0} max={config.max} step={filterEffect.type === "blur" ? 0.1 : 1}
+        disabled={!parsed} value={parsed?.num ?? 0}
+        onChange={value => {
+          if (!parsed) { return; }
+          studioCtx.startUnlogged();
+          update(0, `${value}${parsed.units}`);
+        }} onAfterChange={() => studioCtx.stopUnlogged()} />
+      <DimTokenSpinner value={filterEffect.args[0]} studioCtx={studioCtx}
+        fieldAriaProps={{ "aria-label": t(config.label) }} noClear
+        allowedUnits={config.allowedUnits} min={0} allowFunctions
+        onChange={value => value && update(0, value)} />
+      </div>
+    </LabeledItemRow>)}
+  </>;
 }
-
-const FilterEffectEditor = (props: FilterEffectPanelProps) => {
-  const { t: uiT } = useI18n();
-  const { studioCtx, filterEffect, onChange } = props;
-  const { type } = filterEffect;
-
-  // ensure that we stop unlogging in case the component is going to unmount
-  useEffect(() => {
-    return () => {
-      studioCtx.stopUnlogged();
-    };
-  }, [studioCtx]);
-
-  if (type === "drop-shadow") {
-    const { args } = filterEffect;
-    const [X, Y, rad, color] = args;
-    const parsedX = ensure(
-      parseCssNumericNew(X),
-      "Unexpected undefined numeric value for X",
-    );
-    const parsedY = ensure(
-      parseCssNumericNew(Y),
-      "Unexpected undefined numeric value for Y",
-    );
-    const parsedRad = ensure(
-      parseCssNumericNew(rad),
-      "Unexpected undefined numeric value for rad",
-    );
-    return (
-      <>
-        <LabeledItemRow label="X" labelSize="small">
-          <FullRow>
-            <div className={cx(styles.EffectControllersContainer, "flex-row")}>
-              <Slider
-                className={cx("mr-lg", styles.slider)}
-                included={false}
-                value={parsedX.num}
-                min={0}
-                max={20}
-                onChange={(val) => {
-                  studioCtx.startUnlogged();
-                  onChange(withFilterArgument(filterEffect, 0, `${val}${parsedX.units}`));
-                }}
-                onAfterChange={() => {
-                  studioCtx.stopUnlogged();
-                }}
-              />
-              <DimTokenSpinner
-                value={X}
-                onChange={(val) => {
-                  if (val) {
-                    onChange(withFilterArgument(filterEffect, 0, val));
-                  }
-                }}
-                noClear
-                allowedUnits={LENGTH_UNITS}
-                allowFunctions
-              />
-            </div>
-          </FullRow>
-        </LabeledItemRow>
-        <LabeledItemRow label="Y" labelSize="small">
-          <FullRow>
-            <div className={cx(styles.EffectControllersContainer, "flex-row")}>
-              <Slider
-                className={cx("mr-lg", styles.slider)}
-                included={false}
-                value={parsedY.num}
-                min={0}
-                max={20}
-                onChange={(val) => {
-                  studioCtx.startUnlogged();
-                  onChange(withFilterArgument(filterEffect, 1, `${val}${parsedY.units}`));
-                }}
-                onAfterChange={() => {
-                  studioCtx.stopUnlogged();
-                }}
-              />
-              <DimTokenSpinner
-                value={Y}
-                onChange={(val) => {
-                  if (val) {
-                    onChange(withFilterArgument(filterEffect, 1, val));
-                  }
-                }}
-                noClear
-                allowedUnits={LENGTH_UNITS}
-                allowFunctions
-              />
-            </div>
-          </FullRow>
-        </LabeledItemRow>
-        <LabeledItemRow label={uiT("Radius")} labelSize="small">
-          <FullRow>
-            <div className={cx(styles.EffectControllersContainer, "flex-row")}>
-              <Slider
-                className={cx("mr-lg", styles.slider)}
-                included={false}
-                value={parsedRad.num}
-                min={0}
-                max={10}
-                step={1}
-                onChange={(val) => {
-                  studioCtx.startUnlogged();
-                  onChange(withFilterArgument(filterEffect, 2, `${val}${parsedRad.units}`));
-                }}
-                onAfterChange={() => {
-                  studioCtx.stopUnlogged();
-                }}
-              />
-              <DimTokenSpinner
-                value={rad}
-                onChange={(val) => {
-                  if (val) {
-                    onChange(withFilterArgument(filterEffect, 2, val));
-                  }
-                }}
-                noClear
-                allowedUnits={LENGTH_UNITS}
-                allowFunctions
-              />
-            </div>
-          </FullRow>
-        </LabeledItemRow>
-        <LabeledItemRow label={uiT("Color")}>{null}</LabeledItemRow>
-        <ColorPicker
-          color={color}
-          onChange={(newColor) => {
-            onChange(withFilterArgument(filterEffect, 3, newColor));
-          }}
-        />
-      </>
-    );
-  } else {
-    const parsed = ensure(
-      parseCssNumericNew(filterEffect.args[0]),
-      "Unexpected undefined numeric value",
-    );
-    return (
-      <LabeledItemRow
-        label={<span>{filterEffectEditorConfig[type].label}</span>}
-        labelSize="small"
-      >
-        <FullRow>
-          <div className={cx(styles.EffectControllersContainer, "flex-row")}>
-            <Slider
-              className={cx("mr-lg", styles.slider)}
-              included={false}
-              value={parsed.num}
-              min={0}
-              step={1}
-              max={filterEffectEditorConfig[type].max}
-              onChange={(val) => {
-                studioCtx.startUnlogged();
-                onChange(withFilterArgument(filterEffect, 0, `${val}${parsed.units}`));
-              }}
-              onAfterChange={() => {
-                studioCtx.stopUnlogged();
-              }}
-            />
-            <DimTokenSpinner
-              value={filterEffect.args[0]}
-              onChange={(val) => {
-                if (val) {
-                  onChange(withFilterArgument(filterEffect, 0, val));
-                }
-              }}
-              noClear
-              allowedUnits={filterEffectEditorConfig[type].allowedUnits}
-              allowFunctions={false}
-            />
-          </div>
-        </FullRow>
-      </LabeledItemRow>
-    );
-  }
-};

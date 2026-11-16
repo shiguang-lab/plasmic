@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import { useI18n } from "@/wab/client/i18n";
@@ -67,6 +68,7 @@ export function EnumWithSearchPropEditor<T extends ChoiceValue>(
   return (
     <Select
       style={{ width: "100%" }}
+      className={configSearch.select}
       showSearch
       onChange={(val) => {
         const parsedVal = parse(val);

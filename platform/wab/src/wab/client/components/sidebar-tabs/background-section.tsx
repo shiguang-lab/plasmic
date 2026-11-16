@@ -1,4 +1,3 @@
-import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
 import { EllipseControl } from "@/wab/client/components/EllipseControl";
 import { useBackgroundInputs } from "@/wab/client/studio-ctx/background-inputs";
 import { useImageAssetList } from "@/wab/client/studio-ctx/image-asset-inputs";
@@ -7,23 +6,18 @@ import { useMaybeSidebarModalContext } from "@/wab/client/components/sidebar/Sid
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import styles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import {
-  FullRow,
-  LabeledItem,
   LabeledItemRow,
   shouldBeDisabled,
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { AngleDial } from "@/wab/client/components/style-controls/AngleDial";
 import { ColorStops } from "@/wab/client/components/style-controls/ColorStops";
 import { ImageAssetPreviewAndPicker } from "@/wab/client/components/style-controls/ImageSelector";
-import { PosControls2 } from "@/wab/client/components/style-controls/PosControls";
 import {
   ExpsProvider,
   StylePanelSection,
-  TabbedStylePanelSection,
   changeStyle,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useStyleCells, useStyleIndicator } from "@/wab/client/studio-ctx/style-inputs-react";
-import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import { StyleWrapper } from "@/wab/client/components/style-controls/StyleWrapper";
@@ -35,11 +29,8 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
-import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import ContainIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Contain";
-import CoverIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Cover";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
 import LinearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Linear";
 import RadialIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Radial";
@@ -51,11 +42,8 @@ import { arrayMoveIndex } from "@/wab/shared/collections";
 import {
   assert,
   ensure,
-  maybe,
   switchType,
-  unexpected,
 } from "@/wab/shared/common";
-import { isTokenRef } from "@/wab/commons/StyleToken";
 import {
   Background,
   BackgroundLayer,
@@ -79,14 +67,14 @@ import {
   LENGTH_PERCENTAGE_UNITS,
   PERCENTAGE_UNITS,
 } from "@/wab/shared/css/types";
-import { isStandardSide, oppSides } from "@/wab/shared/geom";
 import { isKnownImageAsset } from "@/wab/shared/model/classes";
 import { userImgUrl } from "@/wab/shared/urls";
 import Chroma from "@/wab/shared/utils/color-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { cloneDeep } from "lodash";
-import { InputNumber, Popover, Tooltip } from "antd";
+import { Popover, Segmented, Select, Tooltip } from "antd";
 import React, { useState } from "react";
+import { FiSlash } from "react-icons/fi";
 
 interface BackgroundProps {
   expsProvider: ExpsProvider;
@@ -104,7 +92,9 @@ export const BackgroundSection = function BackgroundSection(
   const bg = parseCss(backgroundCell?.raw ?? "", {
     startRule: "background",
   });
-  bg.filterNoneLayers(); // Case of `background: none`
+  if (backgroundCell?.raw !== "none") {
+    bg.filterNoneLayers();
+  }
 
   const [inspected, setInspected] = useState<number>();
   const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
@@ -124,11 +114,8 @@ export const BackgroundSection = function BackgroundSection(
       );
       if (layers.length > 0) {
         exp.set("background", new Background({ layers }).showCss());
-      } else if (expsProvider.maybeTargetExp()?.has("background")) {
-        exp.clear("background");
-      } else if (latest.layers.length > 0) {
-        // Removing an inherited layer explicitly suppresses that fill.
-        exp.set("background", "none");
+      } else {
+        expsProvider.maybeTargetExp()?.clear("background");
       }
     });
   };
@@ -143,25 +130,8 @@ export const BackgroundSection = function BackgroundSection(
     updateLayers((layers) => layers.filter((_, i) => i !== index));
   };
 
-  const changeLayerAlpha = (index: number, alpha: number) => {
-    updateLayers((layers) => layers.map((layer, layerIndex) => {
-      if (
-        layerIndex !== index ||
-        !(layer.image instanceof ColorFill) ||
-        isTokenRef(layer.image.color) ||
-        !Chroma.valid(layer.image.color)
-      ) {
-        return layer;
-      }
-      return new BackgroundLayer({
-        ...layer,
-        image: new ColorFill({ color: Chroma(layer.image.color).alpha(alpha).hex() }),
-      });
-    }));
-  };
-
   const addFill = () => {
-    setInspected(undefined);
+    setInspected(0);
     updateLayers((layers) => [
       mkBackgroundLayer(parseCss(defaultValuesByBgType.fill, { startRule: "backgroundImage" })),
       ...layers,
@@ -183,14 +153,9 @@ export const BackgroundSection = function BackgroundSection(
       styleProps={["background"]}
       headerMenuOnRightClickOnly
       controls={
-        <>
-          <StyleOverrideControl expsProvider={expsProvider} label={uiT("Fill")}
-            styleProps={["background"]} noneValues={{ background: "none" }} noneLabel={uiT("No fill")}
-            onChange={() => setInspected(undefined)} />
           <IconButton size="small" tooltip={uiT("Add fill")} onClick={addFill} disabled={isDisabled}>
             <Icon icon={PlusIcon} />
           </IconButton>
-        </>
       }
     >
       {isSet && (
@@ -215,7 +180,8 @@ export const BackgroundSection = function BackgroundSection(
                       .when(LinearGradient, () => uiT("Linear gradient"))
                       .when(RadialGradient, () => uiT("Radial gradient"))
                       .when(ColorFill, ({ color }) => Chroma.valid(color) ? Chroma(color).hex("rgb") : labels[index])
-                      .when([ImageBackground, NoneBackground], () => labels[index])
+                      .when(ImageBackground, () => labels[index])
+                      .when(NoneBackground, () => uiT("None"))
                       .result();
                     return (
                       <widgets.ListBoxItem
@@ -224,7 +190,7 @@ export const BackgroundSection = function BackgroundSection(
                         className={styles.fillItem}
                         isDragDisabled={isDisabled || bg.layers.length < 2}
                         disabled={isDisabled}
-                        removeLabel={uiT("Remove fill")}
+                        removeLabel={uiT(layer.image instanceof NoneBackground ? "Remove None override" : "Remove fill")}
                         onRemove={() => removeLayer(index)}
                         clickable={false}
                         truncate={false}
@@ -244,13 +210,19 @@ export const BackgroundSection = function BackgroundSection(
                                 layer={layer}
                                 expsProvider={expsProvider}
                                 onUpdated={(updated) => {
-                                  updateLayers((layers) => layers.map((current, i) => i === index ? updated : current));
+                                  if (updated.image instanceof NoneBackground) {
+                                    updateLayers(() => [mkBackgroundLayer(new NoneBackground())]);
+                                    setInspected(0);
+                                  } else {
+                                    updateLayers((layers) => layer.image instanceof NoneBackground
+                                      ? [updated]
+                                      : layers.map((current, i) => i === index ? updated : current));
+                                  }
                                 }}
                                 vsh={vsh}
                                 animatableOnly={animatableOnly}
                               />
                             )}
-                            onAlphaChange={(alpha) => changeLayerAlpha(index, alpha)}
                           />
                         }
                       />
@@ -275,7 +247,6 @@ function FillRow({
   open,
   onOpenChange,
   editor,
-  onAlphaChange,
 }: {
   label: string;
   thumbnail: string;
@@ -285,7 +256,6 @@ function FillRow({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editor: React.ReactNode;
-  onAlphaChange: (alpha: number) => void;
 }) {
   const { t } = useI18n();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
@@ -298,7 +268,6 @@ function FillRow({
   });
   const isSolid = image instanceof ColorFill;
   const title = t(isSolid ? "Fill color" : "Edit fill");
-  const token = isSolid && isTokenRef(image.color);
   const alpha = solidColor && Chroma.valid(solidColor)
     ? Math.round(Chroma(solidColor).alpha() * 100)
     : null;
@@ -306,7 +275,8 @@ function FillRow({
     <div className={styles.fillValue}>
       <Popover
         trigger="click"
-        placement="leftTop"
+        placement="left"
+        arrow={false}
         title={title}
         open={open && !isDisabled}
         destroyOnHidden
@@ -321,9 +291,7 @@ function FillRow({
         }}
         content={
           <div ref={popupRef} className={styles.fillPopover} role="dialog" aria-label={title}>
-            <Scrollbar scrollX={false} className={styles.fillPopoverBody}>
-              {editor}
-            </Scrollbar>
+            {editor}
           </div>
         }
       >
@@ -336,30 +304,13 @@ function FillRow({
           aria-haspopup="dialog"
           aria-expanded={open && !isDisabled}
         >
-          <span className={styles.fillSwatch} aria-hidden="true">
+          {image instanceof NoneBackground ? <FiSlash aria-hidden="true" /> : <span className={styles.fillSwatch} aria-hidden="true">
             <span className="img-thumb" style={{ backgroundImage: thumbnail }} />
-          </span>
+          </span>}
           <span className={styles.fillLabel}>{label}</span>
+          {isSolid && <span className={styles.valueSummary}>{alpha === null ? "–" : `${alpha} %`}</span>}
         </button>
       </Popover>
-      {isSolid && (
-        <Tooltip title={token ? t("Opacity is controlled by the color token") : t("Opacity")}>
-          <InputNumber
-            aria-label={t("Opacity")}
-            className={styles.fillOpacity}
-            disabled={isDisabled || token || alpha === null}
-            value={alpha}
-            placeholder="–"
-            min={0}
-            max={100}
-            controls={false}
-            suffix="%"
-            onChange={(value) => {
-              if (value !== null) onAlphaChange(Math.min(100, Math.max(0, value)) / 100);
-            }}
-          />
-        </Tooltip>
-      )}
     </div>
   );
 }
@@ -422,7 +373,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
     const asset = imageAssets.rows.find((candidate) => candidate.uuid === id && candidate.type === ImageAssetType.Picture);
 
     return (
-      <SidebarSection title={uiT("Image")}>
+      <SidebarSection noBorder zeroBodyPadding noBottomPadding>
         <ImageAssetPreviewAndPicker
           className="flex-fill flex-col"
           value={asset ? imageAssets.resolve(asset.ref) : img.url}
@@ -448,8 +399,8 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           color={col.color}
           onChange={(color) => {
             if (layer.image instanceof ColorFill) {
-              updateImg(col, (col) => {
-                return (col.color = color);
+              updateImg(col, (next) => {
+                return (next.color = color);
               });
             }
           }}
@@ -462,31 +413,28 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
   // TODO does repeating actually have any effect if the color stops are always in %?
   const linearGradientPanel = (lin: LinearGradient) => {
     return (
-      <SidebarSection title={uiT("Linear")} key="Linear">
-        <LabeledItemRow label={uiT("Angle")}>
+      <SidebarSection noBorder zeroBodyPadding noBottomPadding key="Linear">
+        <LabeledItemRow label={uiT("Angle")} alignment="center">
           <DimTokenSpinner
             value={`${lin.angle}deg`}
             onChange={(val) => {
-              updateImg(lin, (lin) => {
+              updateImg(lin, (next) => {
                 const { num, units } = ensure(
                   css.parseCssNumericNew(val || "0"),
                   "Must be a valid numeric value",
                 );
-                lin.angle = num;
+                next.angle = num;
               });
             }}
             allowedUnits={["deg"]}
             allowFunctions={false}
           />
-          <div
-            className={"ml-sm mr-sm overflow-hidden"}
-            style={{ marginTop: -10, marginBottom: 0 }}
-          >
+          <div className={styles.fillAngle}>
             <AngleDial
               angle={lin.angle}
               onChange={(val: number) => {
-                return updateImg(lin, (lin) => {
-                  return (lin.angle = val);
+                return updateImg(lin, (next) => {
+                  return (next.angle = val);
                 });
               }}
             />
@@ -494,12 +442,13 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
         </LabeledItemRow>
 
         <ColorStops
+          compact
           repeating={lin.repeating}
           stops={lin.stops}
           studioCtx={studioCtx}
           onChange={(stops: Stop[]) => {
-            return updateImg(lin, (lin) => {
-              return (lin.stops = stops);
+            return updateImg(lin, (next) => {
+              return (next.stops = stops);
             });
           }}
           vsh={vsh}
@@ -511,9 +460,9 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
   const radialGradientPanel = (rad: RadialGradient) => {
     
     return (
-      <SidebarSection title={uiT("Radial")} key="Radial">
-        <FullRow>
-          <div className={"vcenter flex-even"}>
+      <SidebarSection noBorder zeroBodyPadding noBottomPadding key="Radial">
+        <div className={styles.fillRadial}>
+          <div>
             <UnloggedDragCatcher sc={studioCtx}>
               <EllipseControl
                 ellipse={{
@@ -523,54 +472,55 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
                   ry: rad.ry.getNumericValue(),
                 }}
                 onChange={({ cx, cy, rx, ry }) => {
-                  return updateImg(rad, (rad) => {
-                    rad.cx.value = `${cx}`;
-                    rad.cy.value = `${cy}`;
-                    rad.rx.value = `${rx}`;
-                    return (rad.ry.value = `${ry}`);
+                  return updateImg(rad, (next) => {
+                    next.cx.value = `${cx}`;
+                    next.cy.value = `${cy}`;
+                    next.rx.value = `${rx}`;
+                    return (next.ry.value = `${ry}`);
                   });
                 }}
               />
             </UnloggedDragCatcher>
           </div>
 
-          <div className={"vcenter flex-even"}>
+          <div className={styles.fillRadialFields}>
             <LabeledItemRow label={uiT("Left")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.cx.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, (rad) => rad.cx.setValue(val || "center")),
+                  updateImg(rad, (next) => next.cx.setValue(val || "center")),
               })}
             </LabeledItemRow>
             <LabeledItemRow label={uiT("Top")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.cy.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, (rad) => rad.cy.setValue(val || "center")),
+                  updateImg(rad, (next) => next.cy.setValue(val || "center")),
               })}
             </LabeledItemRow>
             <LabeledItemRow label={uiT("Width")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.rx.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, (rad) => rad.rx.setValue(val || "")),
+                  updateImg(rad, (next) => next.rx.setValue(val || "")),
               })}
             </LabeledItemRow>
             <LabeledItemRow label={uiT("Height")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.ry.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, (rad) => rad.ry.setValue(val || "")),
+                  updateImg(rad, (next) => next.ry.setValue(val || "")),
               })}
             </LabeledItemRow>
           </div>
-        </FullRow>
+        </div>
         <ColorStops
+          compact
           repeating={rad.repeating}
           stops={rad.stops}
           studioCtx={studioCtx}
           onChange={(stops) => {
-            return updateImg(rad, (rad) => (rad.stops = stops));
+            return updateImg(rad, (next) => (next.stops = stops));
           }}
           vsh={vsh}
         />
@@ -589,7 +539,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
     .when(RadialGradient, (model: /*TWZ*/ RadialGradient) =>
       radialGradientPanel(model),
     )
-    .when(NoneBackground, (model) => unexpected())
+    .when(NoneBackground, () => null)
     .result();
 
   const change = (f: (draft: BackgroundLayer) => void) => {
@@ -599,264 +549,168 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
   };
 
   const sizeSection = () => {
-    const bgSize = () =>
-      ensure(
-        css.parseSize(
-          layer.size ?? css.getCssInitial("background-size", "div"),
-        ),
-        "Background size must be a valid numeric value",
-      );
-    const isCustomSize = !["cover", "contain"].includes(layer.size as string);
+    const isCustomSize = !["cover", "contain"].includes(layer.size ?? "");
+    const size = isCustomSize
+      ? css.splitCssValueIntoParts(layer.size ?? "auto auto")
+      : undefined;
     return (
-      <TabbedStylePanelSection
-        key={String(isCustomSize)}
-        expsProvider={expsProvider}
-        title={uiT("Size")}
-        styleProps={[]}
-        emptyBody={!isCustomSize}
-        onSwitch={(val) =>
-          change((layer) => {
-            layer.size = (() => {
-              switch (val) {
-                case "contain":
-                case "cover":
-                  return val;
-                case "custom":
-                  return (
-                    cachedValues.current["background-size"] ??
-                    css.getCssInitial("background-size", "div")
-                  );
-                default:
-                  return unexpected();
-              }
-            })();
-          })
-        }
-        activeKey={(() => {
-          const sizeVal = layer.size;
-          switch (sizeVal) {
-            case "contain":
-            case "cover":
-              return sizeVal;
-            default:
-              return "custom";
-          }
-        })()}
-        tabs={[
-          {
-            key: "custom",
-            label: uiT("Custom"),
-            icon: null,
-          },
-          {
-            key: "cover",
-            label: uiT("Cover"),
-            icon: (
-              <Tooltip title={uiT("Cover")}>
-                <Icon icon={CoverIcon} />
-              </Tooltip>
-            ),
-            iconOnly: true,
-          },
-          {
-            key: "contain",
-            label: uiT("Contain"),
-            icon: <Icon icon={ContainIcon} />,
-            iconOnly: true,
-          },
-        ]}
-      >
-        {isCustomSize && (
-          <div className="panel-block">
-            <FullRow twinCols>
-              <LabeledItem label={uiT("Width")} labelSize="small">
+      <div className={styles.fillSettingsGroup}>
+        <div className={styles.fillSettingsLabel}>{uiT("Size")}</div>
+        <Segmented
+          block
+          aria-label={uiT("Size")}
+          value={isCustomSize ? "custom" : layer.size}
+          options={[
+            { value: "custom", label: uiT("Custom") },
+            { value: "cover", label: uiT("Cover") },
+            { value: "contain", label: uiT("Contain") },
+          ]}
+          onChange={(value) => change((draft) => {
+            draft.size = value === "custom"
+              ? cachedValues.current["background-size"] ?? "auto"
+              : value;
+          })}
+        />
+        {size && (
+          <div className={styles.fillSettingsColumns}>
+            {(["Width", "Height"] as const).map((label, index) => (
+              <div key={label} className={styles.fillSettingsField}>
+                <span>{uiT(label)}</span>
                 <DimTokenSpinner
-                  value={maybe(bgSize(), (x: string[]) => x[0]) || ""}
-                  onChange={(val) =>
-                    change((layer) => {
-                      layer.size = css.showWidthHeight(
-                        val ?? "auto",
-                        bgSize()[1],
-                      );
-                    })
-                  }
+                  fieldAriaProps={{ "aria-label": uiT(label) }}
+                  value={size[index] ?? "auto"}
+                  onChange={(value) => change((draft) => {
+                    draft.size = css.showWidthHeight(
+                      index === 0 ? value ?? "auto" : size[0] ?? "auto",
+                      index === 1 ? value ?? "auto" : size[1] ?? "auto",
+                    );
+                  })}
                   extraOptions={["auto"]}
-                  minDropdownWidth={200}
                   hideArrow
                   allowedUnits={LENGTH_PERCENTAGE_UNITS}
                   allowFunctions
                 />
-              </LabeledItem>
-              <LabeledItem label={uiT("Height")} labelSize="small">
-                <DimTokenSpinner
-                  value={maybe(bgSize(), (x: string[]) => x[1]) || ""}
-                  onChange={(val) =>
-                    change((layer) => {
-                      layer.size = css.showWidthHeight(
-                        bgSize()[0],
-                        val ?? "auto",
-                      );
-                    })
-                  }
-                  extraOptions={["auto"]}
-                  minDropdownWidth={200}
-                  hideArrow
-                  allowedUnits={LENGTH_PERCENTAGE_UNITS}
-                  allowFunctions
-                />
-              </LabeledItem>
-            </FullRow>
+              </div>
+            ))}
           </div>
         )}
-      </TabbedStylePanelSection>
+      </div>
     );
   };
 
   const positionSection = () => {
-    const bgPos = css.parseBgPos(
-      layer.position ?? css.getCssInitial("background-position", "div"),
-    );
+    const position: Partial<Record<"left" | "right" | "top" | "bottom", string>> =
+      css.parseBgPos(layer.position ?? css.getCssInitial("background-position", "div"));
     return (
-      <SidebarSection title={uiT("Position")}>
-        <div className={"panel-block"}>
-          <FullRow>
-            <PosControls2
-              expsProvider={expsProvider}
-              posProp={"background"}
-              exp={{
-                get: (side: string) => bgPos[side] || "auto",
-                has: (side: string) => Boolean(layer.position && bgPos[side]),
-                set: (side: string, value: string) => {
-                  // PosControls2 is a component being used in both positioning and background-positioning
-                  // For normal positioning is considering valid to have both sides set to something different than
-                  // auto, which makes a change for the height/width to be auto, which is invalid in the context
-                  // of background-positioning. So we simply ignore those updates.
-                  if (!isStandardSide(side)) {
-                    return;
-                  }
-                  change((layer) => {
-                    const nextPosition = { ...bgPos, [side]: value };
-                    delete nextPosition[oppSides[side]];
-                    layer.position = css.showBgPos(nextPosition);
-                  });
-                },
-              }}
-            />
-          </FullRow>
-        </div>
-      </SidebarSection>
+      <div className={styles.fillSettingsGroup}>
+        <div className={styles.fillSettingsLabel}>{uiT("Position")}</div>
+        {([
+          ["Horizontal", "left", "right", "Left", "Right"],
+          ["Vertical", "top", "bottom", "Top", "Bottom"],
+        ] as const).map(([label, start, end, startLabel, endLabel]) => {
+          const side = position[end] !== undefined ? end : start;
+          return (
+            <div key={label} className={styles.fillPositionRow}>
+              <span className={styles.fillSettingsLabel}>{uiT(label)}</span>
+              <Select
+                aria-label={`${uiT(label)} ${uiT("Position")}`}
+                value={side}
+                options={[
+                  { value: start, label: uiT(startLabel) },
+                  { value: end, label: uiT(endLabel) },
+                ]}
+                onChange={(nextSide) => change((draft) => {
+                  const next = { ...position };
+                  delete next[start];
+                  delete next[end];
+                  next[nextSide] = position[side] ?? "0%";
+                  draft.position = css.showBgPos(next);
+                })}
+              />
+              <DimTokenSpinner
+                fieldAriaProps={{ "aria-label": uiT(label) }}
+                value={position[side] ?? "0%"}
+                onChange={(value) => change((draft) => {
+                  draft.position = css.showBgPos({ ...position, [side]: value ?? "0%" });
+                })}
+                hideArrow
+                allowedUnits={LENGTH_PERCENTAGE_UNITS}
+                allowFunctions
+              />
+            </div>
+          );
+        })}
+      </div>
     );
   };
 
-  const repeatSection = () => {
-    const bgRep = layer.repeat;
-    return (
-      <SidebarSection
-        title={uiT("Repeat")}
-        controls={
-          <StyleToggleButtonGroup
-            value={bgRep}
-            onChange={(val) =>
-              change((layer) => {
-                layer.repeat = val;
-              })
-            }
-          >
-            <StyleToggleButton value="repeat">
-              <Icon icon={RepeatGridIcon} />
-            </StyleToggleButton>
-            <StyleToggleButton value="repeat-x">
-              <Icon icon={RepeatHIcon} />
-            </StyleToggleButton>
-            <StyleToggleButton value="repeat-y">
-              <Icon icon={RepeatHIcon} className="rotated-90" />
-            </StyleToggleButton>
-            <StyleToggleButton value="no-repeat">
-              <Icon icon={CloseIcon} />
-            </StyleToggleButton>
-          </StyleToggleButtonGroup>
-        }
+  const repeatSection = () => (
+    <div className={styles.fillSettingsRow}>
+      <span className={styles.fillSettingsLabel}>{uiT("Repeat")}</span>
+      <Segmented
+        block
+        aria-label={uiT("Repeat")}
+        value={layer.repeat ?? css.getCssInitial("background-repeat", "div")}
+        options={[
+          { value: "repeat", label: <Tooltip title={uiT("Repeat")}><span aria-label={uiT("Repeat")}><Icon icon={RepeatGridIcon} /></span></Tooltip> },
+          { value: "repeat-x", label: <Tooltip title={uiT("Horizontal")}><span aria-label={uiT("Horizontal")}><Icon icon={RepeatHIcon} /></span></Tooltip> },
+          { value: "repeat-y", label: <Tooltip title={uiT("Vertical")}><span aria-label={uiT("Vertical")}><Icon icon={RepeatHIcon} className="rotated-90" /></span></Tooltip> },
+          { value: "no-repeat", label: <Tooltip title={uiT("None")}><span aria-label={uiT("None")}><Icon icon={CloseIcon} /></span></Tooltip> },
+        ]}
+        onChange={(value) => change((draft) => { draft.repeat = value; })}
       />
-    );
-  };
+    </div>
+  );
 
-  const miscSection = () => {
-    return (
-      <SidebarSection>
-        <LabeledItemRow label={uiT("Clipping")}>
-          <StyleSelect
-            value={
-              (layer.clip === bgClipTextTag ? "text" : layer.clip) ||
-              css.getCssInitial("background-clip", "div")
-            }
-            onChange={(val) => change((layer) => (layer.clip = val ?? undefined))}
-            valueSetState={layer.clip ? "isSet" : "isUnset"}
-          >
-            <StyleSelect.Option value="border-box">
-              <UiText message={"Within border (default)"} />
-            </StyleSelect.Option>
-            <StyleSelect.Option value="padding-box">
-              <UiText message={"Within padding"} />
-            </StyleSelect.Option>
-            <StyleSelect.Option value="content-box">
-              <UiText message={"Within content"} />
-            </StyleSelect.Option>
-            <StyleSelect.Option value="text">
-              <UiText message={"Clip to text"} />
-            </StyleSelect.Option>
-          </StyleSelect>
-        </LabeledItemRow>
-
-        <LabeledItemRow label={uiT("Scrolling")}>
-          <StyleSelect
-            value={
-              layer.attachment ||
-              css.getCssInitial("background-attachment", "div")
-            }
-            onChange={(val) =>
-              change((layer) => (layer.attachment = val ?? undefined))
-            }
-            valueSetState={layer.attachment ? "isSet" : "isUnset"}
-          >
-            <StyleSelect.Option value="scroll">
-              <UiText message={"Scroll with page (default)"} />
-            </StyleSelect.Option>
-            <StyleSelect.Option value="fixed">
-              <UiText message={"Fixed to page"} />
-            </StyleSelect.Option>
-            <StyleSelect.Option value="local">
-              <UiText message={"Scroll with content"} />
-            </StyleSelect.Option>
-          </StyleSelect>
-        </LabeledItemRow>
-
-        <LabeledItemRow label={uiT("Origin")}>
-          <StyleSelect
-            value={
-              layer.origin || css.getCssInitial("background-origin", "div")
-            }
-            onChange={(val) => change((layer) => (layer.origin = val ?? undefined))}
-            valueSetState={layer.origin ? "isSet" : "isUnset"}
-          >
-            <StyleSelect.Option value="padding-box">
-              <UiText message={"Within padding (default)"} />
-            </StyleSelect.Option>
-            <StyleSelect.Option value="border-box">
-              <UiText message={"Within border"} />
-            </StyleSelect.Option>
-            <StyleSelect.Option value="content-box">
-              <UiText message={"Within content"} />
-            </StyleSelect.Option>
-          </StyleSelect>
-        </LabeledItemRow>
-      </SidebarSection>
-    );
-  };
+  const miscSection = () => (
+    <div className={styles.fillSettingsGroup}>
+      <div className={styles.fillSettingsRow}>
+        <span className={styles.fillSettingsLabel}>{uiT("Clipping")}</span>
+        <Select
+          aria-label={uiT("Clipping")}
+          value={(layer.clip === bgClipTextTag ? "text" : layer.clip) || css.getCssInitial("background-clip", "div")}
+          onChange={(value) => change((draft) => { draft.clip = value; })}
+          options={[
+            { value: "border-box", label: uiT("Within border") },
+            { value: "padding-box", label: uiT("Within padding") },
+            { value: "content-box", label: uiT("Within content") },
+            { value: "text", label: uiT("Clip to text") },
+          ]}
+        />
+      </div>
+      <div className={styles.fillSettingsRow}>
+        <span className={styles.fillSettingsLabel}>{uiT("Scrolling")}</span>
+        <Select
+          aria-label={uiT("Scrolling")}
+          value={layer.attachment || css.getCssInitial("background-attachment", "div")}
+          onChange={(value) => change((draft) => { draft.attachment = value; })}
+          options={[
+            { value: "scroll", label: uiT("Scroll with page") },
+            { value: "fixed", label: uiT("Fixed to page") },
+            { value: "local", label: uiT("Scroll with content") },
+          ]}
+        />
+      </div>
+      <div className={styles.fillSettingsRow}>
+        <span className={styles.fillSettingsLabel}>{uiT("Origin")}</span>
+        <Select
+          aria-label={uiT("Origin")}
+          value={layer.origin || css.getCssInitial("background-origin", "div")}
+          onChange={(value) => change((draft) => { draft.origin = value; })}
+          options={[
+            { value: "padding-box", label: uiT("Within padding") },
+            { value: "border-box", label: uiT("Within border") },
+            { value: "content-box", label: uiT("Within content") },
+          ]}
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <div>
+    <div className={styles.fillPanel}>
       {!animatableOnly && (
-        <FullRow className="panel-content">
+        <div className={styles.fillTypes}>
           <StyleToggleButtonGroup
             value={modelType}
             onChange={(bgType) => {
@@ -891,20 +745,27 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
             <StyleToggleButton className="flex-fill" value="radial" tooltip={uiT("Radial gradient")}>
               <Icon icon={RadialIcon} />
             </StyleToggleButton>
+            <StyleToggleButton className="flex-fill" value="none" tooltip={uiT("None")}>
+              <Icon icon={FiSlash} />
+            </StyleToggleButton>
           </StyleToggleButtonGroup>
-        </FullRow>
+        </div>
       )}
-      {tabContent}
-      {modelType === "image" && sizeSection()}
-      {modelType !== "fill" && (
-        <details className={styles.fillAdvanced}>
-          <summary>{uiT("More settings")}</summary>
-          {modelType !== "image" && sizeSection()}
-          {positionSection()}
-          {repeatSection()}
-          {miscSection()}
-        </details>
-      )}
+      {modelType !== "none" && <Scrollbar defer={false} scrollX={false} className={styles.fillPopoverBody}>
+        <div className={styles.fillPanelContent}>
+          {tabContent}
+          {modelType === "image" && sizeSection()}
+          {modelType !== "fill" && (
+            <details className={styles.fillAdvanced}>
+              <summary>{uiT("More settings")}</summary>
+              {modelType !== "image" && sizeSection()}
+              {positionSection()}
+              {repeatSection()}
+              {miscSection()}
+            </details>
+          )}
+        </div>
+      </Scrollbar>}
     </div>
   );
 };
@@ -915,6 +776,7 @@ const defaultValuesByBgType = {
   radial:
     "radial-gradient(ellipse 40% 60% at 20% 20%, #CE9FFF 0%, #56B9FF 100%)",
   fill: `linear-gradient(#ffffff, #ffffff)`,
+  none: "none",
 };
 
 function CustomDimSpinner({

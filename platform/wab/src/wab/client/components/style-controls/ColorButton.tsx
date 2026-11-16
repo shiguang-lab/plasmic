@@ -10,6 +10,8 @@ import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import styles from "@/wab/client/components/style-controls/ColorButton.module.scss";
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
+import cn from "classnames";
 
 import PlasmicColorButton from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicColorButton";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -22,7 +24,7 @@ import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-input
 import { FinalToken } from "@/wab/shared/core/tokens";
 import { StyleToken } from "@/wab/shared/model/classes";
 import Chroma from "@/wab/shared/utils/color-utils";
-import { ColorPicker as AntdColorPicker, Tooltip } from "antd";
+import { InputNumber, Popover, Tooltip } from "antd";
 import * as React from "react";
 import { useCallback, useState } from "react";
 
@@ -37,6 +39,7 @@ type ColorButtonProps = {
   "aria-label"?: string;
   emptyLabel?: string;
   floatingPicker?: boolean;
+  showValue?: boolean;
   popupTitle?: React.ReactNode;
   valueSetState?: ValueSetState;
   isDisabled?: boolean;
@@ -101,65 +104,62 @@ function ColorButtonContent(props: ColorButtonProps) {
 
   if (floatingPicker) {
     const label = props["aria-label"];
-    const triggerProps = {
-      role: "button",
-      tabIndex: isDisabled ? -1 : 0,
-      title: label,
-      "aria-label": label,
-      "aria-haspopup": "dialog",
-      "aria-expanded": show,
-      "aria-disabled": isDisabled,
-      onClick: (event) => setButtonElement(event.currentTarget),
-      onKeyDown: (event) => {
-        if (isDisabled || (event.key !== "Enter" && event.key !== " ")) {
-          return;
-        }
-        event.preventDefault();
-        event.currentTarget.click();
-      },
-    } satisfies React.HTMLAttributes<HTMLDivElement>;
+    const validColor = Chroma.valid(realColor);
+    const valueLabel = appliedToken?.name ?? (tokenRef
+      ? studioUiT("Invalid token")
+      : validColor ? Chroma(realColor).hex("rgb").slice(1).toUpperCase()
+      : color || props.emptyLabel || studioUiT("Mixed"));
     const trigger = (
-      <AntdColorPicker
-        {...triggerProps}
-        {...(props["data-plasmic-prop"] && {
-          "data-plasmic-prop": props["data-plasmic-prop"],
-        })}
-        size="small"
-        className={className}
-        showText={leadingIcon ? () => leadingIcon : false}
-        value={realColor || "transparent"}
-        open={show}
-        disabled={isDisabled}
-        onOpenChange={setShow}
-        placement="leftTop"
-        arrow={false}
-        destroyOnHidden
-        styles={{
-          content: { background: realColor || undefined },
-          description: { display: "flex", marginInline: 0, order: -1 },
-        }}
-        panelRender={() => (
-          <div
-            ref={floatingRef}
-            className={styles.floatingPicker}
-            role="dialog"
+      <div className={cn(styles.triggerGroup, { [paintStyles.fillValue]: props.showValue })}>
+        <Popover
+          trigger="click"
+          open={show && !isDisabled}
+          onOpenChange={(open) => !isDisabled && setShow(open)}
+          placement="leftTop"
+          arrow={false}
+          destroyOnHidden
+          content={
+            <div ref={floatingRef} className={styles.floatingPicker} role="dialog" aria-label={label}>
+              {popupTitle && <div className={styles.floatingTitle}>{popupTitle}</div>}
+              <ColorPicker compact autoFocus color={color || ""} onChange={onChange}
+                derefToken={derefToken} hideTokenPicker={hideTokenPicker} vsh={vsh} />
+            </div>
+          }
+        >
+          <button
+            ref={setButtonElement}
+            type="button"
+            className={cn(styles.trigger, className, { [styles.withValue]: props.showValue })}
+            disabled={isDisabled}
             aria-label={label}
+            aria-haspopup="dialog"
+            aria-expanded={show && !isDisabled}
+            data-plasmic-prop={props["data-plasmic-prop"]}
           >
-            {popupTitle && (
-              <div className={styles.floatingTitle}>{popupTitle}</div>
-            )}
-            <ColorPicker
-              compact
-              autoFocus
-              color={color || ""}
-              onChange={onChange}
-              derefToken={derefToken}
-              hideTokenPicker={hideTokenPicker}
-              vsh={vsh}
+            {leadingIcon}
+            <span className={paintStyles.fillSwatch} aria-hidden="true">
+              <span data-color-swatch style={{ backgroundColor: realColor || "transparent" }} />
+            </span>
+            {props.showValue && <span className={paintStyles.fillLabel}>{valueLabel}</span>}
+          </button>
+        </Popover>
+        {props.showValue && (
+          <Tooltip title={tokenRef ? studioUiT("Opacity is controlled by the color token") : studioUiT("Opacity")}>
+            <InputNumber
+              aria-label={studioUiT("Opacity")}
+              className={paintStyles.fillOpacity}
+              value={validColor ? Math.round(Chroma(realColor).alpha() * 100) : null}
+              disabled={isDisabled || tokenRef || !validColor}
+              placeholder="–" min={0} max={100} controls={false} suffix="%"
+              onChange={(value) => {
+                if (value !== null && validColor && !tokenRef) {
+                  onChange(Chroma(realColor).alpha(value / 100).hex());
+                }
+              }}
             />
-          </div>
+          </Tooltip>
         )}
-      />
+      </div>
     );
     return tooltip ? (
       <Tooltip title={tooltip}>

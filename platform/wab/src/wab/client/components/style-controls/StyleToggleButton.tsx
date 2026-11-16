@@ -45,6 +45,8 @@ function StyleToggleButton(props: StyleToggleButtonProps) {
       root={{
         as: "button",
         props: {
+          type: "button",
+          "aria-pressed": props.valueSetState === "isSet" || props.valueSetState === "isInherited",
           "aria-label": typeof tooltip === "string" ? tooltip : undefined,
           "aria-disabled": isDisabled,
           "data-plasmic-prop": dataPlasmicProp,

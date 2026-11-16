@@ -10,9 +10,7 @@ import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/Com
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useStore } from "zustand";
-import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
-import { useShallow } from "zustand/react/shallow";
 import { useInspectorComponentEvalContext, useInspectorCanvasEnv, useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import { canEditInspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
@@ -90,7 +88,6 @@ import {
   hackyCast,
   isOneOf,
   leftZip,
-  maybe,
   swallow,
   switchType,
   tryCatchElse,
@@ -501,7 +498,7 @@ function PropEditorRowWrapper_(props: {
   const highlightParams = useViewSelection(viewCtx, (state) => state.highlight);
   const selectMetadata = React.useCallback(() => {
     const effective = expsProvider.effectiveVs();
-    const arg = effective.args.find((arg) => arg.param === param);
+    const arg = effective.args.find((candidate) => candidate.param === param);
     const propType = inferPropTypeFromParam(viewCtx.studioCtx, viewCtx, tpl, param);
     const fullDisplayName = getParamDisplayName(tpl.component, param);
     return Object.freeze({
@@ -1392,7 +1389,6 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                 label={label}
                 menu={allowPointerInteractions && !isMenuEmpty(contextMenu) ? contextMenu : undefined}
                 value={semanticValue}
-                reveal={isDataPickerVisible}
                 bindingStatus={referencedParam
                   ? uiT("Linked")
                   : isTokenBinding

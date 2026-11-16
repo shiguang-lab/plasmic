@@ -6,33 +6,37 @@ import {
   shouldBeDisabled,
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import styles from "@/wab/client/components/style-controls/BorderControls.module.sass";
+import strokeStyles from "@/wab/client/components/style-controls/BorderStrokeControls.module.scss";
 import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
-import { LabeledLineStyleToggleButtonGroupItemRow } from "@/wab/client/components/style-controls/LineStyleControls";
+import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import HelpIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Help";
 import {
   ExpsProvider,
   StylePanelSection,
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
-import { IconLinkButton } from "@/wab/client/components/widgets";
+import { IconLinkButton, ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { DimTokenSpinnerRef } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
 import { useI18n } from "@/wab/client/i18n";
-import BorderAllIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__BorderAll";
 import BorderRadiusAllIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__BorderRadiusAll";
 import BorderRadiusSideIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__BorderRadiusSide";
-import BorderSideIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__BorderSide";
+import { arrayMoveIndex } from "@/wab/shared/collections";
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import SlidersIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SlidersHorizontalSvg";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { assert, ensure, spawn, unanimousVal } from "@/wab/shared/common";
 import { parseCssShorthand, showCssShorthand } from "@/wab/shared/css";
-import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
+import { LENGTH_UNITS, LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import {
   Corner,
   Side,
@@ -47,10 +51,6 @@ import { Popover, Tooltip } from "antd";
 import * as React from "react";
 import { useEffect, useRef } from "react";
 
-enum BorderType {
-  Line,
-  Radius,
-}
 const borderLineStyles: ReadonlyArray<string> = ["color", "style", "width"];
 const borderRadiusStyles: ReadonlyArray<string> = ["radius"];
 
@@ -101,73 +101,17 @@ export function BorderPanelSection(props: {
   expsProvider: ExpsProvider;
   vsh?: VariantedStylesHelper;
 }) {
-  const { t: uiT } = useI18n();
-  const { expsProvider } = props;
   const studioCtx = useStudioCtx();
-
-  const hasDefaultBorder = useHasDefaultBorder(expsProvider);
-  const borderStyleCells = useStyleCells(expsProvider, borderStyleProps);
-  const indicators = useStyleIndicators(expsProvider, borderStyleProps);
-  const { isDisabled } = shouldBeDisabled({ props: {}, indicators, label: uiT("Stroke") });
-
-  const hasBorderProps =
-    borderStyleCells.some((cell) => cell.has) ||
-    hasDefaultBorder;
-  const hasNoStroke = standardSides.every((side) => borderStyleCells.some(
-    (cell) => cell.key === `border-${side}-style` && cell.raw === "none",
-  ));
-  const hasVisibleStroke = hasBorderProps && !hasNoStroke;
-
+  const hasDefaultBorder = useHasDefaultBorder(props.expsProvider);
   const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
-  const vsh = props.vsh ?? currentVsh;
+  return <BorderStrokeSection key={borderProviderKey(props.expsProvider)}
+    expsProvider={props.expsProvider} vsh={props.vsh ?? currentVsh} hasDefaultBorder={hasDefaultBorder} />;
+}
 
-  const toggleStroke = async () => {
-    await studioCtx.changeUnsafe(() => {
-      const exp = expsProvider.targetExp();
-      if (hasVisibleStroke) {
-        for (const prop of borderStyleProps) {
-          if (exp.has(prop)) {
-            exp.clear(prop);
-          }
-        }
-        standardSides.forEach((side) => exp.set(`border-${side}-style`, "none"));
-      } else {
-        for (const side of standardSides) {
-          exp.set(`border-${side}-width`, "1px");
-          exp.set(`border-${side}-style`, "solid");
-          exp.set(`border-${side}-color`, "#000000");
-        }
-      }
-    });
-  };
-
-
-  return (
-    <StylePanelSection
-      title={uiT("Stroke")}
-      expsProvider={expsProvider}
-      styleProps={borderStyleProps}
-      headerMenuOnRightClickOnly
-      controls={
-        <>
-          <StyleOverrideControl expsProvider={expsProvider} label={uiT("Stroke")}
-            styleProps={borderStyleProps}
-            noneValues={Object.fromEntries(standardSides.map((side) => [`border-${side}-style`, "none"]))} />
-          <IconButton size="small" tooltip={uiT(hasVisibleStroke ? "Remove stroke" : "Add stroke")} disabled={isDisabled} onClick={toggleStroke}>
-            <Icon icon={hasVisibleStroke ? MinusIcon : PlusIcon} />
-          </IconButton>
-        </>
-      }
-    >
-      {hasVisibleStroke && (
-        <BorderControlsWrapper
-          expsProvider={expsProvider}
-          borderType={BorderType.Line}
-          vsh={vsh}
-        />
-      )}
-    </StylePanelSection>
-  );
+function borderProviderKey(provider: ExpsProvider) {
+  return JSON.stringify(provider instanceof TplExpsProvider
+    ? [provider.tpl.uuid, ...provider.targetVariantCombo.map((variant) => variant.uuid)]
+    : provider.targetRs().uid);
 }
 
 export function BorderRadiusSection(props: {
@@ -239,10 +183,9 @@ export function BorderRadiusSection(props: {
       }
     >
       {(open || hasBorderRadiusProps) && (
-        <BorderControlsWrapper
+        <BorderRadiusControlsWrapper
           inputRef={inputRef}
           expsProvider={expsProvider}
-          borderType={BorderType.Radius}
           vsh={vsh}
         />
       )}
@@ -261,240 +204,203 @@ function getInitialBorderPositions<Position extends Side | Corner>(
   return selectedPositions.length !== standardPositions.length ? selectedPositions : [];
 }
 
-export function BorderControlsWrapper(props: {
+function BorderRadiusControlsWrapper(props: {
   expsProvider: ExpsProvider;
-  borderType: BorderType;
   inputRef?: React.Ref<DimTokenSpinnerRef>;
   vsh: VariantedStylesHelper;
 }) {
-  const { expsProvider, borderType, inputRef, vsh } = props;
-  const cells = useStyleCells(expsProvider, borderType === BorderType.Line ? borderStyleProps : borderRadiusStyleProps);
-  // These identities are fixed on each provider; they are not mutable reads.
-  const key = JSON.stringify(expsProvider instanceof TplExpsProvider
-    ? [expsProvider.tpl.uuid, ...expsProvider.targetVariantCombo.map((variant) => variant.uuid)]
-    : expsProvider.targetRs().uid);
-  return borderType === BorderType.Line ? (
-    <BorderLineControls expsProvider={expsProvider}
-      initialBorderPositions={getInitialBorderPositions(cells, borderLineStyles, standardSides)} key={key} vsh={vsh} />
-  ) : (
-    <BorderRadiusControls expsProvider={expsProvider} inputRef={inputRef}
-      initialBorderPositions={getInitialBorderPositions(cells, borderRadiusStyles, standardCorners)} key={key} vsh={vsh} />
-  );
+  const cells = useStyleCells(props.expsProvider, borderRadiusStyleProps);
+  return <BorderRadiusControls {...props} key={borderProviderKey(props.expsProvider)}
+    initialBorderPositions={getInitialBorderPositions(cells, borderRadiusStyles, standardCorners)} />;
 }
 
-function BorderLineControls(props: {
+type StrokeGroup = { id: number; sides: Side[] };
+type StrokeValues = { color: string; width: string; style: string };
+
+/** Groups and their order are panel state; the four CSS sides remain the model. */
+function reconcileStrokeGroups(previous: StrokeGroup[], values: Map<Side, StrokeValues>) {
+  let nextId = Math.max(0, ...previous.map((group) => group.id)) + 1;
+  const assigned = new Set<Side>();
+  const groups: StrokeGroup[] = [];
+  const append = (sides: readonly Side[], id?: number) => {
+    const buckets = new Map<string, Side[]>();
+    for (const side of sides) {
+      const value = values.get(side);
+      if (!value || assigned.has(side)) { continue; }
+      assigned.add(side);
+      const signature = JSON.stringify(value);
+      const bucket = buckets.get(signature) ?? [];
+      bucket.push(side);
+      buckets.set(signature, bucket);
+    }
+    [...buckets.values()].forEach((groupSides, index) => {
+      groups.push({ id: index === 0 && id !== undefined ? id : nextId++, sides: groupSides });
+    });
+  };
+  previous.forEach((group) => append(group.sides, group.id));
+  append(standardSides);
+  return groups;
+}
+
+function BorderStrokeSection({ expsProvider, vsh, hasDefaultBorder }: {
   expsProvider: ExpsProvider;
-  initialBorderPositions: Side[];
   vsh: VariantedStylesHelper;
+  hasDefaultBorder: boolean;
 }) {
-  const { t: uiT } = useI18n();
-  const { expsProvider, initialBorderPositions, vsh } = props;
-  const studioCtx = expsProvider.studioCtx;
+  const { t } = useI18n();
   const cells = useStyleCells(expsProvider, borderStyleProps);
-  const [selectedSides, setSelectedSides] = React.useState<Side[]>(
-    initialBorderPositions,
-  );
-
-  const hasSetPropRef = React.useRef(false);
-  const [settingsOpen, setSettingsOpen] = React.useState(false);
-
-  const effectiveSides = () =>
-    selectedSides.length > 0 ? selectedSides : standardSides;
-
-  const getSideProp = (side: Side, prop: string) => {
-    return cells.find((cell) => cell.key === `border-${side}-${prop}`)?.value ?? "";
+  const indicators = useStyleIndicators(expsProvider, borderStyleProps);
+  const { isDisabled } = shouldBeDisabled({ props: {}, indicators, label: t("Stroke") });
+  const values = new Map<Side, StrokeValues>();
+  for (const side of standardSides) {
+    const sideCells = borderLineStyles.map((prop) => cells.find((cell) => cell.key === `border-${side}-${prop}`));
+    const style = sideCells[1];
+    if ((!hasDefaultBorder && !sideCells.some((cell) => cell?.has)) || style?.raw === "none" || style?.raw === "hidden") { continue; }
+    values.set(side, { color: sideCells[0]?.value || "currentColor", style: style?.value || "solid", width: sideCells[2]?.value || "medium" });
+  }
+  const signature = JSON.stringify([...values]);
+  const [presentation, setPresentation] = React.useState(() => ({ signature, groups: reconcileStrokeGroups([], values) }));
+  let groups = presentation.groups;
+  if (presentation.signature !== signature) {
+    groups = reconcileStrokeGroups(groups, values);
+    setPresentation({ signature, groups });
+  }
+  const freeSides = standardSides.filter((side) => !values.has(side));
+  const change = (fn: () => void) => {
+    if (!isDisabled) { spawn(expsProvider.studioCtx.changeUnsafe(fn)); }
   };
-
-  const getUnanimousSelectedSidesProp = (prop: string) => {
-    return unanimousVal(effectiveSides().map((s) => getSideProp(s, prop)));
+  const removeSide = (side: Side) => {
+    const exp = expsProvider.targetExp();
+    borderLineStyles.forEach((prop) => exp.clear(`border-${side}-${prop}`));
+    exp.set(`border-${side}-style`, "none");
   };
-
-  const getSelectedSidesWidth = () => {
-    if (selectedSides.length === 0) {
-      return showCssShorthand(
-        effectiveSides().map((side) => getSideProp(side, "width")),
-      );
-    } else {
-      return getUnanimousSelectedSidesProp("width");
-    }
-  };
-
-  const toggleSide = (side: Side) => {
-    if (selectedSides.includes(side)) {
-      setSelectedSides((prevSelectedSides) =>
-        prevSelectedSides.filter((s) => s !== side),
-      );
-    } else if (hasSetPropRef.current) {
-      // If we had already set a prop with the current set of selectedSides,
-      // then we treat this side button click as toggling to that side,
-      // instead of adding that side to the selection
-      setSelectedSides([side]);
-    } else {
-      // Else the user is just clicking on multiple side buttons to set
-      // styles for many of them at once
-      setSelectedSides((prevSelectedSides) => [...prevSelectedSides, side]);
-    }
-    hasSetPropRef.current = false;
-  };
-
-  const changeProp = (prop: string, value: string) => {
-    hasSetPropRef.current = true;
-    const exp = expsProvider.mergedExp();
-    for (const side of effectiveSides()) {
-      exp.set(`border-${side}-${prop}`, value);
-      const widthProp = `border-${side}-width`;
-      if (!exp.has(widthProp)) {
-        exp.set(widthProp, "1px");
-      }
-      const styleProp = `border-${side}-style`;
-      if (!exp.has(styleProp)) {
-        exp.set(styleProp, "solid");
-      }
-    }
-  };
-
-  const changeWidth = async (value: string) => {
-    hasSetPropRef.current = true;
-    return studioCtx.changeUnsafe(() => {
-      const exp = expsProvider.mergedExp();
-      if (selectedSides.length === 0) {
-        const newVals = parseCssShorthand(value);
-        standardSides.forEach((side, i) => {
-          exp.set(`border-${side}-width`, newVals[i]);
-          if (!exp.has(`border-${side}-style`)) {
-            exp.set(`border-${side}-style`, "solid");
-          }
-        });
-      } else {
-        changeProp("width", value);
-      }
-    });
-  };
-
-  const clearWidth = async () => {
-    hasSetPropRef.current = true;
-    return studioCtx.changeUnsafe(() => {
-      const exp = expsProvider.mergedExp();
-      effectiveSides().forEach((side) => exp.clear(`border-${side}-width`));
-    });
-  };
-
-  const sideLabels = {
-    top: uiT("Top border"),
-    right: uiT("Right border"),
-    bottom: uiT("Bottom border"),
-    left: uiT("Left border"),
-  };
-  const settingsLabel = uiT("Stroke settings");
-  const editedSides = selectedSides.length
-    ? selectedSides.map((side) => sideLabels[side]).join(", ")
-    : uiT("All borders");
-
-  return (
-    <div className={paintStyles.strokeRow}>
-      <LabeledStyleColorItem
-        styleName={effectiveSides().map((side) => `border-${side}-color`)}
-        displayStyleName={uiT("Color")}
-        noMenuButton
-        hideIndicator
-        colorOpts={{
-          "aria-label": uiT("Stroke color"),
-          popupTitle: uiT("Stroke color"),
-          color: getUnanimousSelectedSidesProp("color") || undefined,
-          emptyLabel: uiT("Mixed"),
-          onChange: (color) =>
-            studioCtx.changeUnsafe(() => changeProp("color", color)),
-        }}
-        vsh={vsh}
-      />
-      <LabeledStyleDimItem
-        aria-label={uiT("Stroke width")}
-        tooltip={editedSides}
-        styleName={effectiveSides().map((side) => `border-${side}-width`)}
-        displayStyleName={uiT("Stroke width")}
-        tokenType="Spacing"
-        noMenuButton
-        hideIndicator
-        dimOpts={{
-          "data-test-id": "stroke-width",
-          value: getSelectedSidesWidth() || "--",
-          onChange: (value) =>
-            value === undefined ? spawn(clearWidth()) : spawn(changeWidth(value)),
-          shorthand: selectedSides.length === 0,
-          dragScale: "1",
-          min: 0,
-          allowedUnits: LENGTH_PERCENTAGE_UNITS,
-          allowFunctions: true,
-          hideArrow: true,
-        }}
-        vsh={vsh}
-      />
-      <Popover
-        trigger="click"
-        placement="bottomRight"
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        title={settingsLabel}
-        content={settingsOpen && (
-          <div className={paintStyles.strokeSettings} role="dialog" aria-label={settingsLabel}>
-            <div role="group" aria-label={uiT("Stroke sides")} className={paintStyles.strokeSides}>
-              <StrokeSideButton
-                label={uiT("All borders")}
-                active={selectedSides.length === 0}
-                onClick={() => {
-                  setSelectedSides([]);
-                  hasSetPropRef.current = false;
-                }}
-              >
-                <Icon icon={BorderAllIcon} aria-hidden="true" />
-              </StrokeSideButton>
-              {standardSides.map((side) => (
-                <StrokeSideButton
-                  key={side}
-                  label={sideLabels[side]}
-                  active={selectedSides.includes(side)}
-                  onClick={() => toggleSide(side)}
-                >
-                  <Icon icon={BorderSideIcon} style={{ transform: `rotate(${sideRotation[side]}deg)` }} aria-hidden="true" />
-                </StrokeSideButton>
-              ))}
-            </div>
-            <LabeledLineStyleToggleButtonGroupItemRow
-              label={uiT("Style")}
-              styleName={effectiveSides().map((side) => `border-${side}-style`)}
-              labelSize="small"
-              noMenuButton
-              value={getUnanimousSelectedSidesProp("style") || ""}
-              onChange={(value) =>
-                studioCtx.changeUnsafe(() => changeProp("style", ensure(value, "Expected stroke style")))
-              }
-            />
-          </div>
-        )}
-      >
-        <button type="button" className={paintStyles.strokeSettingsButton} aria-label={settingsLabel} aria-expanded={settingsOpen} aria-haspopup="dialog">
-          <Icon icon={SlidersIcon} aria-hidden="true" />
-        </button>
-      </Popover>
-    </div>
-  );
+  const add = () => change(() => {
+    const side = freeSides[0];
+    if (!side) { return; }
+    const exp = expsProvider.targetExp();
+    exp.set(`border-${side}-style`, "solid");
+    exp.set(`border-${side}-width`, "1px");
+    exp.set(`border-${side}-color`, "#000000");
+  });
+  return <StylePanelSection title={t("Stroke")} expsProvider={expsProvider}
+    styleProps={borderStyleProps} headerMenuOnRightClickOnly controls={<>
+      <StyleOverrideControl expsProvider={expsProvider} label={t("Stroke")} styleProps={borderStyleProps}
+        noneValues={Object.fromEntries(standardSides.map((side) => [`border-${side}-style`, "none"]))} />
+      <IconButton size="small" aria-label={t("Add stroke")} tooltip={t(freeSides.length ? "Add stroke" : "All border sides are assigned")}
+        disabled={isDisabled || !freeSides.length} onClick={add}><Icon icon={PlusIcon} /></IconButton>
+    </>}>
+    {groups.length > 0 && <ListBox onReorder={isDisabled ? undefined : (from, to) =>
+      setPresentation({ signature, groups: arrayMoveIndex(groups, from, to) })}>
+      {groups.map((group, index) => {
+        const value = ensure(values.get(group.sides[0]), "Stroke group must own a configured side");
+        return <ListBoxItem key={group.id} index={index} className={paintStyles.fillItem}
+          isDragDisabled={isDisabled || groups.length < 2} disabled={isDisabled}
+          removeLabel={t("Remove stroke")} onRemove={() => change(() => group.sides.forEach(removeSide))}
+          clickable={false} truncate={false} mainContent={
+            <StrokeRow expsProvider={expsProvider} vsh={vsh} sides={group.sides} value={value} disabled={!!isDisabled}
+              occupied={standardSides.filter((side) => values.has(side) && !group.sides.includes(side))}
+              onSidesChange={(sides) => change(() => {
+                if (!sides.length || sides.some((side) => values.has(side) && !group.sides.includes(side))) { return; }
+                const exp = expsProvider.targetExp();
+                group.sides.filter((side) => !sides.includes(side)).forEach(removeSide);
+                sides.filter((side) => !group.sides.includes(side)).forEach((side) => {
+                  borderLineStyles.forEach((prop) => exp.set(`border-${side}-${prop}`, value[prop as keyof StrokeValues]));
+                });
+                setPresentation({ signature, groups: groups.map((row) => row.id === group.id ? { ...row, sides } : row) });
+              })}
+              onChange={(prop, next) => change(() => {
+                const exp = expsProvider.targetExp();
+                group.sides.forEach((side) => {
+                  if (next === undefined) { exp.clear(`border-${side}-${prop}`); }
+                  else { exp.set(`border-${side}-${prop}`, next); }
+                });
+              })} />
+          } />;
+      })}
+    </ListBox>}
+  </StylePanelSection>;
 }
 
-const sideRotation = { top: 90, right: 180, bottom: -90, left: 0 };
-
-function StrokeSideButton({ label, active, onClick, children }: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
+function StrokePreview({ sides, lineStyle = "solid", color }: {
+  sides: readonly Side[]; lineStyle?: string; color?: string;
 }) {
-  return (
-    <Tooltip title={label}>
-      <button type="button" aria-pressed={active} aria-label={label} onClick={onClick}>
-        {children}
-      </button>
-    </Tooltip>
-  );
+  const border = `${lineStyle === "double" ? 3 : 2}px ${lineStyle} currentColor`;
+  return <span className={strokeStyles.preview} aria-hidden="true"><span style={{
+    color, borderTop: sides.includes("top") ? border : undefined,
+    borderRight: sides.includes("right") ? border : undefined,
+    borderBottom: sides.includes("bottom") ? border : undefined,
+    borderLeft: sides.includes("left") ? border : undefined,
+  }} /></span>;
+}
+
+function StrokeRow({ expsProvider, vsh, sides, value, occupied, disabled, onSidesChange, onChange }: {
+  expsProvider: ExpsProvider; vsh: VariantedStylesHelper; sides: Side[]; value: StrokeValues;
+  occupied: Side[]; disabled: boolean;
+  onSidesChange: (sides: Side[]) => void;
+  onChange: (prop: keyof StrokeValues, value: string | undefined) => void;
+}) {
+  const { t } = useI18n();
+  const [open, setOpen] = React.useState(false);
+  const trigger = useRef<HTMLButtonElement>(null), popup = useRef<HTMLDivElement>(null);
+  const { selected, lifetime } = useStyleTokenRefs(expsProvider.studioCtx, [value.color], vsh, "Color", (snapshot) => snapshot.rows[0]);
+  const resolved = selected?.resolved;
+  const clientColor = useClientTokenValue(resolved?.value, resolved, lifetime);
+  const color = selected?.applied ? clientColor : value.color;
+  useStudioEscape(popup, open, () => { setOpen(false); trigger.current?.focus(); });
+  const sideLabels = { top: t("Top border"), right: t("Right border"), bottom: t("Bottom border"), left: t("Left border") };
+  const lineStyles = { solid: t("Solid line"), dashed: t("Dashed"), dotted: t("Dotted"), double: t("Double") };
+  const label = `${sides.length === 4 ? t("All borders") : sides.map((side) => sideLabels[side]).join(", ")} · ${lineStyles[value.style as keyof typeof lineStyles] ?? value.style}`;
+  return <div className={strokeStyles.row} data-test-id="stroke-row" data-stroke-sides={sides.join(" ")}>
+    <Popover trigger="click" open={open && !disabled} onOpenChange={setOpen} placement="leftTop" arrow={false} destroyOnHidden
+      content={<div className={strokeStyles.popover} ref={popup} role="group" aria-label={t("Stroke settings")}>
+        <div className={strokeStyles.heading}>{t("Direction")}
+          <IconButton size="small" className={strokeStyles.help} tooltip={t("Assigned sides cannot be selected. You can select multiple available sides.")} aria-label={t("Border direction help")}>
+            <Icon icon={HelpIcon} />
+          </IconButton>
+        </div>
+        <div className={strokeStyles.directions} role="group" aria-label={t("Stroke sides")}>
+          {[undefined, ...standardSides].map((side) => {
+            const active = side ? sides.includes(side) : sides.length === 4;
+            const unavailable = disabled || (side ? occupied.includes(side) : occupied.length > 0);
+            const text = side ? sideLabels[side] : t("All borders");
+            return <Tooltip key={side ?? "all"} title={unavailable ? t("This direction is assigned to another stroke") : text}>
+              <button type="button" aria-label={text} aria-pressed={active} disabled={unavailable}
+                aria-disabled={unavailable || (active && sides.length === 1)}
+                onClick={() => {
+                  if (!side) { onSidesChange([...standardSides]); }
+                  else if (!active) { onSidesChange(standardSides.filter((s) => s === side || sides.includes(s))); }
+                  else if (sides.length > 1) { onSidesChange(sides.filter((s) => s !== side)); }
+                }}><StrokePreview sides={side ? [side] : standardSides} /></button>
+            </Tooltip>;
+          })}
+        </div>
+        <div className={strokeStyles.lineSection}>
+          <div className={strokeStyles.heading}>{t("Line style")}</div>
+          <div className={strokeStyles.lineStyles} role="group" aria-label={t("Line style")}>
+            {Object.entries(lineStyles).map(([style, text]) => <StyleToggleButton key={style}
+              className={strokeStyles.lineButton} value={style} tooltip={text} isDisabled={disabled}
+              valueSetState={value.style === style ? "isSet" : "isUnset"} onClick={() => onChange("style", style)}>
+              <span className={strokeStyles.line} style={{ borderTopStyle: style as React.CSSProperties["borderTopStyle"], borderTopWidth: style === "double" ? 3 : 2 }} />
+            </StyleToggleButton>)}
+          </div>
+        </div>
+      </div>}>
+      <Tooltip title={open ? null : label}><TriggerTarget><button type="button" className={strokeStyles.settings} ref={trigger} disabled={disabled}
+        aria-label={label} aria-expanded={open} data-test-id="stroke-settings">
+        <StrokePreview sides={sides} lineStyle={value.style} color={color} />
+      </button></TriggerTarget></Tooltip>
+    </Popover>
+    <LabeledStyleColorItem styleName={sides.map((side) => `border-${side}-color`)} displayStyleName={t("Color")}
+      noMenuButton hideIndicator vsh={vsh} className={strokeStyles.color}
+      colorOpts={{ "aria-label": t("Stroke color"), popupTitle: t("Stroke color"), floatingPicker: true,
+        color: value.color, onChange: (next) => onChange("color", next) }} />
+    <LabeledStyleDimItem styleName={sides.map((side) => `border-${side}-width`)} displayStyleName={t("Stroke width")}
+      noMenuButton hideIndicator vsh={vsh} tokenType="Spacing" aria-label={t("Stroke width")} className={strokeStyles.width}
+      dimOpts={{ "data-test-id": "stroke-width", value: value.width, onChange: (next) => onChange("width", next),
+        min: 0, allowedUnits: LENGTH_UNITS, allowFunctions: true, hideArrow: false,
+        extraOptions: [{ value: "thin", label: t("Thin") }, { value: "medium", label: t("Medium") }, { value: "thick", label: t("Thick") }],
+      }} />
+  </div>;
 }
 
 function BorderRadiusControls(props: {

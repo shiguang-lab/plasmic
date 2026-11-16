@@ -1,10 +1,10 @@
+import styles from "@/wab/client/components/style-controls/ImageSelector.module.scss";
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { useImageAssetList, useSelectedImageAsset } from "@/wab/client/studio-ctx/image-asset-inputs";
 import { ReadableClipboard } from "@/wab/client/clipboard/ReadableClipboard";
 import { ImageAssetSidebarPopup } from "@/wab/client/components/sidebar/image-asset-controls";
 import { FileUploader, PlainLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { IconButton } from "@/wab/client/components/widgets/IconButton";
-import { Textbox, TextboxRef } from "@/wab/client/components/widgets/Textbox";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
   ResizableImage,
@@ -16,6 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import ArrowRightIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowRight";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import ImageBlockIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ImageBlock";
+import UploadSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__UploadSvg";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
@@ -30,7 +31,7 @@ import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
 import { isValidUrl } from "@/wab/shared/css/urls";
 import { ImageAsset, isKnownImageAsset } from "@/wab/shared/model/classes";
 import { placeholderImgUrl } from "@/wab/shared/urls";
-import { Select, Tooltip, notification } from "antd";
+import { Button, Input, Select, Space, Tooltip, notification } from "antd";
 import L from "lodash";
 import { ok } from "neverthrow";
 import React, { CSSProperties } from "react";
@@ -121,7 +122,7 @@ export function ImageAssetPreviewAndPicker(props: {
           </>
         )}
         {pickingImage && (
-          <div className="mt-m">
+          <div className={styles.pickerContainer}>
             <ImageAssetOrUrlPicker
               studioCtx={studioCtx}
               value={value}
@@ -278,9 +279,12 @@ export function ImageAssetOrUrlPicker(props: {
     const [urlInputError, setUrlInputError] = React.useState<
       string | undefined
     >(undefined);
-    const urlInputRef = React.useRef<TextboxRef>(null);
-
-    const isDataUrl = L.isString(value) && value.startsWith("data:");
+    const [urlInput, setUrlInput] = React.useState(() =>
+      L.isString(value) && !value.startsWith("data:") && value !== placeholderImgUrl()
+        ? value
+        : "",
+    );
+    const urlErrorId = React.useId();
 
     const handleImageUploaded = async (image: ResizableImage, file?: File) => {
       const { imageResult, opts } = await studioCtx.app.withSpinner(
@@ -308,50 +312,38 @@ export function ImageAssetOrUrlPicker(props: {
       // on the same React tree? Weird... either way, stopPropagation() fixes it.
       e.stopPropagation();
 
-      const urlInputHandle = ensure(
-        urlInputRef.current,
-        "Unexpected undefined urlInputRef",
-      );
-      const urlInputValue = urlInputHandle.value();
-      if (!isValidUrl(urlInputValue)) {
+      if (!isValidUrl(urlInput)) {
         setUrlInputError("Enter a valid URL");
         return;
       }
-      urlInputHandle.setValue("");
-      onPicked(urlInputValue);
+      setUrlInput("");
+      onPicked(urlInput);
     };
 
     const urlForm = (
-      <form onSubmit={handleUrlInput}>
-        <Textbox
-          selectAllOnFocus={true}
-          autoFocus={false}
-          ref={urlInputRef}
-          onChange={() => setUrlInputError(undefined)}
-          placeholder={uiT("Enter a URL")}
-          // Avoid setting dataUrl in this textbox because it's ugly, but
-          // more importantly because it slows down the app to a crawl if
-          // it's a big file!
-          // Also don't show the url of the placeholder file.
-          defaultValue={
-            isDataUrl || !L.isString(value) || value === placeholderImgUrl()
-              ? ""
-              : value
-          }
-          data-test-id="image-url-input"
-          error={!!urlInputError}
-          withIcons={["withSuffix"]}
-          suffixIcon={
-            <IconButton type="seamless" htmlType="submit">
-              <Icon icon={ArrowRightIcon} />
-            </IconButton>
-          }
-        />
-        <div>
-          {urlInputError && (
-            <div className={"validation-error"}>{urlInputError}</div>
-          )}
-        </div>
+      <form className={styles.field} onSubmit={handleUrlInput}>
+        <span className={styles.fieldLabel}>{uiT("Image URL")}</span>
+        <Space.Compact block>
+          <Input
+            className={configSearch.input}
+            aria-label={uiT("Image URL")}
+            aria-invalid={!!urlInputError}
+            aria-describedby={urlInputError ? urlErrorId : undefined}
+            onFocus={(event) => event.target.select()}
+            value={urlInput}
+            onChange={(event) => {
+              setUrlInput(event.target.value);
+              setUrlInputError(undefined);
+            }}
+            placeholder={uiT("Enter a URL")}
+            data-test-id="image-url-input"
+            status={urlInputError ? "error" : undefined}
+          />
+          <Button htmlType="submit" aria-label={uiT("Apply")} icon={<Icon icon={ArrowRightIcon} />} />
+        </Space.Compact>
+        {urlInputError && (
+          <div id={urlErrorId} role="alert" className="validation-error">{uiT("Enter a valid URL")}</div>
+        )}
       </form>
     );
 
@@ -360,35 +352,23 @@ export function ImageAssetOrUrlPicker(props: {
     const selectableAssets = assetRows.filter((asset) => asset.type === type && asset.dataUri);
 
     return (
-      <div className={"panel-dim-block rel"}>
-        {/*
-          In some cases it's not good to close the image picker if
-          some value is not selected, without handling this case
-          the following cenario is possible:
-            The user adds an img TplTag in the canvas, if he closes
-            the image picker the Image section on the right side
-            panel would become empty, and is necessary to unfocus
-            and focus the img TplTag to appear again
-        */}
-        {onCancel && (!keepOpen || value) && !hideCancel && (
-          <Tooltip title={uiT("Cancel")}>
-            <IconButton
-              onClick={() => onCancel && onCancel()}
-              className="absolute"
-              style={{
-                right: 4,
-                top: 4,
-              }}
+      <div className={styles.picker}>
+        <div className={styles.header}>
+          <span>{uiT(type === ImageAssetType.Icon ? "Icon" : "Image")}</span>
+          {onCancel && (!keepOpen || value) && !hideCancel && (
+            <Button
+              type="text"
               size="small"
-            >
-              <Icon icon={CloseIcon} />
-            </IconButton>
-          </Tooltip>
-        )}
-        <div className={"flex-col"}>
+              aria-label={uiT("Cancel")}
+              onClick={onCancel}
+              icon={<Icon icon={CloseIcon} />}
+            />
+          )}
+        </div>
+        <div className={styles.fields}>
           {selectableAssets.length > 0 && (
-            <>
-              <div className="mb-sm">
+            <div className={styles.field}>
+              <div className={styles.fieldLabel}>
                 <UiText
                   message="Pick an existing {kind}"
                   values={{
@@ -402,9 +382,8 @@ export function ImageAssetOrUrlPicker(props: {
                 />
               </div>
               <Select
-                className={cx({
-                  "flex-fill textboxlike code flex-stretch": true,
-                })}
+                className={cx(styles.assetSelect, configSearch.select)}
+                aria-label={uiT(type === ImageAssetType.Icon ? "Select an icon" : "Select an image")}
                 value={selectedAsset?.uuid}
                 onChange={(val) =>
                   props.onPicked(
@@ -440,75 +419,36 @@ export function ImageAssetOrUrlPicker(props: {
                         )}
                         style={{ width: 28, height: 28 }}
                       />
-                      {asset.name}
+                      <span className={styles.assetName}>{asset.name}</span>
                     </>
                   ),
                   name: asset.name,
                 }))}
               />
-            </>
-          )}
-          {selectableAssets.length > 0 ? (
-            <div className="mv-sm">
-              {<UiText message={"or upload a new image"} />}
-            </div>
-          ) : (
-            <div className="mb-sm">
-              {<UiText message={"Upload a new image"} />}
             </div>
           )}
           <ImageUploader
             onUploaded={handleImageUploaded}
             accept={type === ImageAssetType.Picture ? "image" : "svg"}
-          />
-          <div className="mv-sm">
-            {<UiText message={"or paste a new image from clipboard"} />}
-          </div>
+          >
+            <span className={styles.uploadLabel}>
+              <Icon icon={UploadSvgIcon} />
+              {uiT("Upload image")}
+            </span>
+          </ImageUploader>
           <ImagePaster onPasted={handleImageUploaded} />
-          {type === ImageAssetType.Picture && (
-            <>
-              <div className="mv-sm">
-                {<UiText message={"or enter a URL"} />}
-              </div>
-              {urlForm}
-            </>
-          )}
-          {type === ImageAssetType.Icon ? (
-            <div className="mv-sm">
-              <UiText
-                message={
-                  "You can find free SVG icons on galleries like {part1}."
-                }
-                values={{
-                  part1: (
-                    <a href="https://www.svgrepo.com/" target="_blank">
-                      {"SVG Repo"}
-                    </a>
-                  ),
-                }}
-              />
-            </div>
-          ) : (
-            <div className="mv-sm">
-              <UiText
-                message={
-                  "You can find free images on galleries like {part1} and {part2}."
-                }
-                values={{
-                  part1: (
-                    <a href="https://unsplash.com/" target="_blank">
-                      {"Unsplash"}
-                    </a>
-                  ),
-                  part2: (
-                    <a href="https://burst.shopify.com/" target="_blank">
-                      {"Burst"}
-                    </a>
-                  ),
-                }}
-              />
-            </div>
-          )}
+          {type === ImageAssetType.Picture && urlForm}
+          <div className={styles.resources}>
+            {type === ImageAssetType.Icon ? (
+              <a href="https://www.svgrepo.com/" target="_blank" rel="noreferrer">SVG Repo</a>
+            ) : (
+              <>
+                <a href="https://unsplash.com/" target="_blank" rel="noreferrer">Unsplash</a>
+                <span>·</span>
+                <a href="https://burst.shopify.com/" target="_blank" rel="noreferrer">Burst</a>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -586,6 +526,7 @@ export function ImagePaster(props: {
     <textarea
       ref={ref}
       className="textbox image-paster"
+      aria-label={studioUiT("or paste a new image from clipboard")}
       placeholder={
         isProcessing
           ? studioUiT("Pasting...")

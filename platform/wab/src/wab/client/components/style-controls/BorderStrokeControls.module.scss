@@ -1,0 +1,102 @@
+$control-size: 28px;
+$control-gap: 4px;
+
+.row {
+  display: grid;
+  grid-template-columns: $control-size $control-size minmax(0, 1fr);
+  align-items: center;
+  gap: $control-gap;
+  width: 100%;
+  min-width: 0;
+}
+
+.settings {
+  display: grid;
+  place-items: center;
+  width: $control-size;
+  height: $control-size;
+  border: 0;
+  border-radius: 6px;
+  padding: 0;
+  background: var(--ui-fill);
+  color: var(--ui-text);
+  cursor: pointer;
+  &:hover { background: var(--ui-hover); }
+  &[aria-expanded="true"], &:focus-visible {
+    outline: 1px solid var(--ui-accent);
+    outline-offset: -1px;
+  }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+.preview {
+  display: block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  pointer-events: none;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px dashed currentColor;
+    opacity: 0.24;
+  }
+  > span { position: absolute; inset: 0; }
+}
+
+.color.color, .width.width {
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+}
+
+.popover { width: $control-size * 5 + $control-gap * 4; }
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  color: var(--ui-text);
+}
+.help.help { width: 16px; height: 16px; color: var(--ui-muted); }
+.directions, .lineStyles { display: grid; gap: $control-gap; }
+.directions {
+  grid-template-columns: repeat(5, $control-size);
+  > button {
+    display: grid;
+    place-items: center;
+    width: $control-size;
+    height: $control-size;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ui-text);
+    cursor: pointer;
+    &:hover:not(:disabled) { background: var(--ui-hover); }
+    &[aria-pressed="true"] { background: var(--ui-selected); color: var(--ui-accent); }
+    &:focus-visible { outline: 1px solid var(--ui-accent); }
+    &:disabled { opacity: 0.3; cursor: not-allowed; }
+  }
+}
+.lineSection { border-top: 1px solid var(--ui-border); margin-top: 12px; padding-top: 10px; }
+.lineStyles {
+  grid-template-columns: repeat(4, $control-size);
+  justify-content: space-between;
+}
+.lineButton.lineButton {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  width: $control-size;
+  height: $control-size;
+  padding: 0;
+  box-shadow: none;
+  color: var(--ui-muted);
+  &[aria-pressed="true"] { background: var(--ui-selected); color: var(--ui-accent); }
+  &:focus-visible { outline: 1px solid var(--ui-accent); }
+}
+.line { display: block; width: 20px; border-top: 2px solid currentColor; }

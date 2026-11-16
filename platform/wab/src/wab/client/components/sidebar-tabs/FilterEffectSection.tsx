@@ -1,189 +1,112 @@
-import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
-import { useI18n } from "@/wab/client/i18n";
-import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
-import { LabeledStyleItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
-import ColorSwatch from "@/wab/client/components/style-controls/ColorSwatch";
+import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
+import { FilterEffectIcon } from "@/wab/client/components/style-controls/FilterEffectIcon";
 import { FilterEffectPanel } from "@/wab/client/components/style-controls/FilterEffectPanel";
-import { ExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
-import {
-  IconLinkButton,
-  ListBox,
-  ListBoxItem,
-} from "@/wab/client/components/widgets";
+import styles from "@/wab/client/components/style-controls/FilterEffectPanel.module.scss";
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
+import { changeStyle, ExpsProvider, StylePanelSection } from "@/wab/client/components/style-controls/StyleComponent";
+import { StyleEditorPopover } from "@/wab/client/components/style-controls/StyleEditorPopover";
+import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import IconButton from "@/wab/client/components/widgets/IconButton";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { derefTokenRefs } from "@/wab/commons/StyleToken";
+import { useI18n } from "@/wab/client/i18n";
+import type { MessageKey } from "@/wab/client/i18n/locales";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { arrayMoveIndex } from "@/wab/shared/collections";
-import { cx, maybe, spawn } from "@/wab/shared/common";
-import {
-  FilterEffect,
-  defaultFilterEffects,
-  fromFilterObjToString,
-  fromFilterStringToObj,
-} from "@/wab/shared/core/filter-effect-utils";
+import { defaultFilterEffects, FilterEffect, fromFilterObjToString, fromFilterStringToObj, getFilterEffectLabel } from "@/wab/shared/core/filter-effect-utils";
 import { joinCssValues, splitCssValue } from "@/wab/shared/css/parse";
-import { capitalize } from "lodash";
-import React, { useState } from "react";
-import { useStyleCell } from "@/wab/client/studio-ctx/style-inputs-react";
-import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
-import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
+import { Dropdown } from "antd";
+import React from "react";
 
-function FilterEffectSectionContent({ expsProvider, cssProp, title, label }: {
-  expsProvider: ExpsProvider;
-  cssProp: string;
-  title: "Filter" | "Backdrop Filter";
-  label: "Filter Effect" | "Backdrop Effect";
-}) {
-    const { t } = useI18n();
-    const { studioCtx } = expsProvider;
-    const exp = expsProvider.mergedExp();
-    const cell = useStyleCell(expsProvider, cssProp);
-    const helper = React.useMemo(() => new VariantedStylesHelper(), []);
-    const lifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [expsProvider, studioCtx]);
-    const subscribe = React.useCallback((notify: () => void) => {
-      lifetime.addEventListener("abort", notify);
-      return () => lifetime.removeEventListener("abort", notify);
-    }, [lifetime]);
-    const readActive = React.useCallback(() => !lifetime.aborted, [lifetime]);
-    const active = React.useSyncExternalStore(subscribe, readActive, readActive);
+const properties = ["filter", "backdrop-filter"] as const;
+type FilterProperty = typeof properties[number];
+const titles: Record<FilterProperty, MessageKey> = { filter: "Layer filter", "backdrop-filter": "Backdrop filter" };
+const additions: { prop: FilterProperty; type: "blur" | "brightness"; label: MessageKey }[] = [
+  { prop: "filter", type: "blur", label: "Layer blur" },
+  { prop: "backdrop-filter", type: "blur", label: "Backdrop blur" },
+  { prop: "filter", type: "brightness", label: "Layer filter" },
+  { prop: "backdrop-filter", type: "brightness", label: "Backdrop filter" },
+];
 
-    const [inspect, setInspect] = useState<number | undefined>(undefined);
-
-    const rawFilters =
-      maybe(cell?.raw, (val) =>
-        val === "none" ? [] : splitCssValue(cssProp, val),
-      ) ?? [];
-    const filters = rawFilters.map(fromFilterStringToObj);
-    const colorInputs = active ? filters.filter((filter) => filter.type === "drop-shadow").map((filter) => filter.args.slice(-1)[0]) : [];
-    const colors = useStyleTokenRefs(studioCtx, colorInputs, helper, "ColorOnly", (state) => state.rows);
-
-    const setsProp = (prop: string, values: string[]) => {
-      spawn(
-        studioCtx.changeUnsafe(() => {
-          if (lifetime.aborted) { return; }
-          // Use value.join() instead of showCssValue() so we don't
-          // filter out the hidden# values.
-          exp.set(prop, joinCssValues(prop, values));
-        }),
-      );
-    };
-
-    const updateFilters = (newFilters: FilterEffect[]) => {
-      if (newFilters.length === 0) {
-        setsProp(cssProp, ["none"]);
-        return;
-      }
-      const rawNewFilters = newFilters.map(fromFilterObjToString);
-      setsProp(cssProp, rawNewFilters);
-    };
-
-    const hideFilter = (idx: number) => {
-      updateFilters(filters.map((filter, index) => index === idx ? { ...filter, visible: !filter.visible } : filter));
-    };
-
-    const addFilter = () => {
-      updateFilters([defaultFilterEffects.blur, ...filters]);
-      setInspect(0);
-    };
-
-    if (!active) { return null; }
-
-    return (
-      <div>
-        <LabeledStyleItemRow
-          label={t(label)}
-          styleName={cssProp}
-          className="justify-between"
-          alignment="center"
-          labelSize="auto"
-          contentAlignment="right"
-        >
-          <StyleOverrideControl expsProvider={expsProvider} label={t(label)}
-            styleProps={[cssProp]} noneValues={{ [cssProp]: "none" }}
-            onChange={() => setInspect(undefined)} />
-          <IconLinkButton onClick={addFilter}>
-            <Icon icon={PlusIcon} />
-          </IconLinkButton>
-        </LabeledStyleItemRow>
-        {inspect !== undefined && (
-          <SidebarModal
-            title={t(title)}
-            show
-            onClose={() => setInspect(undefined)}
-          >
-            <div className="panel-content">
-              <FilterEffectPanel
-                studioCtx={studioCtx}
-                filterEffect={filters[inspect]}
-                onChange={(newFilterEffect: FilterEffect) => {
-                  updateFilters(filters.map((filter, index) => index === inspect ? newFilterEffect : filter));
-                }}
-              />
-            </div>
-          </SidebarModal>
-        )}
-        {filters.length > 0 && (
-          <ListBox
-            appendPrepend="append"
-            onReorder={(from, to) => {
-              const reordered = arrayMoveIndex(filters, from, to);
-              updateFilters(reordered);
-            }}
-          >
-            {filters.map((filter: FilterEffect, i: number) => {
-              const isDropShadow = filter.type === "drop-shadow";
-
-              const filterValue = filter.args.slice(-1)?.[0];
-              const row = colors.selected.find((candidate) => candidate.input === filterValue);
-              // A missing head retains derefTokenRefs' original exception;
-              // nested aliases are resolved by the finite native source.
-              const color = isDropShadow
-                ? row?.resolved?.value ?? derefTokenRefs([], filterValue)
-                : null;
-              const token = isDropShadow ? row?.applied : undefined;
-
-              return (
-                <ListBoxItem
-                  key={i}
-                  index={i}
-                  isDragDisabled={filters.length < 2}
-                  onRemove={() => {
-                    updateFilters(filters.filter((_, index) => index !== i));
-                  }}
-                  onClick={() => setInspect(i)}
-                  mainContent={
-                    <div className="labeled-item labeled-item--horizontal--vcenter">
-                      <div className="labeled-item__label labeled-item__label--horizontal">
-                        {capitalize(filter.type).replace("-", " ")}
-                      </div>
-                      {color ? <ColorSwatch color={color} /> : null}
-                      <code
-                        className={cx([
-                          {
-                            dimfg: !filter.visible,
-                          },
-                        ])}
-                      >
-                        {token?.name || filterValue}
-                      </code>
-                    </div>
-                  }
-                  showHide
-                  onToggleHide={() => hideFilter(i)}
-                  isHidden={!filter.visible}
-                />
-              );
-            })}
-          </ListBox>
-        )}
-      </div>
-    );
-  }
-
-export function FilterEffectSection(props: { expsProvider: ExpsProvider }) {
-  return <FilterEffectSectionContent {...props} cssProp="filter" title="Filter" label="Filter Effect" />;
+export function FilterEffectsPanelSection({ expsProvider }: { expsProvider: ExpsProvider }) {
+  const lifetime = React.useMemo(() => expsProvider.studioCtx.arenaState.lifetime(), [expsProvider]);
+  const subscribe = React.useCallback((notify: () => void) => {
+    lifetime.addEventListener("abort", notify);
+    return () => lifetime.removeEventListener("abort", notify);
+  }, [lifetime]);
+  const active = React.useSyncExternalStore(subscribe, () => !lifetime.aborted);
+  return active ? <FilterEffectsContent expsProvider={expsProvider} /> : null;
 }
 
-export function BackdropFilterEffectSection(props: { expsProvider: ExpsProvider }) {
-  return <FilterEffectSectionContent {...props} cssProp="backdrop-filter" title="Backdrop Filter" label="Backdrop Effect" />;
+function FilterEffectsContent({ expsProvider }: { expsProvider: ExpsProvider }) {
+  const { t } = useI18n();
+  const cells = useStyleCells(expsProvider, properties);
+  const indicators = useStyleIndicators(expsProvider, properties);
+  const [inspected, setInspected] = React.useState<{ prop: FilterProperty; index: number }>();
+  const [adding, setAdding] = React.useState(false);
+  const chains = properties.map((prop, i) => {
+    const raw = cells[i]?.raw;
+    const none = raw === "none";
+    const filters = !raw || none ? [] : splitCssValue(prop, raw).map(fromFilterStringToObj);
+    const { isDisabled } = shouldBeDisabled({ props: {}, indicators: [indicators[i]], label: t(titles[prop]), studioCtx: expsProvider.studioCtx });
+    return { prop, filters, none, disabled: isDisabled };
+  });
+  const write = (prop: FilterProperty, filters: FilterEffect[]) => changeStyle(expsProvider, () => {
+    expsProvider.mergedExp().set(prop, filters.length ? joinCssValues(prop, filters.map(fromFilterObjToString)) : "none");
+  });
+  return <StylePanelSection expsProvider={expsProvider} title={t("Effects")} styleProps={[...properties]} headerMenuOnRightClickOnly
+    controls={<Dropdown trigger={["click"]} open={adding} onOpenChange={setAdding} menu={{
+      items: additions.map((item, index) => ({ key: String(index), label: t(item.label), disabled: chains.some(chain => chain.prop === item.prop && (chain.none || chain.disabled)) })),
+      onClick: ({ key }) => {
+        const item = additions[Number(key)];
+        const chain = chains.find(candidate => candidate.prop === item.prop);
+        if (!chain || chain.disabled || chain.none) { return; }
+        write(item.prop, [...chain.filters, defaultFilterEffects[item.type]]);
+        setInspected({ prop: item.prop, index: chain.filters.length });
+        setAdding(false);
+      },
+    }}><IconButton size="small" aria-label={t("Add effect")} tooltip={t("Add effect")}><Icon icon={PlusIcon} /></IconButton></Dropdown>}>
+    {chains.some(chain => chain.none || chain.filters.length > 0) && <div className={styles.list}>
+      {chains.map(({ prop, filters, none, disabled }) => {
+        const rows: (FilterEffect | null)[] = none ? [null] : filters;
+        const reorder = (from: number, to: number) => {
+          if (disabled || from === to || !filters[from] || !filters[to]) { return; }
+          write(prop, arrayMoveIndex(filters, from, to));
+          setInspected(current => current?.prop === prop ? { prop, index: current.index === from ? to : from < current.index && to >= current.index ? current.index - 1 : from > current.index && to <= current.index ? current.index + 1 : current.index } : current);
+        };
+        return rows.length > 0 && <ListBox key={prop} onReorder={reorder}>
+          {rows.map((effect, index) => <ListBoxItem key={index} index={index} className={paintStyles.fillItem}
+            disabled={disabled} isDragDisabled={disabled || rows.length < 2} clickable={false} truncate={false}
+            removeLabel={effect ? t("Remove") : t("Remove None override")}
+            onRemove={() => {
+              if (disabled) { return; }
+              setInspected(undefined);
+              if (effect && filters.length > 1) { write(prop, filters.filter((_, i) => i !== index)); }
+              else { changeStyle(expsProvider, () => expsProvider.maybeTargetExp()?.clear(prop)); }
+            }}
+            mainContent={
+              <div className={paintStyles.fillValue}>
+                <StyleEditorPopover title={t(titles[prop])} open={!disabled && inspected?.prop === prop && inspected.index === index}
+                  onOpenChange={open => setInspected(open ? { prop, index } : undefined)}
+                  content={<FilterEffectPanel studioCtx={expsProvider.studioCtx} filterEffect={effect}
+                    onChange={next => {
+                      if (disabled) { return; }
+                      write(prop, next ? effect ? filters.map((current, i) => i === index ? next : current) : [next] : []);
+                      if (!next) { setInspected({ prop, index: 0 }); }
+                    }} />}>
+                  <button className={paintStyles.fillEdit} type="button" disabled={disabled}
+                    aria-label={`${t(titles[prop])}: ${effect ? t(getFilterEffectLabel(effect.type)) : t("None")}`}
+                    onKeyDown={event => {
+                      if (event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) { event.preventDefault(); reorder(index, index + (event.key === "ArrowUp" ? -1 : 1)); }
+                    }}>
+                    <FilterEffectIcon type={effect?.type ?? "none"} backdrop={prop === "backdrop-filter"} className={styles.kind} />
+                    <span className={paintStyles.fillLabel}>{effect ? t(prop === "filter" ? "Layer effect name" : "Backdrop effect name", { effect: t(getFilterEffectLabel(effect.type)) }) : t(titles[prop])}</span>
+                  </button>
+                </StyleEditorPopover>
+              </div>
+            } />)}
+        </ListBox>;
+      })}
+    </div>}
+  </StylePanelSection>;
 }

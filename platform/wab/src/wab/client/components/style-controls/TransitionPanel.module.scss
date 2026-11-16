@@ -1,0 +1,9 @@
+.row {
+  [data-plasmic-name="labelContainer"] {
+    width: 64px;
+  }
+
+  [data-plasmic-name="labelTextContainer"] label {
+    white-space: nowrap;
+  }
+}

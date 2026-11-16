@@ -3794,7 +3794,9 @@ $color-stops-width: 100%
 
 .ellipse-control
   display: block
-  background: $sand3
+  background: var(--ui-fill)
+  border: 1px solid var(--ui-border)
+  border-radius: 4px
   width: 100px
   height: 100px
   margin: 0 auto
@@ -3805,14 +3807,14 @@ $color-stops-width: 100%
   height: 100px
 .ellipse-control__ellipse
   fill: none
-  stroke: $sand7
+  stroke: var(--ui-muted)
   stroke-width: 1px
 .ellipse-control__line
-  stroke: $sand7
+  stroke: var(--ui-border)
   stroke-width: 1px
 .ellipse-control__center, .ellipse-control__knob
   @include draggable
-  fill: $sand7
+  fill: var(--ui-accent)
 
 .svg-small-icon
   vertical-align: middle
@@ -5219,10 +5221,6 @@ $resizer_size: 8px
   height: 100%
   display: flex
   flex-direction: column
-
-.SwatchItemList
-  margin-left: -8px
-  margin-right: -8px
 
 .SwatchItem
   cursor: pointer

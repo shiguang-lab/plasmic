@@ -8,6 +8,7 @@ import {
   changeStyle,
   createStyleContextMenu,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import CircleIntersectSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__CircleIntersectSvg";
 import { useI18n } from "@/wab/client/i18n";
 import type { MessageKey } from "@/wab/client/i18n/locales";
 import {
@@ -47,7 +48,7 @@ import { Corner, standardCorners } from "@/wab/shared/geom";
 import { canEditStyleSection, UiConfig } from "@/wab/shared/ui-config-utils";
 import { TplVisibility, getVisibilityLabel } from "@/wab/shared/visibility-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Dropdown, Menu, Tooltip } from "antd";
+import { Dropdown, Menu, Switch, Tooltip } from "antd";
 import cn from "classnames";
 import * as React from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -96,6 +97,7 @@ export const APPEARANCE_STYLE_KEYS = [
   "overflow-x",
   "overflow-y",
   "mix-blend-mode",
+  "isolation",
 ] as const;
 
 const MIX_BLEND_MODE_GROUPS: readonly {
@@ -371,23 +373,6 @@ function BlendDropSvg() {
       strokeLinejoin="round"
     >
       <path d="M8 2.2C8 2.2 3.5 7 3.5 10a4.5 4.5 0 0 0 9 0C12.5 7 8 2.2 8 2.2Z" />
-    </svg>
-  );
-}
-
-function OpacitySvg() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-    >
-      <rect x="2.5" y="2.5" width="11" height="11" rx="2" />
-      <path d="M8 2.5v11" />
-      <path d="M8 5l3-2.5M8 8l5.5-4.5M8 11l5.5-4.5M9.5 13.5L13.5 10" strokeWidth="1" opacity="0.7" />
     </svg>
   );
 }
@@ -836,15 +821,14 @@ export const AppearanceCard = React.memo(function AppearanceCard(
     isPropBlocked("overflow-x") ||
     isPropBlocked("overflow-y");
 
-  const isOverflowModeActive = (mode: "visible" | "hidden" | "auto") => {
-    if (isOverflowSplit) {
-      return false;
-    }
-    if (mode === "auto") {
-      return currentOverflow === "auto" || currentOverflow === "scroll";
-    }
-    return currentOverflow === mode;
-  };
+  const uniformOverflow = isOverflowSplit
+    ? currentOverflowX === currentOverflowY ? currentOverflowX : undefined
+    : currentOverflow;
+  const overflowOptions = [
+    { key: "visible", label: uiT("Visible") },
+    { key: "hidden", label: uiT("Hidden") },
+    { key: "auto", label: uiT("Scroll") },
+  ];
 
   const setUniformOverflow = (val: string) => {
     if (overflowDisabled) {
@@ -891,25 +875,11 @@ export const AppearanceCard = React.memo(function AppearanceCard(
     return uiT("Visible");
   };
 
-  const renderOverflowAxisMenu = (axis: "overflow-x" | "overflow-y") => (
-    <Menu>
-      {(
-        [
-          ["visible", uiT("Visible")],
-          ["hidden", uiT("Hidden")],
-          ["auto", uiT("Scroll")],
-        ] as const
-      ).map(([val, label]) => (
-        <Menu.Item key={val} onClick={() => setSplitOverflowAxis(axis, val)}>
-          {label}
-        </Menu.Item>
-      ))}
-    </Menu>
-  );
-
   // --- Blend mode ---
   const blendRaw = cellMap.get("mix-blend-mode")?.value ?? "normal";
-  const blendSet = !!setMap.get("mix-blend-mode") && blendRaw !== "normal";
+  const isolated = cellMap.get("isolation")?.value === "isolate";
+  const blendSet = (!!setMap.get("mix-blend-mode") && blendRaw !== "normal") || isolated;
+  const isolationDisabled = !capabilities.blendEditable || isPropBlocked("isolation");
   const blendDisabled =
     !capabilities.blendEditable || isPropBlocked("mix-blend-mode");
   const blendLabelKey = MIX_BLEND_MODE_LABEL_MAP.get(blendRaw);
@@ -919,6 +889,11 @@ export const AppearanceCard = React.memo(function AppearanceCard(
     <div className={cn("ant-dropdown-menu", styles.blendDropdown)}>
       <div className={styles.blendDropdownHeader}>
         <div className={styles.blendDropdownTitle}>{uiT("Blend mode")}</div>
+        <label className={styles.isolationRow}>
+          <span>{uiT("Isolate blending")}</span>
+          <Switch size="small" aria-label={uiT("Isolate blending")} checked={isolated} disabled={isolationDisabled}
+            onChange={checked => changeStyle(expsProvider, () => expsProvider.mergedExp().set("isolation", checked ? "isolate" : "auto"))} />
+        </label>
         <div className={styles.blendDropdownDesc}>
           {uiT("How should the colors blend with the elements behind it?")}
         </div>
@@ -943,6 +918,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                     <Menu.Item
                       key={value}
                       className={selected ? styles.blendMenuItemActive : undefined}
+                      disabled={blendDisabled}
                       onClick={() => {
                         setBlendOpen(false);
                         if (blendDisabled) {
@@ -1098,20 +1074,20 @@ export const AppearanceCard = React.memo(function AppearanceCard(
           )}
 
           {capabilities.blendVisible && (
-            <WithContextMenu overlay={renderContextMenu("mix-blend-mode")}>
+            <WithContextMenu overlay={renderContextMenu(["mix-blend-mode", "isolation"])}>
               <Dropdown
                 trigger={["click"]}
                 open={blendOpen}
                 onOpenChange={setBlendOpen}
                 popupRender={renderBlendMenu}
-                disabled={blendDisabled}
+                disabled={blendDisabled && isolationDisabled}
               >
                 <Tooltip title={`${uiT("Blend mode")}: ${blendLabel}`}>
                   <button
                     type="button"
                     aria-label={uiT("Blend mode")}
                     aria-pressed={blendSet}
-                    disabled={blendDisabled}
+                    disabled={blendDisabled && isolationDisabled}
                     className={cn(
                       styles.iconBtn,
                       blendSet && styles.iconBtnActive,
@@ -1145,7 +1121,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                   )}
                   onMouseDown={handleScrubOpacity}
                 >
-                  <OpacitySvg />
+                  <CircleIntersectSvgIcon width={16} height={16} aria-hidden="true" />
                   {opacitySet && <span className={styles.setDot} />}
                 </span>
 
@@ -1456,40 +1432,33 @@ export const AppearanceCard = React.memo(function AppearanceCard(
               </span>
             </WithContextMenu>
 
-            <div
-              role="group"
-              aria-label={uiT("Overflow")}
-              className={cn(
-                styles.overflowSeg,
-                isOverflowSplit && styles.overflowSegDimmed,
-              )}
+            <Dropdown
+              trigger={["click"]}
+              disabled={overflowDisabled}
+              menu={{
+                items: overflowOptions,
+                selectable: true,
+                selectedKeys: uniformOverflow
+                  ? [uniformOverflow === "scroll" ? "auto" : uniformOverflow]
+                  : [],
+                onClick: ({ key }) => setUniformOverflow(key),
+              }}
             >
-              {(
-                [
-                  ["visible", uiT("Visible")],
-                  ["hidden", uiT("Hidden")],
-                  ["auto", uiT("Scroll")],
-                ] as const
-              ).map(([mode, label]) => {
-                const active = isOverflowModeActive(mode);
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    aria-pressed={active}
-                    disabled={overflowDisabled}
-                    title={label}
-                    className={cn(
-                      styles.overflowSegBtn,
-                      active && styles.overflowSegBtnActive,
-                    )}
-                    onClick={() => setUniformOverflow(mode)}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+              <button
+                type="button"
+                aria-label={uiT("Overflow")}
+                aria-haspopup="menu"
+                disabled={overflowDisabled}
+                className={cn(
+                  styles.overflowModeBtn,
+                  styles.overflowSelect,
+                  isOverflowSplit && styles.overflowSelectDimmed,
+                )}
+              >
+                <span>{uniformOverflow ? formatOverflowModeLabel(uniformOverflow) : uiT("Mixed")}</span>
+                <ChevronDownSvg />
+              </button>
+            </Dropdown>
 
             <Tooltip title={uiT("Split overflow for X and Y")}>
               <button
@@ -1530,16 +1499,23 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                   <span className={styles.splitAxisLabel}>{axisLabel}</span>
                   <Dropdown
                     trigger={["click"]}
-                    popupRender={() => renderOverflowAxisMenu(prop)}
                     disabled={overflowDisabled}
+                    menu={{
+                      items: overflowOptions,
+                      selectable: true,
+                      selectedKeys: [val === "scroll" ? "auto" : val],
+                      onClick: ({ key }) => setSplitOverflowAxis(prop, key),
+                    }}
                   >
                     <button
                       type="button"
                       aria-label={`${uiT("Overflow")} ${axisLabel}`}
+                      aria-haspopup="menu"
                       disabled={overflowDisabled}
-                      className={styles.splitModeBtn}
+                      className={styles.overflowModeBtn}
                     >
-                      {formatOverflowModeLabel(val)}
+                      <span>{formatOverflowModeLabel(val)}</span>
+                      <ChevronDownSvg />
                     </button>
                   </Dropdown>
                 </div>

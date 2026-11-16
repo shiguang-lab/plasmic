@@ -1,3 +1,4 @@
+import searchStyles from "@/wab/client/components/widgets/Searchbox.module.scss";
 import { reportError } from "@/wab/client/ErrorNotifications";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
@@ -1018,6 +1019,7 @@ export function SearchBox(
       }
       ref={ref}
       {...props}
+      className={cx(searchStyles.root, props.className)}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           resetInput(e);

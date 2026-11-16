@@ -5,7 +5,7 @@ it("places inline custom controls below their property label", () => {
   const control = () => null;
   expect(getPropTypeLayout({ type: "custom", control, display: "inline" })).toBe("vertical");
   expect(getPropTypeLayout({ type: "custom", control })).toBe("horizontal");
-  expect(getPropTypeLayout({ type: "function", control: { type: "custom", control, display: "inline" } })).toBe("vertical");
+  expect(getPropTypeLayout({ type: "function", argNames: [], argValues: [], control: { type: "custom", control, display: "inline" } })).toBe("vertical");
 });
 
 it("validates custom React controls without a browser and still rejects invalid implementations", () => {

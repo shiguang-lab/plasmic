@@ -11,7 +11,8 @@ import {
   useForwardedRef,
 } from "@/wab/commons/components/ReactUtil";
 import React from "react";
-import { maybe } from "@/wab/shared/common";
+import { cx, maybe } from "@/wab/shared/common";
+import styles from "@/wab/client/components/widgets/Searchbox.module.scss";
 
 type SearchboxProps = Omit<
   React.ComponentProps<typeof Textbox>,
@@ -52,7 +53,7 @@ const Searchbox = React.forwardRef(function Searchbox(
         // className prop needs to be piped to the root element of this component
         props: {
           ...props,
-          className: props.className,
+          className: cx(styles.root, props.className),
           onKeyDown: (e) => {
             props.onKeyDown?.(e);
             if (e.key === "Escape") {

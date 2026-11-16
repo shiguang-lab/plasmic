@@ -72,3 +72,11 @@ describe("fromFilterStringToObj", () => {
     });
   });
 });
+
+it("round trips signed/decimal filter arguments and functional shadow colors", () => {
+  expect(fromFilterStringToObj("hidden#drop-shadow(-1.5px 2px 3.25px rgba(0, 0, 0, .2))")).toEqual({
+    type: "drop-shadow", visible: false, args: ["-1.5px", "2px", "3.25px", "rgba(0, 0, 0, .2)"],
+  });
+  expect(fromFilterStringToObj("opacity(45%)")).toEqual({ type: "opacity", visible: true, args: ["45%"] });
+  expect(fromFilterStringToObj("blur(2.5px)").args).toEqual(["2.5px"]);
+});

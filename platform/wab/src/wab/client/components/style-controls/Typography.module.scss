@@ -55,7 +55,7 @@
   color: var(--ui-muted);
 }
 
-.metric .metricInput {
+.metric .metricInput.metricInput {
   padding-inline-start: 0;
   background: transparent;
 }
@@ -69,10 +69,12 @@
 }
 
 .options {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 2px;
   width: 100%;
+  height: 28px;
   min-width: 0;
   padding: 2px;
   border-radius: 6px;
@@ -122,4 +124,13 @@
     background: var(--ui-hover);
     color: var(--ui-text);
   }
+}
+
+.metric:focus-within {
+  box-shadow: inset 0 0 0 1px var(--ui-accent);
+}
+
+.metric .metricInput.metricInput:hover, .metric .metricInput.metricInput:focus-within {
+  background: transparent;
+  box-shadow: none;
 }

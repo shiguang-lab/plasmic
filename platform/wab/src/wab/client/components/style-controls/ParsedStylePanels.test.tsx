@@ -10,13 +10,15 @@ import React from "react";
 import { mock } from "vitest-mock-extended";
 
 vi.mock("@/wab/client/components/sidebar/sidebar-helpers", () => ({
+  LabeledItem: ({ label, children }: { label: React.ReactNode; children: React.ReactNode }) => <div>{label}{children}</div>,
   LabeledItemRow: ({ label, children, menu }: { label: React.ReactNode; children: React.ReactNode; menu?: React.ReactNode }) => <section aria-label={typeof label === "string" ? label : undefined}>{label}{children}{menu}</section>,
   FullRow: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 vi.mock("@/wab/client/components/sidebar/SidebarSection", () => ({ SidebarSection: ({ title, children }: { title?: React.ReactNode; children: React.ReactNode }) => <fieldset><legend>{title}</legend>{children}</fieldset> }));
 vi.mock("@/wab/client/components/widgets/DimTokenSelector", () => ({ default: ({ value, onChange }: { value: string; onChange: (value: string) => void }) => <input aria-label="Dimension" value={value} onChange={(event) => onChange(event.target.value)} /> }));
 vi.mock("@/wab/client/components/widgets/ColorPicker", () => ({ ColorPicker: ({ color, onChange }: { color: string; onChange: (value: string) => void }) => <input aria-label="Color" value={color} onChange={(event) => onChange(event.target.value)} /> }));
-vi.mock("@/wab/client/components/widgets/Select", () => {
+vi.mock("@/wab/client/components/style-controls/ColorButton", () => ({ ColorButton: ({ color, onChange }: { color: string; onChange: (value: string) => void }) => <input aria-label="Color" value={color} onChange={(event) => onChange(event.target.value)} /> }));
+vi.mock("@/wab/client/components/style-controls/StyleSelect", () => {
   const Select = ({ value, onChange, children }: { value: string; onChange: (value: string) => void; children: React.ReactNode }) => <select aria-label="Filter" value={value} onChange={(event) => onChange(event.target.value)}>{children}</select>;
   Select.Option = ({ value, children }: { value: string; children: React.ReactNode }) => <option value={value}>{children}</option>;
   Select.OptionGroup = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -29,7 +31,7 @@ vi.mock("antd", async (importOriginal) => {
 afterEach(cleanup);
 
 it("uses parsed filter props, serializes edits through the existing helper and cleans up the command owner", () => {
-  const studio = mock<StudioCtx>(), changed = vi.fn<(value: FilterEffect) => void>();
+  const studio = mock<StudioCtx>(), changed = vi.fn<(value: FilterEffect | null) => void>();
   const initial = fromFilterStringToObj("blur(2px)");
   const view = render(<FilterEffectPanel studioCtx={studio} filterEffect={initial} onChange={changed} />);
   fireEvent.change(screen.getByRole("slider"), { target: { value: "7" } });
@@ -39,7 +41,7 @@ it("uses parsed filter props, serializes edits through the existing helper and c
   expect(studio.stopUnlogged).toHaveBeenCalledOnce();
   const next = fromFilterStringToObj("drop-shadow(1px 2px 3px #FFFFFF)");
   view.rerender(<FilterEffectPanel studioCtx={studio} filterEffect={next} onChange={changed} />);
-  expect(screen.getAllByRole("slider").map((input) => input.getAttribute("value"))).toEqual(["1", "2", "3"]);
+  expect(screen.getAllByRole("textbox", { name: "Dimension" }).map((input) => input.getAttribute("value"))).toEqual(["1px", "2px", "3px"]);
   fireEvent.change(screen.getByRole("textbox", { name: "Color" }), { target: { value: "#112233" } });
   expect(fromFilterObjToString(ensure(changed.mock.lastCall?.[0], "Expected emitted style value"))).toBe("drop-shadow(1px 2px 3px #112233)");
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "brightness" } });

@@ -33,19 +33,6 @@
   }
 }
 
-.strokeRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 58px 24px;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-width: 0;
-}
-
-.strokeRow > * {
-  min-width: 0;
-}
-
 .fillValue {
   display: flex;
   flex: 1;
@@ -62,6 +49,8 @@
   gap: 6px;
   min-width: 0;
   height: 28px;
+  width: 100%;
+  cursor: pointer;
   padding: 0 6px;
   border: 0;
   border-radius: 6px;
@@ -79,22 +68,106 @@
   width: min(288px, calc(100vw - 40px));
 }
 
-.fillPopoverBody {
-  max-height: calc(100dvh - 112px);
+.fillPanel {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
+  max-height: min(600px, calc(100dvh - 100px));
 }
+
+.fillTypes {
+  flex: none;
+  padding-bottom: 12px;
+}
+
+.fillPopoverBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.fillPanelContent {
+  padding: 0 8px 4px;
+
+  :global(.SidebarSection__Body) {
+    padding: 0 0 8px;
+  }
+}
+
+
+.fillAngle {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: 8px;
+
+  :global(.angle-dial) {
+    width: 24px;
+    height: 24px;
+  }
+
+  :global(.angle-dial__dial-img) {
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.fillRadial {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fillRadialFields {
+  min-width: 0;
+}
+
+.fillPanel :global(.color-stops__bar) {
+  height: 16px;
+  border-radius: 4px;
+}
+
+.fillPanel :global(.color-stops__stops-and-bar) {
+  position: relative;
+  margin: 8px 6px;
+}
+
+.fillPanel :global(.color-stops__bar-container) {
+  height: 28px;
+}
+
+.fillPanel :global(.color-stops__stops) {
+  top: 16px;
+}
+
+.fillPanel :global(.color-stop) {
+  left: -8px;
+}
+
+.fillPanel :global(.color-stop__color-chip) {
+  width: 8px;
+  height: 8px;
+  top: 7px;
+  left: 4px;
+}
+
 
 .fillColorPicker {
   padding-top: 4px;
 }
 
 .fillLabel {
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .valueSummary {
+  flex-shrink: 0;
   margin-left: auto;
   overflow: hidden;
   white-space: nowrap;
@@ -133,66 +206,122 @@
   }
 }
 
-.fillOpacity:global(.ant-input-number-affix-wrapper) {
+.fillValue .fillOpacity:global(.ant-input-number) {
+  flex: 0 0 56px;
   width: 56px;
-  padding-inline: 4px 6px;
+  min-width: 0;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 6px 0 4px !important;
   border: 0;
-  background: transparent;
+  background: transparent !important;
   box-shadow: none;
 
   :global(.ant-input-number-input) {
-    padding: 0;
+    padding: 0 !important;
+    background: transparent;
     text-align: end;
     font-variant-numeric: tabular-nums;
   }
 
   &:focus-within {
-    outline: 1px solid var(--ui-accent);
+    outline: 1px solid var(--ui-accent) !important;
+    outline-offset: -1px;
   }
 }
 
 .fillAdvanced {
+  margin-top: 12px;
+  border-top: 1px solid var(--ui-border);
+
   > summary {
-    padding: 8px 12px;
+    cursor: pointer;
+    padding: 10px 0;
     color: var(--ui-muted);
   }
 }
 
-.strokeSettings {
-  display: grid;
-  gap: 8px;
-  width: 200px;
-}
-
-.strokeSides {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  padding: 2px;
-  border-radius: 6px;
-  background: var(--ui-fill);
-}
-
-.strokeSides > button,
-.strokeSettingsButton {
-  display: grid;
-  place-items: center;
-  width: 100%;
+.lineStyleButton.lineStyleButton {
   height: 24px;
-  min-width: 0;
   padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--ui-muted);
+  flex: 1 1 0;
+  min-width: 0;
+  box-shadow: none;
+  svg { color: var(--ui-muted); }
+  &[aria-pressed="true"] {
+    background: var(--ui-selected);
+    svg { color: var(--ui-accent); }
+  }
+  &:focus-visible { outline: 1px solid var(--ui-accent); outline-offset: -1px; }
+}
 
-  &:hover {
-    background: var(--ui-hover);
-    color: var(--ui-text);
+.fillSettingsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+
+.fillSettingsLabel {
+  color: var(--ui-text);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.fillSettingsColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fillSettingsField {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+
+  > span {
+    color: var(--ui-muted);
+    font-size: 11px;
+  }
+}
+
+.fillSettingsRow,
+.fillPositionRow {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  > :global(.ant-select) { width: 100%; min-width: 0; }
+}
+
+.fillPositionRow {
+  grid-template-columns: 64px 80px minmax(0, 1fr);
+}
+
+.fillAdvanced > .fillSettingsRow {
+  margin-bottom: 16px;
+}
+
+.fillPanel :global(.ant-segmented) {
+  background: var(--ui-fill);
+  color: var(--ui-muted);
+  padding: 2px;
+
+  :global(.ant-segmented-item-label) {
+    padding-inline: 6px;
+    min-height: 24px;
+    line-height: 24px;
+    font-size: 12px;
   }
 
-  &[aria-pressed="true"],
-  &[aria-expanded="true"] {
-    background: var(--ui-hover);
+  :global(.ant-segmented-item-selected),
+  :global(.ant-segmented-thumb) {
+    background: var(--ui-selected);
     color: var(--ui-accent);
+    box-shadow: none;
   }
 }

@@ -457,7 +457,6 @@ function VisibilitySection_(props: {
                 min: 0,
                 max: 100,
                 extraOptions: ["100%", "50%", "0%"],
-                minDropdownWidth: 170,
                 allowedUnits: PERCENTAGE_UNITS,
                 allowFunctions: true,
                 tooltip: uiT("Opacity"),

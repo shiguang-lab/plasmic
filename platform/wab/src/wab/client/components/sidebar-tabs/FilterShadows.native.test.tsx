@@ -1,7 +1,7 @@
 import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { FilterEffectSection, BackdropFilterEffectSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
+import { FilterEffectsPanelSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { SingleRsExpsProvider, StyleTarget, StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
@@ -43,22 +43,36 @@ async function setup(nonbase = false) {
   return { ...f, studio, site, head, end, exp, provider, helper, active, group, wrap };
 }
 
-it("updates both real filter instances from native CSS/token fields and keeps hide/add/remove commands", async () => {
-  const f = await setup(), mounted = render(f.wrap(<><section data-testid="filter"><FilterEffectSection expsProvider={f.provider} /></section><section data-testid="backdrop"><BackdropFilterEffectSection expsProvider={f.provider} /></section></>));
-  expect(screen.getAllByText("Shadow paint")).toHaveLength(2);
-  await act(async () => { await f.studio.changeUnsafe(() => { f.head.name = "Renamed paint"; f.end.value = "#ABCDEF"; }); });
-  expect(screen.getAllByText("Renamed paint")).toHaveLength(2);
-  expect(mounted.container.querySelectorAll('[style*="rgb(171, 205, 239)"]').length).toBe(2);
-  const filter = screen.getByTestId("filter"), row = ensure(filter.querySelector(".list-box-item"), "Filter row");
-  const hide = ensure([...row.querySelectorAll("button")].find((button) => !button.closest(".list-box-item__actions")), "Original hide command");
-  fireEvent.click(hide); await waitFor(() => expect(f.exp.getRaw("filter")).toContain("hidden#drop-shadow"));
-  expect(f.exp.getRaw("backdrop-filter")).not.toContain("hidden#");
-  fireEvent.click(within(filter).getByRole("button", { name: "Remove" }));
-  await waitFor(() => expect(f.exp.getRaw("filter")).toBe("none"));
-  fireEvent.click(ensure(filter.querySelector(".icon-link-btn"), "Original add command"));
+it("shows only filter type names and keeps None, restore and add scoped to their CSS property", async () => {
+  const f = await setup();
+  render(f.wrap(<FilterEffectsPanelSection expsProvider={f.provider} />));
+  expect(screen.getByRole("button", { name: "Layer filter: Drop shadow" }).textContent).toBe("Layer Drop shadow");
+  expect(screen.getByRole("button", { name: "Backdrop filter: Drop shadow" }).textContent).toBe("Backdrop Drop shadow");
+  expect(screen.queryByText("Shadow paint")).toBeNull();
+  const row = ensure(screen.getByRole("button", { name: "Layer filter: Drop shadow" }).closest<HTMLElement>(".list-box-item"), "Filter row");
+  expect(screen.queryByRole("button", { name: "Disable effect" })).toBeNull();
+  expect(row.querySelector('[data-test-id="drag-handle"]')).toBeTruthy();
+  fireEvent.click(within(row).getByRole("button", { name: "Remove" }));
+  await waitFor(() => expect(f.exp.has("filter")).toBe(false));
+  expect(screen.queryByRole("button", { name: "Layer filter: None" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Layer filter: Drop shadow" })).toBeNull();
+  expect(f.exp.getRaw("backdrop-filter")).toBe(`drop-shadow(0px 2px 3px ${mkTokenRef(f.head)})`);
+  fireEvent.click(screen.getByRole("button", { name: "Add effect" }));
+  fireEvent.click(await screen.findByRole("menuitem", { name: "Layer blur" }));
   await waitFor(() => expect(f.exp.getRaw("filter")).toBe("blur(0px)"));
-  expect(screen.getByText("Filter", { selector: ".panel-popup-title *" })).toBeTruthy();
-  mounted.unmount();
+  fireEvent.click(await screen.findByRole("button", { name: "Effect type" }));
+  fireEvent.click(await screen.findByRole("option", { name: "None" }));
+  await waitFor(() => expect(f.exp.getRaw("filter")).toBe("none"));
+  fireEvent.click(screen.getByRole("button", { name: "Add effect" }));
+  expect((await screen.findByRole("menuitem", { name: "Layer blur" })).getAttribute("aria-disabled")).toBe("true");
+  expect(screen.getByRole("menuitem", { name: "Backdrop blur" }).getAttribute("aria-disabled")).not.toBe("true");
+  fireEvent.click(screen.getByRole("button", { name: "Remove None override" }));
+  await waitFor(() => expect(f.exp.has("filter")).toBe(false));
+  fireEvent.click(screen.getByRole("menuitem", { name: "Layer blur" }));
+  await waitFor(() => expect(f.exp.getRaw("filter")).toBe("blur(0px)"));
+  expect(await screen.findByRole("dialog", { name: "Layer filter" })).toBeTruthy();
+  expect(document.querySelector("#sidebar-modal")).toBeNull();
+  expect(f.exp.getRaw("box-shadow")).toContain(mkTokenRef(f.head));
 });
 
 it("keeps the resolved shadow swatch current and adds, edits and removes shadows in place", async () => {
@@ -111,7 +125,8 @@ it("keeps the resolved shadow swatch current and adds, edits and removes shadows
   await waitFor(() => expect(parseCss(f.exp.get("box-shadow"), { startRule: "boxShadows" }).shadows).toHaveLength(1));
   expect(f.exp.get("box-shadow")).toContain(mkTokenRef(f.head));
   fireEvent.click(removeOriginal);
-  await waitFor(() => expect(f.exp.get("box-shadow")).toBe("none"));
+  await waitFor(() => expect(f.exp.has("box-shadow")).toBe(false));
+  expect(screen.queryByRole("button", { name: "Shadow: None" })).toBeNull();
   fireEvent.click(screen.getByText("Shadows"));
   await act(async () => { await f.studio.awaitEval(); });
   expect(f.exp.get("box-shadow")).toBe("none");
@@ -119,12 +134,39 @@ it("keeps the resolved shadow swatch current and adds, edits and removes shadows
   fireEvent.click(screen.getByRole("button", { name: "Add shadow" }));
   expect(await screen.findByRole("dialog", { name: "Shadow" })).toBeTruthy();
 });
+it("edits all shadow dimensions and selects a portaled unit option without closing the editor", async () => {
+  const f = await setup();
+  render(f.wrap(<ShadowsPanelSection expsProvider={f.provider} vsh={f.helper} />));
+  const trigger = screen.getByRole("button", { name: /^Shadow: Outset,/ });
+  expect(trigger.textContent).not.toContain("Outset");
+  expect(trigger.querySelector("svg")).not.toBeNull();
+  fireEvent.click(trigger);
+  const editor = await screen.findByRole("dialog", { name: "Shadow" });
+  for (const [label, value] of [["Left", "2px"], ["Top", "6px"], ["Blur", "20px"], ["Spread", "3px"]]) {
+    const input = within(editor).getByRole("textbox", { name: label });
+    await act(async () => {
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value } });
+      fireEvent.keyDown(input, { key: "Enter" });
+      await f.studio.awaitEval();
+    });
+  }
+  expect(f.exp.get("box-shadow")).toBe(`2px 6px 20px 3px ${mkTokenRef(f.head)}`);
+  const left = within(editor).getByRole("textbox", { name: "Left" });
+  fireEvent.click(within(ensure(left.closest('[role="combobox"]'), "Dimension control")).getByRole("button"));
+  const option = await screen.findByRole("option", { name: "2em" });
+  expect(editor.contains(option)).toBe(false);
+  fireEvent.click(option);
+  await waitFor(() => expect(f.exp.get("box-shadow")).toBe(`2em 6px 20px 3px ${mkTokenRef(f.head)}`));
+  expect(screen.getByRole("dialog", { name: "Shadow" })).toBe(editor);
+});
+
 it("unmounts actual open edit scopes before model-world replacement and allows a fresh provider", async () => {
   const f = await setup(true);
-  const content = () => f.wrap(<><FilterEffectSection expsProvider={f.provider} /><ShadowsPanelSection expsProvider={f.provider} vsh={f.helper} /></>);
+  const content = () => f.wrap(<><FilterEffectsPanelSection expsProvider={f.provider} /><ShadowsPanelSection expsProvider={f.provider} vsh={f.helper} /></>);
   const mounted = render(content());
-  fireEvent.click(screen.getAllByText("Shadow paint")[0]);
-  await waitFor(() => expect(document.querySelector(".panel-content")).not.toBeNull());
+  fireEvent.click(screen.getByRole("button", { name: "Layer filter: Drop shadow" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "Layer filter" })).not.toBeNull());
   fireEvent.click(screen.getByRole("button", { name: /^Shadow: Outset, Shadow paint/ }));
   expect(await screen.findByRole("button", { name: "Inset" })).toBeTruthy();
   const release = mock<PkgVersionInfoMeta>({ id: "shadow-world", pkgId: "shadow-pkg", version: "1.0.0", branchId: null });
@@ -134,19 +176,52 @@ it("unmounts actual open edit scopes before model-world replacement and allows a
   const declared = vi.spyOn(f.studio.modelSnapshots, "declaredField");
   mounted.rerender(content());
   expect(declared.mock.calls.some(([model]) => model === f.head || model === f.end || model === f.active || model === f.group)).toBe(false);
-  expect(document.querySelector(".panel-content")).toBeNull();
+  expect(screen.queryByRole("dialog", { name: "Layer filter" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Inset" })).toBeNull();
   const rs = ensure(f.studio.site.activeTheme, "New theme").defaultStyle.rs, exp = new RuleSetHelpers(rs, "div");
   const provider = new SingleRsExpsProvider(rs, exp, f.studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  mounted.rerender(f.wrap(<FilterEffectSection expsProvider={provider} />));
-  expect(screen.getByText("Shadow paint")).toBeTruthy();
+  mounted.rerender(f.wrap(<FilterEffectsPanelSection expsProvider={provider} />));
+  expect(screen.getByRole("button", { name: "Layer filter: Drop shadow" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Backdrop filter: Drop shadow" })).toBeTruthy();
   mounted.unmount();
 });
 
+it("selects exclusive None, replaces it when adding a shadow, and clears it directly on removal", async () => {
+  const f = await setup();
+  render(f.wrap(<ShadowsPanelSection expsProvider={f.provider} />));
+  expect(screen.queryByRole("button", { name: "Shadows: Custom" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Add shadow" }));
+  await waitFor(() => expect(parseCss(f.exp.get("box-shadow"), { startRule: "boxShadows" }).shadows).toHaveLength(2));
+  fireEvent.click(within(await screen.findByRole("dialog", { name: "Shadow" })).getByRole("button", { name: "None" }));
+  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("none"));
+  expect(screen.getByRole("button", { name: "Shadow: None" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /^Shadow: Outset,/ })).toBeNull();
+  expect(screen.getByRole("button", { name: "Add shadow" }).hasAttribute("disabled")).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "Add shadow" }));
+  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("0px 4px 16px 0px rgba(0,0,0,0.2)"));
+  expect(screen.queryByRole("button", { name: "Shadow: None" })).toBeNull();
+  expect(screen.getAllByRole("button", { name: /^Shadow: Outset,/ })).toHaveLength(1);
+  const addedEditor = await screen.findByRole("dialog", { name: "Shadow" });
+  expect(within(addedEditor).getByRole("textbox", { name: "Left" })).toBeTruthy();
+  fireEvent.click(within(addedEditor).getByRole("button", { name: "None" }));
+  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("none"));
+  const editor = await screen.findByRole("dialog", { name: "Shadow" });
+  expect(within(editor).queryByRole("textbox", { name: "Left" })).toBeNull();
+  fireEvent.click(within(editor).getByRole("button", { name: "Inset" }));
+  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("inset 0px 4px 16px 0px rgba(0,0,0,0.2)"));
+  expect(within(editor).getByRole("textbox", { name: "Left" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Add shadow" }).hasAttribute("disabled")).toBe(false);
+  fireEvent.click(within(editor).getByRole("button", { name: "None" }));
+  await screen.findByRole("button", { name: "Shadow: None" });
+  fireEvent.click(screen.getByRole("button", { name: "Remove None override" }));
+  await waitFor(() => expect(f.exp.has("box-shadow")).toBe(false));
+  expect(screen.queryByRole("button", { name: "Shadow: None" })).toBeNull();
+  expect(screen.queryByRole("dialog", { name: "Shadow" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Add shadow" }).hasAttribute("disabled")).toBe(false);
+  expect(f.exp.getRaw("filter")).toBe(`drop-shadow(0px 1px 2px ${mkTokenRef(f.head)})`);
+});
+
 it.each([
-  ["Shadows", "box-shadow", ShadowsPanelSection],
-  ["Filter Effect", "filter", FilterEffectSection],
-  ["Backdrop Effect", "backdrop-filter", BackdropFilterEffectSection],
   ["Transform", "transform", TransformPanelSection],
 ] as const)("distinguishes none from default for %s and preserves unrelated styles", async (label, prop, Section) => {
   const f = await setup();

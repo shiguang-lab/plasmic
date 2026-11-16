@@ -7586,11 +7586,12 @@ export class StudioCtx extends WithDbCtx {
     if (!currentVersionInfo) {
       // Already viewing latest. Reload and switch arena.
       await this.loadVersion(undefined, true, branch);
-      const prevArena = prevArenaName
-        ? getArenaByNameOrUuidOrPath(this.site, prevArenaName, undefined)
-        : undefined;
       await this.change(
         () => {
+          // Resolve against the current model when the queued change runs.
+          const prevArena = prevArenaName
+            ? getArenaByNameOrUuidOrPath(this.site, prevArenaName, undefined)
+            : undefined;
           this.switchToArena(prevArena);
           return ok();
         },
@@ -9018,10 +9019,10 @@ export class StudioCtx extends WithDbCtx {
   }
 
   reportCanvasFrameError(frame: ArenaFrame, error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (this.canvasFrameError(frame) === message) { return; }
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (this.canvasFrameError(frame) === errorMessage) { return; }
     const frameErrors = new Map(this.canvasLoadStore.getState().frameErrors);
-    frameErrors.set(frame.uuid, message);
+    frameErrors.set(frame.uuid, errorMessage);
     this.canvasLoadStore.setState({ frameErrors });
     const waiter = this.frameToViewCtxPromise.get(frame);
     if (waiter) {

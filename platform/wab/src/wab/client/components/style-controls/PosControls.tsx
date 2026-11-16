@@ -68,7 +68,7 @@ import {
   useOverlayPosition,
   useOverlayTrigger,
 } from "react-aria";
-import * as ReactDOM from "react-dom";
+import { createPortal } from "react-dom";
 import { useOverlayTriggerState } from "react-stately";
 
 interface MeasureControlProps extends StyleComponentProps {
@@ -246,7 +246,7 @@ function MeasureControl_(props: MeasureControlProps) {
       </Tooltip>
       {state.isOpen &&
         container &&
-        ReactDOM.createPortal(
+        createPortal(
           <OverlayProvider>
             <div className="right-pane__mask dim-spinner-popup-mask">
               <Popover
@@ -283,7 +283,6 @@ function MeasureControl_(props: MeasureControlProps) {
                     studioCtx={studioCtx}
                     tokenType={"Spacing"}
                     autoFocus
-                    minDropdownWidth={200}
                     styleType={["white"]}
                     onEscape={() => state.close()}
                     data-plasmic-prop={prop}

@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import Chip from "@/wab/client/components/widgets/Chip";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
@@ -71,6 +72,7 @@ export const FontFamilySelector = function FontFamilySelector(props: {
     <Select
       aria-label={props["aria-label"]}
       className={cx({
+        [configSearch.select]: true,
         "flex-fill textboxlike": true,
         "text-set": !textboxUnset,
         "text-unset": textboxUnset,

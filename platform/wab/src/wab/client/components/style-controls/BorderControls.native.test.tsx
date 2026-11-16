@@ -1,4 +1,5 @@
 import { AppContext } from "@/wab/client/components/top-view";
+import { mkStyleToken, mkTokenRef } from "@/wab/commons/StyleToken";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { BorderPanelSection, BorderRadiusSection } from "@/wab/client/components/style-controls/BorderControls";
@@ -15,13 +16,19 @@ import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
+import Chroma from "@/wab/shared/utils/color-utils";
 import { standardCorners, standardSides } from "@/wab/shared/geom";
 import { ensureKnownTplTag } from "@/wab/shared/model/classes";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
-afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+beforeEach(() => vi.stubGlobal("IntersectionObserver", class {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}));
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function setup(tpl = false) {
   vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
   vi.spyOn(ViewCtx.prototype, "scheduleSync").mockImplementation(() => undefined);
@@ -47,30 +54,40 @@ async function setup(tpl = false) {
   return { ...f, studio, site, manager, component, root, frame, view, exp, provider, wrap, vsh, panel };
 }
 
-it("renders native side/corner values and preserves the original selected-side and radius edit commands", async () => {
+function strokeRow(sides: string) {
+  return ensure(document.querySelector<HTMLElement>(`[data-stroke-sides="${sides}"]`), "Stroke row");
+}
+function openSettings(row: HTMLElement) {
+  fireEvent.click(ensure(row.querySelector('[data-test-id="stroke-settings"]'), "Settings trigger"));
+}
+
+it("groups matching sides and edits only the owning sides with shared color and width controls", async () => {
   const f = await setup(), mounted = render(f.panel());
   try {
-    expect(screen.getByDisplayValue("1px")).toBeTruthy(); expect(screen.getByDisplayValue("4px")).toBeTruthy();
+    expect(document.querySelectorAll('[data-test-id="stroke-row"]')).toHaveLength(1);
     const stroke = ensure(screen.getByText("Stroke").closest(".SidebarSection__Container"), "Stroke section");
-    const strokeIndicator = `.${indicatorStyles["DefinedIndicator--set"]}`;
-    expect(stroke.querySelectorAll(strokeIndicator)).toHaveLength(1);
-    for (const field of [screen.getByRole("button", { name: "Stroke color" }), screen.getByDisplayValue("1px")]) {
-      const row = ensure(field.closest('[data-plasmic-role="labeled-item"]'), "Stroke field");
-      expect(row.querySelector(strokeIndicator)).toBeNull();
-    }
-    expect(screen.queryByRole("button", { name: "Top border" })).toBeNull();
+    expect(stroke.querySelectorAll(`.${indicatorStyles["DefinedIndicator--set"]}`)).toHaveLength(1);
     await act(async () => { await f.studio.changeUnsafe(() => { f.exp.set("border-top-width", "5px"); f.exp.set("border-top-left-radius", "9px"); }); });
-    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
-    fireEvent.click(screen.getByRole("button", { name: "Top border" }));
-    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
-    const width = screen.getByDisplayValue("5px");
+    expect(document.querySelectorAll('[data-test-id="stroke-row"]')).toHaveLength(2);
+    const row = strokeRow("top"), width = ensure(row.querySelector<HTMLInputElement>('[data-test-id="stroke-width"]'), "Width input");
     fireEvent.change(width, { target: { value: "8px" } }); fireEvent.keyDown(width, { key: "Enter" });
     await waitFor(() => expect(f.exp.get("border-top-width")).toBe("8px"));
     expect(f.exp.get("border-right-width")).toBe("1px");
-    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
-    fireEvent.click(screen.getByRole("button", { name: "Right border" }));
-    fireEvent.click(screen.getByRole("button", { name: "Stroke settings" }));
-    expect(screen.getByDisplayValue("1px")).toBeTruthy(); expect(f.exp.get("border-top-width")).toBe("8px");
+    const color = within(row).getByRole("button", { name: "Stroke color" });
+    fireEvent.click(color);
+    const picker = await screen.findByRole("dialog", { name: "Stroke color" });
+    const hex = ensure(picker.querySelector('[data-test-id="Color-input"]'), "Color input");
+    fireEvent.change(hex, { target: { value: "263a70" } }); fireEvent.blur(hex);
+    await waitFor(() => expect(f.exp.get("border-top-color").toLowerCase()).toBe("#263a70"));
+    expect(f.exp.get("border-right-color")).toBe("#123456");
+    fireEvent.keyDown(picker, { key: "Escape" });
+    await waitFor(() => expect(color.getAttribute("aria-expanded")).toBe("false"));
+    openSettings(strokeRow("top"));
+    expect(await screen.findByRole("button", { name: "Right border" })).toHaveProperty("disabled", true);
+    fireEvent.click(screen.getByRole("button", { name: "Dashed" }));
+    await waitFor(() => expect(f.exp.get("border-top-style")).toBe("dashed"));
+    expect(f.exp.get("border-right-style")).toBe("solid");
+    fireEvent.keyDown(screen.getByRole("group", { name: "Stroke settings" }), { key: "Escape" });
     fireEvent.click(screen.getByRole("button", { name: "Top-left corner" }));
     const radius = screen.getByDisplayValue("9px");
     fireEvent.change(radius, { target: { value: "12px" } }); fireEvent.keyDown(radius, { key: "Enter" });
@@ -92,9 +109,9 @@ it("leases the captured tag only at commit, updates native default borders and d
   expect(active).toBe(0); abandoned.unmount();
   const mounted = render(f.panel());
   try {
-    expect(screen.queryByRole("button", { name: "Stroke settings" })).toBeNull(); expect(active).toBeGreaterThan(0);
+    expect(document.querySelector('[data-test-id="stroke-settings"]')).toBeNull(); expect(active).toBeGreaterThan(0);
     await act(async () => { await f.studio.changeUnsafe(() => { f.root.tag = "input"; }); });
-    expect(screen.getByRole("button", { name: "Stroke settings" })).toBeTruthy();
+    expect(document.querySelector('[data-test-id="stroke-settings"]')).toBeTruthy();
     await act(async () => { f.studio.disposeViewCtx(f.view); }); expect(active).toBe(0);
     await act(async () => { await f.studio.changeUnsafe(() => { f.root.tag = "div"; }); });
     mounted.rerender(f.panel()); expect(active).toBe(0);
@@ -151,15 +168,97 @@ it("distinguishes inherited stroke from none and restores the base stroke withou
     fireEvent.click(screen.getByRole("button", { name: "Stroke: Default" }));
     fireEvent.click(await screen.findByRole("menuitem", { name: "None" }));
     await screen.findByRole("button", { name: "Stroke: None" });
-    expect(screen.queryByRole("button", { name: "Stroke settings" })).toBeNull();
+    expect(document.querySelector('[data-test-id="stroke-settings"]')).toBeNull();
     standardSides.forEach((side) => expect(provider.targetExp().getRaw(`border-${side}-style`)).toBe("none"));
     fireEvent.click(screen.getByRole("button", { name: "Stroke: None" }));
     fireEvent.click(await screen.findByRole("menuitem", { name: "Restore default" }));
     await screen.findByRole("button", { name: "Stroke: Default" });
-    expect(screen.getByRole("button", { name: "Stroke settings" })).toBeTruthy();
+    expect(document.querySelector('[data-test-id="stroke-settings"]')).toBeTruthy();
     expect(screen.getByDisplayValue("3px")).toBeTruthy();
     standardSides.forEach((side) => expect(provider.maybeTargetExp()?.has(`border-${side}-style`) ?? false).toBe(false));
     await act(async () => { await f.studio.changeUnsafe(() => f.view.currentComponentStackFrame().setTargetVariants([])); });
     expect(readBase()).toEqual(base);
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+it("adds free sides, prevents overlap, supports all directions and releases removed sides", async () => {
+  const f = await setup(true), mounted = render(f.panel());
+  try {
+    fireEvent.click(screen.getByRole("button", { name: "Add stroke" }));
+    await screen.findByRole("button", { name: "Stroke color" });
+    expect(f.provider.targetExp().get("border-top-style")).toBe("solid");
+    expect(f.provider.targetExp().has("border-right-style")).toBe(false);
+    openSettings(strokeRow("top"));
+    fireEvent.click(await screen.findByRole("button", { name: "All borders" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Add stroke" })).toHaveProperty("disabled", true));
+    for (const side of standardSides) {
+      expect(f.provider.targetExp().get(`border-${side}-width`)).toBe("1px");
+      expect(f.provider.targetExp().get(`border-${side}-style`)).toBe("solid");
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Top border" }));
+    await waitFor(() => expect(f.provider.targetExp().get("border-top-style")).toBe("none"));
+    fireEvent.keyDown(screen.getByRole("group", { name: "Stroke settings" }), { key: "Escape" });
+    fireEvent.click(screen.getByRole("button", { name: "Add stroke" }));
+    await waitFor(() => expect(document.querySelectorAll('[data-test-id="stroke-row"]')).toHaveLength(2));
+    openSettings(strokeRow("top"));
+    expect(await screen.findByRole("button", { name: "Right border" })).toHaveProperty("disabled", true);
+    expect(screen.getByRole("button", { name: "All borders" })).toHaveProperty("disabled", true);
+    fireEvent.click(screen.getByRole("button", { name: "Right border" }));
+    expect(strokeRow("top")).toBeTruthy();
+    fireEvent.keyDown(screen.getByRole("group", { name: "Stroke settings" }), { key: "Escape" });
+    const topItem = ensure(strokeRow("top").closest<HTMLElement>(".list-box-item"), "List item");
+    fireEvent.click(within(topItem).getByRole("button", { name: "Remove stroke" }));
+    await waitFor(() => expect(f.provider.targetExp().get("border-top-style")).toBe("none"));
+    expect(f.provider.targetExp().get("border-right-style")).toBe("solid");
+    expect(screen.getByRole("button", { name: "Add stroke" })).toHaveProperty("disabled", false);
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+it("undoes row removal with the original color alpha and line style", async () => {
+  const f = await setup(true);
+  await f.studio.changeUnsafe(() => {
+    const exp = f.provider.targetExp();
+    exp.set("border-top-width", "4px"); exp.set("border-top-style", "dashed"); exp.set("border-top-color", "#ff000033");
+  });
+  f.studio.createViewStateUndoRecord();
+  const mounted = render(f.panel());
+  try {
+    fireEvent.click(screen.getByRole("button", { name: "Remove stroke" }));
+    await waitFor(() => expect(document.querySelector('[data-test-id="stroke-row"]')).toBeNull());
+    await act(async () => { await f.studio.undo(); });
+    await screen.findByRole("button", { name: "Stroke color" });
+    expect(f.provider.targetExp().get("border-top-style")).toBe("dashed");
+    expect(f.provider.targetExp().get("border-top-width")).toBe("4px");
+    expect(Chroma(f.provider.targetExp().get("border-top-color")).alpha()).toBeCloseTo(0.2);
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+it("keeps token references when assigning another side and updates the combined color preview", async () => {
+  const f = await setup(true);
+  const color = mkStyleToken({ name: "Border accent", type: "Color", value: "#8844cc" });
+  const width = mkStyleToken({ name: "Border width", type: "Spacing", value: "2px" });
+  await f.studio.changeUnsafe(() => {
+    f.site.styleTokens.push(color, width);
+    const exp = f.provider.targetExp();
+    exp.set("border-top-color", mkTokenRef(color));
+    exp.set("border-top-width", mkTokenRef(width));
+    exp.set("border-top-style", "solid");
+  });
+  const mounted = render(f.panel());
+  try {
+    const previewColor = () => strokeRow("top").querySelector<HTMLElement>('[data-test-id="stroke-settings"] span > span')?.style.color;
+    await waitFor(() => expect(previewColor()).toBe("rgb(136, 68, 204)"));
+    await act(async () => { await f.studio.changeUnsafe(() => { color.value = "#ff8800"; }); });
+    await waitFor(() => expect(previewColor()).toBe("rgb(255, 136, 0)"));
+    openSettings(strokeRow("top"));
+    fireEvent.click(await screen.findByRole("button", { name: "Right border" }));
+    await waitFor(() => expect(f.provider.targetExp().getRaw("border-right-color")).toBe(mkTokenRef(color)));
+    expect(f.provider.targetExp().getRaw("border-right-width")).toBe(mkTokenRef(width));
+    fireEvent.keyDown(screen.getByRole("group", { name: "Stroke settings" }), { key: "Escape" });
+    const input = ensure(strokeRow("top right").querySelector<HTMLInputElement>('[data-test-id="stroke-width"]'), "Width input");
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(await screen.findByRole("option", { name: "thin" })).toBeTruthy();
+    expect(screen.getByRole("option", { name: "Border width" })).toBeTruthy();
   } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });

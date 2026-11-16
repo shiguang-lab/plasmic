@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
 import { ConnectorLine } from "@/wab/client/components/widgets/ConnectorLine";
@@ -7,6 +8,7 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import type { MessageKey } from "@/wab/client/i18n/locales";
 import CodeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Code";
+import PencilSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PencilSvg";
 import {
   isPlainObjectPropType,
   maybePropTypeToDisplayName,
@@ -16,10 +18,10 @@ import { tryCatchElse } from "@/wab/shared/common";
 import { smartHumanize } from "@/wab/shared/strs";
 import type { PropType } from "@plasmicapp/host";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Popover, Select } from "antd";
+import { Popover, Select, Tooltip } from "antd";
 import { isPlainObject } from "lodash";
 import * as React from "react";
-import styles from "./SemanticObjectPropEditor.module.scss";
+import styles from "@/wab/client/components/sidebar-tabs/ComponentProps/SemanticObjectPropEditor.module.scss";
 
 type Fields = Record<string, PropType<any>>;
 type ObjectValue = Record<string, unknown>;
@@ -107,7 +109,6 @@ export function SemanticObjectPropSection({
   value,
   bindingStatus,
   menu,
-  reveal,
   children,
 }: {
   attr: string;
@@ -115,32 +116,15 @@ export function SemanticObjectPropSection({
   value: unknown;
   bindingStatus?: React.ReactNode;
   menu?: React.ReactNode;
-  reveal?: boolean;
   children: React.ReactNode;
 }) {
   const { t } = useI18n();
-  const [expanded, setExpanded] = React.useState(true);
-  React.useEffect(() => {
-    if (reveal) {
-      setExpanded(true);
-    }
-  }, [reveal]);
-  const id = React.useId();
   const count = isObjectValue(value) ? Object.keys(value).length : 0;
 
   return (
     <div className={styles.editor} data-plasmic-prop={attr}>
       <div className={styles.heading}>
-        <button
-          className={styles.headingToggle}
-          type="button"
-          aria-expanded={expanded}
-          aria-controls={id}
-          onClick={() => setExpanded(!expanded)}
-        >
-          <span className={styles.arrow} aria-hidden="true" />
-          {label}
-        </button>
+        <span className={styles.headingLabel}>{label}</span>
         <Popover
           trigger={["hover", "focus"]}
           placement="bottomLeft"
@@ -163,9 +147,7 @@ export function SemanticObjectPropSection({
         </span>
         <MenuButton menu={menu} />
       </div>
-      <div id={id} hidden={!expanded && !reveal}>
-        {children}
-      </div>
+      <div>{children}</div>
     </div>
   );
 }
@@ -266,11 +248,16 @@ function SemanticFields({
         const children = childFields(field);
         const update = (next: unknown) => onChange(setField(value, key, next));
         const fieldLabel = (
-          <span>
-            {label} <code>{key}</code>
-          </span>
+          <Tooltip title={label}>
+            <span className={styles.fieldLabel}>{key}</span>
+          </Tooltip>
         );
         const count = isObjectValue(current) ? Object.keys(current).length : 0;
+        const statusLabel = count > 0
+          ? t("{count} configured", { count })
+          : disabled
+            ? t("Not configured")
+            : t("Not configured, click to edit");
         const objectField =
           typeof field === "object" && field.type === "object";
 
@@ -280,16 +267,16 @@ function SemanticFields({
               <details>
                 <summary className={styles.row}>
                   {fieldLabel}
-                  <span className={styles.disclosure}>
-                    {count > 0 ? (
-                      <span className={styles.configured}>
-                        {t("{count} configured", { count })}
-                      </span>
-                    ) : (
-                      t("Not configured")
-                    )}
-                    <span className={styles.arrow} aria-hidden="true" />
-                  </span>
+                  <Tooltip title={statusLabel}>
+                    <span className={styles.disclosure} aria-label={statusLabel}>
+                      {count > 0 ? (
+                        <span className={styles.configured}>{count}</span>
+                      ) : (
+                        <span>—</span>
+                      )}
+                      <Icon icon={PencilSvgIcon} aria-hidden="true" />
+                    </span>
+                  </Tooltip>
                 </summary>
                 <div className={styles.fields}>
                   {children ? (
@@ -312,7 +299,7 @@ function SemanticFields({
               <div className={styles.row}>
                 {fieldLabel}
                 <StringPropEditor
-                  aria-label={label}
+                  aria-label={key}
                   value={typeof current === "string" ? current : undefined}
                   disabled={disabled}
                   defaultValueHint={t("Default")}
@@ -357,14 +344,14 @@ function CssFields({
             }
           >
             <div className={styles.cssRow}>
-              <span>
-                {label} {property && <code>{key}</code>}
-              </span>
+              <Tooltip title={label}>
+                <span className={styles.fieldLabel}>{key}</span>
+              </Tooltip>
               {typeof current === "string" &&
               (key === "color" || key.endsWith("Color")) ? (
                 <ColorButton
                   sc={studioCtx}
-                  aria-label={label}
+                  aria-label={key}
                   color={current}
                   hideTokenPicker
                   isDisabled={disabled}
@@ -373,7 +360,7 @@ function CssFields({
               ) : (
                 <div className={styles.cssInput}>
                   <StringPropEditor
-                    aria-label={label}
+                    aria-label={key}
                     value={String(current)}
                     disabled={disabled}
                     onChange={(text) => {
@@ -412,7 +399,7 @@ function CssFields({
       {choices.length > 0 && !disabled && (
         <ConnectorLine isLast>
           <Select<string | null>
-            className={styles.add}
+            className={`${styles.add} ${configSearch.select}`}
             aria-label={t("Add CSS property")}
             placeholder={`+ ${t("Add CSS property")}`}
             value={null}

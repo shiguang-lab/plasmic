@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
   FullRow,
@@ -66,6 +67,7 @@ export function AnimationControls(
         <FullRow className="labeled-item">
           <Select
             className={cx({
+              [configSearch.select]: true,
               "flex-fill textboxlike": true,
             })}
             value={state.sequenceId}

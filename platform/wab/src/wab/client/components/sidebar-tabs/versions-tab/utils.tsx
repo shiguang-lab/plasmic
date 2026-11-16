@@ -4,12 +4,12 @@ import { NoItemMessage } from "@/wab/client/components/sidebar-tabs/versions-tab
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
-import { useAsyncStrict } from "@/wab/client/hooks/useAsyncStrict";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { zIndex } from "@/wab/client/z-index";
 import { ApiUser } from "@/wab/shared/ApiSchema";
 import { fullName, getUserEmail } from "@/wab/shared/ApiSchemaUtil";
 import {
@@ -19,11 +19,14 @@ import {
 import { FastBundler } from "@/wab/shared/bundler";
 import { getBundle, parseBundle } from "@/wab/shared/bundles";
 import { unbundleProjectDependencyRevision } from "@/wab/shared/core/tagged-unbundle";
-import { ChangeLogEntry, compareSites } from "@/wab/shared/site-diffs";
+import { compareSites } from "@/wab/shared/site-diffs";
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
 import { formatDateShortTimeShort } from "@/wab/shared/utils/date-utils";
-import { Alert, Form, Spin, Tooltip } from "antd";
+import { Alert, Spin, Tooltip } from "antd";
 import React from "react";
+// Errors are presented once by useErrorMessage in the confirmation dialog.
+// eslint-disable-next-line no-restricted-imports
+import { useAsync } from "react-use";
 
 interface ConfirmModalProps {
   title: string;
@@ -45,21 +48,16 @@ const ConfirmModal = ({
   <Modal
     title={title}
     open={true}
+    zIndex={zIndex.quickModal}
     footer={
-      <Form onFinish={() => onSubmit(true)}>
-        <Form.Item>
-          <Button className="mr-sm" onClick={() => onCancel()}>
-            {cancelText ?? <UiText message="Cancel" />}
-          </Button>
-          <Button
-            type="primary"
-            htmlType="submit"
-            onClick={() => onSubmit(true)}
-          >
-            {confirmText ?? <UiText message="Confirm" />}
-          </Button>
-        </Form.Item>
-      </Form>
+      <>
+        <Button className="mr-sm" onClick={onCancel}>
+          {cancelText ?? <UiText message="Cancel" />}
+        </Button>
+        <Button type="primary" onClick={() => onSubmit(true)}>
+          {confirmText ?? <UiText message="Confirm" />}
+        </Button>
+      </>
     }
     onCancel={() => onCancel()}
   >
@@ -117,21 +115,27 @@ const getRevisionDiffs = async (
 const RevertConfirmModal = ({
   title,
   description,
-  diffs,
-  isLoadingDiffs,
-  error,
+  revertRevisionId,
+  latestRevisionId,
+  studioCtx,
   onSubmit,
   onCancel,
 }: {
   title: string;
   description: React.ReactNode;
-  diffs: ChangeLogEntry[] | null;
-  isLoadingDiffs?: boolean;
-  error?: Error | null;
+  revertRevisionId?: string;
+  latestRevisionId?: string;
+  studioCtx: StudioCtx;
   onSubmit: (value: boolean) => void;
   onCancel: () => void;
 }) => {
   const { t: uiT } = useI18n();
+  const { value: diffs, loading: isLoadingDiffs, error } = useAsync(async () => {
+    if (!revertRevisionId || !latestRevisionId) {
+      return null;
+    }
+    return getRevisionDiffs(revertRevisionId, latestRevisionId, studioCtx);
+  }, [revertRevisionId, latestRevisionId, studioCtx]);
   useErrorMessage(error, "Failed to load changes");
   return (
     <ConfirmModal
@@ -162,7 +166,7 @@ const RevertConfirmModal = ({
           </div>
         </div>
       ) : (
-        diffs !== null &&
+        diffs != null &&
         (diffs.length > 0 ? (
           <>
             <div className="mt-m">
@@ -196,53 +200,25 @@ export const promptVersionRevert = async (
   // if there are any revision then the top one should be the latest revisioon otherwise the top relase will be latest
   const latestRevisionId = revisions[0]?.id || latestRelease?.revisionId;
 
-  return showTemporaryPrompt<boolean>((onSubmit, onCancel) => {
-    const ModalContent = () => {
-      const { t: uiT } = useI18n();
-
-      const state = useAsyncStrict(async () => {
-        if (!release.revisionId || !latestRevisionId) {
-          return null;
-        }
-        return getRevisionDiffs(
-          release.revisionId,
-          latestRevisionId,
-          studioCtx,
-        );
-      }, [release.revisionId, latestRevisionId, studioCtx]);
-
-      return (
-        <RevertConfirmModal
-          title={uiT("Revert to version {part1}", { part1: release.version })}
-          description={
-            <>
-              <UiText
-                message={
-                  "You are about to revert to version {part1}, originally published by {part2}."
-                }
-                values={{
-                  part1: release.version,
-                  part2: (
-                    <UserOnDate
-                      user={user}
-                      date={new Date(release.createdAt)}
-                    />
-                  ),
-                }}
-              />
-            </>
-          }
-          diffs={state.value ?? null}
-          isLoadingDiffs={state.loading}
-          error={state.error}
-          onSubmit={onSubmit}
-          onCancel={onCancel}
+  return showTemporaryPrompt<boolean>((onSubmit, onCancel) => (
+    <RevertConfirmModal
+      title={translate(getUiLocale(), "Revert to version {part1}", { part1: release.version })}
+      description={
+        <UiText
+          message="You are about to revert to version {part1}, originally published by {part2}."
+          values={{
+            part1: release.version,
+            part2: <UserOnDate user={user} date={new Date(release.createdAt)} />,
+          }}
         />
-      );
-    };
-
-    return <ModalContent />;
-  });
+      }
+      revertRevisionId={release.revisionId}
+      latestRevisionId={latestRevisionId}
+      studioCtx={studioCtx}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+    />
+  ));
 };
 
 export const promptLoad = async (title: string) => {
@@ -276,48 +252,24 @@ export const promptRevisionRevert = async (
   studioCtx: StudioCtx,
   user?: ApiUser,
 ) => {
-  return showTemporaryPrompt<boolean>((onSubmit, onCancel) => {
-    const ModalContent = () => {
-      const { t: uiT } = useI18n();
-      const state = useAsyncStrict(async () => {
-        return getRevisionDiffs(
-          revertRevision.id,
-          latestRevision.id,
-          studioCtx,
-        );
-      }, [revertRevision.id, latestRevision.id, studioCtx]);
-
-      return (
-        <RevertConfirmModal
-          title={uiT("Revert to an Autosaved version")}
-          description={
-            <>
-              <UiText
-                message={
-                  "You are about to go back in time to an autosaved version by {part1}."
-                }
-                values={{
-                  part1: (
-                    <UserOnDate
-                      user={user}
-                      date={new Date(revertRevision.createdAt)}
-                    />
-                  ),
-                }}
-              />
-            </>
-          }
-          diffs={state.value ?? null}
-          isLoadingDiffs={state.loading}
-          error={state.error}
-          onSubmit={onSubmit}
-          onCancel={onCancel}
+  return showTemporaryPrompt<boolean>((onSubmit, onCancel) => (
+    <RevertConfirmModal
+      title={translate(getUiLocale(), "Revert to an Autosaved version")}
+      description={
+        <UiText
+          message="You are about to go back in time to an autosaved version by {part1}."
+          values={{
+            part1: <UserOnDate user={user} date={new Date(revertRevision.createdAt)} />,
+          }}
         />
-      );
-    };
-
-    return <ModalContent />;
-  });
+      }
+      revertRevisionId={revertRevision.id}
+      latestRevisionId={latestRevision.id}
+      studioCtx={studioCtx}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+    />
+  ));
 };
 
 export const UserOnDate = function ({

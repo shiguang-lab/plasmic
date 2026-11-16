@@ -146,7 +146,7 @@ it("preserves registered CSS-variable selection in the real ColorButton and keep
   expect(screen.getByText("Renamed head")).toBeInTheDocument();
   fireEvent.click(ensure(screen.getByText("Renamed head").closest("button"), "Color trigger"));
   await waitFor(() => expect(document.querySelectorAll(".SwatchButton").length).toBeGreaterThan(0));
-  fireEvent.mouseDown(ensure(document.querySelectorAll(".SwatchButton")[0], "Real token picker swatch"));
+  fireEvent.click(ensure(document.querySelectorAll(".SwatchButton")[0], "Real token picker swatch"));
   await waitFor(() => expect(changed).toHaveBeenLastCalledWith(mkTokenRef(f.end))); mounted.unmount(); palette.remove();
 });
 
@@ -159,13 +159,13 @@ it("updates actual gradient colors and keeps command interpolation fresh before 
   const mounted = render(wrap(f, <ColorStops studioCtx={f.studio} stops={stops} repeating={false} onChange={changed} vsh={f.helper} />));
   const bar = ensure(mounted.container.querySelector<HTMLElement>(".color-stops__bar"), "Gradient bar");
   Object.defineProperty(bar, "offsetWidth", { configurable: true, value: 100 });
-  vi.spyOn(bar, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 20));
-  vi.spyOn(bar, "getClientRects").mockReturnValue(Object.assign([new DOMRect(0, 0, 100, 20)], { item: (index: number) => [new DOMRect(0, 0, 100, 20)][index] ?? null }));
+  vi.spyOn(bar, "getBoundingClientRect").mockReturnValue(new DOMRect(100, 40, 100, 20));
+  vi.spyOn(bar, "getClientRects").mockReturnValue(Object.assign([new DOMRect(100, 40, 100, 20)], { item: (index: number) => [new DOMRect(100, 40, 100, 20)][index] ?? null }));
   const firstChip = ensure(mounted.container.querySelector<HTMLElement>(".color-stop__color-chip"), "Original gradient color"), paintedColor = firstChip.style.backgroundColor;
   document.documentElement.style.setProperty("--fresh-gradient", "#000000");
   expect(firstChip.style.backgroundColor).toBe(paintedColor);
   await act(async () => {
-    fireEvent.click(ensure(mounted.container.querySelector(".color-stops__bar-container"), "Gradient add command"), { clientX: 50, clientY: 10 });
+    fireEvent.click(ensure(mounted.container.querySelector(".color-stops__bar-container"), "Gradient add command"), { clientX: 150, clientY: 50 });
   });
   expect(stops).toHaveLength(3); expect(stops[1]?.dim.getNumericValue()).toBe(50); expect(stops[1]?.color.toLowerCase()).toBe("#b4b4b4"); expect(changed).toHaveBeenCalledWith(stops);
   // jsdom 22 drops valid gradients during CSS serialization. Observe the real

@@ -1,5 +1,7 @@
 import { isContextMenuOpen } from "@/wab/client/components/ContextMenu";
 import styles from "@/wab/client/components/style-controls/PaintRows.module.scss";
+import popoverStyles from "@/wab/client/components/style-controls/StyleEditorPopover.module.scss";
+import { cx } from "@/wab/shared/common";
 import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Popover } from "antd";
@@ -48,7 +50,7 @@ export function StyleEditorPopover({
           <FocusScope>
             <div
               ref={popupRef}
-              className={styles.fillPopover}
+              className={cx(styles.fillPopover, popoverStyles.body)}
               role="dialog"
               aria-label={title}
             >

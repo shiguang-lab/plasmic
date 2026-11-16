@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { useElementPropValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
@@ -246,7 +247,7 @@ function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
                   selectRef.current.blur();
                 }
               }}
-              className="textboxlike flex-no-shrink"
+              className={`textboxlike flex-no-shrink ${configSearch.select}`}
               suffixIcon={<Icon icon={TriangleBottomIcon} />}
               dropdownMatchSelectWidth={150}
               showSearch
@@ -507,6 +508,7 @@ function AddHtmlAttrButton(props: {
             targetRef={selectRef}
           />
           <Select
+            className={configSearch.select}
             id="html-attribute-select"
             showSearch={true}
             searchValue={searchValue}
@@ -520,7 +522,7 @@ function AddHtmlAttrButton(props: {
               width: 200,
             }}
             autoFocus
-            bordered={false}
+            variant="outlined"
             ref={selectRef}
             placeholder={uiT("Search or enter any attribute")}
             open

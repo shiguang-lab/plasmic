@@ -286,66 +286,23 @@
   text-overflow: ellipsis;
 }
 
-.overflowSeg {
-  height: 28px;
-  padding: 2px;
-  border-radius: 6px;
-  background: var(--ui-fill, rgba(128, 128, 128, 0.08));
-  border: 1px solid var(--ui-border-subtle, rgba(128, 128, 128, 0.2));
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2px;
-  min-width: 0;
-  transition: opacity 0.12s ease;
-}
-
-.overflowSegDimmed {
-  opacity: 0.55;
-}
-
-.overflowSegBtn {
-  min-width: 0;
-  height: 100%;
-  border: 0;
-  padding: 0 4px;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--ui-muted, #71717a);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  transition: background-color 0.12s ease, color 0.12s ease;
-
-  &:hover:not(:disabled) {
-    background: var(--ui-hover, rgba(128, 128, 128, 0.14));
-    color: var(--ui-text, #18181b);
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-}
-
-.overflowSegBtnActive {
-  background: rgba(13, 153, 255, 0.18);
-  color: #0d99ff;
-
-  &:hover:not(:disabled) {
-    background: rgba(13, 153, 255, 0.24);
-    color: #0d99ff;
-  }
-}
-
 .overflowSplitBtn {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: -0.02em;
+
+  &:hover:not(:disabled) {
+    background: var(--ui-fill, rgba(128, 128, 128, 0.08));
+  }
+
+  &.iconBtnActive:hover:not(:disabled) {
+    background: rgba(13, 153, 255, 0.18);
+  }
+}
+
+.overflowSelectDimmed {
+  opacity: 0.55;
 }
 
 .overflowSplitGrid {
@@ -356,7 +313,7 @@
 }
 
 .overflowSplitCell {
-  height: 26px;
+  height: 28px;
   padding: 0 6px;
   border-radius: 6px;
   background: var(--ui-fill, rgba(128, 128, 128, 0.08));
@@ -375,21 +332,39 @@
   flex-shrink: 0;
 }
 
-.splitModeBtn {
+.overflowModeBtn {
   min-width: 0;
   flex: 1 1 0%;
-  height: 20px;
+  height: 24px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: var(--ui-text, #18181b);
   font-size: 11px;
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
   padding: 0 4px;
   cursor: pointer;
 
-  &:hover:not(:disabled) {
-    background: var(--ui-hover, rgba(128, 128, 128, 0.15));
+  > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > svg {
+    flex-shrink: 0;
+    color: var(--ui-muted, #71717a);
+  }
+
+  &.overflowSelect {
+    height: 28px;
+    padding: 0 7px;
+    background: var(--ui-fill, rgba(128, 128, 128, 0.08));
+    border: 1px solid var(--ui-border-subtle, rgba(128, 128, 128, 0.2));
   }
 
   &:disabled {
@@ -477,4 +452,13 @@
   font-size: 11px;
   color: #0d99ff;
   flex-shrink: 0;
+}
+
+.isolationRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--ui-text);
 }

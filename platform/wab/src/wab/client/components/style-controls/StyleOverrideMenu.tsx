@@ -7,12 +7,13 @@ import { DownOutlined } from "@ant-design/icons";
 import { Dropdown } from "antd";
 import React from "react";
 
-export function StyleOverrideMenu({ label, hasOverride, isNone, disabled, noneLabel, onChange }: {
+export function StyleOverrideMenu({ label, hasOverride, isNone, disabled, noneLabel, onCustom, onChange }: {
   label: string;
   hasOverride: boolean;
   isNone: boolean;
   disabled?: boolean;
   noneLabel?: string;
+  onCustom?: () => void;
   onChange: (mode: "none" | "default") => void;
 }) {
   const { t } = useI18n();
@@ -28,11 +29,13 @@ export function StyleOverrideMenu({ label, hasOverride, isNone, disabled, noneLa
       onOpenChange={setOpen}
       menu={{
         items: [
+          ...(onCustom ? [{ key: "custom", label: t("Custom"), disabled: hasOverride && !isNone }] : []),
           { key: "none", label: none, disabled: isNone },
           { key: "default", label: t("Restore default"), disabled: !hasOverride },
         ],
         onClick: ({ key }) => {
           setOpen(false);
+          if (key === "custom") { onCustom?.(); }
           if (key === "none" || key === "default") { onChange(key); }
         },
       }}
@@ -46,12 +49,13 @@ export function StyleOverrideMenu({ label, hasOverride, isNone, disabled, noneLa
 }
 
 /** Default removes only the current target's overrides; none explicitly suppresses the effect. */
-export function StyleOverrideControl({ expsProvider, label, styleProps, noneValues, noneLabel, onChange }: {
+export function StyleOverrideControl({ expsProvider, label, styleProps, noneValues, noneLabel, customValues, onChange }: {
   expsProvider: ExpsProvider;
   label: string;
   styleProps: string[];
   noneValues: Record<string, string>;
   noneLabel?: string;
+  customValues?: Record<string, string>;
   onChange?: () => void;
 }) {
   const cells = useStyleCells(expsProvider, styleProps);
@@ -62,6 +66,13 @@ export function StyleOverrideControl({ expsProvider, label, styleProps, noneValu
     cells.some((cell) => cell.key === key && cell.targetHas && cell.raw === value),
   );
   return <StyleOverrideMenu label={label} hasOverride={hasOverride} isNone={isNone}
+    onCustom={customValues ? () => {
+      onChange?.();
+      changeStyle(expsProvider, () => {
+        const exp = expsProvider.targetExp();
+        Object.entries(customValues).forEach(([prop, value]) => exp.set(prop, value));
+      });
+    } : undefined}
     disabled={isDisabled} noneLabel={noneLabel} onChange={(mode) => {
       onChange?.();
       changeStyle(expsProvider, () => {

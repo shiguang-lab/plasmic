@@ -7,6 +7,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
+import styles from "@/wab/client/components/style-controls/BoxShadowControls.module.scss";
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { getUiLocale } from "@/wab/client/i18n";
@@ -18,23 +19,34 @@ import { LENGTH_UNITS } from "@/wab/shared/css/types";
 import React from "react";
 
 interface BoxShadowPanelProps extends StyleComponentProps {
-  defaultShadow: BoxShadow;
-  onUpdated: (shadow: BoxShadow) => void;
+  defaultShadow: BoxShadow | null;
+  onUpdated: (shadow: BoxShadow | null) => void;
   vsh: VariantedStylesHelper;
 }
+
+export const createDefaultBoxShadow = () => new BoxShadow({
+  inset: false,
+  x: new Dim("0", "px"),
+  y: new Dim("4", "px"),
+  blur: new Dim("16", "px"),
+  spread: new Dim("0", "px"),
+  color: "rgba(0,0,0,0.2)",
+});
+
 export function BoxShadowPanel({ defaultShadow: shadow, vsh, expsProvider, onUpdated }: BoxShadowPanelProps) {
   const firstInputRef = React.useRef<HTMLInputElement | null>(null);
   React.useEffect(() => {
     const timer = setTimeout(() => firstInputRef.current?.focus());
     return () => clearTimeout(timer);
   }, []);
-  const updateShadow = (values: Partial<BoxShadow>) => onUpdated(new BoxShadow({ ...shadow, ...values }));
+  const updateShadow = (values: Partial<BoxShadow>) => onUpdated(new BoxShadow({ ...(shadow ?? createDefaultBoxShadow()), ...values }));
     return (
       <>
         <FullRow>
           <StyleToggleButtonGroup
-            value={shadow.inset ? "inset" : "outset"}
+            value={shadow ? shadow.inset ? "inset" : "outset" : "none"}
             onChange={(val) => {
+              if (val === "none") { onUpdated(null); return; }
               updateShadow({ inset: ensure(val, "Unexpected undefined val") === "inset" });
             }}
           >
@@ -50,15 +62,23 @@ export function BoxShadowPanel({ defaultShadow: shadow, vsh, expsProvider, onUpd
               label={translate(getUiLocale(), "Inset")}
               noIcon
             />
+            <StyleToggleButton
+              className="icon-button-flex"
+              value="none"
+              label={translate(getUiLocale(), "None")}
+              noIcon
+            />
           </StyleToggleButtonGroup>
         </FullRow>
-        <FullRow twinCols>
+        {shadow && <>
+        <FullRow className={styles.metrics}>
           <LabeledItem
             label={translate(getUiLocale(), "Left")}
             labelSize="small"
           >
             <DimTokenSpinner
               ref={firstInputRef}
+              fieldAriaProps={{ "aria-label": translate(getUiLocale(), "Left") }}
               value={shadow.x.showCss()}
               onChange={(val) =>
                 updateShadow({ x: Dim.fromCss(val || "0px") })
@@ -75,6 +95,7 @@ export function BoxShadowPanel({ defaultShadow: shadow, vsh, expsProvider, onUpd
             labelSize="small"
           >
             <DimTokenSpinner
+              fieldAriaProps={{ "aria-label": translate(getUiLocale(), "Top") }}
               value={shadow.y.showCss()}
               onChange={(val) =>
                 updateShadow({ y: Dim.fromCss(val || "0px") })
@@ -87,12 +108,13 @@ export function BoxShadowPanel({ defaultShadow: shadow, vsh, expsProvider, onUpd
             />
           </LabeledItem>
         </FullRow>
-        <FullRow twinCols>
+        <FullRow className={styles.metrics}>
           <LabeledItem
             label={translate(getUiLocale(), "Blur")}
             labelSize="small"
           >
             <DimTokenSpinner
+              fieldAriaProps={{ "aria-label": translate(getUiLocale(), "Blur") }}
               value={shadow.blur.showCss()}
               onChange={(val) =>
                 updateShadow({ blur: Dim.fromCss(val || "0px") })
@@ -109,6 +131,7 @@ export function BoxShadowPanel({ defaultShadow: shadow, vsh, expsProvider, onUpd
             labelSize="small"
           >
             <DimTokenSpinner
+              fieldAriaProps={{ "aria-label": translate(getUiLocale(), "Spread") }}
               value={shadow.spread.showCss()}
               onChange={(val) =>
                 updateShadow({ spread: Dim.fromCss(val || "0px") })
@@ -132,6 +155,7 @@ export function BoxShadowPanel({ defaultShadow: shadow, vsh, expsProvider, onUpd
             />
           </div>
         </FullRow>
+        </>}
       </>
     );
 }

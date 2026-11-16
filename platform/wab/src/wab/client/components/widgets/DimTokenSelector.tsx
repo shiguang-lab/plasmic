@@ -1,3 +1,4 @@
+import inputStyles from "@/wab/client/components/widgets/DimTokenSelector.module.scss";
 import { FieldAriaProps } from "@/wab/client/components/aria-utils";
 import ListItem from "@/wab/client/components/ListItem";
 import ListSectionHeader from "@/wab/client/components/ListSectionHeader";
@@ -186,7 +187,7 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
       fieldAriaProps,
       studioCtx,
       dropdownPlacement = "bottom right",
-      minDropdownWidth = 0,
+      minDropdownWidth = 200,
       maxDropdownWidth = 1000,
       shorthand,
       autoFocus,
@@ -702,6 +703,7 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
                 ref: setInputElement,
                 autoFocus,
                 disabled,
+                "aria-label": fieldAriaProps?.["aria-label"],
                 placeholder: placeholder
                   ? localizeLabel(placeholder)
                   : undefined,
@@ -740,7 +742,7 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
               props: {
                 ...getComboboxProps({
                   ref: setRootElement,
-                  className: cn("overflow-hidden", props.className),
+                  className: cn("overflow-hidden", inputStyles.field, props.className),
                   ...(disabled
                     ? {}
                     : {

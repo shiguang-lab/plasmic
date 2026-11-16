@@ -1,26 +1,21 @@
+import { FullRow, LabeledStyleColorItem, LabeledStyleDimItem, shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
+import styles from "@/wab/client/components/style-controls/OutlineControls.module.scss";
+import { StylePanelSection, useStyleTarget } from "@/wab/client/components/style-controls/StyleComponent";
 import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
-import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
-import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
-import {
-  LabeledStyleColorItemRow,
-  LabeledStyleDimItemRow,
-} from "@/wab/client/components/sidebar/sidebar-helpers";
-import { LabeledLineStyleToggleButtonGroupItemRow } from "@/wab/client/components/style-controls/LineStyleControls";
-import {
-  StylePanelSection,
-  useStyleTarget,
-} from "@/wab/client/components/style-controls/StyleComponent";
-import { IconLinkButton } from "@/wab/client/components/widgets";
+import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
+import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { useI18n } from "@/wab/client/i18n";
-import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
-import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
-import { isStyleOrCodeComponentVariant } from "@/wab/shared/Variants";
-import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
-import { Alert } from "antd";
-import { ok } from "neverthrow";
+import HelpIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Help";
+import WandIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Wand";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
+import { LENGTH_UNITS } from "@/wab/shared/css/types";
+import { Popover, Tooltip } from "antd";
 import React from "react";
 
 enum OutlineProps {
@@ -30,192 +25,96 @@ enum OutlineProps {
   color = "outline-color",
 }
 
-export const outlineStyleProps = [
-  OutlineProps.style,
-  OutlineProps.width,
-  OutlineProps.offset,
-  OutlineProps.color,
-];
-
-interface OutlineVariantInput {
-  subscribe(listener: () => void): () => void;
-}
-
-/** The warning's finite inputs. Combo normalization and variant classification
- * stay in their existing helpers; CSS/token children own their own inputs. */
-function readOutlineVariantInputs(view: ViewCtx) {
-  const models = view.studioCtx.modelSnapshots;
-  const frame = view.currentComponentStackFrame();
-  const inputs = new Set<OutlineVariantInput>([view.variantStore, models.field(frame.component, "variants")]);
-  const variants = new Set([
-    ...frame.component.variants,
-    ...frame.getTargetVariants(),
-    ...view.globalFrame.getTargetVariants(),
-  ]);
-  for (const variant of variants) {
-    inputs.add(models.field(variant, "name"));
-    inputs.add(models.field(variant, "uuid"));
-    inputs.add(models.field(variant, "parent"));
-    inputs.add(models.field(variant, "selectors"));
-    inputs.add(models.field(variant, "codeComponentName"));
-    inputs.add(models.field(variant, "codeComponentVariantKeys"));
-    if (variant.parent) {
-      inputs.add(models.field(variant.parent, "uuid"));
-      inputs.add(models.field(variant.parent, "variants"));
-      inputs.add(models.field(variant.parent, "multi"));
-      inputs.add(models.field(variant.parent, "type"));
-      inputs.add(models.field(variant.parent, "param"));
-      inputs.add(models.field(variant.parent.param, "variable"));
-      inputs.add(models.field(variant.parent.param.variable, "name"));
-      variant.parent.variants.forEach((member) => inputs.add(models.field(member, "name")));
-    }
-  }
-  return { inputs, targeted: view.variantTplMgr().getCurrentVariantCombo().some(isStyleOrCodeComponentVariant) };
-}
-
-function outlineVariantResource(view: ViewCtx | undefined) {
-  const lifetime = view?.disposeSignal;
-  let sealed = !!lifetime?.aborted;
-  let current = view && !sealed ? readOutlineVariantInputs(view).targeted : undefined;
-  const listeners = new Set<() => void>();
-  const subscriptions = new Map<OutlineVariantInput, () => void>();
-  const disconnect = () => {
-    subscriptions.forEach((stop) => stop());
-    subscriptions.clear();
-    lifetime?.removeEventListener("abort", seal);
-  };
-  const seal = () => { sealed = true; disconnect(); listeners.clear(); };
-  const refresh = () => {
-    if (!view || sealed || !listeners.size) { return; }
-    if (lifetime?.aborted) { seal(); return; }
-    const next = readOutlineVariantInputs(view);
-    for (const input of next.inputs) {
-      if (!subscriptions.has(input)) { subscriptions.set(input, input.subscribe(refresh)); }
-    }
-    for (const [input, stop] of subscriptions) {
-      if (!next.inputs.has(input)) { stop(); subscriptions.delete(input); }
-    }
-    if (current !== next.targeted) {
-      current = next.targeted;
-      listeners.forEach((notify) => notify());
-    }
-  };
-  return {
-    getSnapshot: () => current,
-    subscribe: (notify: () => void) => {
-      if (!view || sealed || lifetime?.aborted) { seal(); return () => undefined; }
-      listeners.add(notify);
-      lifetime?.addEventListener("abort", seal, { once: true });
-      // Commit-time connection also captures changes after the render snapshot.
-      refresh();
-      return () => { listeners.delete(notify); if (!listeners.size) { disconnect(); } };
-    },
-  };
-}
+export const outlineStyleProps = Object.values(OutlineProps);
 
 export function OutlinePanelSection() {
-  const { t: uiT } = useI18n();
+  const { t } = useI18n();
   const sc = useStyleTarget();
+  const provider = sc.props.expsProvider;
+  const cells = useStyleCells(provider, outlineStyleProps);
+  const style = cells.find((cell) => cell.key === OutlineProps.style);
+  const isNone = style?.targetHas && style.raw === "none";
+  const isCustom = cells.some((cell) => cell.targetHas) && !isNone;
+  const value = (prop: OutlineProps) => cells.find((cell) => cell.key === prop)?.value;
 
-  const studioCtx = sc.studioCtx();
-  const viewCtx = useStudioSelection(studioCtx, (state) => state.view);
+  return <StylePanelSection title={t("CSS outline")} expsProvider={provider}
+    styleProps={outlineStyleProps} headerMenuOnRightClickOnly
+    controls={<StyleOverrideControl expsProvider={provider} label={t("CSS outline")}
+      styleProps={outlineStyleProps} noneValues={{ [OutlineProps.style]: "none" }} noneLabel={t("Outline none")}
+      customValues={{
+        [OutlineProps.style]: style?.value && style.value !== "none" ? style.value : "solid",
+        [OutlineProps.width]: value(OutlineProps.width) || "1px",
+        [OutlineProps.offset]: value(OutlineProps.offset) || "0px",
+        [OutlineProps.color]: value(OutlineProps.color) || "currentColor",
+      }} />}
+  >
+    {isCustom && <FullRow autoHeight><OutlineRow /></FullRow>}
+  </StylePanelSection>;
+}
 
-  const [isOpen, setIsOpen] = React.useState(false);
-  const cells = useStyleCells(sc.props.expsProvider, outlineStyleProps);
-  const hasOutlineProps = cells.some((cell) => cell.targetHas);
-  const isVisible = isOpen || (hasOutlineProps && cells.find((cell) => cell.key === OutlineProps.style)?.raw !== "none");
-
-  // A mixin editor has no focused View owner.
-  const variantResource = React.useMemo(() => outlineVariantResource(viewCtx), [viewCtx, studioCtx.modelSnapshots]);
-  const isStyleOrCodeComponentVariantTargeted = React.useSyncExternalStore(
-    variantResource.subscribe, variantResource.getSnapshot, variantResource.getSnapshot,
-  );
-
-  const onClick = async () => {
-    if (isVisible) {
-      await studioCtx.change(() => {
-        outlineStyleProps.forEach((prop) => {
-          if (sc.hasTargetProp(prop)) {
-            sc.exp().clear(prop);
-          }
-        });
-        return ok();
-      });
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
+function OutlineRow() {
+  const { t } = useI18n();
+  const sc = useStyleTarget();
+  const provider = sc.props.expsProvider;
+  const vsh = useVariantedStylesHelperFromCurrentCtx(provider.studioCtx);
+  const cells = useStyleCells(provider, outlineStyleProps);
+  const indicators = useStyleIndicators(provider, outlineStyleProps);
+  const { isDisabled } = shouldBeDisabled({ props: {}, indicators, label: t("CSS outline") });
+  const lineStyle = cells.find((cell) => cell.key === OutlineProps.style)?.value;
+  const color = cells.find((cell) => cell.key === OutlineProps.color)?.value;
+  const { selected, lifetime } = useStyleTokenRefs(provider.studioCtx, color ? [color] : [], vsh, "Color", (snapshot) => snapshot.rows[0]);
+  const resolved = selected?.resolved;
+  const clientColor = useClientTokenValue(resolved?.value, resolved, lifetime);
+  const previewColor = selected?.applied ? clientColor : color;
+  const [open, setOpen] = React.useState(false);
+  const trigger = React.useRef<HTMLButtonElement>(null), popup = React.useRef<HTMLDivElement>(null);
+  useStudioEscape(popup, open, () => { setOpen(false); trigger.current?.focus(); });
+  const lineStyles = {
+    solid: t("Solid line"), dashed: t("Dashed"), dotted: t("Dotted"), double: t("Double"),
+    auto: t("Auto"), groove: t("Outline groove"), ridge: t("Outline ridge"),
+    inset: t("Outline inset"), outset: t("Outline outset"),
   };
 
-  return (
-    <StylePanelSection
-      key={String(isVisible)}
-      title={uiT("Outline")}
-      expsProvider={sc.props.expsProvider}
-      styleProps={outlineStyleProps}
-      headerMenuOnRightClickOnly
-      controls={
-        <>
-        <StyleOverrideControl expsProvider={sc.props.expsProvider} label={uiT("Outline")}
-          styleProps={outlineStyleProps} noneValues={{ "outline-style": "none" }}
-          onChange={() => setIsOpen(false)} />
-        <IconLinkButton onClick={onClick}>
-          <Icon icon={isVisible ? MinusIcon : PlusIcon} />
-        </IconLinkButton>
-        </>
-      }
-    >
-      {isVisible && (
-        <>
-          {isStyleOrCodeComponentVariantTargeted === false && (
-            <Alert
-              className="mb-lg"
-              message={
-                <StandardMarkdown>
-                  {uiT(
-                    "[Outlines](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) are typically used for styling the focused state of an element. We recommend only using this property for focus-related interaction variants.",
-                  )}
-                </StandardMarkdown>
-              }
-              type="info"
-              showIcon
-            />
-          )}
-          <LabeledStyleDimItemRow
-            label={uiT("Width")}
-            styleName={[OutlineProps.width]}
-            tokenType={"Spacing"}
-            dimOpts={{
-              extraOptions: [
-                { value: "thin", label: uiT("Thin") },
-                { value: "medium", label: uiT("Medium") },
-                { value: "thick", label: uiT("Thick") },
-              ],
-              min: 0,
-              allowedUnits: LENGTH_PERCENTAGE_UNITS,
-              allowFunctions: true,
-            }}
-          />
-          <LabeledLineStyleToggleButtonGroupItemRow
-            label={uiT("Style")}
-            styleName={[OutlineProps.style]}
-          />
-          <LabeledStyleColorItemRow
-            label={uiT("Color")}
-            styleName={[OutlineProps.color]}
-            displayStyleName={OutlineProps.color}
-          />
-          <LabeledStyleDimItemRow
-            label={uiT("Offset")}
-            styleName={[OutlineProps.offset]}
-            tokenType={"Spacing"}
-            dimOpts={{
-              allowedUnits: LENGTH_PERCENTAGE_UNITS,
-              allowFunctions: true,
-            }}
-          />
-        </>
-      )}
-    </StylePanelSection>
-  );
+  return <div className={styles.row} data-test-id="outline-row">
+    <Popover trigger="click" open={open && !isDisabled} onOpenChange={setOpen} placement="leftTop" arrow={false} destroyOnHidden
+      content={<div className={styles.popover} ref={popup} role="group" aria-label={t("Outline settings")}>
+        <div className={styles.heading}>{t("Line style")}
+          <IconButton size="small" className={styles.help} aria-label={t("Outline settings help")}
+            tooltip={t("Only Custom shows outline controls. None and Restore default hide them.")}><Icon icon={HelpIcon} /></IconButton>
+        </div>
+        <div className={styles.lineStyles} role="group" aria-label={t("Line style")}>
+          {Object.entries(lineStyles).map(([style, label]) => <StyleToggleButton key={style}
+            className={styles.lineButton} value={style} tooltip={label} isDisabled={isDisabled}
+            valueSetState={lineStyle === style ? "isSet" : "isUnset"}
+            onClick={() => sc.change(() => sc.exp().set(OutlineProps.style, style))}>
+            {style === "auto" ? <Icon icon={WandIcon} /> :
+              ["groove", "ridge", "inset", "outset"].includes(style) ?
+                <span className={styles.relief} style={{ borderStyle: style }} aria-hidden="true" /> :
+                <span className={styles.line} style={{ borderTopStyle: style as React.CSSProperties["borderTopStyle"], borderTopWidth: style === "double" ? 3 : 2 }} aria-hidden="true" />}
+          </StyleToggleButton>)}
+        </div>
+      </div>}>
+      <Tooltip title={open ? null : t("Outline settings")}><TriggerTarget>
+        <button type="button" className={styles.settings} ref={trigger} disabled={isDisabled}
+          aria-label={t("Outline settings")} aria-expanded={open}>
+          <span className={styles.preview} aria-hidden="true" style={{
+            color: previewColor,
+            borderStyle: lineStyle === "auto" ? "solid" : lineStyle,
+            borderWidth: lineStyle === "double" ? 3 : 2,
+          }} />
+        </button>
+      </TriggerTarget></Tooltip>
+    </Popover>
+    <LabeledStyleColorItem styleName={OutlineProps.color} displayStyleName={t("Outline color")}
+      noMenuButton hideIndicator vsh={vsh} className={styles.color}
+      colorOpts={{ "aria-label": t("Outline color"), popupTitle: t("Outline color"), floatingPicker: true }} />
+    <LabeledStyleDimItem aria-label={t("Width")} displayStyleName={t("Width")}
+      className={styles.metric} styleName={OutlineProps.width} tokenType="Spacing" vsh={vsh} noMenuButton hideIndicator
+      dimOpts={{ tooltip: t("Width"), placeholder: "—", min: 0, allowedUnits: LENGTH_UNITS, allowFunctions: true, hideArrow: false,
+        extraOptions: [{ value: "thin", label: t("Thin") }, { value: "medium", label: t("Medium") }, { value: "thick", label: t("Thick") }],
+      }} />
+    <LabeledStyleDimItem aria-label={t("Offset")} displayStyleName={t("Offset")}
+      className={styles.metric} styleName={OutlineProps.offset} tokenType="Spacing" vsh={vsh} noMenuButton hideIndicator
+      dimOpts={{ tooltip: t("Offset"), placeholder: "—", allowedUnits: LENGTH_UNITS, allowFunctions: true, hideArrow: false }} />
+  </div>;
 }

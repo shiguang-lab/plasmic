@@ -9,7 +9,6 @@ import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import {
   check,
   ensure,
-  ensureHTMLElt,
   insert,
   maybe,
   maybes,
@@ -38,6 +37,7 @@ import React from "react";
 // angle=90 --> x=1=cos(90-90), y=0=sin(90-90)
 //
 interface ColorStopsProps {
+  compact?: boolean;
   stops: Stop[];
   onChange: (...args: any[]) => any;
   repeating: boolean;
@@ -75,13 +75,10 @@ const ColorStops_ = (props: ColorStopsProps) => {
   const relOffset = React.useCallback(
     (e: Pick<React.MouseEvent, "clientX" | "clientY">) => {
       if (barRef.current) {
-        const containerOffset = ensure(
-          $(barRef.current).offset(),
-          "Element must have offset",
-        );
-        const colorStopsWidth = ensureHTMLElt(barRef.current).offsetWidth;
-        const top = e.clientY - containerOffset.top;
-        const left = e.clientX - containerOffset.left;
+        const rect = barRef.current.getBoundingClientRect();
+        const colorStopsWidth = rect.width;
+        const top = e.clientY - rect.top;
+        const left = L.clamp(e.clientX - rect.left, 0, colorStopsWidth);
         const leftFrac = left / colorStopsWidth;
         const leftPct = 100 * leftFrac;
         return { top, left, leftFrac, leftPct };
@@ -274,7 +271,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
                     <Icon
                       icon={ColorStopIcon}
                       className="color-stop__icon monochrome-exempt"
-                      size={24}
+                      size={props.compact ? 16 : 24}
                     />
                     <div
                       className="color-stop__color-chip"
@@ -290,6 +287,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
         </div>
       </div>
       <ColorPicker
+        compact={props.compact}
         key={selectedStop}
         color={ensure(renderStops[selectedStop], "Selected gradient stop must exist").color}
         onChange={(color) => {

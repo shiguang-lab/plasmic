@@ -466,7 +466,6 @@ export const LabeledStyleDimItem = React.memo(function LabeledStyleDimItem(
       <DimTokenSpinner
         value={value}
         onChange={onChange}
-        minDropdownWidth={200}
         {...dimOpts}
         noClear={dimOpts.noClear || valueSetState !== "isSet"}
         fieldAriaProps={fieldProps}
@@ -521,7 +520,6 @@ export const VerticalLabeledStyleDimItem = React.memo(
           disabled={isDisabled}
           studioCtx={studioCtx}
           tokenType={"Spacing"}
-          minDropdownWidth={200}
           {...props.dimOpts}
         />
         {isDisabled ? (

@@ -1,0 +1,38 @@
+// Only configuration controls opt in; native Antd controls retain their states.
+.search.search {
+  min-width: 0;
+  min-height: 32px;
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  background: var(--ui-surface);
+  box-shadow: none;
+
+  &:hover:not(:focus-within) {
+    border-color: var(--ui-accent);
+    box-shadow: none;
+  }
+
+  &:focus-within:focus-within {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 2px var(--ui-selected);
+  }
+
+  input {
+    min-height: 30px;
+    padding-block: 4px;
+  }
+}
+
+.search.search input,
+.select.select input,
+.input.input input {
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+
+  &:focus {
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+  }
+}

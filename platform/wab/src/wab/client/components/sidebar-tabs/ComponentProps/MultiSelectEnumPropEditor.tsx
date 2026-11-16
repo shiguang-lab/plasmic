@@ -1,3 +1,4 @@
+import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { arrayMoveIndex } from "@/wab/shared/collections";
@@ -26,7 +27,7 @@ export function MultiSelectEnumPropEditor(props: {
     ...rest
   } = props;
 
-  const mergedClassNames = `right-panel-input-background__no-height fill-width ${
+  const mergedClassNames = `${configSearch.select} right-panel-input-background__no-height fill-width ${
     className ? className : ""
   }`;
   return (

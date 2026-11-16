@@ -886,6 +886,7 @@ function StylePanelSection_(
   return (
     <SidebarSection
       ref={ref}
+      className="style-panel-section"
       title={title}
       hasExtraContent={hasMore}
       oneLiner={oneLiner}

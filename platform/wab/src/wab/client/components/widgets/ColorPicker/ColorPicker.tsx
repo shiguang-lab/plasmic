@@ -50,7 +50,7 @@ import { canCreateAlias } from "@/wab/shared/ui-config-utils";
 import { Chroma } from "@/wab/shared/utils/color-utils";
 import Pickr from "@simonwep/pickr";
 import "@simonwep/pickr/dist/themes/nano.min.css";
-import { Input, InputRef, Select, Tooltip } from "antd";
+import { Input, InputRef, Select, Space, Tooltip } from "antd";
 import { sortBy } from "lodash";
 import debounce from "lodash/debounce";
 import defer from "lodash/defer";
@@ -132,7 +132,7 @@ function ColorPicker_(props: ColorPickerProps) {
   const resolver = useClientTokenResolver();
   const { colorTokens, realColor: resolvedColor, appliedToken } = tryGetRealColor(props.color, sc, resolver, vsh, props.colorTokens);
   const applied = useColorTokenChoiceInputs(sc, appliedToken ? [appliedToken] : [], vsh);
-  const palette = useColorTokenChoiceInputs(sc, props.hideTokenPicker ? [] : colorTokens.filter((token) => props.compact || token !== appliedToken), vsh);
+  const palette = useColorTokenChoiceInputs(sc, props.hideTokenPicker ? [] : colorTokens, vsh);
   const paletteColors = useClientTokenValues(palette.snapshot.choices.map((row) => row.resolved), palette.lifetime);
   if (resolvedColor === undefined) { return null; }
   const realColor = props.color === "" ? "#FFFFFF" : ensure(resolvedColor, "Unexpected empty real color");
@@ -140,7 +140,7 @@ function ColorPicker_(props: ColorPickerProps) {
 }
 
 function ColorPickerContent({
-  autoFocus = false, compact, hideTokenPicker, derefToken, color, onChange, vsh,
+  autoFocus = false, compact, hideTokenPicker, derefToken, onChange, vsh,
   realColor, appliedToken, appliedChoice, palette, paletteColors,
 }: ColorPickerProps & {
   realColor: string;
@@ -159,8 +159,6 @@ function ColorPickerContent({
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const [pickr, setPickr] = useState<Pickr | null>(null);
   const [mode, setMode] = useState(ColorMode.hex);
-  const hasTabs = compact && !hideTokenPicker;
-  const [showVariables, setShowVariables] = useState(Boolean(hasTabs && appliedToken));
   const initialColor = getShortenedColor(realColor, mode);
   const initialAlpha = getColorAlpha(realColor);
   const {
@@ -182,6 +180,8 @@ function ColorPickerContent({
   const colorInputRef = useRef<InputRef>(null);
 
   const readOnChange = useCommittedValue(onChange);
+  const readOnly = Boolean(appliedToken);
+  const readIsReadOnly = useCommittedValue(readOnly);
   const session = useMemo(() => new ColorPickerSession(readOnChange), [readOnChange]);
   const propagateChangesToParent = session.propagate;
   useEffect(() => session.dispose, [session]);
@@ -193,20 +193,18 @@ function ColorPickerContent({
         ? "#000000"
         : realColor;
 
-  useLayoutEffect(() => {
-    if (appliedToken) {
-      return;
-    }
+  const readPickerConfig = useCommittedValue({ autoFocus, color: controlledHexColor });
 
+  useLayoutEffect(() => {
     const show = () => {
-      if (autoFocus) {
+      if (readPickerConfig().autoFocus && !readIsReadOnly()) {
         colorInputRef.current?.focus();
         colorInputRef.current?.select();
       }
     };
 
     const change = (v: Pickr.HSVaColor, source) => {
-      if (source !== "slider") {
+      if (source !== "slider" || readIsReadOnly()) {
         return;
       }
 
@@ -220,7 +218,7 @@ function ColorPickerContent({
       showAlways: true,
       inline: true,
       theme: "nano",
-      default: controlledHexColor,
+      default: readPickerConfig().color,
       components: {
         preview: true,
         opacity: true,
@@ -240,21 +238,25 @@ function ColorPickerContent({
       _pickr.off("change", change);
       _pickr.destroy();
     };
-  }, [appliedToken]);
+  }, [propagateChangesToParent, readIsReadOnly, readPickerConfig]);
 
   useLayoutEffect(() => {
     if (
       pickr &&
-      !appliedToken &&
       pickr.getColor().toHEXA().toString() !== controlledHexColor
     ) {
-      pickr.setColor(controlledHexColor);
+      pickr.setColor(controlledHexColor, true);
     }
-  }, [pickr, controlledHexColor, appliedToken]);
+  }, [pickr, controlledHexColor]);
+
+  useLayoutEffect(() => {
+    if (readOnly) { session.dispose(); }
+  }, [readOnly, session]);
 
   const getPickrHSVA = () => Array.from(pickr!.getColor().toHSVA());
 
   const applyColor = (newColor: string) => {
+    if (readIsReadOnly()) { return; }
     if (Chroma.isLiteralUnpickedColor(newColor)) {
       pickr?.setHSVA(0, 0, 0, 1);
       applyAlpha(100);
@@ -278,11 +280,12 @@ function ColorPickerContent({
   };
 
   const applyAlpha = (newAlpha: number) => {
-    if (isNaN(newAlpha)) {
+    if (readIsReadOnly() || isNaN(newAlpha)) {
       return;
     }
 
     window.requestAnimationFrame(() => {
+      if (readIsReadOnly()) { return; }
       const [h, s, v] = getPickrHSVA();
       pickr?.setHSVA(h, s, v, newAlpha / 100);
       propagateChangesToParent(pickr?.getColor().toHEXA().toString());
@@ -331,6 +334,7 @@ function ColorPickerContent({
   };
 
   const handleColorKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (readOnly) { return; }
     if (handleColorUndoKeyDown(e)) {
       return;
     }
@@ -409,6 +413,7 @@ function ColorPickerContent({
   };
 
   const handleAlphaKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (readOnly) { return; }
     if (handleAlphaUndoKeyDown(e)) {
       return;
     }
@@ -465,7 +470,7 @@ function ColorPickerContent({
                   });
                 }
               } else {
-            if (token.base !== appliedToken?.base) onChange(mkTokenRef(token.base));
+            if (token.base !== appliedToken?.base) { onChange(mkTokenRef(token.base)); }
               }
               };
   // Closures capture this committed render's original callbacks and source.
@@ -478,22 +483,13 @@ function ColorPickerContent({
 
   return (
     <div className={compact ? "compact-color-picker" : undefined}>
-      {hasTabs && (
-        <div className="compact-color-picker__tabs" role="group" aria-label={uiT("Color")}>
-          <button type="button" aria-pressed={!showVariables} onClick={() => setShowVariables(false)}>
-            {uiT("Color")}
-          </button>
-          <button type="button" aria-pressed={showVariables} onClick={() => setShowVariables(true)}>
-            {uiT("Theme variables")}
-          </button>
-        </div>
-      )}
-      {!appliedToken && (
-        <div hidden={Boolean(hasTabs && showVariables)}>
-          <UnloggedDragCatcher sc={sc}>
-            <div ref={colorPickerRef} />
-          </UnloggedDragCatcher>
-          <Input.Group compact>
+      <div>
+          <div inert={readOnly} aria-disabled={readOnly}>
+            <UnloggedDragCatcher sc={sc}>
+              <div ref={colorPickerRef} />
+            </UnloggedDragCatcher>
+          </div>
+          <Space.Compact block>
             <Select
               dropdownStyle={{ zIndex: 10000 }}
               getPopupContainer={compact ? (trigger) => trigger.parentElement ?? trigger : undefined}
@@ -512,6 +508,7 @@ function ColorPickerContent({
             </Select>
             <Input
               ref={colorInputRef}
+              readOnly={readOnly}
               style={{ width: "48%" }}
               onFocus={(e) =>
                 mode === ColorMode.hex
@@ -529,6 +526,8 @@ function ColorPickerContent({
             />
             <Input
               style={{ width: "25%" }}
+              readOnly={readOnly}
+              aria-label={uiT("Opacity")}
               disabled={Chroma.isLiteralUnpickedColor(colorInputValue)}
               onFocus={(e) => e.target.select()}
               value={alphaInputValue}
@@ -544,11 +543,11 @@ function ColorPickerContent({
               onKeyDown={handleAlphaKeyDown}
               onBlur={() => applyAlpha(alphaInputValue)}
             />
-          </Input.Group>
-        </div>
-      )}
+          </Space.Compact>
+      </div>
       {!hideTokenPicker && (
-        <div className={"mt-m"}>
+        <div className="color-picker__tokens">
+          <div className="color-picker__tokens-title">{uiT("Theme colors")}</div>
           {appliedToken && (
             <div className="flex flex-vcenter mb-sm">
               <MaybeWrap
@@ -577,7 +576,6 @@ function ColorPickerContent({
                         e.stopPropagation();
                         // Ensure we don't reuse the old alpha value when the color picker was mounted
                         resetAlphaInputValue(getColorAlpha(realColor));
-                        if (hasTabs) setShowVariables(false);
                         onChange(realColor);
                       }}
                       tooltip={uiT("Remove token")}
@@ -596,9 +594,8 @@ function ColorPickerContent({
               </MaybeWrap>
             </div>
           )}
-          {palette.snapshot.active && <div hidden={Boolean(hasTabs && !showVariables)}><ColorTokenSelector
+          {palette.snapshot.active && <ColorTokenSelector
             rows={paletteRows}
-            showNames={hasTabs}
             hideAddToken={!canCreateToken}
             onAddToken={async () => {
               return sc.changeUnsafe(() => {
@@ -612,9 +609,9 @@ function ColorPickerContent({
                 setEditToken(new MutableToken(newToken));
               });
             }}
-            autoFocusSearch={hasTabs ? showVariables : !!appliedToken}
-            maxRows={hasTabs || appliedToken ? 5 : 3}
-          /></div>}
+            autoFocusSearch={autoFocus && readOnly}
+            maxRows={3}
+          />}
         </div>
       )}
       {editToken && (

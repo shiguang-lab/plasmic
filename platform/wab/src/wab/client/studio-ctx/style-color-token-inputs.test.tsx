@@ -143,7 +143,7 @@ it("updates the actual picker collection and preserves real rename and alias-sel
   const added = mkStyleToken({ name: "Added swatch", type: "Color", value: "#998877" });
   await act(async () => { await f.studio.changeUnsafe(() => { f.site.styleTokens.push(added); }); });
   await waitFor(() => expect(document.querySelectorAll(".SwatchButton")).toHaveLength(3));
-  await act(async () => { fireEvent.mouseDown(ensure(document.querySelectorAll(".SwatchButton")[0], "Original model swatch")); });
+  await act(async () => { fireEvent.click(ensure(document.querySelectorAll(".SwatchButton")[0], "Original model swatch")); });
   await waitFor(() => expect(f.self.value).toBe(mkTokenRef(f.other)));
   expect(close).not.toHaveBeenCalled(); mounted.unmount();
 });
@@ -153,7 +153,7 @@ it("keeps the imported edited model immutable while actual swatch selection writ
   const mounted = render(popup(f, token));
   await waitFor(() => expect(document.querySelectorAll(".SwatchButton")).toHaveLength(2));
   expect(screen.getByPlaceholderText("(unnamed token)")).toHaveProperty("readOnly", true);
-  await act(async () => { fireEvent.mouseDown(ensure(document.querySelectorAll(".SwatchButton")[0], "Local selected model")); });
+  await act(async () => { fireEvent.click(ensure(document.querySelectorAll(".SwatchButton")[0], "Local selected model")); });
   await waitFor(() => expect(token.override?.value).toBe(mkTokenRef(f.self)));
   expect(f.imported.value).toBe("#778899"); mounted.unmount();
 });

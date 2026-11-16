@@ -235,28 +235,32 @@ describe("AppearanceCard", () => {
     expect(radiusInput.placeholder).toBe("Mixed");
   });
 
-  it("supports unified Overflow segmented modes, XY split toggle, and blend mode dropdown", async () => {
+  it("supports unified and per-axis Overflow dropdowns, XY split toggle, and blend mode dropdown", async () => {
     const h = await setupHarness();
 
     render(h.wrap(<AppearanceCard expsProvider={h.provider} />));
 
-    const visibleBtn = screen.getByRole("button", { name: "Visible" });
-    const hiddenBtn = screen.getByRole("button", { name: "Hidden" });
-    const scrollBtn = screen.getByRole("button", { name: "Scroll" });
-    expect(visibleBtn.getAttribute("aria-pressed")).toBe("true");
-    expect(hiddenBtn.getAttribute("aria-pressed")).toBe("false");
+    const chooseOverflow = async (name: string, value: string) => {
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name }));
+      });
+      const option = await screen.findByRole("menuitem", { name: value });
+      await act(async () => {
+        fireEvent.click(option);
+      });
+      await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+    };
+    const overflowBtn = screen.getByRole("button", { name: "Overflow" });
+    expect(overflowBtn.textContent).toBe("Visible");
+    expect(overflowBtn.getAttribute("aria-haspopup")).toBe("menu");
 
-    await act(async () => {
-      fireEvent.click(hiddenBtn);
-    });
+    await chooseOverflow("Overflow", "Hidden");
     expect(h.childExp().getRaw("overflow")).toBe("hidden");
-    expect(hiddenBtn.getAttribute("aria-pressed")).toBe("true");
+    expect(overflowBtn.textContent).toBe("Hidden");
 
-    await act(async () => {
-      fireEvent.click(scrollBtn);
-    });
+    await chooseOverflow("Overflow", "Scroll");
     expect(h.childExp().getRaw("overflow")).toBe("auto");
-    expect(scrollBtn.getAttribute("aria-pressed")).toBe("true");
+    expect(overflowBtn.textContent).toBe("Scroll");
 
     const splitBtn = screen.getByTestId("appearance-overflow-split-btn");
     await act(async () => {
@@ -265,22 +269,38 @@ describe("AppearanceCard", () => {
     expect(screen.getByTestId("appearance-overflow-split")).toBeTruthy();
     expect(h.childExp().getRaw("overflow-x")).toBe("auto");
     expect(h.childExp().getRaw("overflow-y")).toBe("auto");
+    expect(h.childExp().getRaw("overflow")).toBeUndefined();
+    expect(overflowBtn.textContent).toBe("Scroll");
 
-    await act(async () => {
-      await h.studioCtx.changeUnsafe(() => {
-        const exp = h.childExp();
-        exp.set("overflow-x", "hidden");
-        exp.set("overflow-y", "auto");
-      });
-    });
+    await chooseOverflow("Overflow X", "Hidden");
+    expect(h.childExp().getRaw("overflow-x")).toBe("hidden");
+    expect(h.childExp().getRaw("overflow-y")).toBe("auto");
     expect(screen.getByLabelText("Overflow X").textContent).toBe("Hidden");
     expect(screen.getByLabelText("Overflow Y").textContent).toBe("Scroll");
+    expect(overflowBtn.textContent).toBe("Mixed");
+
+    await chooseOverflow("Overflow Y", "Visible");
+    expect(h.childExp().getRaw("overflow-y")).toBe("visible");
+    expect(h.childExp().getRaw("overflow-x")).toBe("hidden");
+
+    await chooseOverflow("Overflow", "Scroll");
+    expect(screen.queryByTestId("appearance-overflow-split")).toBeNull();
+    expect(h.childExp().getRaw("overflow")).toBe("auto");
+    expect(h.childExp().getRaw("overflow-x")).toBeUndefined();
+    expect(h.childExp().getRaw("overflow-y")).toBeUndefined();
+
+    await act(async () => {
+      fireEvent.click(splitBtn);
+    });
+    await chooseOverflow("Overflow X", "Hidden");
 
     await act(async () => {
       fireEvent.click(splitBtn);
     });
     expect(screen.queryByTestId("appearance-overflow-split")).toBeNull();
     expect(h.childExp().getRaw("overflow")).toBe("hidden");
+    expect(h.childExp().getRaw("overflow-x")).toBeUndefined();
+    expect(h.childExp().getRaw("overflow-y")).toBeUndefined();
 
     const blendBtn = screen.getByRole("button", { name: "Blend mode" });
     await act(async () => {

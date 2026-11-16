@@ -1,5 +1,4 @@
-import { ensure } from "@/wab/shared/common";
-import { capitalize, Dictionary } from "lodash";
+import { splitCssValue } from "@/wab/shared/css/parse";
 
 export type FilterEffectType =
   | "blur"
@@ -19,7 +18,7 @@ export interface FilterEffect {
   visible: boolean;
 }
 
-export const defaultFilterEffects: Dictionary<FilterEffect> = {
+export const defaultFilterEffects: Record<FilterEffectType, FilterEffect> = {
   blur: {
     type: "blur",
     args: ["0px"],
@@ -37,9 +36,10 @@ export const defaultFilterEffects: Dictionary<FilterEffect> = {
   },
   "drop-shadow": {
     type: "drop-shadow",
-    args: ["10px 10px 10px #FFFFFF"],
+    args: ["10px", "10px", "10px", "#FFFFFF"],
     visible: true,
   },
+  opacity: { type: "opacity", args: ["100%"], visible: true },
   grayscale: {
     type: "grayscale",
     args: ["0%"],
@@ -67,8 +67,8 @@ export const defaultFilterEffects: Dictionary<FilterEffect> = {
   },
 };
 
-export const filterEffectEditorConfig: Dictionary<{
-  label: string;
+export const filterEffectEditorConfig: Record<Exclude<FilterEffectType, "drop-shadow">, {
+  label: "Radius" | "Amount" | "Angle";
   max: number;
   allowedUnits: string[];
 }> = {
@@ -97,6 +97,7 @@ export const filterEffectEditorConfig: Dictionary<{
     max: 200,
     allowedUnits: ["%"],
   },
+  opacity: { label: "Amount", max: 100, allowedUnits: ["%"] },
   grayscale: {
     label: "Amount",
     max: 100,
@@ -114,25 +115,23 @@ export const filterEffectEditorConfig: Dictionary<{
   },
 };
 
-export const getFilterEffectLabel = (effect: string) => {
-  return capitalize(effect).replace("-", " ");
-};
+const filterLabels = {
+  blur: "Blur", brightness: "Brightness", contrast: "Contrast",
+  "drop-shadow": "Drop shadow", grayscale: "Grayscale", "hue-rotate": "Hue rotate",
+  invert: "Invert", opacity: "Opacity", saturate: "Saturation", sepia: "Sepia",
+} as const;
+export const getFilterEffectLabel = (effect: FilterEffectType) => filterLabels[effect];
 
 export const fromFilterStringToObj = (rawFilter: string): FilterEffect => {
-  const FILTER_PATTERN =
-    /(hidden#)?[a-z-]*\((([0-9]+(%|deg|px) ?)|(#[0-9A-F]{6,8})|(var\(--[a-zA-Z0-9-_]+\))){1,4}\)/g;
-  const FILTER_SPLIT_PATTERN =
-    /(hidden#)?[a-z-]*\(|(([0-9]+(%|deg|px) ?)|(#[0-9A-F]{6,8})|(var\(--[a-zA-Z0-9-_]+\))){1,4}|\)/g;
-  if (!rawFilter.match(FILTER_PATTERN)) {
+  const raw = splitCssValue("filter", rawFilter)[0] ?? "";
+  const match = /^(hidden#)?([a-z-]+)\(([\s\S]*)\)$/.exec(raw);
+  if (!match || !Object.hasOwn(defaultFilterEffects, match[2])) {
     return defaultFilterEffects.blur;
   }
-
-  const elements = ensure(rawFilter.match(FILTER_SPLIT_PATTERN));
-  const filterType = elements[0].slice(0, -1).split("#");
   return {
-    type: filterType.slice(-1)[0] as FilterEffectType,
-    args: elements[1].split(" "),
-    visible: filterType.length === 1,
+    type: match[2] as FilterEffectType,
+    args: splitCssValue("filter", match[3]),
+    visible: !match[1],
   };
 };
 

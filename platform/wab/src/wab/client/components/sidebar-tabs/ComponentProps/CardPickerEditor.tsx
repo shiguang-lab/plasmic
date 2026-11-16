@@ -51,6 +51,7 @@ export function CardPickerEditor(props: {
         <BareModal onClose={onCancel} width={1200}>
           <CardPickerModal
             showInput={showInput}
+            searchValue={search}
             title={title}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {

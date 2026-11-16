@@ -57,8 +57,7 @@ vi.mock("@/wab/client/components/sidebar/sidebar-helpers", async (importOriginal
   };
 });
 vi.mock("@/wab/client/components/sidebar-tabs/FilterEffectSection", () => ({
-  FilterEffectSection: () => null,
-  BackdropFilterEffectSection: () => null,
+  FilterEffectsPanelSection: () => null,
 }));
 vi.mock("@/wab/client/components/sidebar/SidebarModal", () => ({
   SidebarModal: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
@@ -164,7 +163,7 @@ it("opens transform settings, creation and editing in popovers", async () => {
   await act(async () => { await studio.awaitEval(); });
 });
 
-it("derives Effects isSet from native indicator sources and preserves pointer-events writes", async () => {
+it("edits cursor and pointer events in the compact interaction row without changing effects", async () => {
   const { studio, rs, provider, wrap } = await fixture({
     cursor: "pointer",
     "pointer-events": "auto",
@@ -178,11 +177,25 @@ it("derives Effects isSet from native indicator sources and preserves pointer-ev
   });
   render(wrap(<EffectsPanelSection expsProvider={provider} />));
 
-  const interactive = screen.getByRole("switch", { name: "Interactive" });
-  expect(interactive).toBeChecked();
+  const cursor = screen.getByRole("combobox", { name: "Cursor" });
+  expect(cursor).toHaveValue("pointer");
+  fireEvent.change(cursor, { target: { value: "grab" } });
+  await act(async () => { await studio.awaitEval(); });
+  expect(rs.values.cursor).toBe("grab");
+  const interactive = screen.getByRole("button", { name: "Pointer events" });
+  expect(interactive).toHaveAttribute("aria-pressed", "true");
   fireEvent.click(interactive);
   await act(async () => { await studio.awaitEval(); });
 
   expect(rs.values["pointer-events"]).toBe("none");
+  expect(interactive).toHaveAttribute("aria-pressed", "false");
+  fireEvent.click(interactive);
+  await act(async () => { await studio.awaitEval(); });
+  expect(rs.values["pointer-events"]).toBe("auto");
+  expect(interactive).toHaveAttribute("aria-pressed", "true");
+  expect(rs.values.filter).toBe("blur(2px)");
+  expect(rs.values["backdrop-filter"]).toBe("blur(2px)");
+  expect(rs.values["mix-blend-mode"]).toBe("multiply");
+  expect(rs.values.isolation).toBe("isolate");
   expect(definedIndicator).not.toHaveBeenCalled();
 });

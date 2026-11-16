@@ -32,10 +32,7 @@ import HandlerSection from "@/wab/client/components/sidebar-tabs/StateManagement
 import VariableEditingForm from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingForm";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
-import {
-  SidebarSection,
-  useSidebarSection,
-} from "@/wab/client/components/sidebar/SidebarSection";
+import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
   LabeledItem,
   ValueSetState,
@@ -73,10 +70,7 @@ import { VARIABLE_LOWER } from "@/wab/shared/Labels";
 import { getSlotParams } from "@/wab/shared/SlotUtils";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { flattenComponent } from "@/wab/shared/cached-selectors";
-import {
-  HighlightInteractionRequest,
-  isAdvancedProp,
-} from "@/wab/shared/code-components/code-components";
+import { HighlightInteractionRequest } from "@/wab/shared/code-components/code-components";
 import { getExportedComponentName } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { paramToVarName } from "@/wab/shared/codegen/util";
 import { assert, ensure, hackyCast, spawn } from "@/wab/shared/common";
@@ -125,7 +119,6 @@ import {
   FunctionExpr,
   Interaction,
   ObjectPath,
-  Param,
   State,
   TplComponent,
   TplRef,
@@ -151,40 +144,6 @@ export type TplComponentPropCtx = {
   expsProvider: TplExpsProvider;
 };
 
-function isParamAdvanced(param: Param, ctx: TplComponentPropCtx): boolean {
-  const { tpl, viewCtx, expsProvider } = ctx;
-  const propType = inferPropTypeFromParam(
-    viewCtx.studioCtx,
-    viewCtx,
-    tpl,
-    param,
-  );
-  const isSet = !!expsProvider
-    .effectiveVs()
-    .args.find((_arg) => _arg.param === param);
-  return !!isAdvancedProp(propType, param) && !isSet;
-}
-
-function hasNonAdvancedProps(
-  node: PropTreeNode,
-  ctx: TplComponentPropCtx,
-): boolean {
-  if (node.kind === "param") {
-    return !isParamAdvanced(node.param, ctx);
-  }
-  return node.children.some((child) => hasNonAdvancedProps(child, ctx));
-}
-
-function collectAdvancedParams(
-  node: PropTreeNode,
-  ctx: TplComponentPropCtx,
-): Param[] {
-  if (node.kind === "param") {
-    return isParamAdvanced(node.param, ctx) ? [node.param] : [];
-  }
-  return node.children.flatMap((child) => collectAdvancedParams(child, ctx));
-}
-
 function getPropNodeKey(node: PropTreeNode): string | number {
   return node.kind === "param" ? node.param.uid : node.path;
 }
@@ -196,39 +155,31 @@ const PropNode = React.memo(function PropNode(props: {
   const { node, ctx } = props;
   const { tpl, viewCtx, expsProvider } = ctx;
 
-  const { isExpanded } = useSidebarSection();
   if (node.kind === "param") {
-    if (isExpanded || !isParamAdvanced(node.param, ctx)) {
-      const propType = inferPropTypeFromParam(viewCtx.studioCtx, viewCtx, tpl, node.param);
-      if (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) {
-        const expr = expsProvider.effectiveVs().args.find((arg) => arg.param === node.param)?.expr;
-        const root = isKnownRenderExpr(expr) && expr.tpl.length === 1 ? expr.tpl[0] : undefined;
-        return root && isTplTextBlock(root) ? (
-          <TextContentRow
-            viewCtx={viewCtx}
-            expsProvider={new TplExpsProvider(viewCtx, root)}
-            label={getParamDisplayName(tpl.component, node.param)}
-          />
-        ) : null;
-      }
-      return (
-        <PropEditorRowWrapper
-          key={node.param.uid}
-          tpl={tpl}
-          expsProvider={expsProvider}
-          param={node.param}
+    const propType = inferPropTypeFromParam(viewCtx.studioCtx, viewCtx, tpl, node.param);
+    if (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) {
+      const expr = expsProvider.effectiveVs().args.find((arg) => arg.param === node.param)?.expr;
+      const root = isKnownRenderExpr(expr) && expr.tpl.length === 1 ? expr.tpl[0] : undefined;
+      return root && isTplTextBlock(root) ? (
+        <TextContentRow
           viewCtx={viewCtx}
+          expsProvider={new TplExpsProvider(viewCtx, root)}
+          label={getParamDisplayName(tpl.component, node.param)}
         />
-      );
+      ) : null;
     }
-    return null;
+    return (
+      <PropEditorRowWrapper
+        key={node.param.uid}
+        tpl={tpl}
+        expsProvider={expsProvider}
+        param={node.param}
+        viewCtx={viewCtx}
+      />
+    );
   }
 
-  if (isExpanded || hasNonAdvancedProps(node, ctx)) {
-    return <PropFolder node={node} ctx={ctx} />;
-  }
-
-  return null;
+  return <PropFolder node={node} ctx={ctx} />;
 });
 
 const PropFolder = React.memo(function PropFolder(props: {
@@ -237,19 +188,15 @@ const PropFolder = React.memo(function PropFolder(props: {
 }) {
   const { node, ctx } = props;
   const { name, children } = node;
-  const { isExpanded } = useSidebarSection();
-  const visibleChildren = children.filter(
-    (c) => isExpanded || hasNonAdvancedProps(c, ctx),
-  );
   return (
     <div className="mv-m">
       <LabeledListItem noContent label={name} padding="noHorizontal" />
-      {visibleChildren.map((child, idx) => {
+      {children.map((child, idx) => {
         return (
           <ConnectorLine
             key={getPropNodeKey(child)}
             className="mb-m"
-            isLast={idx === visibleChildren.length - 1}
+            isLast={idx === children.length - 1}
           >
             <PropNode node={child} ctx={ctx} />
           </ConnectorLine>
@@ -363,15 +310,12 @@ const ComponentPropsSectionContent = React.memo(
     );
 
     const tree = buildPropTree(tpl.component, mainProps);
-    const advancedParams = tree.flatMap((node) =>
-      collectAdvancedParams(node, tplCtx),
-    );
 
-    return Object.freeze({ tplCtx, tree, actions, slotParams, propTypes, advancedParams, componentName: getComponentDisplayName(component) });
+    return Object.freeze({ tplCtx, tree, actions, slotParams, propTypes, componentName: getComponentDisplayName(component) });
     }, [viewCtx, tpl, expsProvider, tab, includeVariants, componentPropValues, ccContextData]);
     const catalog = useElementPropValue(viewCtx, tpl, selectCatalog);
     if (!catalog) { return null; }
-    const { tplCtx, tree, actions, slotParams, propTypes, advancedParams, componentName } = catalog;
+    const { tplCtx, tree, actions, slotParams, propTypes, componentName } = catalog;
 
     return (
       <>
@@ -385,12 +329,6 @@ const ComponentPropsSectionContent = React.memo(
                 { name: componentName },
               )
             }
-            hasCollapsibleContent={advancedParams.length > 0}
-            onExtraContentExpanded={() => {
-              if (advancedParams.length > 0) {
-                if (world.isCurrent()) { viewCtx.setHighlightParams({ tpl, params: advancedParams }); }
-              }
-            }}
             key={`main.${tpl.uid}`}
           >
             {tab === "settings" && actions.length > 0 && (

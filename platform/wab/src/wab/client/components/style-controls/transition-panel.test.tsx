@@ -17,12 +17,12 @@ const initial: Transition = Object.freeze({ transitionProperty: "opacity", trans
 it("renders incoming scalar props and emits new transition values without mutating its input", () => {
   const changed = vi.fn();
   const view = render(<TransitionPanel transition={initial} onChange={changed} />);
-  fireEvent.change(screen.getByRole("combobox", { name: "What to animate" }), { target: { value: "transform" } });
+  fireEvent.change(screen.getByRole("combobox", { name: "Property" }), { target: { value: "transform" } });
   expect(changed).toHaveBeenLastCalledWith({ ...initial, transitionProperty: "transform" });
   expect(initial.transitionProperty).toBe("opacity");
   const next = Object.freeze({ ...initial, transitionProperty: "color", transitionTimingFunction: "linear" });
   view.rerender(<TransitionPanel transition={next} onChange={changed} />);
-  expect((screen.getByRole("combobox", { name: "What to animate" }) as HTMLSelectElement).value).toBe("color");
+  expect((screen.getByRole("combobox", { name: "Property" }) as HTMLSelectElement).value).toBe("color");
   expect((screen.getByRole("combobox", { name: "Timing curve" }) as HTMLSelectElement).value).toBe("linear");
   fireEvent.change(screen.getByRole("combobox", { name: "Timing curve" }), { target: { value: "ease-out" } });
   expect(changed).toHaveBeenLastCalledWith({ ...next, transitionTimingFunction: "ease-out" });

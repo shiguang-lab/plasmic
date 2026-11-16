@@ -3,18 +3,13 @@
   width: 100%;
 }
 
-.heading,
-.headingToggle {
+.heading {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.heading {
   min-height: 32px;
 }
 
-.headingToggle,
 .iconButton {
   background: transparent;
   border: 0;
@@ -22,7 +17,7 @@
   padding: 0;
 }
 
-.headingToggle {
+.headingLabel {
   font-weight: 600;
 }
 
@@ -42,18 +37,6 @@
   margin-inline-start: auto;
   color: var(--ui-muted, #71717a);
   font-size: 11px;
-}
-
-.arrow {
-  width: 6px;
-  height: 6px;
-  border-inline-end: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
-  transform: rotate(-45deg);
-}
-
-.headingToggle[aria-expanded="true"] .arrow {
-  transform: rotate(45deg);
 }
 
 .fields {
@@ -90,12 +73,11 @@
   gap: 6px;
   min-height: 30px;
   padding-block-end: 3px;
+}
 
-  code {
-    color: var(--ui-muted, #71717a);
-    overflow-wrap: anywhere;
-    font-size: 11px;
-  }
+.fieldLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 summary.row {
@@ -117,22 +99,15 @@ summary.row {
   color: var(--ui-muted, #71717a);
   min-height: 26px;
   padding: 3px 8px;
+  white-space: nowrap;
 
-  .arrow {
-    transform: rotate(45deg);
-  }
-
-  details[open] > summary & .arrow {
-    transform: rotate(225deg);
+  > svg {
+    flex-shrink: 0;
   }
 }
 
 .cssRow {
   grid-template-columns: minmax(0, 1fr) minmax(65px, 38%) 24px;
-
-  code {
-    display: block;
-  }
 }
 
 .configured {
