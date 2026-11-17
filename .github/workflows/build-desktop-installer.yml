@@ -1,0 +1,132 @@
+name: Build one Desktop installer
+on:
+  workflow_call:
+    inputs:
+      source-ref:
+        required: true
+        type: string
+      runner:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      renderer-run-id:
+        required: true
+        type: string
+      artifact-name:
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+env:
+  PYTHONUTF8: "1"
+  # Keep cold builds on the UI assets verified with llama.cpp v0.9.0.
+  HF_UI_VERSION: b12119
+jobs:
+  installer:
+    runs-on: ${{ inputs.runner }}
+    # A cold Intel build compiles llama.cpp before signing and packaging.
+    timeout-minutes: ${{ inputs.runner == 'macos-15-intel' && 60 || 30 }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          ref: ${{ inputs.source-ref }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Install Linux Canvas build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+      - name: Install macOS Canvas build dependencies
+        if: runner.os == 'macOS'
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config cairo pango libpng jpeg giflib librsvg pixman
+      - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
+        with:
+          name: desktop-renderer
+          run-id: ${{ inputs.renderer-run-id }}
+          github-token: ${{ github.token }}
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: desktop/mcp/go.mod
+          cache-dependency-path: desktop/mcp/go.sum
+      - run: tar -xzf renderer.tar.gz -C desktop
+      - uses: ./.github/actions/desktop-runtime-cache
+        id: runtime-cache
+        with:
+          runner: ${{ inputs.runner }}
+          target: ${{ inputs.platform }}-${{ inputs.arch }}
+      - name: Prepare native component runtime
+        run: node desktop/scripts/prepare-component-reuse.mjs '${{ inputs.platform }}' '${{ inputs.arch }}'
+      - name: Save native component runtime
+        if: steps.runtime-cache.outputs.hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ steps.runtime-cache.outputs.path }}
+          key: ${{ steps.runtime-cache.outputs.key }}
+      - name: Build Go MCP helper
+        run: node desktop/scripts/build-mcp.mjs '${{ inputs.platform }}' '${{ inputs.arch }}'
+      - name: Install Electron before native verification
+        run: |
+          for attempt in 1 2 3; do
+            node desktop/node_modules/electron/install.js && break
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep 5
+          done
+      - name: Use Electron package checksums for packaging
+        run: |
+          node -e 'require("node:fs").writeFileSync("desktop/electron-builder.json", JSON.stringify({ electronDownload: { force: false, checksums: require("./desktop/node_modules/electron/checksums.json") } }))'
+      - name: Test Desktop on macOS
+        if: inputs.platform == 'darwin' && inputs.arch == 'x64'
+        run: npm --prefix desktop --ignore-scripts test
+      - name: Verify expired-session startup
+        if: inputs.platform == 'darwin'
+        run: npm run test:auth-startup --prefix desktop
+      - name: Verify unavailable-project startup
+        if: inputs.platform == 'darwin'
+        run: npm run test:workspace-startup --prefix desktop
+      - name: Verify background workers and public draft bridge
+        if: inputs.platform == 'darwin'
+        run: npm --prefix desktop --ignore-scripts run test:background
+      - name: Verify packaged background process lifecycle
+        if: inputs.platform == 'darwin'
+        run: npm run test:background-packaged --prefix desktop
+      - name: Verify file-based sign-in across a packaged upgrade
+        if: inputs.platform == 'darwin'
+        run: npm run test:session-lifecycle --prefix desktop
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
+        if: always() && inputs.platform == 'darwin'
+        with:
+          name: session-lifecycle-${{ inputs.arch }}-${{ inputs.runner }}
+          path: desktop/desktop-report/session-lifecycle/
+          if-no-files-found: ignore
+      - name: Package native installer
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          version=$(node -p 'require("./desktop/package.json").version')
+          echo "DESKTOP_VERSION=$version" >> "$GITHUB_ENV"
+          node desktop/scripts/package.mjs '${{ inputs.platform }}' '${{ inputs.arch }}' --prepared-mcp --notes "desktop/release-notes/$version.md"
+      - name: Validate native installer
+        run: |
+          version="$DESKTOP_VERSION"
+          node --input-type=module -e 'import { validateRelease } from "./desktop/scripts/release-artifacts.mjs"; const [platform, arch, version] = process.argv.slice(1); await validateRelease(`desktop/dist/${version}/${platform}-${arch}`, platform, version, arch);' '${{ inputs.platform }}' '${{ inputs.arch }}' "$version"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: |
+            desktop/dist/${{ env.DESKTOP_VERSION }}/${{ inputs.platform }}-${{ inputs.arch }}/Plasmic-*
+            desktop/dist/${{ env.DESKTOP_VERSION }}/${{ inputs.platform }}-${{ inputs.arch }}/latest*.yml
+          if-no-files-found: error
+          compression-level: 0

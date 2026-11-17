@@ -20,8 +20,13 @@ built, or to an existing Studio image for a Desktop-only patch.
 CLI publication compares actual npm contents. Full releases publish the selected
 version even if contents are unchanged. Resources wait for CLI publication and
 reuse npm's verified original artifact; a resources-only patch reuses npm latest.
-All jobs use one verified source commit. Desktop OS tests run alongside Studio
-builds and are reused by the installer workflow only for the same commit.
+All application builds use one verified source commit. Desktop OS tests run alongside
+Studio builds and are reused by the installer workflow only for the same commit.
+Desktop ARM builds race on standard `macos-15` and `macos-26` runners. The first
+candidate that passes native acceptance and installer validation supplies the ARM
+artifact; the remaining child attempt is cancelled. Both failing blocks publication.
+See [Desktop release orchestration](../desktop/README.md) for artifact selection and
+the required Actions permissions.
 
 After all selected jobs succeed, one GitHub Release is published under the numeric
 tag. It contains selected products' installers, update ZIPs/blockmaps and resource

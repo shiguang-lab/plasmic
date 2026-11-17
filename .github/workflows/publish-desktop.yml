@@ -11,10 +11,9 @@ on:
         type: string
 env:
   PYTHONUTF8: "1"
-  # Keep cold builds on the UI assets verified with llama.cpp v0.9.0.
-  HF_UI_VERSION: b12119
 permissions:
   contents: read
+  actions: read
 jobs:
   renderer:
     env:
@@ -54,9 +53,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-15
-            platform: darwin
-            arch: arm64
           - runner: macos-15-intel
             platform: darwin
             arch: x64
@@ -66,102 +62,59 @@ jobs:
           - runner: ubuntu-24.04
             platform: linux
             arch: x64
-    runs-on: ${{ matrix.runner }}
-    # A cold Intel build compiles llama.cpp before signing and packaging.
-    timeout-minutes: ${{ matrix.runner == 'macos-15-intel' && 60 || 30 }}
-    defaults:
-      run:
-        shell: bash
+    uses: ./.github/workflows/build-desktop-installer.yml
+    with:
+      source-ref: ${{ inputs.source-ref }}
+      runner: ${{ matrix.runner }}
+      platform: ${{ matrix.platform }}
+      arch: ${{ matrix.arch }}
+      renderer-run-id: ${{ github.run_id }}
+      artifact-name: ${{ matrix.platform }}-${{ matrix.arch }}
+  arm-installer:
+    needs: renderer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    permissions:
+      contents: read
+      actions: write
     steps:
-      - run: git config --global core.autocrlf false
+      # Orchestration belongs to the workflow revision; application code stays
+      # pinned to source-ref, including when republishing an older release tag.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
-          ref: ${{ inputs.source-ref }}
+          ref: ${{ github.workflow_sha }}
+          sparse-checkout: scripts
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: desktop/package-lock.json
-      - name: Install Linux Canvas build dependencies
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
-      - name: Install macOS Canvas build dependencies
-        if: runner.os == 'macOS'
-        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config cairo pango libpng jpeg giflib librsvg pixman
-      - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
+      - run: node --test scripts/desktop-arm-race.test.mjs
+      - name: Start both ARM builds
+        id: race
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source-ref }}
+        run: node scripts/desktop-arm-race.mjs dispatch
+      - name: Select the first verified ARM installer
+        id: winner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARM_RUN_ID: ${{ steps.race.outputs.run-id }}
+        run: node scripts/desktop-arm-race.mjs wait
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
         with:
-          name: desktop-renderer
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
-        with:
-          go-version-file: desktop/mcp/go.mod
-          cache-dependency-path: desktop/mcp/go.sum
-      - run: tar -xzf renderer.tar.gz -C desktop
-      - uses: ./.github/actions/desktop-runtime-cache
-        id: runtime-cache
-        with:
-          runner: ${{ matrix.runner }}
-          target: ${{ matrix.platform }}-${{ matrix.arch }}
-      - name: Prepare native component runtime
-        run: node desktop/scripts/prepare-component-reuse.mjs '${{ matrix.platform }}' '${{ matrix.arch }}'
-      - name: Save native component runtime
-        if: steps.runtime-cache.outputs.hit != 'true'
-        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ${{ steps.runtime-cache.outputs.path }}
-          key: ${{ steps.runtime-cache.outputs.key }}
-      - name: Build Go MCP helper
-        run: node desktop/scripts/build-mcp.mjs '${{ matrix.platform }}' '${{ matrix.arch }}'
-      - name: Install Electron before native verification
-        run: |
-          for attempt in 1 2 3; do
-            node desktop/node_modules/electron/install.js && break
-            if [ "$attempt" = 3 ]; then exit 1; fi
-            sleep 5
-          done
-      - name: Use Electron package checksums for packaging
-        run: |
-          node -e 'require("node:fs").writeFileSync("desktop/electron-builder.json", JSON.stringify({ electronDownload: { force: false, checksums: require("./desktop/node_modules/electron/checksums.json") } }))'
-      - name: Test Desktop on macOS
-        if: matrix.platform == 'darwin' && matrix.arch == 'x64'
-        run: npm --prefix desktop --ignore-scripts test
-      - name: Verify expired-session startup
-        if: matrix.platform == 'darwin'
-        run: npm run test:auth-startup --prefix desktop
-      - name: Verify unavailable-project startup
-        if: matrix.platform == 'darwin'
-        run: npm run test:workspace-startup --prefix desktop
-      - name: Verify background workers and public draft bridge
-        if: matrix.platform == 'darwin'
-        run: npm --prefix desktop --ignore-scripts run test:background
-      - name: Verify packaged background process lifecycle
-        if: matrix.platform == 'darwin'
-        run: npm run test:background-packaged --prefix desktop
-      - name: Verify file-based sign-in across a packaged upgrade
-        if: matrix.platform == 'darwin'
-        run: npm run test:session-lifecycle --prefix desktop
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
-        if: always() && matrix.platform == 'darwin'
-        with:
-          name: session-lifecycle-${{ matrix.arch }}
-          path: desktop/desktop-report/session-lifecycle/
-          if-no-files-found: ignore
-      - name: Package native installer
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-        run: |
-          version=$(node -p 'require("./desktop/package.json").version')
-          echo "DESKTOP_VERSION=$version" >> "$GITHUB_ENV"
-          node desktop/scripts/package.mjs '${{ matrix.platform }}' '${{ matrix.arch }}' --prepared-mcp --notes "desktop/release-notes/$version.md"
-      - name: Validate native installer
-        run: |
-          version="$DESKTOP_VERSION"
-          node --input-type=module -e 'import { validateRelease } from "./desktop/scripts/release-artifacts.mjs"; const [platform, arch, version] = process.argv.slice(1); await validateRelease(`desktop/dist/${version}/${platform}-${arch}`, platform, version, arch);' '${{ matrix.platform }}' '${{ matrix.arch }}' "$version"
+          artifact-ids: ${{ steps.winner.outputs.artifact-id }}
+          run-id: ${{ steps.race.outputs.run-id }}
+          github-token: ${{ github.token }}
+          path: arm-installer
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
-          name: ${{ matrix.platform }}-${{ matrix.arch }}
-          path: |
-            desktop/dist/${{ env.DESKTOP_VERSION }}/${{ matrix.platform }}-${{ matrix.arch }}/Plasmic-*
-            desktop/dist/${{ env.DESKTOP_VERSION }}/${{ matrix.platform }}-${{ matrix.arch }}/latest*.yml
+          name: darwin-arm64
+          path: arm-installer/
           if-no-files-found: error
           compression-level: 0
+      - name: Stop the remaining ARM attempt
+        if: always() && steps.race.outputs.run-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARM_RUN_ID: ${{ steps.race.outputs.run-id }}
+        run: node scripts/desktop-arm-race.mjs cancel

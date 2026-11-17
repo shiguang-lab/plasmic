@@ -513,13 +513,27 @@ builds macOS arm64 on Apple Silicon, macOS x64 on Intel, Windows x64 on Windows,
 and Linux x64 on Linux. macOS installers and updates use only
 `darwin/arm64/` and `darwin/x64/`; Rosetta launches select arm64.
 The Go bridge and Node test suites run on Linux and Windows alongside the Studio image build.
-The Intel Mac installer job runs both suites before native acceptance
-and packaging, so the release requests an ARM Mac runner only for its native
-acceptance and installer job. A linked release reuses
-successful tests only when their commit matches the packaged source revision.
-Both macOS installer runners retain
-the native startup and session-lifecycle checks, signature checks, and architecture
-validation. The final publication waits for all test and installer jobs to succeed.
+The Intel Mac installer job runs both suites before native acceptance and packaging.
+ARM installers race on the standard `macos-15` and `macos-26` runners in
+`.github/workflows/build-desktop-arm.yml`. Each candidate builds its own native
+runtime and uses the same verified application commit and parent renderer artifact.
+Runtime caches remain separated by runner image. ARM runtime preparation is not a
+prerequisite job, so an unavailable ARM environment cannot block the other candidate.
+All installers share `.github/workflows/build-desktop-installer.yml`; both ARM
+candidates retain the native startup and session-lifecycle checks, signature checks,
+architecture validation and installer validation before uploading a candidate.
+The parent selects the first available verified candidate, copies it to its own
+`darwin-arm64` artifact, then cancels the remaining child attempt. The child run may
+show as cancelled after successful selection; the parent run records its URL and
+selected artifact in the job summary. Cleanup also cancels the child on parent
+failure or cancellation. If neither candidate produces a verified installer,
+publication fails. No paid runner is used.
+A linked release reuses successful tests only when their commit matches the
+packaged source revision. The final publication requires all Desktop tests and
+one verified installer for each of the four platform/architecture targets.
+The ARM coordinator needs `actions: write` to dispatch and cancel its child run;
+build jobs need only read access. Workflow orchestration uses the parent workflow
+revision, including when dispatching publication for an older application tag.
 Node-only jobs skip the Electron binary download; the publication job installs only
 runtime dependencies. npm download caches support reuse within the release and
 reruns; cross-tag image caching is handled separately by the Studio registry cache.

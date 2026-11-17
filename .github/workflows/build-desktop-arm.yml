@@ -1,0 +1,30 @@
+name: Build Desktop ARM candidates
+run-name: Desktop ARM for run ${{ inputs.renderer-run-id }}
+on:
+  workflow_dispatch:
+    inputs:
+      source-ref:
+        description: Verified application source commit
+        required: true
+        type: string
+      renderer-run-id:
+        description: Parent run containing the pinned desktop-renderer artifact
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  candidates:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-26]
+    uses: ./.github/workflows/build-desktop-installer.yml
+    with:
+      source-ref: ${{ inputs.source-ref }}
+      runner: ${{ matrix.runner }}
+      platform: darwin
+      arch: arm64
+      renderer-run-id: ${{ inputs.renderer-run-id }}
+      artifact-name: darwin-arm64-${{ matrix.runner }}

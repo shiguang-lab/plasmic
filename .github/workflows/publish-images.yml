@@ -117,6 +117,7 @@ jobs:
           (needs.studio.result == 'success' || needs.studio.result == 'skipped') }}
     permissions:
       contents: read
+      actions: write
     uses: ./.github/workflows/publish-desktop.yml
     with:
       release-tag: ${{ inputs.release-tag || github.ref_name }}
