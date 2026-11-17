@@ -68,6 +68,36 @@ test("a completed race still accepts its validated artifact even if the other jo
   123, sha), winner);
 });
 
+test("a newly dispatched run can return artifact 404 before its installer appears", async () => {
+  let polls = 0;
+  let pauses = 0;
+  const winner = artifact(8);
+  const api = githubApi({ token: "test-token", repository: "owner/repo" }, async (url) => {
+    if (!url.includes("artifacts?")) return Response.json({ head_sha: sha, status: "queued" });
+    return polls++ ? Response.json({ artifacts: [winner] }) : new Response("Not Found", { status: 404 });
+  });
+  assert.deepEqual(await waitForInstaller(api, 123, sha, {
+    pause: async () => { pauses++; },
+  }), winner);
+  assert.equal(pauses, 1);
+});
+
+test("a completed run with artifact 404 fails instead of waiting indefinitely", async () => {
+  const api = githubApi({ token: "test-token", repository: "owner/repo" }, async (url) =>
+    url.includes("artifacts?") ? new Response("Not Found", { status: 404 }) :
+      Response.json({ head_sha: sha, status: "completed", conclusion: "failure" }));
+  await assert.rejects(waitForInstaller(api, 123, sha, {
+    pause: () => assert.fail("completed run must fail"),
+  }), /HTTP 404/);
+});
+
+test("artifact authorization failures are never treated as pending", async () => {
+  const api = githubApi({ token: "test-token", repository: "owner/repo" }, async (url) =>
+    url.includes("artifacts?") ? new Response("Forbidden", { status: 403 }) :
+      Response.json({ head_sha: sha, status: "queued" }));
+  await assert.rejects(waitForInstaller(api, 123, sha), /HTTP 403/);
+});
+
 test("both failures stop publication", async () => {
   await assert.rejects(waitForInstaller(async (_, endpoint) =>
     endpoint.includes("artifacts?") ? { artifacts: [] } : { head_sha: sha, status: "completed", conclusion: "failure" },

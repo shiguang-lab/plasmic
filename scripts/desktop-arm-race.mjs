@@ -42,8 +42,11 @@ export async function waitForInstaller(api, runId, workflowSha, {
     }
     // Only the final upload, after native acceptance and installer validation,
     // has a candidate name. Reports and intermediate artifacts cannot win.
-    const { artifacts } = await api("GET", `/actions/runs/${runId}/artifacts?per_page=100`);
-    const winner = firstInstaller(artifacts);
+    // GitHub can expose a newly dispatched run before its artifact collection.
+    // A 404 is only pending while that verified run is still active.
+    const result = await api("GET", `/actions/runs/${runId}/artifacts?per_page=100`,
+      undefined, run.status === "completed" ? [] : [404]);
+    const winner = firstInstaller(result?.artifacts ?? []);
     if (winner) return winner;
     if (run.status === "completed") {
       throw new Error(`Neither ARM environment produced a verified installer (run ${runId}: ${run.conclusion})`);
