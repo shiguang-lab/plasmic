@@ -95,6 +95,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.preview.canGoBack = false;
   mocks.preview.canGoForward = false;
+  mocks.preview.viewport = "desktop";
   mocks.preview.width = 1440;
   mocks.preview.height = 900;
   mocks.preview.studioCtx.site.components = [];
@@ -107,6 +108,19 @@ function render(children: React.ReactNode) {
     ),
   });
 }
+test.each([[393, 852, "Phone"], [834, 1194, "Tablet"], [1440, 900, "Desktop"]] as const)("custom dimensions select the matching device control (%i × %i)", (width, height, device) => {
+  mocks.preview.viewport = "custom";
+  mocks.preview.width = width;
+  mocks.preview.height = height;
+  render(<PreviewTopBar />);
+  expect(screen.getByRole("radio", { name: new RegExp(` ${device}$`) })).toHaveProperty("checked", true);
+  if (device !== "Desktop") {
+    fireEvent.click(screen.getByRole("button", { name: "Switch to landscape" }));
+    expect(mocks.preview.pushViewport).toHaveBeenLastCalledWith({ viewport: "custom", width: height, height: width });
+  } else {
+    expect(screen.queryByRole("button", { name: "Switch to portrait" })).toBeNull();
+  }
+});
 test("omits sharing and shows more only when variants exist", () => {
   const view = render(<PreviewTopBar />);
   expect(screen.queryByRole("button", { name: "More" })).toBeNull();

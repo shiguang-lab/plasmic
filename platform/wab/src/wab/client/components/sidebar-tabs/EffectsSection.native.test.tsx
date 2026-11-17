@@ -1,6 +1,7 @@
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
+import { FilterEffectsPanelSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
+import { InteractionStylesPanelSection } from "@/wab/client/components/sidebar-tabs/InteractionStylesPanelSection";
 import { AppearanceCard } from "@/wab/client/components/style-controls/AppearanceCard";
 import { StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppContext } from "@/wab/client/components/top-view";
@@ -22,7 +23,7 @@ it("edits inherited chains on the target variant, restores None and migrates int
   vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
   vi.spyOn(ViewCtx.prototype, "scheduleSync").mockImplementation(() => undefined);
   vi.spyOn(ViewCtx.prototype, "awaitSync").mockResolvedValue(undefined);
-  vi.stubGlobal("IntersectionObserver", class { observe() {} unobserve() {} disconnect() {} });
+  vi.stubGlobal("IntersectionObserver", class { observe = vi.fn(); unobserve = vi.fn(); disconnect = vi.fn(); });
   const site = createSite(), manager = new TplMgr({ site });
   const component = manager.addComponent({ name: "Effects", type: ComponentType.Plain });
   const root = component.tplTree, variant = mkVariant({ name: "Active" }); component.variants.push(variant);
@@ -38,7 +39,7 @@ it("edits inherited chains on the target variant, restores None and migrates int
   await act(async () => { await studio.changeUnsafe(() => view.currentComponentStackFrame().setTargetVariants([variant])); });
   const provider = new TplExpsProvider(view, root), styling = new StyleTarget({ expsProvider: provider });
   const wrap = (node: React.ReactNode) => <AppContext.Provider value={studio.app}><AppCtxContext.Provider value={appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}>{node}</StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
-  const mounted = render(wrap(<><AppearanceCard expsProvider={provider} /><EffectsPanelSection expsProvider={provider} /></>));
+  const mounted = render(wrap(<><AppearanceCard expsProvider={provider} /><InteractionStylesPanelSection expsProvider={provider} /><FilterEffectsPanelSection expsProvider={provider} /></>));
   try {
     fireEvent.keyDown(screen.getByRole("button", { name: "Layer filter: Blur" }), { key: "ArrowDown", altKey: true });
     await waitFor(() => expect(target.getRaw("filter")).toBe("brightness(120%) blur(2px)"));
@@ -69,7 +70,7 @@ it("edits inherited chains on the target variant, restores None and migrates int
     await waitFor(() => expect(target.getRaw("isolation")).toBe("isolate"));
     expect(base.getRaw("box-shadow")).toBe("0px 4px 16px #000000");
     expect(target.has("box-shadow")).toBe(false);
-    mounted.rerender(wrap(<EffectsPanelSection expsProvider={provider} animatableOnly />));
+    mounted.rerender(wrap(<FilterEffectsPanelSection expsProvider={provider} />));
     expect(screen.queryByText("Interactions")).toBeNull();
     expect(screen.getByRole("button", { name: "Backdrop filter: Blur" })).toBeTruthy();
   } finally { mounted.unmount(); await studio.awaitEval(); studio.dispose(); }

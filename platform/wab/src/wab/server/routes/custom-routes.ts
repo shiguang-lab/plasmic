@@ -12,7 +12,7 @@ export function addInternalRoutes(app: Application) {
   addPaymentRoutes(app);
 }
 
-export function addInternalIntegrationsRoutes(app: Application) {}
+export function addInternalIntegrationsRoutes(app: Application) { /* This build does not register internal integration routes. */ }
 
 function addHostingRoutes(app: Application) {
   app.post("/api/v1/revalidate-hosting", withNext(revalidatePlasmicHosting));

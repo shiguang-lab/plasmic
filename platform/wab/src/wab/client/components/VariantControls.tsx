@@ -8,7 +8,6 @@ import {
   Selector,
   SelectorsInput,
   SelectorTags,
-  styleOrCodeComponentVariantToSelectors,
 } from "@/wab/client/components/sidebar/RuleSetControls";
 import S from "@/wab/client/components/VariantControls.module.scss";
 import Button from "@/wab/client/components/widgets/Button";
@@ -29,9 +28,7 @@ import {
   isBaseVariant,
   isCodeComponentVariant,
   isGlobalVariant,
-  isPrivateStyleVariant,
   isStyleOrCodeComponentVariant,
-  makeVariantName,
   StyleOrCodeComponentVariant,
   toVariantKey,
 } from "@/wab/shared/Variants";

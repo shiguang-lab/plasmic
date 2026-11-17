@@ -190,7 +190,7 @@ function delegatedFixture() {
     open: customCode("$state.action === 'edit'"),
   });
   if (isKnownTplTag(setup.component.tplTree))
-    setup.component.tplTree.children.push(unrelated);
+    {setup.component.tplTree.children.push(unrelated);}
   return { ...setup, item, unrelated };
 }
 
@@ -276,7 +276,7 @@ test("content of a nested overlay cannot inherit an outer trigger control", () =
   const trigger = wrapper.vsettings[0].args.find(
     (arg) => arg.param.variable.name === "children",
   );
-  if (trigger) trigger.expr = new RenderExpr({ tpl: [modal] });
+  if (trigger) {trigger.expr = new RenderExpr({ tpl: [modal] });}
   const nestedContext = {
     ...context,
     getMeta: (tpl: typeof wrapper) => ({

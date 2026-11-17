@@ -133,6 +133,9 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                       <Menu.Item
                         disabled={!role?.id}
                         onClick={async () => {
+                          if (!role?.id) {
+                            return;
+                          }
                           await hostFrameApi.logAsAppUser({
                             isLoggedIn: true,
                             email: record.endUserEmail,
@@ -140,10 +143,10 @@ function ActivityTab_(props: ActivityTabProps, ref: HTMLElementRefOf<"div">) {
                             // custom props should be later filled by the host frame
                             customProperties: {},
                             properties: {},
-                            roleId: role?.id!,
-                            roleName: role?.name!,
+                            roleId: role.id,
+                            roleName: role.name,
                             roleIds: roles
-                              .filter((r) => r.order <= (role?.order ?? 0))
+                              .filter((r) => r.order <= role.order)
                               .map((r) => r.id),
                           });
                         }}

@@ -36,7 +36,6 @@ import {
   tryGetTplOwnerComponent,
 } from "@/wab/shared/core/tpls";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
-import { maybeMkSemVerSiteElement } from "@/wab/shared/site-diffs";
 import { Popover, Tooltip } from "antd";
 import { createStyles } from "antd-style";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";

@@ -113,11 +113,11 @@ export async function genLoaderHtmlBundle(opts: {
 
 async function main(argv = process.argv) {
   try {
-    console.log = () => {};
-    console.warn = () => {};
-    console.error = () => {};
-    console.info = () => {};
-    console.debug = () => {};
+    console.log = () => { /* Keep generated application logs out of the loader profiling output. */ };
+    console.warn = () => { /* Keep generated application logs out of the loader profiling output. */ };
+    console.error = () => { /* Keep generated application logs out of the loader profiling output. */ };
+    console.info = () => { /* Keep generated application logs out of the loader profiling output. */ };
+    console.debug = () => { /* Keep generated application logs out of the loader profiling output. */ };
     // Start the profiler before generation so it captures the work.
     await maybeStartGoogleCloudProfiler("bwrap");
     const args = JSON.parse(argv[2]);
@@ -135,5 +135,5 @@ async function main(argv = process.argv) {
 }
 
 if (require.main === module) {
-  const res = main();
+  void main();
 }

@@ -99,7 +99,6 @@ function AppAuthSettings(props: AppAuthSettingsModalProps) {
           });
           await mutateAuthConfig(async () => {
             setIsSettingUp(true);
-            let directoryId: string | undefined;
             // Always creates a new directory for every app, make it so that is less
             // of an issue to change the directory later
             const directory = await appCtx.api.createEndUserDirectory(
@@ -109,7 +108,7 @@ function AppAuthSettings(props: AppAuthSettingsModalProps) {
                 `App "${project.name}" directory`,
               ),
             );
-            directoryId = directory.id;
+            const directoryId = directory.id;
             await appCtx.api.upsertAppAuthConfig(project.id, {
               directoryId,
               provider: "plasmic-auth",

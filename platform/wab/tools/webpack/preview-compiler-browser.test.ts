@@ -58,7 +58,7 @@ it.each(["development", "production"] as const)("builds and executes strict Prev
     });
     await new Promise<void>(resolve => canvas.listen(0, "127.0.0.1", resolve));
     const canvasAddress = canvas.address();
-    assert(canvasAddress && typeof canvasAddress === "object");
+    assert(canvasAddress && typeof canvasAddress === "object", "Canvas test server must be listening on a TCP address");
     config.output = { ...config.output, publicPath: `http://127.0.0.1:${address.port}/` };
     await new Promise<void>((resolve, reject) => {
       const compiler = rspack(config);

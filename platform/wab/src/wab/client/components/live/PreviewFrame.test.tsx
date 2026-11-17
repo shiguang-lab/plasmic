@@ -3,6 +3,7 @@ import { createDocsModelFixture } from "@/wab/client/components/docs/__testonly_
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
+import { ensure } from "@/wab/shared/common";
 import React from "react";
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx, PreviewState } from "@/wab/client/components/live/PreviewCtx";
@@ -77,6 +78,58 @@ beforeEach(() => {
   mocks.load.mockResolvedValue(undefined);
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+
+it("switches phone, tablet and absent shells without replacing or resizing page content", () => {
+  const environment = createStudioUiEnvironmentFixture();
+  const fixture = createDocsModelFixture(createSite());
+  Object.assign(fixture.studio, environment);
+  const preview = mockPreview({ studioCtx: fixture.studio, full: false, isLive: false });
+  const changeViewport = (viewport: "phone" | "tablet" | "desktop" | "custom", width: number, height: number) => {
+    act(() => preview.store.setState((state) => ({ previewData: {
+      ...ensure(state.previewData, "Preview data"), viewport, width, height,
+    } })));
+  };
+  changeViewport("phone", 393, 852);
+  const view = render(<PreviewFrame previewCtx={preview} />);
+  try {
+    const iframe = view.container.querySelector("iframe");
+    const container = iframe?.parentElement;
+    expect(container?.style.width).toBe("393px");
+    expect(container?.style.height).toBe("852px");
+    expect(iframe?.style.borderRadius).toBe("inherit");
+    expect(container?.style.borderRadius).toBe("36px");
+    const shell = view.container.querySelector('[data-test-id="device-frame"]');
+    expect(shell?.parentElement).toBe(container);
+    expect(shell?.getAttribute("aria-hidden")).toBe("true");
+    expect(shell?.contains(iframe)).toBe(false);
+    changeViewport("phone", 852, 393);
+    expect(container?.style.width).toBe("852px");
+    expect(container?.style.height).toBe("393px");
+    expect(view.container.querySelector("iframe")).toBe(iframe);
+    changeViewport("tablet", 768, 1024);
+    expect(view.container.querySelector('[data-test-id="device-frame"]')?.getAttribute("data-device")).toBe("tablet");
+    expect(container?.style.width).toBe("768px");
+    expect(container?.style.height).toBe("1024px");
+    changeViewport("tablet", 1194, 834);
+    expect(view.container.querySelector('[data-test-id="device-frame"]')?.getAttribute("data-device")).toBe("tablet");
+    expect(container?.style.width).toBe("1194px");
+    expect(container?.style.height).toBe("834px");
+    changeViewport("custom", 1440, 900);
+    expect(view.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    changeViewport("custom", 834, 1194);
+    expect(view.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    changeViewport("custom", 375, 812);
+    expect(view.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    changeViewport("custom", 800, 600);
+    expect(view.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    expect(view.container.querySelector("iframe")).toBe(iframe);
+    changeViewport("desktop", 375, 812);
+    expect(view.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    changeViewport("phone", 393, 852);
+    act(() => preview.store.setState((state) => ({ previewData: { ...ensure(state.previewData, "Preview data"), full: true } })));
+    expect(view.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+  } finally { view.unmount(); fixture.ctx.dispose(); }
+});
 
 it("reports runtime bootstrap failure and releases the startup overlay", async () => {
   const error = new Error("Runtime download failed");
@@ -206,12 +259,15 @@ it("keeps a single Preview scan outside the page through capture, completion and
     const target = win.document.createElement("div");
     target.checkVisibility = () => true;
     target.getBoundingClientRect = () => new DOMRect(12, 20, 80, 100);
+    iframe.style.borderTopLeftRadius = "36px";
+    Object.defineProperties(iframe, { clientWidth: { value: 393 }, clientHeight: { value: 852 } });
     scroller.append(target);
     win.document.body.append(scroller);
     send("start", target);
     expect(scan()).toBe(region);
     expect([region.style.left, region.style.top, region.style.width, region.style.height])
       .toEqual(["12px", "40px", "80px", "60px"]);
+    expect(region.style.clipPath).toBe("inset(-40px -301px -752px -12px round 36px)");
     send("hide");
     send("start", target);
     expect(region.style.visibility).toBe("hidden");
@@ -225,6 +281,7 @@ it("keeps a single Preview scan outside the page through capture, completion and
 
     send("start");
     expect(scan()?.style.inset).toBe("0");
+    expect(scan()?.style.clipPath).toBe("");
     expect(scan()?.style.width).toBe("");
     act(() => previewCtx.store.setState({ previewData: mock<NonNullable<PreviewState["previewData"]>>({ previewPath: "/next" }) }));
     expect(scan()).toBeNull();

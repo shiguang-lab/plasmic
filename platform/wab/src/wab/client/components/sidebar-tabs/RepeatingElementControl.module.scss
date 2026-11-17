@@ -1,0 +1,29 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ui-muted);
+  font: inherit;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  &:hover { background: var(--ui-hover); }
+  &:focus-visible { outline: 1px solid var(--ui-accent); }
+}
+.active {
+  color: var(--ui-accent);
+  background: var(--ui-selected);
+}
+.popover { width: 276px; max-width: calc(100vw - 48px); }
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+  strong { flex: 1; font-weight: 600; }
+}

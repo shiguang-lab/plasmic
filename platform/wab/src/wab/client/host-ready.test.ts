@@ -55,7 +55,7 @@ function render(
     { languages: ["en"] },
     { getItem: (key: string) => stored[key] ?? null },
   );
-  return ensure(document.querySelector<HTMLElement>(".host-ready"));
+  return ensure(document.querySelector<HTMLElement>(".host-ready"), "Host readiness screen must render its root element");
 }
 
 it("localizes standalone onboarding and applies the stored appearance", () => {

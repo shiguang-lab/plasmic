@@ -1,3 +1,10 @@
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
+import styles from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPropEditor.module.scss";
+import { ConnectorLine } from "@/wab/client/components/widgets/ConnectorLine";
+import { Icon } from "@/wab/client/components/widgets/Icon";
+import { IconButton } from "@/wab/client/components/widgets/IconButton";
+import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
+import { createPortal } from "react-dom";
 import {
   ItemFunc,
   ObjectPropEditor,
@@ -38,6 +45,7 @@ interface ArrayPropEditorProps<Value extends object> {
   "data-plasmic-prop": string;
   propType: StudioPropType<any>;
   disabled?: boolean;
+  headerElement?: HTMLElement | null;
 }
 
 export function ArrayPropEditor<
@@ -56,6 +64,7 @@ export function ArrayPropEditor<
   "data-plasmic-prop": dataPlasmicProp,
   propType,
   disabled,
+  headerElement,
 }: ArrayPropEditorProps<Value>) {
   const { t: studioUiT } = useI18n();
 
@@ -91,18 +100,33 @@ export function ArrayPropEditor<
     ? getPropTypeDefaultValue(arrayItemType)
     : undefined;
 
+  const isDragDisabled = disabled || (evaluatedValue?.length ?? 0) < 2;
+
+  const addButton = (
+    <IconButton
+      size="small"
+      aria-label={studioUiT("Add item")}
+      tooltip={studioUiT("Add item")}
+      data-test-id={`${dataPlasmicProp}-add-btn`}
+      disabled={disabled}
+      onClick={addNewElement}
+    >
+      <Icon icon={PlusIcon} />
+    </IconButton>
+  );
+
   return (
-    <>
+    <div className={styles.editor}>
+      {headerElement ? (
+        createPortal(addButton, headerElement)
+      ) : (
+        <div className={styles.standaloneHeader}>{addButton}</div>
+      )}
       <ListBox
-        appendPrepend={"append"}
-        addText={studioUiT("Add item")}
         onReorder={(from, to) => {
-          if (compositeValue) {
+          if (!isDragDisabled && compositeValue) {
             onChange(arrayMoveIndex(compositeValue, from, to));
           }
-        }}
-        onAdd={() => {
-          addNewElement();
         }}
         data-test-id={dataPlasmicProp}
         disabled={disabled}
@@ -117,70 +141,78 @@ export function ArrayPropEditor<
             ? compositeValue[index]
             : evaluatedItem;
           return (
-            <ListBoxItem
-              data-test-id={`${dataPlasmicProp}-${index}`}
+            <ConnectorLine
               key={index}
-              mainContent={
-                <PropValueEditorContext.Provider
-                  value={{
-                    ...valueEditorCtx,
-                    defaultValue: itemTypeDefaultValue,
-                  }}
-                >
-                  <ObjectPropEditor
-                    key={index}
-                    componentPropValues={componentPropValues}
-                    compositeValue={compositeItem}
-                    evaluatedValue={evaluatedItem}
-                    fields={subfields}
-                    objectNameFunc={itemNameFunc ?? (() => `Item ${index}`)}
-                    modalKey={modalKey}
-                    ccContextData={ccContextData}
-                    onChange={(newData) => {
-                      if (compositeValue) {
-                        onChange(
-                          arrayReplaceAt(
-                            compositeValue,
-                            index,
-                            uncheckedCast(newData),
-                          ),
-                        );
-                      }
+              isLast={index === (evaluatedValue?.length ?? 0) - 1}
+              className={styles.item}
+            >
+              <ListBoxItem
+                className={paintStyles.fillItem}
+                clickable={false}
+                truncate={false}
+                data-test-id={`${dataPlasmicProp}-${index}`}
+                mainContent={
+                  <PropValueEditorContext.Provider
+                    value={{
+                      ...valueEditorCtx,
+                      defaultValue: itemTypeDefaultValue,
                     }}
-                    buttonType="seamless"
-                    onClose={() => {
-                      if (inspect === index) {
-                        setInspect(undefined);
-                      }
-                    }}
-                    defaultShowModal={index === inspect}
-                    controlExtras={nextControlExtras}
-                    propType={arrayItemType}
-                    disabled={disabled}
-                  />
-                </PropValueEditorContext.Provider>
-              }
-              index={index}
-              showDelete={
-                !disabled &&
-                canDeleteFunc?.(
-                  evaluatedItem,
-                  componentPropValues,
-                  ccContextData,
-                  nextControlExtras,
-                )
-              }
-              onRemove={() => {
-                if (compositeValue) {
-                  onChange(arrayRemoveAt(compositeValue, index));
+                  >
+                    <ObjectPropEditor
+                      key={index}
+                      componentPropValues={componentPropValues}
+                      compositeValue={compositeItem}
+                      evaluatedValue={evaluatedItem}
+                      fields={subfields}
+                      objectNameFunc={itemNameFunc ?? (() => `Item ${index}`)}
+                      modalKey={modalKey}
+                      ccContextData={ccContextData}
+                      onChange={(newData) => {
+                        if (compositeValue) {
+                          onChange(
+                            arrayReplaceAt(
+                              compositeValue,
+                              index,
+                              uncheckedCast(newData),
+                            ),
+                          );
+                        }
+                      }}
+                      listItem
+                      onClose={() => {
+                        if (inspect === index) {
+                          setInspect(undefined);
+                        }
+                      }}
+                      defaultShowModal={index === inspect}
+                      controlExtras={nextControlExtras}
+                      propType={arrayItemType}
+                      disabled={disabled}
+                    />
+                  </PropValueEditorContext.Provider>
                 }
-              }}
-              disabled={disabled}
-              isDragDisabled={disabled}
-            />
+                index={index}
+                showDelete={
+                  !disabled &&
+                  canDeleteFunc?.(
+                    evaluatedItem,
+                    componentPropValues,
+                    ccContextData,
+                    nextControlExtras,
+                  )
+                }
+                onRemove={() => {
+                  if (compositeValue) {
+                    onChange(arrayRemoveAt(compositeValue, index));
+                  }
+                }}
+                disabled={disabled}
+                isDragDisabled={isDragDisabled}
+              />
+            </ConnectorLine>
           );
         })}
       </ListBox>
-    </>
+    </div>
   );
 }

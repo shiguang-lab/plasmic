@@ -21,7 +21,6 @@ import {
   ensureKnownTplTag,
   Component,
   Mixin,
-  RuleSet,
   Site,
   ThemeStyle,
   TplTag,
@@ -145,7 +144,7 @@ describe("native selected-style projection", () => {
         ["opacity"],
       );
       syncAndPublish(f, projection, () => {
-        RSH(ensure(tryGetVariantSetting(f.root, [f.base])).rs, f.root).set(
+        RSH(ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture").rs, f.root).set(
           "opacity",
           "0.4",
         );
@@ -177,7 +176,7 @@ describe("native selected-style projection", () => {
     try {
       // Theme tag style (div) with an opacity value.
       const theme = ensure(f.site.activeTheme, "default theme expected");
-      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]));
+      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture");
       f.recorder.withRecording(() => {
         theme.styles.push(
           new ThemeStyle({
@@ -256,7 +255,7 @@ describe("native selected-style projection", () => {
         parent.parent = f.root;
         f.vtm.ensureBaseVariantSetting(parent);
         f.vtm.ensureBaseVariantSetting(child);
-        RSH(ensure(tryGetVariantSetting(parent, [f.base])).rs, parent).set(
+        RSH(ensure(tryGetVariantSetting(parent, [f.base]), "Parent node must have a base variant setting before setting inherited styles").rs, parent).set(
           "letter-spacing",
           "3px",
         );
@@ -276,7 +275,7 @@ describe("native selected-style projection", () => {
       projection.store.subscribe(publish);
       syncAndPublish(f, projection, () => {
         RSH(
-          ensure(tryGetVariantSetting(parent, [f.base])).rs,
+          ensure(tryGetVariantSetting(parent, [f.base]), "Parent node must have a base variant setting before updating inherited styles").rs,
           parent,
         ).set("letter-spacing", "7px");
       });
@@ -292,7 +291,7 @@ describe("native selected-style projection", () => {
   it("switches variant values without mixing target writes into reads", () => {
     const f = fixture();
     try {
-      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]));
+      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture");
       f.recorder.withRecording(() => {
         RSH(baseVs.rs, f.root).set("opacity", "0.2");
         const variantVs = f.vtm.ensureVariantSetting(f.root, [f.variant]);
@@ -323,7 +322,7 @@ describe("native selected-style projection", () => {
   it("handles a persisted command write and its model-level reverse", () => {
     const f = fixture();
     try {
-      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]));
+      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture");
       f.recorder.withRecording(() => {
         RSH(baseVs.rs, f.root).set("opacity", "0.1");
       });
@@ -357,7 +356,7 @@ describe("native selected-style projection", () => {
   it("detaches every prepared-field stop on dispose and never publishes after it", () => {
     const f = fixture();
     try {
-      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]));
+      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture");
       f.recorder.withRecording(() => {
         RSH(baseVs.rs, f.root).set("opacity", "0.5");
       });
@@ -441,7 +440,7 @@ describe("native selected-style projection", () => {
   it("keeps indicator source-stack identities as refs, not live models", () => {
     const f = fixture();
     try {
-      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]));
+      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture");
       let mixin!: Mixin;
       f.recorder.withRecording(() => {
         mixin = new Mixin({
@@ -492,7 +491,7 @@ describe("native selected-style projection", () => {
   it("disposes a view registry from its lifetime signal", () => {
     const f = fixture();
     try {
-      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]));
+      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture");
       f.recorder.withRecording(() => {
         RSH(baseVs.rs, f.root).set("opacity", "0.5");
       });
@@ -525,7 +524,7 @@ describe("native selected-style projection", () => {
   it("installs final cells before field subscribers and publishes once for coalesced edits", () => {
     const f = fixture();
     try {
-      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]));
+      const baseVs = ensure(tryGetVariantSetting(f.root, [f.base]), "Root node must have a base variant setting in the style-input fixture");
       f.recorder.withRecording(() => {
         RSH(baseVs.rs, f.root).set("opacity", "0.1");
       });
@@ -620,7 +619,7 @@ function passedSlots(f: Fixture) {
     $$$(f.root).append(instance); text.parent = instance;
     const firstExpr = new RenderExpr({ tpl: [text] }), secondExpr = new RenderExpr({ tpl: [] });
     const firstArg = new Arg({ param: firstParam, expr: firstExpr }), secondArg = new Arg({ param: secondParam, expr: secondExpr });
-    ensure(tryGetVariantSetting(instance, [f.base])).args.push(firstArg, secondArg);
+    ensure(tryGetVariantSetting(instance, [f.base]), "Component instance must have a base variant setting before adding slot arguments").args.push(firstArg, secondArg);
     return { card, base, first, second, text, instance, firstExpr, secondExpr };
   });
 }
@@ -652,7 +651,7 @@ it("switches the inherited slot context using the instance's actual VariantsRef 
       const vtm = createVariantTplMgr(f.site, f.tplMgr, slot.card);
       RSH(vtm.ensureVariantSetting(slot.first, [variant]).rs, slot.first).set("color", "black");
       const variants = new VariantsRef({ variants: [] });
-      ensure(tryGetVariantSetting(slot.instance, [f.base])).args.push(new Arg({ param: group.param, expr: variants }));
+      ensure(tryGetVariantSetting(slot.instance, [f.base]), "Slot instance must have a base variant setting before adding the variant argument").args.push(new Arg({ param: group.param, expr: variants }));
       return { variants, variant };
     });
     const projection = new TplStyleProjection(f.snapshots, sourceFor(f, [f.base], [f.base], [f.base], slot.text), ["color"]);
@@ -681,7 +680,7 @@ it("continues through nested passed slots and tracks an initially empty contribu
       cardRoot.children.splice(cardRoot.children.indexOf(slot.first), 1);
       $$$(cardRoot).append(instance);
       slot.first.parent = instance;
-      ensure(tryGetVariantSetting(instance, [slot.base])).args.push(
+      ensure(tryGetVariantSetting(instance, [slot.base]), "Destination instance must have a base variant setting before adding the slot argument").args.push(
         new Arg({ param, expr: new RenderExpr({ tpl: [slot.first] }) })
       );
       return { destination };

@@ -154,6 +154,8 @@ const ActivityRegion = function ActivityRegion({
       aria-hidden="true"
       style={{
         ...bounds,
+        ...(bounds.left === 0 && bounds.top === 0 && bounds.width === viewCtx.arenaFrame().width && bounds.height === getFrameHeight(viewCtx.arenaFrame())
+          ? { borderRadius: "var(--device-screen-radius, 3px)" } : {}),
         "--scan-stroke-width": `${1 / zoom}px`,
         "--scan-completion-duration": `${SCAN_COMPLETION_MS}ms`,
       } as React.CSSProperties}
@@ -397,9 +399,11 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
         ref={cursorHost}
         className={classNames(styles.cursorHost, themeStyles.root)}
       />}
+      <div className={styles.screenClip}>
       <ActivityRegions viewCtx={viewCtx} scope={current} regions={visibleRegions.map(({ key, request, target, scanning, layout }) => ({
         key, request, target, scanning, bounds: ensure(layout.bounds, "Visible activity region has bounds"),
       }))} />
+      </div>
     </>
   );
 });

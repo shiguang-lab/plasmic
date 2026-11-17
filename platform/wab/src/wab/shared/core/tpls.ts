@@ -85,7 +85,6 @@ import {
   Var,
   Variant,
   VariantSetting,
-  VarRef,
 } from "@/wab/shared/model/classes";
 /* eslint-disable
     no-fallthrough,
@@ -1013,7 +1012,7 @@ export function analyzeExprsInTpl(
     .when(TplComponent, (_tpl) => {
       processTplData(_tpl);
     })
-    .when(TplSlot, (_tpl) => {})
+    .when(TplSlot, (_tpl) => { /* Slot nodes have no node-local variant expressions; their children are visited below. */ })
     .result();
   tplChildren(tpl).map((child) => rec(child));
 }
@@ -1028,7 +1027,7 @@ export function hasNonTrivialCodeExprs(tplRoot: TplNode) {
           found = true;
         }
       },
-      defVar(_v) {},
+      defVar(_v) { /* This analysis collects expressions, not variable definitions. */ },
       rec(child: TplNode) {
         return rec(child);
       },
@@ -1042,7 +1041,7 @@ export function findVarDefs(tplRoot: TplNode) {
   const rec = (tpl: TplNode) =>
     analyzeExprsInTpl({
       tpl,
-      readExpr(_expr, _locationInTpl) {},
+      readExpr(_expr, _locationInTpl) { /* This analysis collects variable definitions, not expression reads. */ },
       defVar(v) {
         found.push(v);
       },
@@ -3166,23 +3165,6 @@ export function isAttrEventHandler(attr: string) {
   return attr.startsWith("on");
 }
 
-function derefEventHandlerValue(
-  component: Component,
-  expr: EventHandler | VarRef | CustomCode | ObjectPath,
-) {
-  if (!isKnownVarRef(expr)) {
-    return expr;
-  }
-  const param = Exprs.extractReferencedParam(component, expr);
-  assert(
-    param &&
-      (isKnownEventHandler(param.defaultExpr) ||
-        isRealCodeExpr(param.defaultExpr) ||
-        param.defaultExpr == null),
-    "only eventHandler expr is supported for functionType param",
-  );
-  return param?.defaultExpr ?? undefined;
-}
 
 export function getEventHandlerByEventKey(
   component: Component,

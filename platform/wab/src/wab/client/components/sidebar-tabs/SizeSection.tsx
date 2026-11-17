@@ -66,7 +66,6 @@ import {
   setPageSizeType,
 } from "@/wab/shared/sizingutils";
 import { capitalizeFirst } from "@/wab/shared/strs";
-import { $$$ } from "@/wab/shared/TplQuery";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { Alert, Menu } from "antd";
 import cn from "classnames";
@@ -602,7 +601,6 @@ const FlexGrowControls = React.memo(function FlexGrowControls(props: {
   const { expsProvider } = props;
   const owner = expsProvider.getNativeStyleSource().inputs;
 
-  const parentContainerType = inputs.parentContainerType;
 
   const exp = () => expsProvider.mergedExp();
 
@@ -714,18 +712,6 @@ function toDisplay(val: string, stretchLabel: string, isRoot: boolean) {
   return val;
 }
 
-function fromDisplay(val: string, stretchLabel: string) {
-  if (val === "Hug content") {
-    val = "wrap";
-  } else if (val === "Full bleed") {
-    val = CONTENT_LAYOUT_FULL_BLEED;
-  } else if (val === "Wide width") {
-    val = CONTENT_LAYOUT_WIDE;
-  } else if (val === stretchLabel) {
-    val = "stretch";
-  }
-  return val;
-}
 
 export const PageSizePanelSection = React.memo(
   function PageSizePanelSection(props: { expsProvider: ExpsProvider }) {

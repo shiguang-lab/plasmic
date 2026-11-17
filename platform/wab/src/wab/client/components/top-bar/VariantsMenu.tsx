@@ -20,7 +20,7 @@ import {
 import { ensure, mod, spawn } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import defer = setTimeout;
 
 

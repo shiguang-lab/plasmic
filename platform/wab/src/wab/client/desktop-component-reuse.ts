@@ -6,8 +6,8 @@ export async function desktopComponentReuse(request: ComponentReuseCommand): Pro
     sync(input: unknown): Promise<unknown>; review(input: unknown): Promise<unknown>;
     cancel(id: string): void; activity(): void; release(projectId: string): Promise<unknown>;
   } }).desktopComponentReuse;
-  if (request.command === "status") return { available: !!native };
-  if (!native) return null;
+  if (request.command === "status") {return { available: !!native };}
+  if (!native) {return null;}
   switch (request.command) {
     case "sync": { const { command: _command, ...input } = request; return native.sync(input); }
     case "review": { const { command: _command, ...input } = request; return native.review(input); }

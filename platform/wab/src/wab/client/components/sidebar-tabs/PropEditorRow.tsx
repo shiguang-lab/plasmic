@@ -1,3 +1,4 @@
+import arrayStyles from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPropEditor.module.scss";
 import {
   canEditSemanticValue,
   isSemanticObjectProp,
@@ -53,6 +54,8 @@ import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleCom
 import StyleSwitch from "@/wab/client/components/style-controls/StyleSwitch";
 import Button from "@/wab/client/components/widgets/Button";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import IconButton from "@/wab/client/components/widgets/IconButton";
+import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import { LabelWithDetailedTooltip } from "@/wab/client/components/widgets/LabelWithDetailedTooltip";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -781,6 +784,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
   const wabType = ensurePropTypeToWabType(studioCtx.site, propType);
   const propTypeType = getPropTypeType(propType);
   const isSemantic = isSemanticObjectProp(propType);
+  const isInteraction = propTypeType === "interaction";
   const isTokenBinding =
     isSemantic &&
     isKnownObjectPath(expr) &&
@@ -1225,9 +1229,13 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
         }
       : undefined;
 
+  const [arrayHeaderElement, setArrayHeaderElement] =
+    React.useState<HTMLElement | null>(null);
+
   const renderDefaultEditor = () => {
     return (
       <PropValueEditor
+        arrayHeaderElement={arrayHeaderElement}
         attr={attr}
         value={exprLit}
         label={label}
@@ -1413,6 +1421,24 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
               renderDefaultEditor()
             ) : (
               <LabeledItemRow
+                alwaysShowActions={isInteraction || propTypeType === "array"}
+                rightExtras={isInteraction && expr && onDelete && !readOnly &&
+                  ["set", "none", "invariantable", "setNonVariable"].includes(definedIndicator.source) ? (
+                  <IconButton
+                    type="seamless"
+                    tooltip={uiT("Remove")}
+                    onClick={onDelete}
+                    disabled={disabled}
+                  >
+                    <Icon icon={MinusIcon} />
+                  </IconButton>
+                ) : propTypeType === "array" ? (
+                  <span
+                    className={arrayStyles.headerAction}
+                    data-test-id={`${attr}-header-actions`}
+                    ref={setArrayHeaderElement}
+                  />
+                ) : undefined}
                 data-test-id={`prop-editor-row-${attr ?? label}`}
                 label={
                   <MaybeWrap
@@ -1423,7 +1449,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                       </LabelWithDetailedTooltip>
                     )}
                   >
-                    <div>
+                    <div className={propTypeType === "array" ? arrayStyles.label : undefined}>
                       {isPlainObjectPropType(propType) &&
                       hackyCast(propType).required ? (
                         <span className="required-prop">{label}</span>
@@ -1437,9 +1463,9 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                 definedIndicator={definedIndicator}
                 layout={layout}
                 compactControl={isSwitchRow}
-                alignment={isSwitchRow ? "center" : undefined}
+                alignment={isSwitchRow || isInteraction ? "center" : undefined}
                 menu={
-                  allowPointerInteractions && !isMenuEmpty(contextMenu)
+                  !isInteraction && allowPointerInteractions && !isMenuEmpty(contextMenu)
                     ? contextMenu
                     : undefined
                 }
@@ -1455,7 +1481,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                   }
                 >
                   <ContextMenuIndicator
-                    menu={!isMenuEmpty(contextMenu) ? contextMenu : undefined}
+                    menu={!isInteraction && !isMenuEmpty(contextMenu) ? contextMenu : undefined}
                     showDynamicValueButton={showDynamicValueButton}
                     tooltip={
                       isEditedAsTemplatedString

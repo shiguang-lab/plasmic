@@ -47,11 +47,11 @@ methodForwarder<{}>();
 methodForwarder<{ prop(): void }>();
 methodForwarder<{ prop: () => void }>();
 
-// @ts-expect-error
+// @ts-expect-error Every forwarded property must be a method.
 methodForwarder<{ prop: void }>();
-// @ts-expect-error
+// @ts-expect-error Forwarding does not support asynchronous return values.
 methodForwarder<{ prop: () => Promise<void> }>();
-// @ts-expect-error
+// @ts-expect-error Forwarded methods must return void, not a value.
 methodForwarder<{ prop: () => boolean }>();
-// @ts-expect-error
+// @ts-expect-error An extra non-method property also violates the contract.
 methodForwarder<{ prop: () => void; extraProp: string }>();

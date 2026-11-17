@@ -99,16 +99,16 @@ export function arrayMoveIndex<T>(
 
 export function unzip<A, B>(xs: [A, B][]): [A[], B[]] {
   return tuple(
-    xs.map(([a, b]) => a),
-    xs.map(([a, b]) => b),
+    xs.map(([a]) => a),
+    xs.map(([, b]) => b),
   );
 }
 
 export function unzip3<A, B, C>(xs: [A, B, C][]): [A[], B[], C[]] {
   return tuple(
-    xs.map(([a, b, c]) => a),
-    xs.map(([a, b, c]) => b),
-    xs.map(([a, b, c]) => c),
+    xs.map(([a]) => a),
+    xs.map(([, b]) => b),
+    xs.map(([, , c]) => c),
   );
 }
 

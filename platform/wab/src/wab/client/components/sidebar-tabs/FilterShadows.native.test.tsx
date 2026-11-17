@@ -22,7 +22,7 @@ import React from "react";
 import { mock } from "vitest-mock-extended";
 
 const studios = new Set<StudioCtx>();
-beforeEach(() => vi.stubGlobal("IntersectionObserver", class { observe() {} unobserve() {} disconnect() {} }));
+beforeEach(() => vi.stubGlobal("IntersectionObserver", class { observe = vi.fn(); unobserve = vi.fn(); disconnect = vi.fn(); }));
 afterEach(async () => { cleanup(); for (const studio of studios) { await studio.awaitEval(); studio.dispose(); } studios.clear(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 async function setup(nonbase = false) {
   const site = createSite(), end = mkStyleToken({ name: "End", type: "Color", value: "#123456" }), head = mkStyleToken({ name: "Shadow paint", type: "Color", value: mkTokenRef(end) });
@@ -110,8 +110,9 @@ it("keeps the resolved shadow swatch current and adds, edits and removes shadows
   fireEvent.keyDown(editor, { key: "Escape" });
   expect(document.activeElement).toBe(updated);
   fireEvent.contextMenu(screen.getByText("Shadows"));
-  const clear = await screen.findByRole("menuitem", { name: "Remove all Shadows styles" });
-  fireEvent.keyDown(clear, { key: "Escape" });
+  const preset = await screen.findByRole("menuitem", { name: /Move all Shadows styles to a style preset/ });
+  expect(screen.queryByRole("menuitem", { name: "Remove all Shadows styles" })).toBeNull();
+  fireEvent.keyDown(preset, { key: "Escape" });
 
   fireEvent.click(screen.getByRole("button", { name: "Add shadow" }));
   const added = await screen.findByRole("button", { name: /^Shadow: Outset,/ });
@@ -198,17 +199,18 @@ it("selects exclusive None, replaces it when adding a shadow, and clears it dire
   expect(screen.queryByRole("button", { name: /^Shadow: Outset,/ })).toBeNull();
   expect(screen.getByRole("button", { name: "Add shadow" }).hasAttribute("disabled")).toBe(false);
   fireEvent.click(screen.getByRole("button", { name: "Add shadow" }));
-  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("0px 4px 16px 0px rgba(0,0,0,0.2)"));
+  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("0px 4px 16px 0px rgba(22,119,255,0.6)"));
   expect(screen.queryByRole("button", { name: "Shadow: None" })).toBeNull();
   expect(screen.getAllByRole("button", { name: /^Shadow: Outset,/ })).toHaveLength(1);
   const addedEditor = await screen.findByRole("dialog", { name: "Shadow" });
+  expect(within(addedEditor).getByRole("textbox", { name: "Opacity" }).getAttribute("value")).toBe("60");
   expect(within(addedEditor).getByRole("textbox", { name: "Left" })).toBeTruthy();
   fireEvent.click(within(addedEditor).getByRole("button", { name: "None" }));
   await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("none"));
   const editor = await screen.findByRole("dialog", { name: "Shadow" });
   expect(within(editor).queryByRole("textbox", { name: "Left" })).toBeNull();
   fireEvent.click(within(editor).getByRole("button", { name: "Inset" }));
-  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("inset 0px 4px 16px 0px rgba(0,0,0,0.2)"));
+  await waitFor(() => expect(f.exp.getRaw("box-shadow")).toBe("inset 0px 4px 16px 0px rgba(22,119,255,0.6)"));
   expect(within(editor).getByRole("textbox", { name: "Left" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Add shadow" }).hasAttribute("disabled")).toBe(false);
   fireEvent.click(within(editor).getByRole("button", { name: "None" }));
@@ -221,23 +223,64 @@ it("selects exclusive None, replaces it when adding a shadow, and clears it dire
   expect(f.exp.getRaw("filter")).toBe(`drop-shadow(0px 1px 2px ${mkTokenRef(f.head)})`);
 });
 
-it.each([
-  ["Transform", "transform", TransformPanelSection],
-] as const)("distinguishes none from default for %s and preserves unrelated styles", async (label, prop, Section) => {
+it("edits exclusive Transform None in the type control, replaces it on add, and removes overrides directly", async () => {
   const f = await setup();
   await f.studio.changeUnsafe(() => {
+    f.exp.set("transform", "perspective(500px) translateX(10px) scale(2)");
+    f.exp.set("transform-origin", "20% 30%");
+    f.exp.set("perspective", "600px");
+    f.exp.set("perspective-origin", "40% 50%");
+    f.exp.set("backface-visibility", "hidden");
     f.exp.set("opacity", "0.5");
-    if (prop === "transform") { f.exp.set("transform", "translateX(10px)"); }
   });
-  render(f.wrap(<Section expsProvider={f.provider} />));
-  fireEvent.click(screen.getByRole("button", { name: `${label}: Custom` }));
-  fireEvent.click(await screen.findByRole("menuitem", { name: "None" }));
-  await screen.findByRole("button", { name: `${label}: None` });
-  expect(f.exp.getRaw(prop)).toBe("none");
+  render(f.wrap(<TransformPanelSection expsProvider={f.provider} />));
+  expect(screen.queryByRole("button", { name: "Transform: Custom" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Transform: Translate" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Transform: Scale" }));
+  let editor = await screen.findByRole("dialog", { name: "Transform" });
+  expect(within(editor).getByRole("button", { name: "Translate" })).toBeTruthy();
+  expect(within(editor).queryByRole("button", { name: "Move" })).toBeNull();
+  fireEvent.click(within(editor).getByRole("button", { name: "None" }));
+  await waitFor(() => expect(f.exp.getRaw("transform")).toBe("none"));
+  expect(screen.getAllByRole("button", { name: "Transform: None" })).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: "Transform: Scale" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Transform: Translate" })).toBeNull();
+  editor = await screen.findByRole("dialog", { name: "Transform" });
+  expect(within(editor).queryByRole("slider")).toBeNull();
+  expect(screen.getByRole("button", { name: "Add transform" }).hasAttribute("disabled")).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "Add transform" }));
+  await waitFor(() => expect(f.exp.getRaw("transform")).toBe("translate3d(0px, 0px, 0px)"));
+  expect(screen.queryByRole("button", { name: "Transform: None" })).toBeNull();
+  expect(screen.getAllByRole("button", { name: "Transform: Translate" })).toHaveLength(1);
+  editor = await screen.findByRole("dialog", { name: "Transform" });
+  expect(within(editor).getAllByRole("slider")).toHaveLength(3);
+  fireEvent.click(within(editor).getByRole("button", { name: "None" }));
+  await waitFor(() => expect(f.exp.getRaw("transform")).toBe("none"));
+  fireEvent.click(within(editor).getByRole("button", { name: "Rotate" }));
+  await waitFor(() => expect(f.exp.getRaw("transform")).toBe("rotate3d(0, 0, 0, 0deg)"));
+  fireEvent.click(within(editor).getByRole("button", { name: "None" }));
+  await screen.findByRole("button", { name: "Transform: None" });
+  fireEvent.click(screen.getByRole("button", { name: "Remove None override" }));
+  await waitFor(() => expect(f.exp.has("transform")).toBe(false));
+  expect(screen.queryByRole("button", { name: "Transform: None" })).toBeNull();
+  expect(screen.queryByRole("dialog", { name: "Transform" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Add transform" }));
+  const row = ensure((await screen.findByRole("button", { name: "Transform: Translate" })).closest<HTMLElement>(".list-box-item"), "Transform row");
+  fireEvent.click(within(row).getByRole("button", { name: "Remove" }));
+  await waitFor(() => expect(f.exp.has("transform")).toBe(false));
+  expect(f.exp.getRaw("transform-origin")).toBe("20% 30%");
+  expect(f.exp.getRaw("perspective")).toBe("600px");
+  expect(f.exp.getRaw("perspective-origin")).toBe("40% 50%");
+  expect(f.exp.getRaw("backface-visibility")).toBe("hidden");
   expect(f.exp.getRaw("opacity")).toBe("0.5");
-  fireEvent.click(screen.getByRole("button", { name: `${label}: None` }));
-  fireEvent.click(await screen.findByRole("menuitem", { name: "Restore default" }));
-  await screen.findByRole("button", { name: `${label}: Default` });
-  expect(f.exp.has(prop)).toBe(false);
-  expect(f.exp.getRaw("opacity")).toBe("0.5");
+});
+
+it("preserves self perspective when removing a transform function", async () => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => f.exp.set("transform", "perspective(500px) translateX(10px)"));
+  render(f.wrap(<TransformPanelSection expsProvider={f.provider} />));
+  const row = ensure(screen.getByRole("button", { name: "Transform: Translate" }).closest<HTMLElement>(".list-box-item"), "Transform row");
+  fireEvent.click(within(row).getByRole("button", { name: "Remove" }));
+  await waitFor(() => expect(f.exp.getRaw("transform")).toBe("perspective(500px)"));
+  expect(screen.queryByRole("button", { name: "Transform: None" })).toBeNull();
 });

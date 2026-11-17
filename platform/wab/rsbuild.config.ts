@@ -147,7 +147,7 @@ class AppendSourceMapWithHash implements RspackPluginInstance {
   private shouldProcessFile(filePath: string) {
     return (
       filePath.endsWith(".js") &&
-      this.opts.paths.some((path) => filePath.startsWith(path))
+      this.opts.paths.some((directory) => filePath.startsWith(directory))
     );
   }
 }

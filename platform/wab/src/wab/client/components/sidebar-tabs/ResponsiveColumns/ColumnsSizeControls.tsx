@@ -174,7 +174,7 @@ export const ColumnSizeControlDraggables = React.memo(
                     }
                   }
                 }}
-                onStop={(e) => {
+                onStop={() => {
                   if (!isActive()) { setDragState(undefined); return; }
                   viewCtx.stopUnlogged();
                   setDragState(undefined);

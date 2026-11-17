@@ -1,3 +1,4 @@
+import canvasFrame from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import definedIndicator from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
 import paintRows from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import typography from "@/wab/client/components/style-controls/Typography.module.scss";
@@ -481,6 +482,12 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
   "& .CanvasFrame__Config:hover": {
     background: token.colorFillSecondary,
     color: token.colorText,
+  },
+  [`& .${canvasFrame.device} > .CanvasFrame__Config`]: {
+    background: `color-mix(in srgb, ${token.colorBgElevated} 55%, transparent)`,
+  },
+  [`& .${canvasFrame.device} > .CanvasFrame__Config:hover`]: {
+    background: `color-mix(in srgb, ${token.colorBgElevated} 70%, transparent)`,
   },
   "& .labeled-item__label": { color: token.colorText },
   "& .btn-link": { color: token.colorText },

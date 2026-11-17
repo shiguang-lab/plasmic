@@ -79,8 +79,8 @@ export const ResponsiveColumnsCanvasControls = React.memo(
       return null;
     }
 
-    const rect = getElementBounds(ensure(elt));
-    const contentRect = getContentOnlyRect(ensure(elt), {
+    const rect = getElementBounds(ensure(elt, "Columns container element must exist to measure its bounds"));
+    const contentRect = getContentOnlyRect(ensure(elt, "Columns container element must exist to measure its content area"), {
       origin: {
         top: 0,
         left: 0,

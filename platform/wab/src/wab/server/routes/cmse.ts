@@ -24,7 +24,7 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { ensureArray, ensureString, ensureType } from "@/wab/shared/common";
 import { UploadedFile } from "express-fileupload";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { flatten, mapValues, pick } from "lodash";
 
 export async function listDatabases(req: Request, res: Response) {

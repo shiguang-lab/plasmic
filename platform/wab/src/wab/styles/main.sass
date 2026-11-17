@@ -205,7 +205,7 @@ $col-gutter: 20px
 
 @mixin full-panel-width
   margin-left: -$sidebar-section-hpadding
-  margin-right: -$sidebar-section-hpadding-with-right-gutter
+  margin-right: -$sidebar-section-hpadding
 
 .full-panel-width
   @include full-panel-width
@@ -250,7 +250,7 @@ $panel-col-gutter: 10px
     padding-right: 2px
 
 .panel-content
-  padding: 12px $sidebar-section-hpadding-with-right-gutter 12px $sidebar-section-hpadding
+  padding: 12px $sidebar-section-hpadding
 .panel-content--hug-top
   margin-top: -4px
 
@@ -5076,7 +5076,7 @@ $resizer_size: 8px
   border: none
 
 .SidebarSection__Header
-  padding: $sidebar-section-vpadding $sidebar-section-hpadding-with-right-gutter $sidebar-section-vpadding $sidebar-section-hpadding
+  padding: $sidebar-section-vpadding $sidebar-section-hpadding
   display: flex
   align-items: center
   position: relative
@@ -5109,14 +5109,14 @@ $resizer_size: 8px
     margin-left: $space-sm
 
 .SidebarSection__Body
-  padding: 2px $sidebar-section-hpadding-with-right-gutter $sidebar-section-vpadding + 5px $sidebar-section-hpadding
+  padding: 2px $sidebar-section-hpadding $sidebar-section-vpadding + 5px
   //margin-top: -5px
   display: flex
   flex-direction: column
 
 .SidebarSection__HPadding
   padding-left: $sidebar-section-hpadding
-  padding-right: $sidebar-section-hpadding-with-right-gutter
+  padding-right: $sidebar-section-hpadding
 
 .SidebarSection__VPadding
   padding-top: $sidebar-section-vpadding

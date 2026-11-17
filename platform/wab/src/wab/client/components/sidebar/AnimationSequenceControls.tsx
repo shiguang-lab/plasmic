@@ -4,7 +4,7 @@ import { showError } from "@/wab/client/ErrorNotifications";
 import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
-import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
+import { FilterEffectsPanelSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
 import { LayoutPanelSection } from "@/wab/client/components/sidebar-tabs/LayoutPanelSection";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
@@ -362,10 +362,9 @@ function AnimationSequenceStylePanelSections({
             {
               collapsible: !isSet("filter", "backdrop-filter"),
               content: (
-                <EffectsPanelSection
+                <FilterEffectsPanelSection
                   key="effect"
                   expsProvider={expsProvider}
-                  animatableOnly={true}
                 />
               ),
             },

@@ -5,17 +5,7 @@ import { Bundler } from "@/wab/shared/bundler";
 import { ensureInstance } from "@/wab/shared/common";
 import { ProjectDependency, Site } from "@/wab/shared/model/classes";
 
-const bgAtomicProps = [
-  "background-image",
-  "background-position",
-  "background-size",
-  "background-repeat",
-  "background-origin",
-  "background-clip",
-  "background-attachment",
-];
 
-const bgImg = "background-image";
 
 export const migrate: UnbundledMigrationFn = async (bundle, db, entity) => {
   const rsIids: string[] = [];

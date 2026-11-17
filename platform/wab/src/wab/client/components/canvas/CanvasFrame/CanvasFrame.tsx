@@ -10,6 +10,9 @@ import { CanvasFrameLoad } from "@/wab/client/components/canvas/canvas-frame-loa
 import { CanvasActions } from "@/wab/client/components/canvas/CanvasActions/CanvasActions";
 import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasHeader";
+import { DeviceFrame } from "@/wab/client/components/device-frame/DeviceFrame";
+import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
+import { isPageComponent } from "@/wab/shared/core/components";
 import { headRegexp } from "@/wab/client/components/canvas/CanvasFrame/headRegexp";
 import { CopilotActivityOverlay } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
@@ -37,7 +40,7 @@ import { ArenaFrame } from "@/wab/shared/model/classes";
 import { Button, Skeleton } from "antd";
 import $ from "jquery";
 import { useStore } from "zustand";
-import { useCanvasComponentInputs, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { useCanvasComponentValue, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
 import { ok } from "neverthrow";
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useMountedState, useUnmount } from "react-use";
@@ -76,12 +79,18 @@ export const CanvasFrame = React.memo(function CanvasFrame({
   const { t: studioUiT } = useI18n();
   const frameHeight = useFrameHeight(studioCtx, arenaFrame);
   const modelFields = React.useCallback<CanvasViewFieldRecipe>((field) => {
-    field(arenaFrame, "width", "left", "top", "container");
+    field(arenaFrame, "width", "height", "left", "top", "container");
     field(arenaFrame.container, "component");
+    field(arenaFrame.container.component, "type");
     if ("name" in arena) { field(arena, "name"); }
     else { field(arena.component, "name"); }
   }, [arena, arenaFrame]);
-  const { alive } = useCanvasComponentInputs(studioCtx, arenaFrame, modelFields);
+  const selectFramePresentation = React.useCallback(() => ({
+    deviceFrame: isPageComponent(arenaFrame.container.component)
+      ? getDeviceFrame(arenaFrame.width, arenaFrame.height)
+      : undefined,
+  }), [arenaFrame]);
+  const framePresentation = useCanvasComponentValue(studioCtx, arenaFrame, modelFields, selectFramePresentation);
   const canComment = useStore(studioCtx.uiEnvironment.store, (state) => state.canComment);
 
   const [createdVc, setCreatedVc] = useState(false);
@@ -591,12 +600,18 @@ export const CanvasFrame = React.memo(function CanvasFrame({
   const contentView = useActiveContentEditor(studioCtx)?.viewCtx;
   const [contentSize, isContentEditing, contentReady] = useContentEditor(maybeViewCtx()?.contentEditor,
     useShallow((state) => [state.size, !!state.target, state.ready] as const));
-  if (!alive || !studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return null; }
+  if (!framePresentation || !studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return null; }
+  const deviceFrame = isContentEditing ? undefined : framePresentation.deviceFrame;
   return (
     <div onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div
-        className="CanvasFrame__Container"
+        className={cx("CanvasFrame__Container", deviceFrame && styles.device)}
         style={{
+          ...(deviceFrame ? {
+            "--device-inset-x": `${deviceFrame.insetX}px`,
+            "--device-inset-y": `${deviceFrame.insetY}px`,
+            "--device-screen-radius": `${deviceFrame.screenRadius}px`,
+          } : {}),
           ...(isFree
             ? {
                 position: "absolute",
@@ -619,6 +634,7 @@ export const CanvasFrame = React.memo(function CanvasFrame({
         }}
         data-frame-id={`${arenaFrame.uid}`}
       >
+        {deviceFrame && <DeviceFrame frame={deviceFrame} />}
         {frameError ? (
           <div className={styles.loadingOverlay} role="alert">
             <div>
@@ -648,7 +664,9 @@ export const CanvasFrame = React.memo(function CanvasFrame({
           </div>
         )}
         <iframe
-          style={isContentEditing ? { background: "transparent", opacity: contentReady ? 1 : 0 } : undefined}
+          style={isContentEditing
+            ? { background: "transparent", opacity: contentReady ? 1 : 0 }
+            : deviceFrame ? { borderRadius: deviceFrame.screenRadius } : undefined}
           data-plasmic-frame-uuid={arenaFrame.uuid}
           data-plasmic-component-uuid={arenaFrame.container.component.uuid}
           className={cx(

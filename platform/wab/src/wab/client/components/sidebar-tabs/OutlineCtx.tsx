@@ -818,8 +818,8 @@ function getTreeNodeChildren(
         return {
           children: slotParams.flatMap<TplNode | SlotSelection>((slotParam) => {
             const slot = new SlotSelection({ tpl, slotParam });
-            if (!isFixedRootSlot(viewCtx, slot)) return [slot];
-            const arg = viewCtx.effectiveCurrentVariantSetting(tpl).args.find((arg) => arg.param === slotParam);
+            if (!isFixedRootSlot(viewCtx, slot)) {return [slot];}
+            const arg = viewCtx.effectiveCurrentVariantSetting(tpl).args.find((candidate) => candidate.param === slotParam);
             return arg && isKnownRenderExpr(arg.expr) ? arg.expr.tpl : [];
           }),
           childrenFrameNum: componentFrameNum,

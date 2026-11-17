@@ -82,7 +82,7 @@ export const COMMENT_TOOLS = {
   }),
   replyToComment: defineCopilotTool(meta.replyToComment, async (studio, input, _caller, signal) => {
     const ctx = scope(studio, signal);
-    const thread = ensure((await ctx.read()).threads.find(thread => thread.id === input.threadId), "Comment thread not found in current project/branch");
+    const thread = ensure((await ctx.read()).threads.find(candidate => candidate.id === input.threadId), "Comment thread not found in current project/branch");
     const commentId = mkShortUuid<CommentId>();
     ctx.check();
     await ctx.api.postThreadComment(ctx.projectId, ctx.branchId, thread.id, { id: commentId, body: input.body });
@@ -91,7 +91,7 @@ export const COMMENT_TOOLS = {
   }),
   editComment: defineCopilotTool(meta.editComment, async (studio, input, _caller, signal) => {
     const ctx = scope(studio, signal);
-    const thread = ensure((await ctx.read()).threads.find(thread => thread.comments.some(comment => comment.id === input.commentId && !comment.deletedAt)), "Comment not found in current project/branch");
+    const thread = ensure((await ctx.read()).threads.find(candidate => candidate.comments.some(comment => comment.id === input.commentId && !comment.deletedAt)), "Comment not found in current project/branch");
     ctx.check();
     await ctx.api.editComment(ctx.projectId, ctx.branchId, toOpaque(input.commentId), { body: input.body });
     await ctx.refresh();
@@ -99,7 +99,7 @@ export const COMMENT_TOOLS = {
   }),
   deleteComment: defineCopilotTool(meta.deleteComment, async (studio, input, _caller, signal) => {
     const ctx = scope(studio, signal);
-    const thread = ensure((await ctx.read()).threads.find(thread => thread.comments.some(comment => comment.id === input.commentId && !comment.deletedAt)), "Comment not found in current project/branch");
+    const thread = ensure((await ctx.read()).threads.find(candidate => candidate.comments.some(comment => comment.id === input.commentId && !comment.deletedAt)), "Comment not found in current project/branch");
     ctx.check();
     await ctx.api.deleteComment(ctx.projectId, ctx.branchId, input.commentId);
     await ctx.refresh();
@@ -107,7 +107,7 @@ export const COMMENT_TOOLS = {
   }),
   deleteCommentThread: defineCopilotTool(meta.deleteCommentThread, async (studio, input, _caller, signal) => {
     const ctx = scope(studio, signal);
-    const thread = ensure((await ctx.read()).threads.find(thread => thread.id === input.threadId), "Comment thread not found in current project/branch");
+    const thread = ensure((await ctx.read()).threads.find(candidate => candidate.id === input.threadId), "Comment thread not found in current project/branch");
     ctx.check();
     await ctx.api.deleteThread(ctx.projectId, ctx.branchId, thread.id);
     await ctx.refresh();
@@ -115,7 +115,7 @@ export const COMMENT_TOOLS = {
   }),
   setCommentThreadResolved: defineCopilotTool(meta.setCommentThreadResolved, async (studio, input, _caller, signal) => {
     const ctx = scope(studio, signal);
-    const thread = ensure((await ctx.read()).threads.find(thread => thread.id === input.threadId), "Comment thread not found in current project/branch");
+    const thread = ensure((await ctx.read()).threads.find(candidate => candidate.id === input.threadId), "Comment thread not found in current project/branch");
     ctx.check();
     await ctx.api.editThread(ctx.projectId, ctx.branchId, thread.id, { id: mkUuid<ThreadHistoryId>(), resolved: input.resolved });
     await ctx.refresh();

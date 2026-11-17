@@ -45,7 +45,7 @@ import {
 } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import type { DropdownProps } from "antd";
-import { Dropdown, Skeleton, Table, Tooltip } from "antd";
+import { Dropdown, Table, Tooltip } from "antd";
 import classNames from "classnames";
 import { isKeyHotkey } from "is-hotkey";
 import L from "lodash";
@@ -321,9 +321,9 @@ interface DragItemProps {
 }
 
 export function DragItem({
-  onDragStart = () => {},
-  onDrag = () => {},
-  onDragEnd = () => {},
+  onDragStart,
+  onDrag,
+  onDragEnd,
   children,
   dragHandle,
   minPx,
@@ -570,8 +570,8 @@ export function ListBoxItem(props: ListBoxItemProps) {
       showGrip = true,
       showDelete = true,
       showHide = false,
-      onRemove = () => {},
-      onToggleHide = () => {},
+      onRemove = () => { /* Removing an item is optional for this list. */ },
+      onToggleHide = () => { /* Visibility changes are optional for this list. */ },
       clickable = true,
       truncate = true,
       menu,

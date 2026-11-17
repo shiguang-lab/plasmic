@@ -1,3 +1,5 @@
+export const DEFAULT_MARGIN_FOR_NEW_FRAMES = 240;
+
 export const plasmicClonedIndex = "data-plasmic-index";
 export const slotPlaceholderAttr = "data-plasmic-slot-placeholder";
 export const NO_INDEX_COPY = -1;

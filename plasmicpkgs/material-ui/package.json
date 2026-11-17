@@ -1,0 +1,57 @@
+{
+  "name": "@shiguang-lab/plasmic-material-ui",
+  "version": "0.1.0",
+  "description": "Material UI mobile-first components for Plasmic",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components.d.ts",
+      "import": "./dist/components.esm.js",
+      "require": "./dist/components.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "node build.mjs && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "generate": "node scripts/generate-api.mjs",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@mui/material": "9.5.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1"
+  },
+  "peerDependencies": {
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@plasmicapp/host": "workspace:*",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "@testing-library/react": "catalog:",
+    "jsdom": "28.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

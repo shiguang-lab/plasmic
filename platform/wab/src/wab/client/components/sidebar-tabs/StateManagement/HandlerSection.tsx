@@ -5,18 +5,17 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { ok } from "neverthrow";
 import * as React from "react";
 
-import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import ActionBuilder from "@/wab/client/components/sidebar-tabs/StateManagement/ActionBuilder";
+import styles from "@/wab/client/components/sidebar-tabs/StateManagement/ActionBuilder.module.scss";
+import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleReorderableList } from "@/wab/client/components/widgets/SimpleReorderableList";
-import {
-  DefaultHandlerSectionProps,
-  PlasmicHandlerSection,
-} from "@/wab/client/plasmic/plasmic_kit_state_management/PlasmicHandlerSection";
+import { useI18n } from "@/wab/client/i18n";
+import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { mkDefaultInteraction } from "@/wab/client/state-management/interactions-meta";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { HighlightInteractionRequest } from "@/wab/shared/code-components/code-components";
-import { ensure, moveIndex, remove, spawn } from "@/wab/shared/common";
+import { cx, ensure, moveIndex, remove, spawn } from "@/wab/shared/common";
 import {
   EventHandlerKeyType,
   KeyedEventHandler,
@@ -35,9 +34,10 @@ import {
   isKnownGenericEventHandler,
 } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, Menu } from "antd";
+import { Alert, Button } from "antd";
 
-export interface HandlerSectionProps extends DefaultHandlerSectionProps {
+export interface HandlerSectionProps {
+  className?: string;
   sc: StudioCtx;
   vc: ViewCtx;
   component: Component;
@@ -51,6 +51,7 @@ function HandlerSection_(
   props: HandlerSectionProps,
   ref: HTMLElementRefOf<"div">,
 ) {
+  const { t: uiT } = useI18n();
   const {
     sc,
     vc,
@@ -59,16 +60,24 @@ function HandlerSection_(
     keyedEventHandler,
     highlightOnMount,
     onChange,
-    ...rest
+    className,
   } = props;
 
   const { handler: maybeEventHandler } = keyedEventHandler;
-  const { snapshot: handlerInputs, source } = useHandlerList(vc, component, tpl, maybeEventHandler, keyedEventHandler.key);
+  const { snapshot: handlerInputs, source } = useHandlerList(
+    vc,
+    component,
+    tpl,
+    maybeEventHandler,
+    keyedEventHandler.key,
+  );
   const [expandedInteraction, setExpandedInteraction] = React.useState<
     Interaction | undefined
-  >(() => handlerInputs.interactions.length === 1
-    ? source.resolve(handlerInputs.interactions[0])
-    : (highlightOnMount?.interaction ?? undefined));
+  >(() =>
+    handlerInputs.interactions.length === 1
+      ? source.resolve(handlerInputs.interactions[0])
+      : (highlightOnMount?.interaction ?? undefined),
+  );
 
   const onAddNewInteraction = async () => {
     const eventHandler = maybeEventHandler
@@ -91,41 +100,8 @@ function HandlerSection_(
     setExpandedInteraction(interaction);
   };
 
-  const mkMenu = (interaction: Interaction) => {
-    const builder = new MenuBuilder();
-    builder.genSection(undefined, (push) => {
-      push(
-        <Menu.Item
-          key="remove-interaction"
-          onClick={() =>
-            spawn(
-              sc.change(() => {
-                if (maybeEventHandler) {
-                  remove(maybeEventHandler.interactions, interaction);
-                }
-                return ok();
-              }),
-            )
-          }
-        >
-          <UiText message={"Remove"} />
-        </Menu.Item>,
-      );
-    });
-    return builder.build({
-      menuName: "interaction-menu",
-    });
-  };
-
   return (
-    <PlasmicHandlerSection
-      root={{ ref }}
-      {...rest}
-      addBtn={{
-        "data-test-id": "add-new-action",
-        onClick: onAddNewInteraction,
-      }}
-    >
+    <div ref={ref} className={cx(styles.handler, className)}>
       {isEventHandlerKeyForAttr(keyedEventHandler.key) &&
         keyedEventHandler.key.attr === "onLoad" && (
           <Alert
@@ -152,29 +128,29 @@ function HandlerSection_(
           ></Alert>
         )}
       {handlerInputs.formSubmissionWarning && (
-          <Alert
-            type="warning"
-            style={{ marginBottom: 16 }}
-            message={
-              <>
-                <p>
-                  <UiText
-                    message={
-                      'Don\'t set an "on click" on form submission buttons!'
-                    }
-                  />
-                </p>
-                <p>
-                  <UiText
-                    message={
-                      'Select the form component instead, and set the "on submit" interaction there.'
-                    }
-                  />
-                </p>
-              </>
-            }
-          ></Alert>
-        )}
+        <Alert
+          type="warning"
+          style={{ marginBottom: 16 }}
+          message={
+            <>
+              <p>
+                <UiText
+                  message={
+                    'Don\'t set an "on click" on form submission buttons!'
+                  }
+                />
+              </p>
+              <p>
+                <UiText
+                  message={
+                    'Select the form component instead, and set the "on submit" interaction there.'
+                  }
+                />
+              </p>
+            </>
+          }
+        ></Alert>
+      )}
       <SimpleReorderableList
         onReordered={(fromIndex, toIndex) =>
           maybeEventHandler &&
@@ -191,38 +167,59 @@ function HandlerSection_(
             }),
           )
         }
-        style={{ width: "100%", height: "100%" }}
+        className={styles.list}
         customDragHandle
       >
         {handlerInputs.interactions.map((interactionRef) => {
           const interaction = source.resolve(interactionRef);
           return (
-          <ActionBuilder
-            key={interaction.uid}
-            sc={sc}
-            vc={vc}
-            component={component}
-            isCollapsed={expandedInteraction !== interaction}
-            onCollapseClick={() =>
-              setExpandedInteraction((expanded) =>
-                expanded === interaction ? undefined : interaction,
-              )
-            }
-            eventHandlerExpr={ensure(maybeEventHandler, "An interaction requires its original event handler")}
-            tpl={tpl}
-            menu={mkMenu(interaction)}
-            interaction={interaction}
-            eventHandlerKey={keyedEventHandler.key}
-            highlightOnMount={
-              highlightOnMount?.interaction === interaction
-                ? highlightOnMount
-                : undefined
-            }
-          />
+            <ActionBuilder
+              key={interaction.uid}
+              sc={sc}
+              vc={vc}
+              component={component}
+              isCollapsed={expandedInteraction !== interaction}
+              onCollapseClick={() =>
+                setExpandedInteraction((expanded) =>
+                  expanded === interaction ? undefined : interaction,
+                )
+              }
+              eventHandlerExpr={ensure(
+                maybeEventHandler,
+                "An interaction requires its original event handler",
+              )}
+              tpl={tpl}
+              onRemove={() =>
+                spawn(
+                  sc.change(() => {
+                    if (maybeEventHandler) {
+                      remove(maybeEventHandler.interactions, interaction);
+                    }
+                    return ok();
+                  }),
+                )
+              }
+              interaction={interaction}
+              eventHandlerKey={keyedEventHandler.key}
+              highlightOnMount={
+                highlightOnMount?.interaction === interaction
+                  ? highlightOnMount
+                  : undefined
+              }
+            />
           );
         })}
       </SimpleReorderableList>
-    </PlasmicHandlerSection>
+      <Button
+        className={styles.addAction}
+        block
+        icon={<Icon icon={PlusIcon} />}
+        data-test-id="add-new-action"
+        onClick={onAddNewInteraction}
+      >
+        {uiT("Add new action")}
+      </Button>
+    </div>
   );
 }
 

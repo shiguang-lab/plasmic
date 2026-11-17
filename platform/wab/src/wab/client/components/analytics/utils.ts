@@ -128,14 +128,16 @@ export function formatChartData(chartData: ReturnType<typeof useChartData>) {
 }
 
 export function getChartHeaders(chartData: ReturnType<typeof useChartData>) {
+  const { analyticsQuery } = chartData;
   if (
     chartData.isLoading ||
     chartData.isEmpty ||
-    chartData.analyticsQuery?.type === "paywall"
+    !analyticsQuery ||
+    analyticsQuery.type === "paywall"
   ) {
     return [];
   }
-  const type = chartData.analyticsQuery?.type!;
+  const type = analyticsQuery.type;
   const TIME = {
     label: translate(getUiLocale(), "Time"),
     key: "time",

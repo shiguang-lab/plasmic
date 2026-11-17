@@ -18,9 +18,7 @@ import { useLocalStorage } from "react-use";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-interface ComponentTogglesPanelProps {}
-
-function ComponentTogglesPanel(_props: ComponentTogglesPanelProps) {
+function ComponentTogglesPanel() {
   const docsCtx = useDocsPortalCtx();
   const ref = useDocsFocusedComponentRef(docsCtx);
   return ref ? <FocusedComponentTogglesPanel docsCtx={docsCtx} componentRef={ref} /> : null;

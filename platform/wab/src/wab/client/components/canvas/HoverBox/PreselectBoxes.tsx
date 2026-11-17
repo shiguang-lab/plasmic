@@ -1,4 +1,5 @@
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useStore } from "zustand";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
@@ -178,6 +179,9 @@ function PreselectBoxInner(props: {
   isHoveredElt: boolean;
   $element: JQuery | undefined;
 }) {
+  "use no memo";
+  // Scroll/resize signals invalidate imperative DOM and screen measurements,
+  // even when the selected model and element identities remain unchanged.
   const { selectable, viewCtx } = props;
   const variants = useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
   const renderCount = useCanvasRenderCount(viewCtx);
@@ -218,6 +222,7 @@ function PreselectBoxInner(props: {
         display: "block",
         ...scalerRect,
         ...cssProps,
+        ...canvasScreenClipStyle(viewCtx, scalerRect, viewportZoom),
       }}
     >
       <div

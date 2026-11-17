@@ -1,4 +1,4 @@
-import type { rasterize as Rasterize } from "./snapshot";
+import type { rasterize as Rasterize } from "@/wab/client/components/dashboard/preview/snapshot";
 let rasterize: typeof Rasterize;
 let pixels: (y: number) => number[];
 let rejectImage: number | undefined;
@@ -12,7 +12,7 @@ beforeEach(async () => {
   vi.stubGlobal("Image", class {
     src = "";
     index = images.push(this) - 1;
-    async decode() { if (this.index === rejectImage) throw new Error("SVG decoding failed"); }
+    async decode() { if (this.index === rejectImage) {throw new Error("SVG decoding failed");} }
   });
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (this: HTMLCanvasElement) {
     const context = { canvas: this, drawImage: vi.fn(), translate: vi.fn(), scale: vi.fn(), getImageData: (_x: number, y: number) => ({ data: pixels(y) }) };

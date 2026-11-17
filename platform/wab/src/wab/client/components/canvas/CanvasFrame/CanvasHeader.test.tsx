@@ -4,7 +4,8 @@ import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasHeader";
 import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
-import { createStudioSelectionFixture } from "@/wab/client/__testonly__/studio-selection";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
@@ -53,7 +54,13 @@ function setup() {
   arenaState.setCurrent(arena);
   sourceDisposals.push(() => { arenaState.dispose(); modelSnapshots.dispose(); });
   const ctx = mock<StudioCtx>();
-  Object.defineProperties(ctx, Object.getOwnPropertyDescriptors(createStudioSelectionFixture()));
+  const selection = new StudioSelection(() => modelSnapshots);
+  const renderPolicy = new StudioRenderPolicy({ isLive: () => false, isDragging: () => false });
+  sourceDisposals.push(() => { selection.dispose(); renderPolicy.dispose(); });
+  Object.defineProperties(ctx, {
+    selectionStore: { value: selection.store },
+    renderPolicy: { value: renderPolicy },
+  });
   Object.defineProperties(ctx, Object.getOwnPropertyDescriptors(createViewportFixture(0.5)));
   Object.defineProperties(ctx, {
     site: { value: site },
@@ -65,8 +72,27 @@ function setup() {
   ctx.tplMgr.mockReturnValue(mgr);
   ctx.getDedicatedArena.mockImplementation((it) => getDedicatedArena(site, it));
   fixture.ctx = ctx;
-  return { ctx, arena, frame, component, site, modelSnapshots };
+  return { ctx, arena, frame, component, site, modelSnapshots, selection, renderPolicy };
 }
+
+it("only yields the device title to selection chrome while an artboard is selected in edit mode", () => {
+  const { ctx, arena, frame, selection, renderPolicy } = setup();
+  Object.defineProperty(ctx, "hoverBoxControlledObj", {
+    get: () => selection.current().frames.length ? frame : undefined,
+  });
+  const view = render(<CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />);
+  const label = ensure(view.container.querySelector(".CanvasFrame__Label"), "Frame label");
+  const selected = () => label.classList.contains("CanvasFrame__Label--frame-selected");
+  expect(selected()).toBe(false);
+  act(() => selection.set(undefined, [frame]));
+  expect(selected()).toBe(true);
+  act(() => { renderPolicy.interactive = true; renderPolicy.prepareInputs(); renderPolicy.publishCommit(); });
+  expect(selected()).toBe(false);
+  act(() => { renderPolicy.interactive = false; renderPolicy.prepareInputs(); renderPolicy.publishCommit(); });
+  expect(selected()).toBe(true);
+  act(() => selection.set(undefined, []));
+  expect(selected()).toBe(false);
+});
 
 it("uses the current arena kind in collapsed tooltips even when the rendered frame belongs to a cached mixed arena", async () => {
   vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(1);

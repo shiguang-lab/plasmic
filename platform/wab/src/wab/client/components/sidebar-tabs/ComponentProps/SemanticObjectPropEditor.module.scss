@@ -27,7 +27,12 @@
   height: 24px;
   border-radius: 4px;
 
-  &:hover,
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:hover:not(:disabled),
   &:focus-visible {
     background: var(--ui-hover, rgba(128, 128, 128, 0.15));
   }
@@ -80,34 +85,26 @@
   overflow-wrap: anywhere;
 }
 
-summary.row {
-  list-style: none;
-  cursor: pointer;
-
-  &::-webkit-details-marker {
-    display: none;
-  }
-}
-
-.disclosure {
+.fieldActions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 6px;
-  border-radius: 6px;
-  background: var(--ui-fill, rgba(128, 128, 128, 0.08));
-  color: var(--ui-muted, #71717a);
-  min-height: 26px;
-  padding: 3px 8px;
-  white-space: nowrap;
+}
 
-  > svg {
-    flex-shrink: 0;
-  }
+.countTag {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--ui-fill, rgba(128, 128, 128, 0.08));
+  color: var(--ui-accent, #0d99ff);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
 }
 
 .cssRow {
-  grid-template-columns: minmax(0, 1fr) minmax(65px, 38%) 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(86px, 45%) 24px;
 }
 
 .configured {
@@ -115,14 +112,8 @@ summary.row {
 }
 
 .cssInput {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.add {
+  min-width: 0;
   width: 100%;
-  margin-bottom: 3px;
 }
 
 .json {

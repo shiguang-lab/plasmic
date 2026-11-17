@@ -61,7 +61,7 @@ it("runs the selected action before deferred click cleanup", () => {
   open(<button onClick={action}>Run</button>);
   fireEvent.click(screen.getByRole("button", { name: "Run" }));
   expect(action).toHaveBeenCalledTimes(1);
-  act(() => vi.runOnlyPendingTimers());
+  act(() => { vi.runOnlyPendingTimers(); });
   expect(isContextMenuOpen()).toBe(false);
 });
 

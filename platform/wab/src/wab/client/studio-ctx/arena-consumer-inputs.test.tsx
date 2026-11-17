@@ -3,7 +3,6 @@ import { fireEvent } from "@testing-library/react";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { EmptyTabPlaceholder } from "@/wab/client/components/sidebar-tabs/EmptyTabPlaceholder";
 import { GlobalCssVariables } from "@/wab/client/components/studio/GlobalCssVariables";
-import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { useVariantsController } from "@/wab/client/studio-ctx/variant-controller-inputs";

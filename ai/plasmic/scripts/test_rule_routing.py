@@ -21,6 +21,60 @@ def component(name, key, **extra):
 
 
 class RuleRoutingTests(unittest.TestCase):
+    def test_material_ui_routes_usage_without_admin_recipes_or_decisions(self):
+        from prepare_plan import scaffold
+        mui = 'references/libraries/material_ui/'
+        raw = {'pages': [{'path': '/profile', 'pageType': 'basic-form', 'components': [
+            component('Name', 'plasmic-material-ui-text-field', role='widget'),
+            component('Save', 'plasmic-material-ui-button', role='widget'),
+            component('Confirmation', 'plasmic-material-ui-dialog', role='widget')]}]}
+        page = scaffold(raw)[0]['pages'][0]
+        for spec in page['components']:
+            self.assertEqual(rules_manifest.library_for(spec['component']), 'material_ui')
+            self.assertEqual(rules_manifest.decisions_for(spec['component']), [])
+            self.assertEqual(spec['props'], {})
+        for purpose in ('basic-form', 'non-admin'):
+            page['pageType'] = purpose
+            for stage in ('compose', 'accept'):
+                with self.subTest(purpose=purpose, stage=stage):
+                    project = project_reads(stage, {'pages': [page]})
+                    reads = required_reads(page, stage)
+                    self.assertIn(mui + 'index.md', project)
+                    for group in ('inputs', 'actions', 'overlays'):
+                        self.assertIn(mui + 'components/' + group + '.md', reads)
+                        self.assertIn('generation-rules', reads[mui + 'components/' + group + '.md'])
+                        self.assertEqual('acceptance-checks' in reads[mui + 'components/' + group + '.md'], stage == 'accept')
+                    self.assertFalse(any('/antd_v6/' in path or '/overseas/' in path or '/react_ui/' in path
+                                         for path in [*project, *reads]))
+                    self.assertNotIn('references/design/scale.md', reads)
+                    self.assertNotIn('references/admin-templates.md', reads)
+
+    def test_material_ui_and_antd_keep_component_and_page_scopes(self):
+        mui = 'references/libraries/material_ui/'
+        material = component('Name', 'plasmic-material-ui-text-field')
+        antd = component('Form', 'plasmic-antd6-form')
+        page = {'pageType': 'basic-form', 'components': [material, antd]}
+        for stage in ('compose', 'accept'):
+            reads = required_reads(page, stage)
+            self.assertIn(mui + 'components/inputs.md', reads)
+            self.assertIn(V6 + 'components/form.md', reads)
+            self.assertNotIn('references/design/page-types.md', reads)
+            # In one project, a MUI Page must not strip an Antd sibling's page recipes.
+            native = {'pageType': 'basic-form', 'components': [antd]}
+            root = {'pages': [page, native]}
+            self.assertIn(V6 + 'compositions/form-layout.md', required_reads(native, stage, root))
+            self.assertIn('references/design/scale.md', required_reads(native, stage, root))
+            self.assertNotIn(mui + 'components/inputs.md', required_reads(native, stage, root))
+            self.assertIn(mui + 'index.md', project_reads(stage, root))
+            self.assertIn(V6 + 'index.md', project_reads(stage, root))
+
+    def test_material_ui_rule_cannot_borrow_antd_contract(self):
+        wrong = component('Name', 'plasmic-material-ui-text-field', role='widget',
+                          source='Requirement', purpose='Edit the name', rule=V6 + 'components/input.md')
+        page = {'components': [wrong], 'feedback': []}
+        self.assertNotIn(wrong['rule'], required_reads(page))
+        self.assertTrue(any(e.get('pointer') == '/components/0/rule' for e in plan_errors(page)))
+
     def test_expand_column_routes_to_table_usage_and_is_an_owned_child(self):
         from verify_selection import OWNED_CHILDREN, norm
         key = 'plasmic-antd6-table-expand-column'

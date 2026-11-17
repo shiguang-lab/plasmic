@@ -66,6 +66,8 @@ import {
   ensureKnownTplComponent,
   ensureKnownTplSlot,
   ensureKnownTplTag,
+  isKnownComponent,
+  isKnownTplSlot,
   isKnownRenderExpr,
   isKnownTplComponent,
   isKnownTplTag,
@@ -1787,13 +1789,13 @@ export function fixVirtualSlotArgs(mergedSite: Site, recorder: ChangeRecorder) {
       const component =
         change.path &&
         (change.path.find(
-          (node) => node.inst instanceof Component && node.field === "tplTree",
+          (node) => isKnownComponent(node.inst) && node.field === "tplTree",
         )?.inst as Component | undefined);
       const tplSlot =
         change.path &&
         (change.path.find(
           (node) =>
-            node.inst instanceof TplSlot && node.field === "defaultContents",
+            isKnownTplSlot(node.inst) && node.field === "defaultContents",
         )?.inst as TplSlot | undefined);
       if (component && tplSlot) {
         xSetDefault(componentToUpdatedTplSlots, component, () => new Set()).add(

@@ -8,7 +8,7 @@ import * as React from "react";
 type SwitchProps = DefaultSwitchProps;
 
 function Switch_(props: SwitchProps, ref: SwitchRef) {
-  const { plasmicProps, state } = PlasmicSwitch.useBehavior<SwitchProps>(
+  const { plasmicProps } = PlasmicSwitch.useBehavior<SwitchProps>(
     props,
     ref,
   );

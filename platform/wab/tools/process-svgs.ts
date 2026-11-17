@@ -1,4 +1,3 @@
-import type * as React from "react";
 /**
  * Munges in-place the SVGs in src/wab/client/icons/, which are expected to be
  * exported from Figma with the hard-coded fill color of #050505.  Replaces this

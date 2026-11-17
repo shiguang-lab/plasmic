@@ -20,6 +20,7 @@ import { BottomModals } from "@/wab/client/components/BottomModal";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import { PageSettingsDialog } from "@/wab/client/components/PageSettingsDialog";
 import { CanvasDndOverlay } from "@/wab/client/components/canvas/CanvasDndOverlay";
+import { CanvasNavigationLinks } from "@/wab/client/components/canvas/CanvasNavigationLinks";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
 import { FreestyleBox } from "@/wab/client/components/canvas/FreestyleBox";
@@ -1564,15 +1565,15 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
           sc.setIsDraggingObject(true);
         }
       } else {
-        const vc = s.sourceViewCtx;
+        const sourceViewCtx = s.sourceViewCtx;
         // ignore fixed elements, we do this verification here, because we want to warn
         // the user only when he tries to drag
-        const focusedTpl = vc.focusedTpl();
+        const focusedTpl = sourceViewCtx.focusedTpl();
         if (
           focusedTpl &&
           (isKnownTplTag(focusedTpl) || isKnownTplComponent(focusedTpl))
         ) {
-          const position = vc.getViewOps().getPositionType(focusedTpl);
+          const position = sourceViewCtx.getViewOps().getPositionType(focusedTpl);
           if (position === PositionLayoutType.fixed) {
             this.throttledWarn({
               message: translate(
@@ -1593,18 +1594,18 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
           return;
         }
 
-        const focusObjs = vc.focusedSelectables();
+        const focusObjs = sourceViewCtx.focusedSelectables();
         if (
           focusObjs.length === 1 &&
           focusObjs[0] instanceof ValNode &&
-          vc.getViewOps().isRootNodeOfFrame(focusObjs[0].tpl)
+          sourceViewCtx.getViewOps().isRootNodeOfFrame(focusObjs[0].tpl)
         ) {
           return;
         }
         const movable = focusObjs
           .filter((obj) => obj instanceof ValTag || obj instanceof ValComponent)
           .filter((obj) => {
-            const elements = vc.eltFinder(obj);
+            const elements = sourceViewCtx.eltFinder(obj);
             return elements != null && ensureArray(elements).length > 0;
           });
         if (!movable.length) {
@@ -1613,7 +1614,7 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
         this.dragState = {
           ...s,
           isDragging: true,
-          dragMoveManager: new DragMoveManager(vc, movable, s.initClientPt),
+          dragMoveManager: new DragMoveManager(sourceViewCtx, movable, s.initClientPt),
         };
         sc.setIsDraggingObject(true);
       }
@@ -1820,15 +1821,15 @@ private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
       this.store.setState({ marqueeBox: undefined });
       if (marquee.isDragging) {
         this.canvasClicks.reset();
-        const sc = this.props.studioCtx;
+        const studioCtx = this.props.studioCtx;
         const frames = !marquee.viewCtx
-          ? getMarqueeFrames(sc, marquee.box)
+          ? getMarqueeFrames(studioCtx, marquee.box)
           : [];
         if (frames.length) {
           spawn(
-            sc.changeUnsafe(() =>
-              sc.setStudioFocusOnFrames(
-                marquee.append ? [...sc.focusedFrames(), ...frames] : frames,
+            studioCtx.changeUnsafe(() =>
+              studioCtx.setStudioFocusOnFrames(
+                marquee.append ? [...studioCtx.focusedFrames(), ...frames] : frames,
               ),
             ),
           );
@@ -2308,6 +2309,9 @@ export function ViewEditor_(props: ViewEditorProps) {
                           <Spotlight viewCtx={viewCtx} />
                         )}
                         <PlayerBoxes />
+                        {!props.renderInteractive && !isLive && (
+                          <CanvasNavigationLinks studioCtx={studioCtx} />
+                        )}
                         {!props.renderInteractive && <CloneBoxes />}
                         {!props.renderInteractive && <PreselectBoxes />}
                         {!props.renderInteractive && (

@@ -1,0 +1,43 @@
+.label {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding-inline-end: 28px;
+}
+
+.headerAction {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.editor {
+  width: 100%;
+  min-width: 0;
+}
+
+.standaloneHeader {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.item:global(.with-connector-line) {
+  padding-inline-start: 19px;
+
+  > :global(.property-connector-line-icon) {
+    inset-inline-start: 4px;
+    top: 0;
+
+    &::before {
+      inset-inline-start: 0;
+      top: 0;
+      height: 16px;
+    }
+  }
+
+  > :global(.property-connector-vertical-line) {
+    inset-inline-start: 4px;
+    top: 0;
+    bottom: 0;
+  }
+}

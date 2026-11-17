@@ -48,7 +48,7 @@ describe("setComponentInstanceProp", () => {
     );
     expect(setComponentInstanceProp(instance, "aria-label", "Return to list", opts).isOk()).toBe(true);
     const arg = getArg(instance, "aria-label");
-    assert(arg);
+    assert(arg, "Setting aria-label must create a component argument");
     expect(tryExtractJson(arg.expr)).toBe("Return to list");
   });
   it("sets props of different types", () => {

@@ -3804,7 +3804,7 @@ export function getPropTypeLayout(propType: StudioPropType<any> | undefined) {
   ) {
     return "vertical";
   }
-  return ["richText"].includes(getPropTypeType(propType) ?? "")
+  return ["richText", "array"].includes(getPropTypeType(propType) ?? "")
     ? "vertical"
     : "horizontal";
 }

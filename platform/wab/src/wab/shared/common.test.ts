@@ -438,15 +438,13 @@ describe("tryCatchElse", function () {
     expect(() =>
       tryCatchElse({
         try: () => {
-          let res;
-          throw (res = new Error("hello"));
+          throw new Error("hello");
         },
         catch: (e) => {
           throw new Error("second");
         },
         else: () => {
-          let res;
-          return (res = "unexpected");
+          return "unexpected";
         },
       }),
     ).toThrow());
@@ -485,7 +483,6 @@ describe("reSplitAll", () =>
     const res = reSplitAll(/a/g, "abab");
     return expect(
       res.map(([a, b]) => {
-        let left;
 
         return tuple(
           a,
@@ -533,8 +530,8 @@ describe("doMaybe", () => {
       const mightbe = async () => (shouldBeDefined ? "" : null);
       const z = async () => "yay";
       return await doMaybeAsync(async (yld) => {
-        const a = await yld(forty());
-        const b = await yld(mightbe());
+        await yld(forty());
+        await yld(mightbe());
         const c = await yld(z());
         return c;
       });

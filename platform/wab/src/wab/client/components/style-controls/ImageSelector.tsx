@@ -156,9 +156,6 @@ type ImgInfoProps = {
   imagePreview?: React.ReactNode;
   extended?: boolean;
 };
-interface ImgInfoState {
-  img: HTMLImageElement | undefined;
-}
 
 function useImageSize(url: string) {
   const promiseRef = React.useRef<Cancelable<any> | null>(null);
@@ -176,7 +173,7 @@ function useImageSize(url: string) {
       .then(() => {
         setSize({ width: img.width, height: img.height });
       })
-      .catch(() => {});
+      .catch(() => { /* An unavailable image leaves its dimensions unresolved. */ });
 
     return () => {
       if (promiseRef.current) {

@@ -22,7 +22,7 @@ export async function profileCodegen(em: EntityManager, projectId: ProjectId) {
   const codegenIt = async () => {
     for (const [pid, version] of Object.entries(allProjectVersions)) {
       logger().info(`Codegen ${pid}`);
-      const { result, spentTime } = await withTimeSpent(async () => {
+      const { spentTime } = await withTimeSpent(async () => {
         await doGenCode(dbMgr, {
           scheme: "blackbox",
           projectId: pid,

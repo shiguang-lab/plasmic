@@ -1,7 +1,5 @@
 import {
   assert,
-  check,
-  ensure,
   ensureArray,
   reSplitAll,
   simpleWords,

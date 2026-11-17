@@ -70,7 +70,7 @@ export async function setupDataSourceOAuth(config: Config) {
             ensure(req.user, "Should have a user").id,
           );
           assert(user, "Oauth2Error: unable to get user");
-          const row = await mgr.upsertOauthToken(
+          await mgr.upsertOauthToken(
             user.id,
             "google-sheets",
             { accessToken, refreshToken },

@@ -29,6 +29,15 @@ $control-gap: 4px;
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
+.none {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 0 6px;
+  font: inherit;
+}
+
 .preview {
   display: block;
   width: 16px;
@@ -41,7 +50,6 @@ $control-gap: 4px;
 .color.color, .metric.metric { min-width: 0; width: 100%; padding: 0; }
 .popover { width: $control-size * 5 + $control-gap * 4; }
 .heading { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; color: var(--ui-text); }
-.help.help { width: 16px; height: 16px; color: var(--ui-muted); }
 .lineStyles { display: grid; grid-template-columns: repeat(5, $control-size); gap: $control-gap; }
 .lineButton.lineButton {
   display: flex;

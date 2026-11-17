@@ -59,11 +59,11 @@ export function componentDocuments(studio: StudioCtx) {
 
 /** One editor lifetime; tracked contract fields do not include instance styles/text. */
 export function startComponentReuse(studio: StudioCtx) {
-  if (!studio.appCtx.appConfig.enableComponentReuseAdvisory) {return () => {};}
+  if (!studio.appCtx.appConfig.enableComponentReuseAdvisory) {return () => { /* Disabled advisory creates no subscription to dispose. */ };}
   const api = studio.appCtx.topFrameApi;
-  if (!api) {return () => {};}
-  let closed = false; let lastActivity = 0; let dispose = () => {};
-  const activity = () => { if (Date.now() - lastActivity > 350) { lastActivity = Date.now(); void api.componentReuse({ command: "activity" }).catch(() => {}); } };
+  if (!api) {return () => { /* Without a top-frame API there is no advisory subscription to dispose. */ };}
+  let closed = false; let lastActivity = 0; let dispose = () => { /* No advisory subscription exists until initialization finishes. */ };
+  const activity = () => { if (Date.now() - lastActivity > 350) { lastActivity = Date.now(); void api.componentReuse({ command: "activity" }).catch(() => { /* Activity reporting is best effort and must not interrupt editing. */ }); } };
   const events = ["pointermove", "keydown", "wheel"] as const;
   void api.componentReuse({ command: "status" }).then(status => {
     if (closed || !(status && typeof status === "object" && "available" in status && status.available === true)) {return;}
@@ -75,7 +75,7 @@ export function startComponentReuse(studio: StudioCtx) {
       const catalogue = componentDocuments(studio);
       if (isEqual(previous, catalogue)) { return; }
       previous = catalogue;
-      void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).then(value => { if (!closed) { rememberCoverage(studio, value); } }).catch(() => {});
+      void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).then(value => { if (!closed) { rememberCoverage(studio, value); } }).catch(() => { /* Catalogue synchronization is advisory and must not interrupt editing. */ });
     };
     const schedule = () => { if (!closed && !pending) { pending = setTimeout(publish, 250); } };
     const stopModel = studio.subscribeModelChanges(schedule);
@@ -84,8 +84,8 @@ export function startComponentReuse(studio: StudioCtx) {
     dispose = () => { stopModel(); stopVersion(); stopRegistrations(); clearTimeout(pending); };
     publish();
     events.forEach(name => window.addEventListener(name, activity, { passive: true }));
-  }).catch(() => {});
-  return () => { closed = true; dispose(); events.forEach(name => window.removeEventListener(name, activity)); void api.componentReuse({ command: "release", projectId: studio.siteInfo.id }).catch(() => {}); };
+  }).catch(() => { /* An unavailable advisory service must not interrupt editing. */ });
+  return () => { closed = true; dispose(); events.forEach(name => window.removeEventListener(name, activity)); void api.componentReuse({ command: "release", projectId: studio.siteInfo.id }).catch(() => { /* Releasing the advisory session is best effort during cleanup. */ }); };
 }
 
 function nodesAndUsed(root: TplNode) {
@@ -178,9 +178,9 @@ export async function reviewComponents(studio: StudioCtx, operations: Operation[
   }
   if (!regions.length) {return { ...skipped, skippedRegions };}
   const started = performance.now(); const id = crypto.randomUUID(); const counter = studio._changeCounter;
-  let ended = false; let interrupted: (result: ComponentReviewResult) => void = () => {};
+  let ended = false; let interrupted: (result: ComponentReviewResult) => void = () => { /* The interruption promise has not installed its resolver yet. */ };
   const retryCall = (afterMs: number) => ({ tool: "execute" as const, arguments: { name: "reviewComponentReuse" as const, input: { targets: regions.map(({ componentUuid, elementUuid }) => ({ componentUuid, elementUuid })), reviewContext: context } }, afterMs });
-  const stop = (status: "cancelled" | "timeout") => { ended = true; void api.componentReuse({ command: "cancel", id }).catch(() => {}); interrupted({ ...skipped, ...coverageSnapshots.get(studio), status, skippedRegions, ...(status === "timeout" ? { retry: retryCall(1000) } : {}), elapsedMs: performance.now() - started }); };
+  const stop = (status: "cancelled" | "timeout") => { ended = true; void api.componentReuse({ command: "cancel", id }).catch(() => { /* Remote cancellation is best effort after the local review is stopped. */ }); interrupted({ ...skipped, ...coverageSnapshots.get(studio), status, skippedRegions, ...(status === "timeout" ? { retry: retryCall(1000) } : {}), elapsedMs: performance.now() - started }); };
   const cancel = () => stop("cancelled"); signal?.addEventListener("abort", cancel, { once: true });
   const timeout = new Promise<ComponentReviewResult>(resolve => { interrupted = resolve; });
   const timer = setTimeout(() => stop("timeout"), 5000);

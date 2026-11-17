@@ -54,7 +54,7 @@ Design the in-scope Pages' region relationships before detailed generation under
 
 Choose page purpose from the task: admin Pages use their matching page type; other experiences use `non-admin` with source-backed structure and focused verification. Component-library choice alone does not make a Page admin.
 
-For admin prototypes, read `references/admin-templates.md` and its catalog, inspect applicable live templates, then adapt the selected composition to the requirement. Read the relevant component and composition references before using them. A template or component must fit the current requirement and the project's actual library.
+For admin prototypes using the supported Overseas/Antd6 suite, read `references/admin-templates.md` and its catalog, inspect applicable live templates, then adapt the selected composition to the requirement. Other libraries use their matching component references and compatible templates; page purpose alone does not select Antd recipes. Read the relevant component and composition references before using them. A template or component must fit the current requirement and the project's actual library.
 
 Keep plans and acceptance evidence outside the business UI. Prototype mutations require edit permission. Native codegen follows the target application’s architecture.
 

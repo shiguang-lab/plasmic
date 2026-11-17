@@ -274,7 +274,7 @@ const VariantsPanelContent = React.memo(
       });
     };
 
-    const root = ensureInstance(component.tplTree, TplTag, TplComponent);
+    ensureInstance(component.tplTree, TplTag, TplComponent);
 
     const maybeReorderableVariants = (
       group: VariantGroup,

@@ -1,11 +1,25 @@
 @import "src/wab/styles/css-variables";
 @import "src/wab/styles/tokens";
 
+.device {
+  > :global(.CanvasFrame__Label) {
+    bottom: calc(100% + var(--device-inset-y));
+  }
+  > :global(.CanvasFrame__Label--frame-selected) {
+    visibility: hidden;
+  }
+  > :global(.CanvasFrame__Config) {
+    // Attach to the metal rim; the translucent surface reveals the side buttons.
+    left: calc(100% + var(--device-inset-x) + 2px);
+  }
+}
+
 .selectedOutline {
   position: absolute;
   inset: 0;
   z-index: 1;
   border: calc(1px * $inverseZoom) solid $selectionControlsColor;
+  border-radius: var(--device-screen-radius, 0px);
   box-sizing: border-box;
   pointer-events: none;
 }
@@ -30,5 +44,6 @@
   padding: 24px;
   box-sizing: border-box;
   overflow: hidden;
+  border-radius: var(--device-screen-radius, 0px);
   background: #00000008;
 }

@@ -163,6 +163,8 @@ export const FullCodeEditor = React.forwardRef(
 
     const options: monaco.editor.IStandaloneEditorConstructionOptions = {
       theme: editorTheme,
+      // Follow container resizing when adjacent panels expand or collapse.
+      automaticLayout: true,
       // Prevents completion/hover popups from being clipped.
       fixedOverflowWidgets: true,
       folding: folding,

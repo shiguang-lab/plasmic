@@ -1,8 +1,8 @@
-import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
 import type { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import {
+  changeStyle,
   ExpsProvider,
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
@@ -20,15 +20,15 @@ import {
   useStyleIndicators,
 } from "@/wab/client/studio-ctx/style-inputs-react";
 import { arrayMoveIndex } from "@/wab/shared/collections";
-import { assert, spawn } from "@/wab/shared/common";
+import { assert } from "@/wab/shared/common";
 import {
   CssTransform,
   CssTransforms,
   defaultCssTransform,
   parseOrigin,
 } from "@/wab/shared/css/transforms";
-import { capitalize } from "lodash";
 import React, { useRef, useState } from "react";
+import { FiSlash } from "react-icons/fi";
 
 export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
     const { t: uiT } = useI18n();
@@ -58,6 +58,8 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
     const cssTransforms = CssTransforms.fromCss(transformCell?.raw ?? "");
 
     const transforms = cssTransforms.transforms;
+    const isNone = transformCell?.raw === "none";
+    const rows: (CssTransform | null)[] = isNone ? [null] : transforms;
 
     const rawTransformOrigin = transformOriginCell?.raw;
     const transformOrigin = parseOrigin(rawTransformOrigin);
@@ -70,24 +72,17 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
     const childPerspective = childPerspectiveCell?.raw || "0px";
 
     const setProp = (prop: string, value: string | undefined) => {
-      spawn(
-        studioCtx.changeUnsafe(() => {
-          const exp = expsProvider.mergedExp();
-          if (!value) {
-            exp.clear(prop);
-          } else {
-            exp.set(prop, value);
-          }
-        }),
-      );
+      changeStyle(expsProvider, () => {
+        if (!value) {
+          expsProvider.maybeTargetExp()?.clear(prop);
+        } else {
+          expsProvider.mergedExp().set(prop, value);
+        }
+      });
     };
 
     const setsProp = (prop: string, value: CssTransforms) => {
-      spawn(
-        studioCtx.changeUnsafe(() => {
-          expsProvider.mergedExp().set(prop, value.showCss());
-        }),
-      );
+      setProp(prop, value.transforms.length || value.perspective ? value.showCss() : undefined);
     };
 
     const updateTransforms = (newTransforms: CssTransform[]) => {
@@ -167,9 +162,6 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
         headerMenuOnRightClickOnly
         controls={
           <>
-            <StyleOverrideControl expsProvider={expsProvider} label={transformTitle}
-              styleProps={styleProps} noneValues={{ transform: "none", perspective: "none" }}
-              onChange={() => setOpenEditor(undefined)} />
             <StyleEditorPopover
               title={settingsTitle}
               open={!isDisabled && openEditor === "settings"}
@@ -197,6 +189,7 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
             <IconButton
               size="small"
               tooltip={uiT("Add transform")}
+              aria-label={uiT("Add transform")}
               disabled={isDisabled}
               onClick={addTransformation}
             >
@@ -206,7 +199,7 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
         }
         expsProvider={expsProvider}
       >
-        {transforms.length > 0 && (
+        {rows.length > 0 && (
           <ListBox
             appendPrepend="append"
             onReorder={(from, to) => {
@@ -216,8 +209,10 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
               }
             }}
           >
-            {transforms.map((cssTransform, i) => {
-              const label = capitalize(cssTransform.type);
+            {rows.map((cssTransform, i) => {
+              const label = cssTransform ? uiT(({
+                translate: "Translate", rotate: "Rotate", scale: "Scale", skew: "Skew", perspective: "Self Perspective",
+              } as const)[cssTransform.type]) : uiT("None");
               return (
                 <ListBoxItem
                   key={i}
@@ -226,7 +221,9 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
                   truncate={false}
                   disabled={isDisabled}
                   isDragDisabled={isDisabled || transforms.length < 2}
+                  removeLabel={uiT(isNone ? "Remove None override" : "Remove")}
                   onRemove={() => {
+                    if (isDisabled) { return; }
                     setOpenEditor(undefined);
                     updateTransforms(
                       transforms.filter((_, index) => index !== i),
@@ -242,11 +239,14 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
                           <TransformPanel
                             transform={cssTransform}
                             onChange={(newTransform) => {
-                              updateTransforms(
-                                transforms.map((transform, index) =>
-                                  index === i ? newTransform : transform,
-                                ),
-                              );
+                              if (isDisabled) { return; }
+                              if (!newTransform) {
+                                setProp("transform", "none");
+                                setOpenEditor(0);
+                              } else {
+                                updateTransforms(isNone ? [newTransform] :
+                                  transforms.map((transform, index) => index === i ? newTransform : transform));
+                              }
                             }}
                             studioCtx={studioCtx}
                           />
@@ -258,10 +258,11 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
                           disabled={isDisabled}
                           aria-label={`${transformTitle}: ${label}`}
                         >
+                          {isNone && <FiSlash aria-hidden="true" />}
                           <span className={paintStyles.fillLabel}>{label}</span>
-                          <span className={paintStyles.valueSummary}>
+                          {cssTransform && <span className={paintStyles.valueSummary}>
                             {cssTransform.getDisplayText()}
-                          </span>
+                          </span>}
                         </button>
                       </StyleEditorPopover>
                     </div>

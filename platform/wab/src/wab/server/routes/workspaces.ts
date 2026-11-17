@@ -26,7 +26,7 @@ import {
 import { ensureType } from "@/wab/shared/common";
 import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { createTaggedResourceId } from "@/wab/shared/perms";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import L from "lodash";
 
 export function mkApiWorkspace(workspace: Workspace): ApiWorkspace {

@@ -16,7 +16,6 @@ import {
   paramToVarName,
   toVarName,
 } from "@/wab/shared/codegen/util";
-import { assert } from "@/wab/shared/common";
 import { Param, TplComponent } from "@/wab/shared/model/classes";
 import { PlumePlugin } from "@/wab/shared/plume/plume-registry";
 import {
@@ -28,7 +27,6 @@ import {
 } from "@/wab/shared/plume/plume-utils";
 import type { SwitchRef } from "@plasmicapp/react-web";
 import { omit, pick } from "lodash";
-import type React from "react";
 
 const RESERVED_PROPS = [
   "noLabel",

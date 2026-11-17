@@ -22,6 +22,7 @@ import * as widgets from "@/wab/client/components/widgets";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { selectPanelsHidden } from "@/wab/client/studio-ctx/left-panel-state";
+import { isTplComponent } from "@/wab/shared/core/tpls";
 import { Tabs } from "antd";
 import cx from "classnames";
 import React from "react";
@@ -90,17 +91,19 @@ export const RightPane = React.memo(function RightPane({
         }),
       );
     }
-    tabs.push(
-      new widgets.Tab({
-        name: <UiText message={"Props"} />,
-        key: RightTabKey.props,
-        contents: () => (
-          <StyleTabContext.Provider value="props">
-            <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
-          </StyleTabContext.Provider>
-        ),
-      }),
-    );
+    if (isTplComponent(selectedTpl) || contentOnly) {
+      tabs.push(
+        new widgets.Tab({
+          name: <UiText message={"Props"} />,
+          key: RightTabKey.props,
+          contents: () => (
+            <StyleTabContext.Provider value="props">
+              <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
+            </StyleTabContext.Provider>
+          ),
+        }),
+      );
+    }
     if (!contentOnly) {
       tabs.push(
         new widgets.Tab({
@@ -138,6 +141,8 @@ export const RightPane = React.memo(function RightPane({
     );
   }
 
+  const firstTabKey = tabs[0]?.key as RightTabKey | undefined;
+  const activeTabAvailable = tabs.some((tab) => tab.key === rightTabKey);
   React.useEffect(() => {
     if (
       contentOnly &&
@@ -146,13 +151,13 @@ export const RightPane = React.memo(function RightPane({
     ) {
       studioCtx.switchRightTab(RightTabKey.props);
     } else if (
-      tabs.length === 1 &&
+      firstTabKey &&
       !isMultiSelection &&
-      rightTabKey !== tabs[0].key
+      !activeTabAvailable
     ) {
-      studioCtx.switchRightTab(tabs[0].key as RightTabKey);
+      studioCtx.switchRightTab(firstTabKey);
     }
-  }, [tabs.length, isMultiSelection, contentOnly, rightTabKey]);
+  }, [firstTabKey, activeTabAvailable, isMultiSelection, contentOnly, rightTabKey, studioCtx]);
 
   const commentsPanel = useStudioOverlayState(
     studioCtx,

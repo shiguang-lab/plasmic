@@ -1,5 +1,6 @@
 import { FrameViewMode, getArenaFrames, ensureActivatedScreenVariantsForFrameByWidth } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { DEFAULT_MARGIN_FOR_NEW_FRAMES } from "@/wab/shared/canvas-constants";
 import { isPageComponent } from "@/wab/shared/core/components";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { Pt } from "@/wab/shared/geom";
@@ -32,9 +33,9 @@ export function ensurePageOverviewArena(tplMgr: TplMgr) {
     (page) => getArenaFrames(getDedicatedArena(site, page))[0],
   );
   const columnWidth =
-    Math.max(1440, ...baseFrames.map((frame) => frame?.width ?? 1440)) + 80;
+    Math.max(1440, ...baseFrames.map((frame) => frame?.width ?? 1440)) + DEFAULT_MARGIN_FOR_NEW_FRAMES;
   const rowHeight =
-    Math.max(900, ...baseFrames.map((frame) => frame?.height ?? 900)) + 80;
+    Math.max(900, ...baseFrames.map((frame) => frame?.height ?? 900)) + DEFAULT_MARGIN_FOR_NEW_FRAMES;
   let added = 0;
   for (const [index, page] of pages.entries()) {
     const base = baseFrames[index];
@@ -51,7 +52,7 @@ export function ensurePageOverviewArena(tplMgr: TplMgr) {
       ? new Pt(
           Math.max(
             ...arena.children.map((frame) => (frame.left ?? 0) + frame.width),
-          ) + 80,
+          ) + DEFAULT_MARGIN_FOR_NEW_FRAMES,
           0,
         )
       : new Pt((added % 2) * columnWidth, Math.floor(added / 2) * rowHeight);

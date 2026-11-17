@@ -6,15 +6,13 @@ import { $$$ } from "@/wab/shared/TplQuery";
 import { RootComponentVariantFrame, GlobalVariantFrame } from "@/wab/shared/component-frame";
 import * as Signals from "signals";
 import { CanvasContentEditorIndex } from "@/wab/client/studio-ctx/canvas-content-editor";
-import { ensure } from "@/wab/shared/common";
-import { mock } from "vitest-mock-extended";
 import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { createViewVariantFixture } from "@/wab/client/__testonly__/view-variants";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
-import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { mkArenaFrame, updateAutoDerivedFrameHeight } from "@/wab/shared/Arenas";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { mkParam } from "@/wab/shared/core/lang";
@@ -100,20 +98,21 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     $$$(component.tplTree).append(owner);
     owner.vsettings[0].args.push(new Arg({ param, expr: new RenderExpr({ tpl: [tpl] }) }));
     tpl.parent = owner;
-    if (fixedSlot === "slot") selectable = new SlotSelection({ tpl: owner, slotParam: param });
+    if (fixedSlot === "slot") {selectable = new SlotSelection({ tpl: owner, slotParam: param });}
   }
   deepTrackComponents(site);
   selection.setHover(selectable, $(hovered));
   const rootsBySelectable = new Map([[selectable, roots]]);
   disposeFixtures.push(() => { arenaState.dispose(); overlayState.dispose(); studioSelection.dispose(); selection.dispose(); variants.dispose(); models.dispose(); });
   const viewCtx = {
+    arenaFrame: () => frame,
     selectionStore: selection.store,
     selection,
     variantStore: variants.store,
     disposeSignal: signal.signal,
     styleInputs, site,
     modelLifetime: arenaState.lifetime(),
-    canvasCtx: { $doc: () => $(document) },
+    canvasCtx: { $doc: () => $(document), viewportContainerOffset: () => ({ left: 0, top: 0 }) },
     dom2focusObj: () => undefined,
     getCodeComponentMeta: () => ({ props: { brand: { type: "slot", fixedRoot: true } } }),
     selectionDom: (target: ValTag | SlotSelection) => $(rootsBySelectable.get(target) ?? []),
@@ -164,6 +163,8 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
       isHoveredElt={isHoveredElt}
     />,
   ), {
+    frame,
+    studioCtx,
     retire: () => signal.abort(),
     hoverAnotherNode: (target: HTMLElement) => {
       const next = makeValue("other");
@@ -177,6 +178,27 @@ it("uses a dashed hover outline for fixed slot content", () => {
   const brand = element();
   const { container } = outline([brand], brand, true, false, undefined, undefined, "root");
   expect(container.querySelector<HTMLElement>(".PreselectBox > div")?.style.borderStyle).toBe("dashed");
+});
+
+it("clips a corner child to the device screen and clears the mask after resizing to desktop", async () => {
+  const child = element();
+  const { container, frame, studioCtx } = outline([child], child, true);
+  const box = container.querySelector<HTMLElement>(".PreselectBox");
+  expect(box?.style.clipPath).toBe("");
+  act(() => {
+    frame.container.component.type = ComponentType.Page;
+    frame.width = 393;
+    frame.height = 852;
+    updateAutoDerivedFrameHeight(frame, 852);
+    studioCtx.framesChanged.dispatch();
+  });
+  await waitFor(() => expect(box?.style.clipPath).toBe("inset(0px -293px -802px 0px round 36px)"));
+  act(() => {
+    frame.width = 1440;
+    frame.height = 900;
+    studioCtx.framesChanged.dispatch();
+  });
+  await waitFor(() => expect(box?.style.clipPath).toBe(""));
 });
 
 it("does not add a second hover outline for the transparent fixed-root slot", () => {

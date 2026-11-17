@@ -25,7 +25,6 @@ import {
 } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceTablePicker";
 import { deleteArenas } from "@/wab/client/components/sidebar-tabs/ProjectPanel/ArenaContextMenu";
 import {
-  ArenaData,
   ArenaFolderActions,
   ArenaPanelRow,
   ComponentArenaData,
@@ -78,7 +77,6 @@ import {
   assert,
   spawn,
   swallow,
-  switchType,
   unreachable,
   withoutNils,
 } from "@/wab/shared/common";
@@ -115,11 +113,8 @@ import {
 } from "@/wab/shared/folders/folders-util";
 import { InsertableTemplateComponentExtraInfo } from "@/wab/shared/insertable-templates/types";
 import {
-  Arena,
-  ComponentArena,
   ExprText,
   ObjectPath,
-  PageArena,
 } from "@/wab/shared/model/classes";
 import { TableSchema } from "@plasmicapp/data-sources";
 import { executePlasmicDataOp } from "@plasmicapp/react-web/lib/data-sources";

@@ -3,7 +3,6 @@ import { TextOnlySection } from "@/wab/client/components/sidebar-tabs/Typography
 import { useContentEditorMode } from "@/wab/client/studio-ctx/content-editor-mode-state";
 import { useTargetedStylePanelInputs, useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useStore } from "zustand";
-import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
 import { useInspectorSelection, useInspectorPending, useInspectorDom } from "@/wab/client/studio-ctx/inspector-state";
@@ -88,7 +87,7 @@ interface NewAnimationContextValue {
 
 export const NewAnimationContext = createContext<NewAnimationContextValue>({
   newAnimation: null,
-  onAnimationAdded: () => {},
+  onAnimationAdded: () => undefined,
 });
 
 export function useNewAnimationContext() {
@@ -109,7 +108,9 @@ const StyleTabForTpl = React.memo(function StyleTabForTpl(props: {
 }) {
   const select = React.useCallback(() => readStyleTab(props.viewCtx, props.tpl), [props.viewCtx, props.tpl]);
   const source = useTargetedStylePanelValue(props.viewCtx.studioCtx, { kind: "style-tab", view: props.viewCtx, tpl: props.tpl }, select);
-  if (!source.active || !source.value) return null;
+  if (!source.active || !source.value) {
+    return null;
+  }
   if (isFixedSlotRoot(props.viewCtx, props.tpl)) {
     return <TextOnlySection viewCtx={props.viewCtx} expsProvider={new TplExpsProvider(props.viewCtx, props.tpl)} title={<UiText message="Props" />} />;
   }
@@ -331,10 +332,10 @@ const StyleTabBottomPanel = React.memo(function StyleTabBottomPanel(props: {
             style={
               focused
                 ? {
-                    borderLeft:
+                    boxShadow:
                       currentTarget === "baseVariant"
-                        ? "1px solid transparent"
-                        : `1px solid var(${selectionControlsColor})`,
+                        ? undefined
+                        : `inset 1px 0 var(${selectionControlsColor})`,
                   }
                 : undefined
             }

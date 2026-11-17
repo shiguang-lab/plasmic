@@ -40,7 +40,7 @@ import { getCodegenOriginUrl, getCodegenUrl } from "@/wab/shared/urls";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { context, propagation } from "@opentelemetry/api";
 import execa from "execa";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { isString, pickBy } from "lodash";
 
 /**
@@ -758,7 +758,7 @@ async function genReprV2(
   res: Response,
   props: ProjectLoaderProps,
 ) {
-  const { projectId, project } = props;
+  const { projectId } = props;
 
   const mgr = superDbMgr(req);
 

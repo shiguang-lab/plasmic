@@ -19,8 +19,8 @@ import React, { useEffect } from "react";
 
 interface TransformPanelProps {
   studioCtx: StudioCtx;
-  transform: CssTransform;
-  onChange: (newTransform: CssTransform) => void;
+  transform: CssTransform | null;
+  onChange: (newTransform: CssTransform | null) => void;
 }
 
 export function TransformPanel(
@@ -39,8 +39,9 @@ export function TransformPanel(
     <>
       <StyleToggleButtonGroup
         className="pb-sm"
-        value={transform.type}
+        value={transform?.type ?? "none"}
         onChange={(val) => {
+          if (val === "none") { onChange(null); return; }
           const cssTransform = CssTransform.fromCss(defaultCssTransform[val]);
           if (cssTransform) {
             onChange(cssTransform);
@@ -50,7 +51,7 @@ export function TransformPanel(
         <StyleToggleButton
           stretched
           value="translate"
-          label={uiT("Move")}
+          label={uiT("Translate")}
           showLabel
           children={null}
         />
@@ -75,7 +76,15 @@ export function TransformPanel(
           showLabel
           children={null}
         />
+        <StyleToggleButton
+          stretched
+          value="none"
+          label={uiT("None")}
+          showLabel
+          children={null}
+        />
       </StyleToggleButtonGroup>
+      {transform && <>
       <div
         className="panel-dim-block flex flex-vcenter flex-hcenter fill-width overflow-hidden mb-sm"
         style={{
@@ -92,6 +101,7 @@ export function TransformPanel(
         ></div>
       </div>
       {renderSliders(transform, studioCtx, onChange)}
+      </>}
     </>
   );
 }

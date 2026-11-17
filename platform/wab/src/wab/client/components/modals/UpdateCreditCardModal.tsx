@@ -56,7 +56,6 @@ export async function promptUpdateCc(
   props: PromptUpdateCcArgs,
 ): Promise<PromptUpdateCcResponse | undefined> {
   return showTemporaryPrompt<PromptUpdateCcResponse>((onSubmit, onCancel) => (
-    // @ts-ignore
     <Elements stripe={getStripePromise()}>
       <UpsellCreditCardForm
         {...props}

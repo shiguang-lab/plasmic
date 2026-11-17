@@ -3,7 +3,8 @@ import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { AppearancePanelSection } from "@/wab/client/components/sidebar-tabs/AppearancePanelSection";
 import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
-import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
+import { FilterEffectsPanelSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
+import { InteractionStylesPanelSection } from "@/wab/client/components/sidebar-tabs/InteractionStylesPanelSection";
 import { LayoutPanelSection } from "@/wab/client/components/sidebar-tabs/LayoutPanelSection";
 import { ListStyleSection } from "@/wab/client/components/sidebar-tabs/ListStyleSection";
 import { PositioningPanelSection } from "@/wab/client/components/sidebar-tabs/PositioningSection";
@@ -51,9 +52,7 @@ import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { ensure, spawn, tuple } from "@/wab/shared/common";
 import { extractTransitiveDepsFromMixins } from "@/wab/shared/core/project-deps";
-import { isHostLessPackage } from "@/wab/shared/core/sites";
 import {
-  extractMixinUsages,
   makeDefaultStylesRuleBodyFor,
 } from "@/wab/shared/core/styles";
 import { getTagsWithCssOverrides } from "@/wab/shared/css";
@@ -66,14 +65,13 @@ import {
 import {
   Mixin,
   ProjectDependency,
-  Theme,
   Variant,
 } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import { Menu, notification } from "antd";
 import cn from "classnames";
 import L from "lodash";
-import { MixinPanelInputs, useMixinCatalog, useMixinUsage, useMixinModelInputs } from "@/wab/client/components/sidebar/mixin-panel-inputs";
+import { useMixinCatalog, useMixinUsage, useMixinModelInputs } from "@/wab/client/components/sidebar/mixin-panel-inputs";
 import { useLibraryAppInputs } from "@/wab/client/components/sidebar/library-inputs";
 import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
 import React from "react";
@@ -364,6 +362,8 @@ export const MixinFormContent = React.memo(function MixinFormContent(props: {
         />
       )}
 
+      {(!s || s.effect) && <InteractionStylesPanelSection expsProvider={expsProvider} />}
+
       {themeTag && isTagListContainer(themeTag) && (!s || s.list) && (
         <ListStyleSection expsProvider={expsProvider} />
       )}
@@ -413,7 +413,7 @@ export const MixinFormContent = React.memo(function MixinFormContent(props: {
         <ShadowsPanelSection expsProvider={expsProvider} vsh={vsh} />
       )}
 
-      {(!s || s.effect) && <EffectsPanelSection expsProvider={expsProvider} />}
+      {(!s || s.effect) && <FilterEffectsPanelSection expsProvider={expsProvider} />}
 
       {(!s || s.transition) && (
         <TransitionsPanelSection expsProvider={expsProvider} />

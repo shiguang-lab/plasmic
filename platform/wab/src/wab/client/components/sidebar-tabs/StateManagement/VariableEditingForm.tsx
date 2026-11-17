@@ -36,7 +36,7 @@ import {
 } from "@/wab/shared/model/classes";
 import { convertVariableTypeToWabType } from "@/wab/shared/model/model-util";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Alert, notification } from "antd";
+import { Alert } from "antd";
 import L from "lodash";
 import * as React from "react";
 

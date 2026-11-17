@@ -18,15 +18,11 @@ const useStyles = createStyles(({ token }) => ({
     minWidth: 0,
     height: 28,
     padding: "0 2px",
-    border: 0,
+    border: "1px solid transparent",
     borderRadius: 4,
     boxShadow: "none",
     background: "transparent",
     color: token.colorTextSecondary,
-    "&:hover:not(:disabled)": {
-      background: "transparent",
-      color: token.colorText,
-    },
     "&[aria-expanded='true']": {
       background: "transparent",
       color: token.colorPrimaryText,
@@ -87,7 +83,8 @@ function BranchSwitcher({
       >
         <Button
           id="branch-nav-button"
-          type="link"
+          color="primary"
+          variant="link"
           className={cx(styles.trigger, className)}
           aria-label={`${t("Branches")}: ${currentBranchName}`}
           aria-expanded={visible}

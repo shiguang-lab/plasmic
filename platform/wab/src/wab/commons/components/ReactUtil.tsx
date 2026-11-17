@@ -195,12 +195,12 @@ export function combineProps(...propss: { [prop: string]: any }[]) {
         propss.flatMap((props) =>
           Object.entries(props).map(([prop, val]) => ({ prop, val })),
         ),
-        ({ prop, val }) => prop,
+        ({ prop }) => prop,
       ),
     )
       // Only pick out props where the values are functions (hence handlers)
       .filter(
-        ([prop, pairs]) =>
+        ([, pairs]) =>
           pairs.length > 1 &&
           pairs.some(({ val }) => isFunction(val)) &&
           pairs.every(({ val }) => isNil(val) || isFunction(val)),

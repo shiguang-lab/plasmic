@@ -103,7 +103,6 @@ import {
   Variant,
 } from "@/wab/shared/model/classes";
 import {
-  IRuleSetHelpers,
   IRuleSetHelpersX,
   ReadonlyIRuleSetHelpersX,
   RSH,
@@ -540,7 +539,7 @@ function buildExtractToMixins(
           }}
         />
       </>,
-      (push) => {
+      () => {
         buildMixinPicker(builder, sc, async (mixinOrName) => {
           if (styleName) {
             await extractToMixin(styleName, mixinOrName);
@@ -552,7 +551,7 @@ function buildExtractToMixins(
     );
   };
 
-  builder.genSection(`Extract to ${MIXINS_CAP}`, (push) => {
+  builder.genSection(`Extract to ${MIXINS_CAP}`, () => {
     if (displayStyleName) {
       buildExtractToMixin(displayStyleName);
     } else {
@@ -642,7 +641,7 @@ function buildExtractToTokens(
           }}
         />
       </>,
-      (push) => {
+      () => {
         builder.genSection(undefined, (_push) => {
           _push(
             <Menu.Item
@@ -707,7 +706,7 @@ function buildExtractToTokens(
     );
   };
 
-  builder.genSection(`Extract to ${TOKENS_CAP}`, (push) => {
+  builder.genSection(`Extract to ${TOKENS_CAP}`, () => {
     const targetExp = expsProvider.targetExp();
     for (const styleName of styleNames) {
       if (!targetExp.has(styleName)) {
@@ -811,37 +810,7 @@ function StylePanelSection_(
     if (extraMenuItems) {
       extraMenuItems(builder);
     }
-    builder.genSection(undefined, (push) => {
-      push(
-        <Menu.Item
-          key="remove"
-          onClick={async () => {
-            await studioCtx.changeUnsafe(() => {
-              const exp = expsProvider.targetExp();
-              const targetRs = expsProvider.targetRs();
-              for (const prop of L.without(styleProps, ...unremovableProps)) {
-                if (exp.has(prop) && expsProvider.isPropRemovable(prop)) {
-                  exp.clear(prop);
-                }
-                if (prop === "animation") {
-                  targetRs.animations = null;
-                }
-              }
-              // Cleared props inherit, only unremovable ones need a default.
-              for (const [key, value] of defaultStyleProps) {
-                if (unremovableProps.includes(key)) {
-                  exp.set(key, value);
-                }
-              }
-            });
-          }}
-        >
-          <UiText
-            message="Remove all {name} styles"
-            values={{ name: <strong>{title}</strong> }}
-          />
-        </Menu.Item>,
-      );
+    builder.genSection(undefined, () => {
       builder.genSub(
         <UiText
           message={
@@ -1292,7 +1261,7 @@ export class TplExpsProvider implements ExpsProvider {
     return vs.rsh();
   };
 
-  isPropRemovable = (prop: string) => true;
+  isPropRemovable = (_prop: string) => true;
 
   definedIndicator = (prop: string): DefinedIndicatorType => {
     const effectiveVs = this.effectiveVs();

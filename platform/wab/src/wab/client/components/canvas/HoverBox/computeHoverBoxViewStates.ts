@@ -2,6 +2,7 @@ import {
   ContainerChildAlignment,
   SpaceEdgeType,
 } from "@/wab/client/components/canvas/HoverBox/draggable-edge";
+import { getDeviceFrame, type DeviceFrameGeometry } from "@/wab/client/components/device-frame/device-frame";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox/recomputeBounds";
 import {
   NO_CLIPPED_SIDES,
@@ -94,6 +95,7 @@ export interface HoverBoxViewDisplayProps {
   containerChildAlignment: Record<Orient, ContainerChildAlignment | undefined>;
   dashedBorder?: boolean;
   isComponentPart?: boolean;
+  deviceFrame?: DeviceFrameGeometry;
 }
 
 export interface HoverBoxViewProps {
@@ -129,8 +131,8 @@ export function computeHoverBoxTargets(
     const frameRef = studioSelection.frames[0];
     const frame = frameRef && studioCtx.modelSnapshots.resolve(frameRef);
     if (!frame) { return []; }
-    const vc = studioCtx.tryGetViewCtxForFrame(frame);
-    if (!vc || vc.isDisposed) {
+    const sourceViewCtx = studioCtx.tryGetViewCtxForFrame(frame);
+    if (!sourceViewCtx || sourceViewCtx.isDisposed) {
       return [];
     }
 
@@ -174,7 +176,7 @@ export function computeHoverBoxTargets(
 export type HoverBoxTarget =
   ArenaFrame | { node: JQuery<HTMLElement> | null; focusObj: Selectable };
 
-export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, transformingObject: boolean, draggingObject: boolean, selectedPart: CanvasComponentPart | undefined) {
+export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, transformingObject: boolean, draggingObject: boolean, selectedPart: CanvasComponentPart | undefined): HoverBoxViewProps {
   const studioCtx = vc.studioCtx;
   if (studioCtx.canvasContentEditor &&
     (isKnownArenaFrame(target) || !vc.contentEditor.contains(target.focusObj))) {
@@ -206,6 +208,9 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
         },
         clippedSides: { ...NO_CLIPPED_SIDES },
         targetUid: target.uid,
+        deviceFrame: isPageComponent(component)
+          ? getDeviceFrame(target.width, target.height)
+          : undefined,
         tagName: studioCtx.tplMgr().describeArenaFrame(target),
         tagIcon: isFrameComponent(component)
           ? undefined

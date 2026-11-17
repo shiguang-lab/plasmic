@@ -144,11 +144,11 @@ it.each(["blocked", "stale", "readOnly", "protectedMain", "nativePreview"])(
     const f = await fixture();
     try {
       await f.call("setInteractiveMode", { enabled: true });
-      if (state === "blocked") f.studioCtx.setBlockChanges(true);
-      if (state === "stale") f.studioCtx.isAtTip = false;
-      if (state === "readOnly") vi.spyOn(f.studioCtx, "canEditProject").mockReturnValue(false);
-      if (state === "protectedMain") f.studioCtx.siteInfo.isMainBranchProtected = true;
-      if (state === "nativePreview") vi.spyOn(f.studioCtx, "isLiveMode", "get").mockReturnValue(true);
+      if (state === "blocked") {f.studioCtx.setBlockChanges(true);}
+      if (state === "stale") {f.studioCtx.isAtTip = false;}
+      if (state === "readOnly") {vi.spyOn(f.studioCtx, "canEditProject").mockReturnValue(false);}
+      if (state === "protectedMain") {f.studioCtx.siteInfo.isMainBranchProtected = true;}
+      if (state === "nativePreview") {vi.spyOn(f.studioCtx, "isLiveMode", "get").mockReturnValue(true);}
       expect(await f.call("getEditorContext", {})).toMatchObject({ canEdit: false });
       await expect(f.call("createComponent", { name: "Unauthorized" })).rejects.toThrow();
       expect(f.studioCtx.site.components.some(c => c.name === "Unauthorized")).toBe(false);

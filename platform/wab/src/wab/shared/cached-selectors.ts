@@ -28,7 +28,6 @@ import {
 import { nodeNameBackwardsCompatibility } from "@/wab/shared/codegen/react-p/constants";
 import {
   customInsertMaps,
-  ensure,
   ensureArray,
   filterFalsy,
   maybeMemoizeFn,
@@ -41,7 +40,6 @@ import {
 import {
   PageComponent,
   allComponentVariants,
-  getComponentDisplayName,
   getNonVariantParams,
   getParamNames,
   isCodeComponent,

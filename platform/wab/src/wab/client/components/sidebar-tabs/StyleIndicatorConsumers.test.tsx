@@ -1,5 +1,5 @@
 import "@/wab/client/components/sidebar/MixinControls";
-import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
+import { InteractionStylesPanelSection } from "@/wab/client/components/sidebar-tabs/InteractionStylesPanelSection";
 import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import {
   SingleRsExpsProvider,
@@ -56,9 +56,6 @@ vi.mock("@/wab/client/components/sidebar/sidebar-helpers", async (importOriginal
     ),
   };
 });
-vi.mock("@/wab/client/components/sidebar-tabs/FilterEffectSection", () => ({
-  FilterEffectsPanelSection: () => null,
-}));
 vi.mock("@/wab/client/components/sidebar/SidebarModal", () => ({
   SidebarModal: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
 }));
@@ -157,8 +154,9 @@ it("opens transform settings, creation and editing in popovers", async () => {
 
   fireEvent.contextMenu(header);
   expect(
-    await screen.findByRole("menuitem", { name: "Remove all Transform styles" }),
+    await screen.findByRole("menuitem", { name: /Move all Transform styles to a style preset/ }),
   ).toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: "Remove all Transform styles" })).toBeNull();
   expect(definedIndicator).not.toHaveBeenCalled();
   await act(async () => { await studio.awaitEval(); });
 });
@@ -175,7 +173,7 @@ it("edits cursor and pointer events in the compact interaction row without chang
   const definedIndicator = vi.spyOn(provider, "definedIndicator").mockImplementation(() => {
     throw new Error("Render must use native indicator recipes");
   });
-  render(wrap(<EffectsPanelSection expsProvider={provider} />));
+  render(wrap(<InteractionStylesPanelSection expsProvider={provider} />));
 
   const cursor = screen.getByRole("combobox", { name: "Cursor" });
   expect(cursor).toHaveValue("pointer");

@@ -156,7 +156,7 @@ export const TextInputPlugin: PlumePlugin = {
     };
   },
 
-  twiddleGenInstanceProps(_tpl: TplComponent, _attrs) {},
+  twiddleGenInstanceProps(_tpl: TplComponent, _attrs) { /* Text input instances need no additional generated prop adjustments. */ },
 
   componentMeta: {
     name: "TextInput",

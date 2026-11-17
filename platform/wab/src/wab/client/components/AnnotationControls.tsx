@@ -20,7 +20,7 @@ export function AnnotationControls() {
   useViewSelection(vc, useShallow((state) => [state.targets, state.tpls]));
   const [expanded, setExpanded] = useState<string | undefined>(undefined);
 
-  const tpl = ensure(vc.focusedTpl(true));
+  const tpl = ensure(vc.focusedTpl(true), "A focused template node is required to edit annotations");
 
   return (
     <PanelSection title={uiT("Annotations")}>

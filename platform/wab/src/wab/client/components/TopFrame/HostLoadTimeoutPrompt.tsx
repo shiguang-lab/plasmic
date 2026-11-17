@@ -58,7 +58,7 @@ export function HostLoadTimeoutPrompt({
                                   <HostConfig
                                     appCtx={appCtx}
                                     project={project}
-                                    onCancel={() => {}}
+                                    onCancel={() => { /* Cancelling host configuration requires no additional action here. */ }}
                                     onUpdate={async (canSkipRefresh) => {
                                       if (!canSkipRefresh) {
                                         window.location.reload();
@@ -100,7 +100,7 @@ export function HostLoadTimeoutPrompt({
         notification.destroy(key);
       };
     }
-    return () => {};
+    return undefined;
   }, [project, editorPerm, hostConnected, refreshStudio]);
   return null;
 }

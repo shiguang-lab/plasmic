@@ -120,7 +120,7 @@ const Row = React.memo(function Row<T>(props: {
 }) {
   const { data, index, style } = props;
   const { renderer, itemKey, customDragHandle } = ensure(
-    React.useContext(ListContext),
+    React.useContext(ListContext), "Virtual list rows must be rendered within ListContext.Provider",
   );
   const item = data[index];
   if (!item) {

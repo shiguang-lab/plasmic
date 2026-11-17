@@ -32,6 +32,7 @@ try {
     "platform/canvas-packages",
     "platform/react-web-bundle",
     "plasmicpkgs/antd6",
+    "plasmicpkgs/material-ui",
     "plasmicpkgs/overseas",
   ]) {
     const links = { "@plasmicapp/host": "packages/host" };
@@ -41,6 +42,7 @@ try {
     if (consumer === "platform/canvas-packages") {
       links["@shiguang-lab/plasmic-antd-icons"] = "plasmicpkgs/antd-icons";
       links["@shiguang-lab/plasmic-antd6"] = "plasmicpkgs/antd6";
+      links["@shiguang-lab/plasmic-material-ui"] = "plasmicpkgs/material-ui";
       links["@shiguang-lab/plasmic-overseas"] = "plasmicpkgs/overseas";
     }
     for (const [name, source] of Object.entries(links)) {
@@ -71,6 +73,7 @@ try {
     "plasmicpkgs/antd-icons",
     "plasmicpkgs/overseas",
     "plasmicpkgs/antd6",
+    "plasmicpkgs/material-ui",
     "platform/canvas-packages",
     "platform/sub",
   ]) {

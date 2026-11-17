@@ -151,11 +151,11 @@ export function basicSite({
     }),
   );
 
-  const cmp1 = tplMgr.addComponent({
+  tplMgr.addComponent({
     name: "My page",
     type: ComponentType.Page,
   });
-  const cmp2 = tplMgr.addComponent({
+  tplMgr.addComponent({
     name: "My component",
     type: ComponentType.Plain,
   });
@@ -186,7 +186,7 @@ export function basicSite({
   tplMgr.createVariant(cmp, group3, "Blue");
 
   const arena = tplMgr.addArena("My custom arena");
-  const frame = tplMgr.addNewMixedArenaFrame(arena, "My frame", cmp, {
+  tplMgr.addNewMixedArenaFrame(arena, "My frame", cmp, {
     insertPt: new Pt(0, 0),
   });
 

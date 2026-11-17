@@ -37,6 +37,7 @@ RUN --mount=type=secret,id=build-ca \
 RUN mkdir -p platform/wab/public/static/packages && cd plasmicpkgs/antd6 && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/overseas && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/react-ui && pnpm pack --pack-destination ../../platform/wab/public/static/packages
+RUN cd plasmicpkgs/material-ui && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 
 FROM node:24.16.0-bookworm-slim AS server
 RUN apt-get update && apt-get install -y --no-install-recommends bash git ca-certificates libssl3 && rm -rf /var/lib/apt/lists/* && corepack enable
@@ -56,6 +57,7 @@ COPY --chown=node:node deploy/nas-init.ts src/wab/server/nas-init.ts
 COPY --chown=node:node deploy/nas-antd6.ts src/wab/server/nas-antd6.ts
 COPY --chown=node:node deploy/nas-icons.ts src/wab/server/nas-icons.ts
 COPY --chown=node:node deploy/nas-react-ui.ts src/wab/server/nas-react-ui.ts
+COPY --chown=node:node deploy/nas-material-ui.ts src/wab/server/nas-material-ui.ts
 COPY --chown=node:node deploy/nas-platform-libraries.ts src/wab/server/nas-platform-libraries.ts
 COPY --chown=node:node deploy/nas-ai-init.ts src/wab/server/nas-ai-init.ts
 COPY --chown=node:node deploy/ai-chat/migrate-message-channels.cjs /plasmic/deploy/ai-chat/migrate-message-channels.cjs

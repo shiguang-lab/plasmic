@@ -1,4 +1,5 @@
 import { parseProjectLocation } from "@/wab/client/cli-routes";
+import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import { createPreviewCompiler } from "@/wab/client/components/live/preview-compiler";
 import { showCanvasPageNavigationNotification } from "@/wab/client/components/canvas/studio-canvas-util";
 import {
@@ -908,10 +909,11 @@ export async function getUrlsForLiveMode(
     excludeMediaQuery: true,
   }).filter((v) => pinManager.isActive(v));
 
+  const deviceFrame = !full && isPageComponent(component) ? getDeviceFrame(arenaFrame.width, arenaFrame.height) : undefined;
   return mkPreviewRoute(studioCtx.siteInfo.id, {
     full,
     presentationCode,
-    viewport: "desktop",
+    viewport: deviceFrame?.kind ?? "desktop",
     componentPath: {
       component: viewCtx.component,
       pageParams: viewCtx.component.pageMeta?.params || {},
@@ -920,7 +922,7 @@ export async function getUrlsForLiveMode(
     pageHash: "",
     allVariants: [...variants, ...global],
     width: full ? DEFAULT_VIEWPORT_WIDTH : arenaFrame.width,
-    height: full ? DEFAULT_VIEWPORT_HEIGHT : getFrameHeight(arenaFrame),
+    height: full ? DEFAULT_VIEWPORT_HEIGHT : deviceFrame ? arenaFrame.height : getFrameHeight(arenaFrame),
     branchName: studioCtx.branchInfo()?.name ?? null,
   });
 }

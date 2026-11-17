@@ -38,8 +38,8 @@ export async function runGitJob(
 
   const { projectId, directory, scheme, platform, language } =
     projectRepository;
-  const project = ensure(projectRepository.project);
-  const installationId = ensure(projectRepository.installationId);
+  const project = ensure(projectRepository.project, "Project repository must include its project before running a Git job");
+  const installationId = ensure(projectRepository.installationId, "Project repository must have a GitHub installation ID before running a Git job");
   const [owner, repo] = projectRepository.repository.split("/");
   const branch = args.branch ?? projectRepository.defaultBranch;
   const action = args.action ?? projectRepository.defaultAction;

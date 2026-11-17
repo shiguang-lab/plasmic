@@ -113,10 +113,10 @@ export function offsetPxAsUnits(
       offsetPx;
     newNum = (100 * offsetPx) / parentSize;
   } else if (unit === "vw") {
-    const parentSize = ensure(domElt.ownerDocument.defaultView).innerWidth;
+    const parentSize = ensure(domElt.ownerDocument.defaultView, "Element document must have a window to convert viewport-width units").innerWidth;
     newNum = (100 * offsetPx) / parentSize;
   } else if (unit === "vh") {
-    const parentSize = ensure(domElt.ownerDocument.defaultView).innerHeight;
+    const parentSize = ensure(domElt.ownerDocument.defaultView, "Element document must have a window to convert viewport-height units").innerHeight;
     newNum = (100 * offsetPx) / parentSize;
   }
 

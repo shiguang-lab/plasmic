@@ -2,7 +2,7 @@ import { assert } from "@/wab/shared/common";
 import { normalizeError, showError } from "@/wab/client/ErrorNotifications";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { UserError } from "@/wab/shared/UserError";
-import { HttpError, NetworkError } from "@/wab/shared/ApiErrors/ApiError";
+import { HttpError } from "@/wab/shared/ApiErrors/ApiError";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { message, notification } from "antd";
 import React from "react";

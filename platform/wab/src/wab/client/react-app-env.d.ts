@@ -14,6 +14,11 @@ declare module "*.avif" {
   export default src;
 }
 
+declare module "!!raw-loader!*" {
+  const content: string;
+  export default content;
+}
+
 declare module "*.bmp" {
   const src: string;
   export default src;

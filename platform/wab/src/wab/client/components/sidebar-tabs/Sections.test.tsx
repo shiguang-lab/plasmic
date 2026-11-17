@@ -101,7 +101,8 @@ it.each([
     expect(layoutIndex).toBe(positionIndex + 1);
     expect(appearanceIndex).toBe(layoutIndex + 1);
     expect(ordered.indexOf(Section.Typography)).toBe(appearanceIndex + 1);
-    expect(ordered.slice(appearanceIndex + 2, appearanceIndex + 5)).toEqual([
+    expect(ordered.slice(appearanceIndex + 2, appearanceIndex + 6)).toEqual([
+      Section.InteractionStylesPanel,
       Section.Background,
       Section.Border,
       Section.Outline,

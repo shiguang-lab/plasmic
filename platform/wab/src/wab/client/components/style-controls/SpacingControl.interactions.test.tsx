@@ -30,7 +30,7 @@ vi.mock("@/wab/client/components/sidebar/sidebar-helpers", () => ({
 vi.mock("@/wab/client/components/style-controls/StyleComponent", () => ({
   getLabelForStyleName: (name: string) => name,
   createStyleContextMenu: vi.fn(),
-  changeStyle: (provider: { studioCtx: { changeSpawn: (command: () => void) => void } }, command: () => void) => provider.studioCtx.changeSpawn(command),
+  changeStyle: (styleProvider: { studioCtx: { changeSpawn: (command: () => void) => void } }, command: () => void) => styleProvider.studioCtx.changeSpawn(command),
 }));
 vi.mock("@/wab/client/components/style-controls/UnloggedDragCatcher", () => ({ UnloggedDragCatcher: ({ children }: React.PropsWithChildren) => children }));
 vi.mock("@/wab/client/components/ContextMenu", () => ({ maybeShowContextMenu: vi.fn() }));

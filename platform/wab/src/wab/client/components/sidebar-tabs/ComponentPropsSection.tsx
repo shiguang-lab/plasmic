@@ -25,12 +25,14 @@ import {
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import {
   PropEditorRowWrapper,
+  PropValuePath,
   isPropShown,
 } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import ActionChip from "@/wab/client/components/sidebar-tabs/StateManagement/ActionChip";
 import HandlerSection from "@/wab/client/components/sidebar-tabs/StateManagement/HandlerSection";
 import VariableEditingForm from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingForm";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
+import { PopoverFrame } from "@/wab/client/components/sidebar/PopoverFrame";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
@@ -227,8 +229,6 @@ const ComponentPropsSectionContent = React.memo(
     const selectCatalog = React.useCallback(() => {
     const tplCtx = { tpl, viewCtx, expsProvider };
     const component = tpl.component;
-    // For foreign components, we list all slot parameters too so that they can
-    // type in raw string nodes.
     let params = getRealParams(component, { includeVariants }).filter(
       (param) => param.origin !== ComponentPropOrigin.ReactHTMLAttributes,
     );
@@ -259,6 +259,8 @@ const ComponentPropsSectionContent = React.memo(
       );
     }));
 
+    params = params.filter((param) => param.variable.name !== "children");
+
     if (isCodeComponent(component) || isPlumeComponent(component)) {
       params = params.filter((param) => {
         const propType = ensure(
@@ -286,6 +288,7 @@ const ComponentPropsSectionContent = React.memo(
       return !hackyCast(action).hidden?.(componentPropValues, ccContextData);
     });
     const slotParams = getSlotParams(component).filter((param) => {
+      if (param.variable.name === "children") { return false; }
       const propType = propTypes?.[param.variable.name];
       if (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) { return false; }
       if (typeof propType !== "object" || !("hidden" in propType)) {
@@ -324,10 +327,9 @@ const ComponentPropsSectionContent = React.memo(
             id="component-props-section"
             title={
               props.customTitle ??
-              uiT(
-                tab === "settings" ? "{name} props" : "{name} nested styles",
-                { name: componentName },
-              )
+              (tab === "style"
+                ? uiT("{name} nested styles", { name: componentName })
+                : undefined)
             }
             key={`main.${tpl.uid}`}
           >
@@ -397,9 +399,10 @@ export const InteractionPropEditor =
     studioCtx: StudioCtx;
     viewCtx: ViewCtx;
     tpl: TplComponent | TplTag;
-    modalTitle: React.ReactNode;
+    popoverTitle: React.ReactNode;
     component: Component;
     forceOpen: boolean;
+    valuePath: PropValuePath;
     highlightOnMount?: HighlightInteractionRequest;
     eventHandlerKey: EventHandlerKeyType;
     value: EventHandler | CustomCode | ObjectPath | undefined | null;
@@ -407,19 +410,27 @@ export const InteractionPropEditor =
     "data-plasmic-prop"?: string;
   }) {
     const {
-      modalTitle,
+      popoverTitle,
       studioCtx,
       viewCtx,
       tpl,
       component,
       forceOpen,
+      valuePath,
       highlightOnMount,
       eventHandlerKey,
       value,
       onChange,
     } = props;
-    const [showInteractionModal, setShowInteractionModal] =
+    const [showInteractionPopover, setShowInteractionPopover] =
       React.useState(false);
+
+    const [triggerElement, setTriggerElement] = React.useState<HTMLDivElement | null>(null);
+    React.useEffect(() => {
+      if (forceOpen) {
+        setShowInteractionPopover(true);
+      }
+    }, [forceOpen, highlightOnMount]);
 
     React.useEffect(() => {
       const openRequestedInteraction = () => {
@@ -430,7 +441,7 @@ export const InteractionPropEditor =
             getDisplayNameOfEventHandlerKey(request, { tpl })
         ) {
           studioCtx.newlyAddedEventHandlerKeyStore.setState(undefined, true);
-          setShowInteractionModal(true);
+          setShowInteractionPopover(true);
         }
       };
       const unsubscribe = studioCtx.newlyAddedEventHandlerKeyStore.subscribe(
@@ -442,15 +453,18 @@ export const InteractionPropEditor =
     return !value || isKnownEventHandler(value) ? (
       <>
         <ActionChip
+          ref={setTriggerElement}
           eventHandler={value}
-          onClick={() => setShowInteractionModal(true)}
+          onClick={() => setShowInteractionPopover(true)}
           data-plasmic-prop={props["data-plasmic-prop"]}
         />
-        <SidebarModal
-          title={modalTitle}
-          show={forceOpen || showInteractionModal}
+        <PopoverFrame
+          title={popoverTitle}
+          show={showInteractionPopover}
+          valuePath={valuePath}
+          triggerElement={triggerElement ?? undefined}
           onClose={() => {
-            setShowInteractionModal(false);
+            setShowInteractionPopover(false);
           }}
         >
           <HandlerSection
@@ -465,7 +479,7 @@ export const InteractionPropEditor =
             onChange={onChange}
             highlightOnMount={highlightOnMount}
           />
-        </SidebarModal>
+        </PopoverFrame>
       </>
     ) : (
       <ExprEditor

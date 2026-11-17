@@ -3,6 +3,7 @@ import { useEditingTextContext } from "@/wab/client/studio-ctx/editing-text-stat
 import { useAutoOpenedUuid } from "@/wab/client/studio-ctx/auto-open-state";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { observeCanvasSelectionDom } from "@/wab/client/components/canvas/HoverBox/canvas-selection-dom-observer";
 import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
@@ -338,6 +339,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       : undefined;
 
   const cssProps = cssPropsForInvertTransform(viewportZoom, visibleBox);
+  // Keep labels and toolbars outside the screen mask; only content feedback
+  // and its edge controls belong to the device's visible surface.
+  const screenClip = viewCtx && visibleBox && !state?.deviceFrame
+    ? canvasScreenClipStyle(viewCtx, visibleBox, viewportZoom) : undefined;
+  const clipToScreen = (children: React.ReactNode) => screenClip
+    ? <div style={{ position: "absolute", inset: 0, ...screenClip }}>{children}</div>
+    : children;
 
   useEffect(() => {
     setDimsBoxWidth(dimsBoxRef.current ? dimsBoxRef.current.offsetWidth : 0);
@@ -368,6 +376,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     visibleBox?.width || 0,
     viewportZoom,
     showFrameTag ? viewCtx : undefined,
+    state?.deviceFrame ? (state.deviceFrame.insetY + 3) * viewportZoom : 0,
   );
   // The size badge sits centered below the box. When the name tag has to go
   // below the box too, stack the badge under the tag instead of over it.
@@ -450,7 +459,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     const allowMargin = anyEdge?.includes("margin") ?? false;
 
                     return (
-                      <div style={geometryLayer(-1)}>
+                      clipToScreen(<div style={geometryLayer(-1)}>
                         <SpacingVisualizer
                           allowPadding={allowPadding}
                           allowMargin={allowMargin}
@@ -458,7 +467,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                           marginPx={state?.marginPx}
                           zoom={viewportZoom}
                         />
-                      </div>
+                      </div>)
                     );
                   })()}
 
@@ -480,7 +489,10 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     </div>
                   </div>
                 )}
-                <div
+                {clipToScreen(<><div
+                  style={state?.deviceFrame ? {
+                    borderRadius: state.deviceFrame.screenRadius * viewportZoom + 1,
+                  } : screenClip ? { width: "100%", height: "100%" } : undefined}
                   className={cn({
                     HoverBox__Border: true,
                     "HoverBox__Border--autoWidth": state && state.autoWidth,
@@ -819,7 +831,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                                   );
                                 }
                               }}
-                              onHover={() => {}}
+                              onHover={() => { /* This spacing control does not track hover state. */ }}
                               onDoubleClick={async (side2, edgeType) => {
                                 if (edgeType === "size") {
                                   clearSize(side2);
@@ -855,7 +867,8 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                       })}
                   </div>
                 </div>
-                {focusedElt && viewCtx && (
+                </>)}
+                {focusedElt && viewCtx && clipToScreen(
                   // The editor scrollbar maps 1:1 onto the element's own
                   // scroll area, so it is laid out on the real box.
                   <div style={geometryLayer()}>
@@ -904,12 +917,12 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   isTplColumns(controlledTpl) && (
                     // Column dividers are positioned from the element's real
                     // content box.
-                    <div style={geometryLayer(-1)}>
+                    clipToScreen(<div style={geometryLayer(-1)}>
                       <ResponsiveColumnsCanvasControls
                         viewCtx={viewCtx}
                         tpl={controlledTpl}
                       />
-                    </div>
+                    </div>)
                   )}
               </>
             }

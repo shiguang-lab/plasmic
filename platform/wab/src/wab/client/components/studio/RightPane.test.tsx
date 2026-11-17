@@ -16,6 +16,7 @@ import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ensure, ensureInstance } from "@/wab/shared/common";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { mkTplComponent, mkTplTag } from "@/wab/shared/core/tpls";
 import {
   act,
   cleanup,
@@ -42,6 +43,9 @@ vi.mock("@/wab/client/components/sidebar-tabs/FrameSelectionPanel", () => ({
 }));
 vi.mock("@/wab/client/components/sidebar-tabs/MultiSelectionPanel", () => ({
   MultiSelectionPanel: () => null,
+}));
+vi.mock("@/wab/client/components/studio/RightInspectorHeader", () => ({
+  RightInspectorHeader: () => null,
 }));
 vi.mock("@/wab/client/components/sidebar-tabs/style-tab", async () => {
   const reactModule = await import("react");
@@ -103,7 +107,7 @@ class FakeIntersectionObserver {
 beforeEach(() => { vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver); });
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); for (const owner of arenaOwners) { owner.dispose(); } arenaOwners.clear(); });
 
-it("resets header geometry when available tabs change, retaining the active page editor", async () => {
+it("keeps the active page editor and valid tabs as the selection changes", async () => {
   const rightPanelStore = createRightPanelStore();
   rightPanelStore.setState({ tabKey: RightTabKey.component });
   const models = new ModelSnapshots();
@@ -119,6 +123,8 @@ it("resets header geometry when available tabs change, retaining the active page
   arenaOwners.add(renderPolicy);
   const focus = new StudioSelection(() => models);
   const selection = new ViewSelection(() => models);
+  const span = mkTplTag("span");
+  selection.setTpls([span]);
   const leftPanelState = new StudioLeftPanelState();
   const sc = mock<StudioCtx>();
   const vc = mock<ViewCtx>({ component });
@@ -155,7 +161,8 @@ it("resets header geometry when available tabs change, retaining the active page
   );
   const header = () => container.querySelector(".ant-tabs-nav");
   const elementTabsHeader = header();
-  expect(screen.getAllByRole("tab")).toHaveLength(4);
+  expect(screen.getAllByRole("tab")).toHaveLength(3);
+  expect(screen.queryByRole("tab", { name: "Props" })).toBeNull();
   const editor = ensureInstance(
     screen.getByRole("textbox", {
       name: "Page title draft",
@@ -182,7 +189,7 @@ it("resets header geometry when available tabs change, retaining the active page
       focus.set(vc, []);
     })(),
   );
-  expect(screen.getAllByRole("tab")).toHaveLength(4);
+  expect(screen.getAllByRole("tab")).toHaveLength(3);
   expect(header()).not.toBe(singleTabHeader);
   expect(screen.getByRole("textbox", { name: "Page title draft" })).toBe(
     editor,
@@ -195,4 +202,13 @@ it("resets header geometry when available tabs change, retaining the active page
     })(),
   );
   expect(header()).toBe(stableHeader);
+
+  await act(() => selection.setTpls([mkTplComponent(component, component.variants[0])]));
+  fireEvent.click(screen.getByRole("tab", { name: "Props" }));
+  expect(rightPanelStore.getState().tabKey).toBe(RightTabKey.props);
+
+  await act(() => selection.setTpls([span]));
+  expect(screen.queryByRole("tab", { name: "Props" })).toBeNull();
+  expect(screen.getByRole("tab", { name: "Design" }).getAttribute("aria-selected")).toBe("true");
+  expect(rightPanelStore.getState().tabKey).toBe(RightTabKey.style);
 });

@@ -71,15 +71,15 @@ class ActionAnalysis {
       }
       case "LogicalExpression": {
         const left = this.value(node.left);
-        if (left === UNKNOWN) return UNKNOWN;
-        if (node.operator === "&&") return left ? this.value(node.right) : left;
-        if (node.operator === "||") return left ? left : this.value(node.right);
+        if (left === UNKNOWN) {return UNKNOWN;}
+        if (node.operator === "&&") {return left ? this.value(node.right) : left;}
+        if (node.operator === "||") {return left ? left : this.value(node.right);}
         return left == null ? this.value(node.right) : left;
       }
       case "BinaryExpression": {
         const left = this.value(node.left),
           right = this.value(node.right);
-        if (left === UNKNOWN || right === UNKNOWN) return UNKNOWN;
+        if (left === UNKNOWN || right === UNKNOWN) {return UNKNOWN;}
         switch (node.operator) {
           case "===":
             return left === right;
@@ -112,7 +112,7 @@ class ActionAnalysis {
       case "ExpressionStatement":
         return this.statement(node.expression);
       case "ArrowFunctionExpression":
-      case "FunctionExpression":
+      case "FunctionExpression": {
         // Only the handler itself is unwrapped, never functions declared inside it.
         const values = [...this.args.values()];
         node.params.forEach((param, index) => {
@@ -121,6 +121,7 @@ class ActionAnalysis {
           }
         });
         return this.statement(node.body);
+      }
       case "IfStatement": {
         const condition = this.value(node.test);
         if (condition === UNKNOWN) {
@@ -160,14 +161,14 @@ class ActionAnalysis {
       case "VariableDeclaration":
         node.declarations.forEach((decl) => {
           if (decl.id.type === "Identifier")
-            this.args.set(
+            {this.args.set(
               decl.id.name,
               decl.init ? this.value(decl.init) : undefined,
-            );
+            );}
         });
         return true;
       case "ReturnStatement":
-        if (node.argument) this.statement(node.argument);
+        if (node.argument) {this.statement(node.argument);}
         return false;
       case "ThrowStatement":
         return false;
@@ -225,14 +226,14 @@ class ActionAnalysis {
         const values = [...this.args.values()];
         fn.argNames.forEach((name, index) => {
           if (!this.args.has(name))
-            this.args.set(name, values[index] ?? UNKNOWN);
+            {this.args.set(name, values[index] ?? UNKNOWN);}
         });
         this.handler(fn.bodyExpr);
       })
       .when(EventHandler, (handler) => {
         for (const interaction of handler.interactions) {
           if (interaction.conditionalMode === InteractionConditionalMode.Never)
-            continue;
+            {continue;}
           if (
             interaction.conditionalMode ===
               InteractionConditionalMode.Expression &&
@@ -243,7 +244,7 @@ class ActionAnalysis {
               this.writes.clear();
               break;
             }
-            if (!condition) continue;
+            if (!condition) {continue;}
           }
           const args = new Map(
             interaction.args.map((arg) => [arg.name, arg.expr]),
@@ -259,7 +260,7 @@ class ActionAnalysis {
                 this.expression(operation) !==
                   UpdateVariableOperations.NewValue)
             )
-              continue;
+              {continue;}
             const path = switchType(variable)
               .when(ObjectPath, (object) =>
                 object.path[0] === "$state"
@@ -278,14 +279,14 @@ class ActionAnalysis {
               })
               .elseUnsafe(() => undefined);
             if (path)
-              this.writes.set(JSON.stringify(path), this.expression(value));
+              {this.writes.set(JSON.stringify(path), this.expression(value));}
           } else if (interaction.actionName === "customFunction") {
             const code = args.get("customFunction");
-            if (code) this.handler(code);
+            if (code) {this.handler(code);}
           }
         }
       })
-      .elseUnsafe(() => {});
+      .elseUnsafe(() => { /* Other expression kinds have no handler writes to evaluate here. */ });
   }
 }
 

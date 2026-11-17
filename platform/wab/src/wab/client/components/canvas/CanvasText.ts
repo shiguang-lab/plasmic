@@ -850,7 +850,7 @@ const withPlasmic = <T extends SlateEditor>(
   };
 
   if (opts.plainText) {
-    editor.addMark = () => {};
+    editor.addMark = () => { /* Plain-text editing must not apply rich-text marks. */ };
   }
   return editor;
 };
@@ -917,11 +917,11 @@ function resetCanvasTextEditor(editor: import("../../../../../../canvas-packages
 }
 
 export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, inline, ctx, effectiveVs }: RichTextProps) {
-  return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(() => renderWithStateInitializers(ctx, (ctx) => {
-    const { sub, viewCtx: vc } = ctx;
+  return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(() => renderWithStateInitializers(ctx, (renderCtx) => {
+    const { sub, viewCtx: vc } = renderCtx;
     const react = sub.React;
     const plainText = isFixedSlotRoot(vc, node);
-    const initialValue = tplToSlateNodes(node, ctx, effectiveVs);
+    const initialValue = tplToSlateNodes(node, renderCtx, effectiveVs);
     const doc = vc.canvasCtx.doc();
     const { Range, Transforms } = sub.slate;
     const shortcutOpts: ShortcutFnOpts = { prompt: reactPrompt, vc };
@@ -930,17 +930,17 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
           // We just evaluate and render the content. Note that we set content using
           // dangerouslySetInnerHTML instead of children if node.text.html.
           return withErrorDisplayFallback(
-            ctx,
+            renderCtx,
             node,
             () => {
               const className = mkClassName(node, inline);
               const exprTextProps = mkExprTextProps(
                 node,
                 effectiveVs,
-                ctx.env,
+                renderCtx.env,
                 {
-                  projectFlags: ctx.projectFlags,
-                  component: ctx.ownerComponent ?? null,
+                  projectFlags: renderCtx.projectFlags,
+                  component: renderCtx.ownerComponent ?? null,
                   inStudio: true,
                 },
               );
@@ -959,7 +959,7 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
                   });
             },
             {
-              hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey],
+              hasLoadingBoundary: renderCtx.env.$ctx[hasLoadingBoundaryKey],
             },
           );
         }
@@ -1075,7 +1075,7 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
                 .filter(({ hotkey }) => hotkey?.(event.nativeEvent))
                 .forEach(({ fn }) => {
                   event.preventDefault();
-                  if (!plainText) spawn(fn(editor, shortcutOpts, sub));
+                  if (!plainText) {spawn(fn(editor, shortcutOpts, sub));}
                 });
             },
 
@@ -1102,10 +1102,10 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
                     return renderTextChild({
                         node: child,
                         ctx: {
-                          ...ctx,
+                          ...renderCtx,
                           valKey: suffix
-                            ? ctx.valKey + "." + suffix
-                            : ctx.valKey,
+                            ? renderCtx.valKey + "." + suffix
+                            : renderCtx.valKey,
                           inline: inlineElement,
                           // `slate` is passed only when this rich text is being
                           // edited. Slate REQUIRES them to be rendered; if not, the
@@ -1162,7 +1162,7 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
                   // from Slate, we will render it ourselves.
                   if ("leaf" in childrenProps) {
                     return react.createElement(
-                      ctx.sub.SlateString,
+                      renderCtx.sub.SlateString,
                       childrenProps,
                     );
                   } else {
@@ -1298,9 +1298,9 @@ export function renderReadOnlyCanvasText({
     }: Pick<RichTextProps, "node" | "inline" | "ctx" | "effectiveVs">) {
       const react = ctx.sub.React;
       return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(
-        () => renderWithStateInitializers(ctx, (ctx) =>
+        () => renderWithStateInitializers(ctx, (renderCtx) =>
           withErrorDisplayFallback(
-            ctx,
+            renderCtx,
             node,
             () => {
               const className = mkClassName(node, inline);
@@ -1310,10 +1310,10 @@ export function renderReadOnlyCanvasText({
                 const exprTextProps = mkExprTextProps(
                   node,
                   effectiveVs,
-                  ctx.env,
+                  renderCtx.env,
                   {
-                    projectFlags: ctx.projectFlags,
-                    component: ctx.ownerComponent ?? null,
+                    projectFlags: renderCtx.projectFlags,
+                    component: renderCtx.ownerComponent ?? null,
                     inStudio: true,
                   },
                 );
@@ -1334,11 +1334,11 @@ export function renderReadOnlyCanvasText({
                   ...DEFAULT_TEXT_STYLE,
                   display: inline ? "inline" : "block",
                 },
-                children: renderRawTextChildren(react, rawText, ctx),
+                children: renderRawTextChildren(react, rawText, renderCtx),
               });
             },
             {
-              hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey],
+              hasLoadingBoundary: renderCtx.env.$ctx[hasLoadingBoundaryKey],
             },
           ),
         ),
@@ -1367,19 +1367,19 @@ export function renderSlateChildren({
     }: SlateChildrenProps) {
       const react = ctx.sub.React;
       return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(
-        () => react.createElement(ctx.sub.CanvasSlateChildren, { render: (selected) => renderWithStateInitializers(ctx, (ctx) =>
+        () => react.createElement(ctx.sub.CanvasSlateChildren, { render: (selected) => renderWithStateInitializers(ctx, (renderCtx) =>
           withErrorDisplayFallback(
-            ctx,
+            renderCtx,
             node,
             () => {
-              const { sub } = ctx;
+              const { sub } = renderCtx;
               const className = mkClassName(node, inline);
 
               const exprTextElement = isExprText(effectiveVs.text)
                 ? react.createElement("span", {
-                    ...mkExprTextProps(node, effectiveVs, ctx.env, {
-                      projectFlags: ctx.projectFlags,
-                      component: ctx.ownerComponent ?? null,
+                    ...mkExprTextProps(node, effectiveVs, renderCtx.env, {
+                      projectFlags: renderCtx.projectFlags,
+                      component: renderCtx.ownerComponent ?? null,
                       inStudio: true,
                     }),
                   })
@@ -1406,7 +1406,7 @@ export function renderSlateChildren({
                   });
             },
             {
-              hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey],
+              hasLoadingBoundary: renderCtx.env.$ctx[hasLoadingBoundaryKey],
             },
           ),
         ) }),

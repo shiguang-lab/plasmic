@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "library": "material_ui",
+  "purpose": "Lightweight usage owners for the registered Material UI wrapper; no admin plan decisions or Antd structural gates.",
+  "documents": {
+    "components/actions.md": {
+      "registrations": [
+        "plasmic-material-ui-button",
+        "plasmic-material-ui-button-group",
+        "plasmic-material-ui-icon-button",
+        "plasmic-material-ui-fab",
+        "plasmic-material-ui-toggle-button",
+        "plasmic-material-ui-toggle-button-group"
+      ]
+    },
+    "components/inputs.md": {
+      "registrations": [
+        "plasmic-material-ui-autocomplete",
+        "plasmic-material-ui-checkbox",
+        "plasmic-material-ui-form-control",
+        "plasmic-material-ui-form-control-label",
+        "plasmic-material-ui-form-group",
+        "plasmic-material-ui-form-helper-text",
+        "plasmic-material-ui-form-label",
+        "plasmic-material-ui-input",
+        "plasmic-material-ui-input-adornment",
+        "plasmic-material-ui-input-base",
+        "plasmic-material-ui-input-label",
+        "plasmic-material-ui-menu-item",
+        "plasmic-material-ui-native-select",
+        "plasmic-material-ui-native-option",
+        "plasmic-material-ui-outlined-input",
+        "plasmic-material-ui-radio",
+        "plasmic-material-ui-radio-group",
+        "plasmic-material-ui-rating",
+        "plasmic-material-ui-select",
+        "plasmic-material-ui-slider",
+        "plasmic-material-ui-switch",
+        "plasmic-material-ui-text-field"
+      ]
+    },
+    "components/navigation.md": {
+      "registrations": [
+        "plasmic-material-ui-app-bar",
+        "plasmic-material-ui-toolbar",
+        "plasmic-material-ui-bottom-navigation",
+        "plasmic-material-ui-bottom-navigation-action",
+        "plasmic-material-ui-breadcrumbs",
+        "plasmic-material-ui-link",
+        "plasmic-material-ui-menu-list",
+        "plasmic-material-ui-mobile-stepper",
+        "plasmic-material-ui-pagination",
+        "plasmic-material-ui-pagination-item",
+        "plasmic-material-ui-step",
+        "plasmic-material-ui-step-button",
+        "plasmic-material-ui-step-connector",
+        "plasmic-material-ui-step-content",
+        "plasmic-material-ui-step-label",
+        "plasmic-material-ui-stepper",
+        "plasmic-material-ui-tab",
+        "plasmic-material-ui-tabs"
+      ]
+    },
+    "components/overlays.md": {
+      "registrations": [
+        "plasmic-material-ui-dialog",
+        "plasmic-material-ui-dialog-actions",
+        "plasmic-material-ui-dialog-content",
+        "plasmic-material-ui-dialog-content-text",
+        "plasmic-material-ui-dialog-title",
+        "plasmic-material-ui-drawer",
+        "plasmic-material-ui-swipeable-drawer",
+        "plasmic-material-ui-menu",
+        "plasmic-material-ui-tooltip",
+        "plasmic-material-ui-snackbar",
+        "plasmic-material-ui-snackbar-content"
+      ]
+    },
+    "components/feedback.md": {
+      "registrations": [
+        "plasmic-material-ui-alert",
+        "plasmic-material-ui-alert-title",
+        "plasmic-material-ui-backdrop",
+        "plasmic-material-ui-circular-progress",
+        "plasmic-material-ui-linear-progress",
+        "plasmic-material-ui-skeleton"
+      ]
+    },
+    "components/data-display.md": {
+      "registrations": [
+        "plasmic-material-ui-avatar",
+        "plasmic-material-ui-avatar-group",
+        "plasmic-material-ui-badge",
+        "plasmic-material-ui-chip",
+        "plasmic-material-ui-divider",
+        "plasmic-material-ui-list",
+        "plasmic-material-ui-list-item",
+        "plasmic-material-ui-list-item-avatar",
+        "plasmic-material-ui-list-item-button",
+        "plasmic-material-ui-list-item-icon",
+        "plasmic-material-ui-list-item-text",
+        "plasmic-material-ui-list-subheader",
+        "plasmic-material-ui-svg-icon",
+        "plasmic-material-ui-typography"
+      ]
+    },
+    "components/table.md": {
+      "registrations": [
+        "plasmic-material-ui-table",
+        "plasmic-material-ui-table-body",
+        "plasmic-material-ui-table-cell",
+        "plasmic-material-ui-table-container",
+        "plasmic-material-ui-table-footer",
+        "plasmic-material-ui-table-head",
+        "plasmic-material-ui-table-pagination",
+        "plasmic-material-ui-table-row",
+        "plasmic-material-ui-table-sort-label"
+      ]
+    },
+    "components/layout.md": {
+      "registrations": [
+        "plasmic-material-ui-box",
+        "plasmic-material-ui-container",
+        "plasmic-material-ui-grid",
+        "plasmic-material-ui-image-list",
+        "plasmic-material-ui-image-list-item",
+        "plasmic-material-ui-image-list-item-bar",
+        "plasmic-material-ui-stack"
+      ]
+    },
+    "components/surfaces.md": {
+      "registrations": [
+        "plasmic-material-ui-accordion",
+        "plasmic-material-ui-accordion-actions",
+        "plasmic-material-ui-accordion-details",
+        "plasmic-material-ui-accordion-summary",
+        "plasmic-material-ui-card",
+        "plasmic-material-ui-card-action-area",
+        "plasmic-material-ui-card-actions",
+        "plasmic-material-ui-card-content",
+        "plasmic-material-ui-card-header",
+        "plasmic-material-ui-card-media",
+        "plasmic-material-ui-paper"
+      ]
+    },
+    "components/theme.md": {
+      "registrations": [
+        "plasmic-material-ui-theme-provider"
+      ]
+    }
+  },
+  "checks": {}
+}

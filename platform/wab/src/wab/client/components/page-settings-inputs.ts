@@ -1,5 +1,5 @@
 import { clone } from "@/wab/shared/core/exprs";
-import { Expr, isKnownExpr } from "@/wab/shared/model/classes";
+import { Expr } from "@/wab/shared/model/classes";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";

@@ -63,6 +63,8 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 
 ## Admin prototype templates
 
+The admin template, layout and content-entry conventions below apply to Pages or regions using the supported Overseas/Antd6 suite. Other libraries use their own component references and compatible templates; an admin purpose alone does not impose Antd components, PC sizing or page recipes. Keep shared component-contract and verification requirements across libraries.
+
 - Admin prototypes inside AppShell start with business content, without a standalone page title/header/subtitle/intro unless the current user explicitly requests that area. This includes detail pages; template/reference headers do not opt in. Keep requirement scope, implementation notes, acceptance instructions and simulation controls outside the business UI. Preserve genuine field help and actionable feedback. Map each required table, submitted form and read-only information group to its registered Table, Form and Descriptions components before composition; do not imitate them with styled HTML/text.
 - Apply the Header necessity assessment before the return-navigation decision in `ai/plasmic/references/design/layout.md#admin-content-entry`. A generic page title, repeated status/fields or actions with an existing owner do not justify a Header. Place a needed return action inside an explicitly requested Header; without a Header, use existing breadcrumbs and omit a standalone return button or return-only surface. Verify the parent destination is navigable.
 

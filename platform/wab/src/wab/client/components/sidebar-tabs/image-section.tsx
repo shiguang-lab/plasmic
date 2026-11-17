@@ -273,13 +273,13 @@ function ImageSectionBody(props: { expsProvider: TplExpsProvider; ancestorSlot?:
                     if (!val) {
                       return;
                     }
-                    const codeExpr = ensureInstance(
+                    const selectedExpr = ensureInstance(
                       expr,
                       ObjectPath,
                       CustomCode,
                     );
-                    const fallbackExpr = codeExpr.fallback
-                      ? clone(codeExpr.fallback)
+                    const fallbackExpr = selectedExpr.fallback
+                      ? clone(selectedExpr.fallback)
                       : undefined;
                     const newExpr = createExprForDataPickerValue(
                       val,

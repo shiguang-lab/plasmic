@@ -876,7 +876,7 @@ async function wiTreeToTpl(
         if (isCodeComponent(component) && (param.exportType === ParamExportType.ToolsOnly || isEditorOnlyRegistration(metaProp))) { continue; }
         if (!metaProp || typeof metaProp !== "object" || isSlot(param)
             || !("defaultValue" in metaProp) || typeof metaProp.defaultValue === "function"
-            || Object.hasOwn(node.props ?? {}, name) || Object.hasOwn(node.slots ?? {}, name)) continue;
+            || Object.hasOwn(node.props ?? {}, name) || Object.hasOwn(node.slots ?? {}, name)) {continue;}
         const currentDefault = unwrap(maybePropTypeToDefaultExpr(metaProp, name, componentName));
         if (currentDefault && (!param.defaultExpr || !L.isEqual(tryExtractJson(currentDefault), tryExtractJson(param.defaultExpr)))) {
           args[param.variable.name] = currentDefault;

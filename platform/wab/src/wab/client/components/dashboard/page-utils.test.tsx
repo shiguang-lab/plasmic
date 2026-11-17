@@ -1,7 +1,7 @@
 import { act, cleanup, render, waitFor } from "@testing-library/react";
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { documentTitle } from "./page-utils";
+import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 
 afterEach(cleanup);
 it("keeps page titles through navigation with the React 19-compatible head provider", async () => {

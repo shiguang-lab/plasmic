@@ -16,23 +16,15 @@ import {
   createExprForDataPickerValue,
   extractValueSavedFromDataPicker,
 } from "@/wab/shared/core/exprs";
-import { customFunctionId } from "@/wab/shared/core/query-ids";
 import {
   ALL_QUERIES,
   SHOW_INVALIDATION_KEYS,
 } from "@/wab/shared/data-sources-meta/data-sources";
 import {
   Component,
-  ComponentDataQuery,
-  ComponentServerQuery,
-  CustomFunction,
   QueryInvalidationExpr,
   QueryRef,
-  isKnownComponentServerQuery,
-  isKnownCustomCode,
-  isKnownCustomFunctionExpr,
 } from "@/wab/shared/model/classes";
-import { smartHumanize } from "@/wab/shared/strs";
 import { Menu } from "antd";
 import { isString, uniq } from "lodash";
 import { useQueryInvalidationInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";

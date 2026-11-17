@@ -22,7 +22,7 @@ export function requestToolTarget(studio: StudioCtx, component: Component, tpl: 
     .catch(() => undefined)
     .finally(() => {
       controller.abort();
-      if (pendingPresentations.get(studio) === controller) pendingPresentations.delete(studio);
+      if (pendingPresentations.get(studio) === controller) {pendingPresentations.delete(studio);}
     });
   return { componentUuid: component.uuid, elementUuid: tpl.uuid, visible: null, reason: "pending",
     message: "Automatic target presentation was requested in the background. Model execution does not wait for it; this is not a visibility verdict or a reason to retry the model operation." };

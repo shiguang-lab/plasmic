@@ -6,7 +6,7 @@
     "watch": "node ./makePkgTypes.js && ESBUILD_WATCH=true node ./esbuild.js",
     "gen-types": "node ./makePkgTypes.js",
     "test": "node --test makePkgTypes.test.js",
-    "test:preview-runtime": "node --test antd6-runtime.test.cjs",
+    "test:preview-runtime": "node --test antd6-runtime.test.cjs material-ui-runtime.test.cjs",
     "test:icons": "node --test antd-icons.test.cjs",
     "test:canvas-runtime": "NODE_ENV=production node --test slate-runtime.test.cjs",
     "size": "size-limit",
@@ -116,9 +116,11 @@
     "tinycolor2": "^1.6.0",
     "uuid": "^9.0.1",
     "vanilla-cookieconsent": "^3.1.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@shiguang-lab/plasmic-material-ui": "link:../../plasmicpkgs/material-ui"
   },
   "devDependencies": {
+    "jsdom": "22.1.0",
     "babel-plugin-react-compiler": "1.0.0",
     "@babel/core": "^7.29.0",
     "@babel/preset-react": "^7.28.5",

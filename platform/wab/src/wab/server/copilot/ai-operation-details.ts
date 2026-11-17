@@ -13,7 +13,7 @@ export function aiOperationDetails(
     uuid === task.binding.componentUuid ? (task.scopeLabel ?? uuid) : uuid;
   if (name === "read") {
     const parsed = PROTOTYPE_TOOL_META.read.inputSchema.safeParse(input);
-    if (!parsed.success) return {};
+    if (!parsed.success) {return {};}
     if (parsed.data.elements?.length) {
       return {
         title: "Read selected elements",

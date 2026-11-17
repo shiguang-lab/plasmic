@@ -303,7 +303,7 @@ export function CmsListInput(props: any) {
     useContext(FormNameContext),
     "Must have form name available",
   );
-  const form = Form.useFormInstance();
+  Form.useFormInstance();
   const [expandedKeys, setExpandedKeys] = React.useState<string[] | string>([]);
   assert(typeMeta.type === CmsMetaType.LIST, "Must be rendering a list");
   return (
@@ -480,7 +480,7 @@ export function CmsObjectInput(props: any) {
     directlyInsideList = false,
   } = useContentEntryFormContext();
   assert(typeMeta.type === CmsMetaType.OBJECT, "Must be rendering an object");
-  const form = Form.useFormInstance();
+  Form.useFormInstance();
 
   return (
     <div

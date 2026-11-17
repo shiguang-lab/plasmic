@@ -427,11 +427,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
         outline: `2px solid ${token.colorPrimary}`,
         outlineOffset: 2,
       },
-    "& .editor-project-trigger:not(:disabled):hover, & .editor-history-action:not(:disabled):hover":
-      {
-        background: "transparent",
-        color: token.colorText,
-      },
     "& .editor-project-trigger[aria-expanded=true], & .editor-history-action[aria-expanded=true]":
       {
         background: "transparent",
@@ -603,7 +598,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       minWidth: 0,
       height: applicationHeaderLayout.controlHeight,
       padding: "0 2px",
-      border: 0,
+      border: "1px solid transparent",
       borderRadius: 4,
       boxShadow: "none",
       background: "transparent",
@@ -623,7 +618,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       minWidth: 0,
       height: applicationHeaderLayout.controlHeight,
       padding: 0,
-      border: 0,
+      border: "1px solid transparent",
       borderRadius: 4,
       flexShrink: 0,
       background: "transparent",
@@ -684,6 +679,21 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       alignItems: "center",
       justifyContent: "center",
       flexShrink: 0,
+    },
+    [`& .editor-inspector-name.${panelTextbox.root}`]: {
+      height: 28,
+      minHeight: 28,
+      marginLeft: -6,
+      borderRadius: token.borderRadiusSM,
+      "&:focus-within:focus-within": {
+        boxShadow: `inset 0 0 0 1px ${token.colorPrimary}`,
+        outline: "none",
+      },
+      [`& .${panelTextbox.textbox}`]: {
+        height: "100%",
+        padding: "0 8px 0 6px",
+        fontSize: 13,
+      },
     },
     "& .editor-inspector-part-badge": {
       fontSize: 11,
@@ -821,9 +831,8 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       background: token.colorFillTertiary,
       maxWidth: 116,
     },
-    "& .editor-panel-state-pill--static": {
-      background: "transparent",
-      color: token.colorTextSecondary,
+    "& .editor-panel-repeat-trigger + .editor-panel-state-pill": {
+      marginLeft: 8,
     },
     "& .editor-panel-state-pill--recording": {
       color: token.colorPrimary,
@@ -1281,6 +1290,9 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       maxWidth: "100%",
       border: `1px solid ${token.colorBorder}`,
       borderRadius: token.borderRadiusLG,
+    },
+    "& .canvas-editor__right-pane > .dev-env": {
+      background: "inherit",
     },
     [`& .${sidebarSection.collapsingToggleLabel}`]: {
       background: token.colorFillSecondary,

@@ -2,7 +2,8 @@ import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
 import { AppearancePanelSection } from "@/wab/client/components/sidebar-tabs/AppearancePanelSection";
 import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
-import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
+import { FilterEffectsPanelSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
+import { InteractionStylesPanelSection } from "@/wab/client/components/sidebar-tabs/InteractionStylesPanelSection";
 import { LayoutPanelSection } from "@/wab/client/components/sidebar-tabs/LayoutPanelSection";
 import { PositioningPanelSection } from "@/wab/client/components/sidebar-tabs/PositioningSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
@@ -276,6 +277,9 @@ const StyleExprForm = React.memo(function StyleExprForm(props: {
           inheritableOnly={false}
         />
       )}
+      {show(PublicStyleSection.Effects) && (
+        <InteractionStylesPanelSection expsProvider={expsProvider} />
+      )}
       {show(PublicStyleSection.Background) && (
         <BackgroundSection expsProvider={expsProvider} />
       )}
@@ -286,7 +290,7 @@ const StyleExprForm = React.memo(function StyleExprForm(props: {
         <ShadowsPanelSection expsProvider={expsProvider} />
       )}
       {show(PublicStyleSection.Effects) && (
-        <EffectsPanelSection expsProvider={expsProvider} />
+        <FilterEffectsPanelSection expsProvider={expsProvider} />
       )}
       {show(PublicStyleSection.Transitions) && (
         <TransitionsPanelSection expsProvider={expsProvider} />

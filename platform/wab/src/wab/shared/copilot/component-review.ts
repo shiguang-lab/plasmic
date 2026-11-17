@@ -45,15 +45,15 @@ export interface ReviewComponentDocument {
 export function describeReviewRegistration(meta: { name: string; displayName?: string; description?: string; parentComponentName?: string; props: Record<string, unknown> }) {
   const props: string[] = []; const slots: string[] = []; const events: string[] = []; const lines: string[] = [];
   for (const name of Object.keys(meta.props).sort()) {
-    if (["className", "style", "ref", "key"].includes(name)) continue;
+    if (["className", "style", "ref", "key"].includes(name)) {continue;}
     const value = meta.props[name];
     if (isEditorOnlyRegistration(value)) { continue; }
     const control = value && typeof value === "object" ? value as Record<string, unknown> : {};
     const kind = typeof value === "string" ? value : typeof control.type === "string" ? control.type : "prop";
     (kind === "slot" ? slots : kind === "eventHandler" ? events : props).push(name);
     lines.push(`${name}: ${kind}${typeof control.description === "string" ? " — " + control.description : ""}`);
-    if (Array.isArray(control.argTypes)) lines.push("Event arguments: " + control.argTypes.map(arg => `${arg.name}: ${typeof arg.type === "string" ? arg.type : arg.type?.type ?? "value"}`).join(", "));
-    if (Array.isArray(control.allowedComponents)) lines.push("Allowed children: " + control.allowedComponents.filter(item => typeof item === "string").join(", "));
+    if (Array.isArray(control.argTypes)) {lines.push("Event arguments: " + control.argTypes.map(arg => `${arg.name}: ${typeof arg.type === "string" ? arg.type : arg.type?.type ?? "value"}`).join(", "));}
+    if (Array.isArray(control.allowedComponents)) {lines.push("Allowed children: " + control.allowedComponents.filter(item => typeof item === "string").join(", "));}
   }
   // Registration order puts primary inputs before advanced/appearance options.
   // Keep retrieval text sorted independently so this summary change preserves vectors.

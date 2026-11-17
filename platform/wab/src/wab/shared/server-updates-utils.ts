@@ -312,7 +312,7 @@ const deleteParentRefsToTpl = (childToDelete: TplNode) => {
           removeWhere(arg.expr.tpl, (child) => child === childToDelete),
       ),
     )
-    .when(null, () => {})
+    .when(null, () => { /* A root node has no parent reference to remove. */ })
     .result();
 };
 

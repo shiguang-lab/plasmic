@@ -100,7 +100,7 @@ export function FreestyleBoxContent() {
               return;
             }
             const clientRect = getClientRect(e);
-            const [ins, adoptees] = ensure(
+            const [, adoptees] = ensure(
               targeter,
               "targeter should exist",
             ).getAbsInsertionAndAdoptees(
@@ -141,10 +141,10 @@ export function FreestyleBoxContent() {
           className={"FreestyleBox__guard"}
           onClick={async (event) => {
             const targetVc = findTargetVc(event);
-            const spec = ensure(
+            ensure(
               studioCtx.freestyleState(),
               "freestyle state not found in studio ctx",
-            ).spec;
+            );
             await studioCtx.changeUnsafe(
               () => {
                 if (!targetVc) {

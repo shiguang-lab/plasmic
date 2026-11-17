@@ -132,7 +132,7 @@ beforeAll(async () => {
 
 describe("merging", () => {
   let [leftSubject, rightSubject, leftSubject2, rightSubject2]: any[] = [];
-  let res: TestResult, ancestorSite: Site;
+  let res: TestResult;
 
   // This is to work around a bug in jest that throws max call stack size error when trying to print our conflict/model structure
   function shallow(x: ObjInst & { uuid: string }) {
@@ -783,7 +783,7 @@ describe("merging", () => {
   it("handles conflicts on differing value changes (basic)", () => {
     expect(
       (res = testMerge({
-        ancestorSite: (ancestorSite = basicSite()),
+        ancestorSite: basicSite(),
         a: (site) => ([leftSubject] = upsertTokens(site, { x: 2 })),
         b: (site) => ([rightSubject] = upsertTokens(site, { x: 3 })),
         directConflictsPicks: ["left"],
@@ -1180,7 +1180,7 @@ describe("merging", () => {
     it("merges maps with scalar values", () => {
       expect(
         (res = testMerge({
-          ancestorSite: (ancestorSite = basicSite()),
+          ancestorSite: basicSite(),
           a: (site) => {
             leftSubject = site.components[0].metadata["a"] = "1";
             leftSubject = site.components[0].metadata["b"] = "2";
@@ -1201,7 +1201,7 @@ describe("merging", () => {
     it("handles map conflicts with scalar values", () => {
       expect(
         (res = testMerge({
-          ancestorSite: (ancestorSite = basicSite()),
+          ancestorSite: basicSite(),
           a: (site) => {
             leftSubject = site.components[0];
             site.components[0].metadata["a"] = "1";
@@ -4753,7 +4753,7 @@ describe("merging", () => {
         originalUuidSlotArg1 = (
           ensure(
             flattenTpls(parentComp.tplTree).find(
-              (tpl) => tpl instanceof TplTag && tpl.name === "slot1Element1",
+              (tpl) => isKnownTplTag(tpl) && tpl.name === "slot1Element1",
             ),
             () => `Couldn't find slot1Element1`,
           ) as TplTag
@@ -4761,7 +4761,7 @@ describe("merging", () => {
         originalUuidSlotArg2 = (
           ensure(
             flattenTpls(parentComp.tplTree).find(
-              (tpl) => tpl instanceof TplTag && tpl.name === "slot2Element1",
+              (tpl) => isKnownTplTag(tpl) && tpl.name === "slot2Element1",
             ),
             () => `Couldn't find slot2Element1`,
           ) as TplTag
@@ -4780,14 +4780,14 @@ describe("merging", () => {
         );
         const tplComp = ensure(
           flattenTpls(parentComp.tplTree).find(
-            (tpl) => tpl instanceof TplComponent && tpl.name === "tplComp",
+            (tpl) => isKnownTplComponent(tpl) && tpl.name === "tplComp",
           ),
           () => `Couldn't find tplComp`,
         ) as TplComponent;
         const tplSlot1 = ensure(
           flattenTpls(instantiatedComp.tplTree).find(
             (tpl) =>
-              tpl instanceof TplSlot && tpl.param.variable.name === "slot1",
+              isKnownTplSlot(tpl) && tpl.param.variable.name === "slot1",
           ),
           () => `Couldn't find slot1`,
         ) as TplSlot;
@@ -4815,14 +4815,14 @@ describe("merging", () => {
         );
         const tplComp = ensure(
           flattenTpls(parentComp.tplTree).find(
-            (tpl) => tpl instanceof TplComponent && tpl.name === "tplComp",
+            (tpl) => isKnownTplComponent(tpl) && tpl.name === "tplComp",
           ),
           () => `Couldn't find tplComp`,
         ) as TplComponent;
         const tplSlot1 = ensure(
           flattenTpls(instantiatedComp.tplTree).find(
             (tpl) =>
-              tpl instanceof TplSlot && tpl.param.variable.name === "slot1",
+              isKnownTplSlot(tpl) && tpl.param.variable.name === "slot1",
           ),
           () => `Couldn't find slot1`,
         ) as TplSlot;
@@ -4850,7 +4850,7 @@ describe("merging", () => {
     const mergedUuidSlotArg1 = (
       ensure(
         flattenTpls(parentComp.tplTree).find(
-          (tpl) => tpl instanceof TplTag && tpl.name === "slot1Element1",
+          (tpl) => isKnownTplTag(tpl) && tpl.name === "slot1Element1",
         ),
         () => `Couldn't find slot1Element1`,
       ) as TplTag
@@ -4858,19 +4858,19 @@ describe("merging", () => {
     const mergedUuidSlotArg2 = (
       ensure(
         flattenTpls(parentComp.tplTree).find(
-          (tpl) => tpl instanceof TplTag && tpl.name === "slot2Element1",
+          (tpl) => isKnownTplTag(tpl) && tpl.name === "slot2Element1",
         ),
         () => `Couldn't find slot2Element1`,
       ) as TplTag
     ).uuid;
     const tplComp = ensure(
       flattenTpls(parentComp.tplTree).find(
-        (tpl) => tpl instanceof TplComponent && tpl.name === "tplComp",
+        (tpl) => isKnownTplComponent(tpl) && tpl.name === "tplComp",
       ),
       () => `Couldn't find tplComp`,
     ) as TplComponent;
     expect(
-      tplChildren(tplComp).map((tpl) => tpl instanceof TplTag && tpl.name),
+      tplChildren(tplComp).map((tpl) => isKnownTplTag(tpl) && tpl.name),
     ).toMatchObject([
       "slot1Element0",
       "slot1Element1",
@@ -5052,7 +5052,7 @@ describe("merging", () => {
           () => `No slot arg for slot2`,
         );
         const [node1] = ensureKnownRenderExpr(slot1.expr).tpl;
-        const [node2, node3] = ensureKnownRenderExpr(slot2.expr).tpl;
+        ensureKnownRenderExpr(slot2.expr);
         const node4 = mkTplTagX("div", {
           name: "SlotArgNode4",
           baseVariant: getBaseVariant(comp),
@@ -5100,7 +5100,7 @@ describe("merging", () => {
           () => `No slot arg for slot2`,
         );
         const [node1] = ensureKnownRenderExpr(slot1.expr).tpl;
-        const [node2, node3] = ensureKnownRenderExpr(slot2.expr).tpl;
+        ensureKnownRenderExpr(slot2.expr);
         const node4 = mkTplTagX("div", {
           name: "SlotArgNode4",
           baseVariant: getBaseVariant(comp),

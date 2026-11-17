@@ -510,7 +510,7 @@ export class DragMoveFrameManager {
         },
       );
       maybeAborted.match(
-        () => {},
+        () => { /* Successful moves need no abort handling. */ },
         () => {
           this._aborted = true;
           this.endDrag();

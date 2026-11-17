@@ -124,11 +124,11 @@ export function FindReferencesModal(props: {
     >(undefined);
 
     const toItem = (input: ReferenceInput): Item => {
-      const { type, target: item, displayName, arenaUid } = input;
+      const { type, target: item, displayName: itemDisplayName, arenaUid } = input;
       if (type === "component" || type === "page") {
         const component = item as Component;
         return {
-          displayName,
+          displayName: itemDisplayName,
           type: type,
           onClick: () => {
             if (!world.isCurrent()) { return; }
@@ -149,7 +149,7 @@ export function FindReferencesModal(props: {
       } else if (type === "frame") {
         const frame = item as ArenaFrame;
         return {
-          displayName,
+          displayName: itemDisplayName,
           type: type,
           onClick: () => {
             if (!world.isCurrent()) { return; }
@@ -174,7 +174,7 @@ export function FindReferencesModal(props: {
           return token;
         };
         return {
-          displayName,
+          displayName: itemDisplayName,
           type,
           onClick: () => { if (world.isCurrent()) { setEditToken(getToken()); } },
           getUsageSummary: () => world.isCurrent() ? extractTokenUsages(world.site, getToken().base)[1] : { components: [], frames: [] },
@@ -182,7 +182,7 @@ export function FindReferencesModal(props: {
       } else if (type === "mixin") {
         const mixin = item as Mixin;
         return {
-          displayName,
+          displayName: itemDisplayName,
           type: type,
           onClick: () => { if (world.isCurrent()) { setEditMixin(mixin); } },
           getUsageSummary: () => world.isCurrent() ? extractMixinUsages(world.site, mixin)[1] : { components: [], frames: [] },
@@ -190,7 +190,7 @@ export function FindReferencesModal(props: {
       } else if (type === "theme") {
         const theme = item as DefaultStyle;
         return {
-          displayName,
+          displayName: itemDisplayName,
           type: type,
           onClick: () => {
             if (world.isCurrent()) { setEditDefaultStyle(theme); }

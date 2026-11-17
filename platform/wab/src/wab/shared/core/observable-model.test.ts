@@ -458,7 +458,7 @@ describe("observeModel", () => {
 
   it("should work with map fields", () => {
     const node = mkTag({ name: "hi", tag: "div" });
-    let myClass, yup, yupText, nope, cs, c1, c2, c3;
+    let myClass, yup, yupText, nope, c3;
     testInst(
       node,
       () => {
@@ -472,9 +472,9 @@ describe("observeModel", () => {
         });
         delete node.attrs["className"];
 
-        node.attrs3["className"] = cs = [
-          (c1 = mkExpr({ value: "c1" })),
-          (c2 = mkExpr({ value: "c2" })),
+        node.attrs3["className"] = [
+          mkExpr({ value: "c1" }),
+          mkExpr({ value: "c2" }),
         ];
         node.attrs3["className"][1] = c3 = mkExpr({
           value: mkText({ text: "c3" }),

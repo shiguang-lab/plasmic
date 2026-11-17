@@ -3,7 +3,7 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { tryEvalExpr } from "@/wab/shared/eval";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import L, { debounce } from "lodash";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ObjectInspector } from "react-inspector";
 

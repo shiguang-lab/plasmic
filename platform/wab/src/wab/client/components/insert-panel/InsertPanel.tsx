@@ -6,7 +6,6 @@ import { useFocusedViewSelection } from "@/wab/client/studio-ctx/selection-state
 import { useSyntheticSectionShown } from "@/wab/client/studio-ctx/synthetic-sections-state";
 import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
-import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
 import { showError } from "@/wab/client/ErrorNotifications";
 
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
@@ -420,7 +419,7 @@ const AddDrawerContent = React.memo(function AddDrawerContent(props: {
   );
 
   const filterToTarget = !storeMode && showInlineAddDrawer;
-  const [selectedPlacementIndex, setSelectedPlacementIndex] = useState(0);
+  const [selectedPlacementIndex] = useState(0);
   const insertLoc =
     (getPlacementOptions(studioCtx)[selectedPlacementIndex] ?? getPlacementOptions(studioCtx)[0]).insertLoc;
 

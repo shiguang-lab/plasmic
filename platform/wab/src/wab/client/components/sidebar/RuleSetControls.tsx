@@ -134,7 +134,7 @@ export function SelectorsInput({
   onBlur,
   onClick,
   onOuterClick,
-  onChange = () => {},
+  onChange = () => { /* Changes are optional for callers that only display selectors. */ },
   autoFocus,
   forPrivateStyleVariant,
   forTag,

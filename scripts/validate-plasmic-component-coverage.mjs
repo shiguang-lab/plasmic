@@ -148,6 +148,26 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       registerComponent: capture, registerGlobalContext: capture, registerToken() {},
     });
   }
+  // MUI uses short usage groups, not the Antd main-component recipe hierarchy.
+  const materialGroups = {
+    Inputs: "inputs", Navigation: "navigation", "Data display": "data-display",
+    Feedback: "feedback", Layout: "layout", Surfaces: "surfaces",
+  };
+  const materialActions = new Set(["Button", "ButtonGroup", "IconButton", "Fab", "ToggleButton", "ToggleButtonGroup"]);
+  const materialOverlays = new Set(["Dialog", "DialogActions", "DialogContent", "DialogContentText", "DialogTitle",
+    "Drawer", "SwipeableDrawer", "Menu", "Tooltip", "Snackbar", "SnackbarContent"]);
+  require(path.join(repo, "plasmicpkgs/material-ui/src/index.ts")).registerAll({
+    registerComponent(_component, meta) {
+      const name = meta.displayName;
+      const owner = materialActions.has(name) ? "actions" : materialOverlays.has(name) ? "overlays"
+        : name.startsWith("Table") ? "table" : materialGroups[meta.section];
+      assert(owner, `Missing Material UI usage group: ${name}`);
+      registrations.push({ library: "material_ui", owner, name: meta.name, displayName: name });
+    },
+    registerGlobalContext(_component, meta) {
+      registrations.push({ library: "material_ui", owner: "theme", name: meta.name, displayName: meta.displayName });
+    },
+  });
   let iconCount = 0;
   require(path.join(repo, "plasmicpkgs/antd-icons/src/index.ts")).registerAll({
     registerComponent(component, meta) {

@@ -545,13 +545,13 @@ export async function loadAppCtx(
   async function reloadAll() {
     Object.assign(appCtx, await load());
     appCtx.publishUiEnvironmentInputs();
-    return nonAuthCtx.change(() => {});
+    return nonAuthCtx.change(() => { /* The reload has already updated appCtx; this change flushes the UI update. */ });
   }
 
   async function reloadAppCtx() {
     Object.assign(appCtx, await getAppCtxData(nonAuthCtx));
     appCtx.publishUiEnvironmentInputs();
-    return nonAuthCtx.change(() => {});
+    return nonAuthCtx.change(() => { /* The reload has already updated appCtx; this change flushes the UI update. */ });
   }
 
   const loaded = await load(initialData);

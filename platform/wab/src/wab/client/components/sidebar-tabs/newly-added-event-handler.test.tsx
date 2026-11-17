@@ -1,5 +1,6 @@
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { InteractionPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import InteractionsSection from "@/wab/client/components/sidebar-tabs/StateManagement/InteractionsSection";
 import type { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
@@ -19,12 +20,10 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
-vi.mock("@/wab/client/components/sidebar/SidebarModal", () => ({ SidebarModal: ({ title, show, onClose, children }: React.PropsWithChildren<{ title: React.ReactNode; show: boolean; onClose: () => void }>) => show ? <section aria-label={String(title)}><button onClick={onClose}>Close interaction</button>{children}</section> : null }));
 vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/HandlerSection", () => ({ default: () => <div>Interaction handler</div> }));
-vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/ActionChip", () => ({ default: ({ onClick }: { onClick: () => void }) => <button onClick={onClick}>Edit interaction</button> }));
+vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/ActionChip", () => ({ default: ({ onClick, ref }: { onClick: () => void; ref: React.Ref<HTMLDivElement> }) => <div ref={ref}><button onClick={onClick}>Edit interaction</button></div> }));
 vi.mock("@/wab/client/components/sidebar/SidebarSection", async (original) => ({ ...(await original<typeof import("@/wab/client/components/sidebar/SidebarSection")>()), SidebarSection: ({ controls, children }: React.PropsWithChildren<{ controls: React.ReactNode }>) => <section>{controls}{children}</section> }));
 vi.mock("@/wab/client/components/sidebar-tabs/PropEditorRow", () => ({ PropEditorRow: () => null }));
-vi.mock("antd", async (original) => ({ ...(await original<typeof import("antd")>()), Select: ({ options, onSelect }: { options: { value: string; label: string }[]; onSelect: (value: string) => void }) => <button onClick={() => onSelect(ensure(options.find((option) => option.value === "onSubmit"), "Submit event option").value)}>Add submit interaction</button> }));
 
 const studios = new Set<StudioCtx>();
 afterEach(async () => {
@@ -52,8 +51,8 @@ async function setup(name = "Events") {
   const view = ensure(studio.tryGetViewCtxForFrame(data.frame), "Event owner view");
   return { ...data, ...f, studio, view };
 }
-function editor(f: Awaited<ReturnType<typeof setup>>, key: EventHandlerKeyType, title = "Event editor") {
-  return <InteractionPropEditor studioCtx={f.studio} viewCtx={f.view} tpl={f.tpl} component={f.owner} eventHandlerKey={key} value={undefined} modalTitle={title} forceOpen={false} onChange={vi.fn()} />;
+function editor(f: Awaited<ReturnType<typeof setup>>, key: EventHandlerKeyType, title = "Event editor", forceOpen = false) {
+  return <PopoverFrameProvider containerSelector="#interaction-test-sidebar"><div id="interaction-test-sidebar"><InteractionPropEditor valuePath={["onSubmit"]} studioCtx={f.studio} viewCtx={f.view} tpl={f.tpl} component={f.owner} eventHandlerKey={key} value={undefined} popoverTitle={title} forceOpen={forceOpen} onChange={vi.fn()} /></div></PopoverFrameProvider>;
 }
 
 it("consumes pending parameter requests before mount and repeats only after clearing", async () => {
@@ -65,11 +64,11 @@ it("consumes pending parameter requests before mount and repeats only after clea
   f.studio.setNewlyAddedEventHandlerKey({ param: f.param });
   expect(f.studio.newlyAddedEventHandlerKeyStore.getState()).toBe(request);
   render(editor(f, { param: f.param }));
-  expect(await screen.findByRole("region", { name: "Event editor" })).toBeTruthy();
+  expect(await screen.findByText("Interaction handler")).toBeTruthy();
   expect(f.studio.newlyAddedEventHandlerKey).toBeUndefined();
-  fireEvent.click(screen.getByRole("button", { name: "Close interaction" }));
+  fireEvent.click(ensure(document.querySelector<HTMLElement>('[data-test-id="close-popover-frame"]'), "Close popover"));
   act(() => { f.studio.setNewlyAddedEventHandlerKey({ param: f.param }); });
-  expect(await screen.findByRole("region", { name: "Event editor" })).toBeTruthy();
+  expect(await screen.findByText("Interaction handler")).toBeTruthy();
   expect(f.studio.newlyAddedEventHandlerKeyStore.getState()).toBeUndefined();
 });
 
@@ -78,7 +77,7 @@ it("reads the latest layout-time request and detaches previous owners and unmoun
   first.studio.setNewlyAddedEventHandlerKey({ attr: "onBlur" });
   function ReplaceRequest() { React.useLayoutEffect(() => { first.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" }); }, []); return null; }
   const view = render(<>{editor(first, { attr: "onClick" })}<ReplaceRequest /></>);
-  expect(await screen.findByRole("region", { name: "Event editor" })).toBeTruthy();
+  expect(await screen.findByText("Interaction handler")).toBeTruthy();
   second.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" });
   view.rerender(editor(second, { attr: "onClick" }));
   expect(second.studio.newlyAddedEventHandlerKey).toBeUndefined();
@@ -126,11 +125,38 @@ it("preserves the actual add-interaction command and its pending open request", 
   const provider = mock<TplExpsProvider>();
   provider.effectiveVs.mockReturnValue(mock<ReturnType<TplExpsProvider["effectiveVs"]>>());
   const view = render(<InteractionsSection sc={f.studio} vc={f.view} component={f.owner} tpl={f.tpl} expsProvider={provider} />);
-  fireEvent.click(screen.getByRole("button", { name: "Add submit interaction" }));
+  expect(screen.queryByRole("combobox")).toBeNull();
+  expect(screen.queryByRole("menu")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Add event handler" }));
+  fireEvent.click(await screen.findByRole("menuitem", { name: /submit/i }));
   await act(async () => { await f.studio.awaitEval(); });
   expect(f.studio.newlyAddedEventHandlerKey).toEqual({ param: f.param });
   expect(ensureKnownEventHandler(getEventHandlerByEventKey(f.owner, f.tpl, { param: f.param })).interactions).toHaveLength(1);
   view.rerender(editor(f, { param: f.param }));
-  expect(await screen.findByRole("region", { name: "Event editor" })).toBeTruthy();
+  expect(await screen.findByText("Interaction handler")).toBeTruthy();
   expect(f.studio.newlyAddedEventHandlerKey).toBeUndefined();
+});
+
+it("opens the action editor in an anchored popover and closes on Escape", async () => {
+  const f = await setup();
+  render(editor(f, { param: f.param }));
+  fireEvent.click(screen.getByRole("button", { name: "Edit interaction" }));
+  const handler = await screen.findByText("Interaction handler");
+  const popup = ensure(document.querySelector("#props-popover"), "Interaction popover");
+  expect(popup.contains(handler)).toBe(true);
+  expect(popup.closest("#interaction-test-sidebar")).toBeNull();
+  fireEvent.keyDown(handler, { key: "Escape" });
+  await waitFor(() => expect(document.querySelector("#props-popover")).toBeNull());
+  fireEvent.click(screen.getByRole("button", { name: "Edit interaction" }));
+  expect(await screen.findByText("Interaction handler")).toBeTruthy();
+});
+
+it("allows a requested interaction popover to close without reopening on rerender", async () => {
+  const f = await setup();
+  const mounted = render(editor(f, { param: f.param }, "Event editor", true));
+  const handler = await screen.findByText("Interaction handler");
+  fireEvent.keyDown(handler, { key: "Escape" });
+  await waitFor(() => expect(document.querySelector("#props-popover")).toBeNull());
+  mounted.rerender(editor(f, { param: f.param }, "Event editor", true));
+  expect(document.querySelector("#props-popover")).toBeNull();
 });

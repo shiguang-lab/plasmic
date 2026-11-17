@@ -15,7 +15,7 @@ export const initializePlasmicExtension = () => {
       { type: "plasmic-check-availability" },
       (response) => {
         if (response) {
-          assert(response.data === "plasmic-yes");
+          assert(response.data === "plasmic-yes", "Plasmic extension probe must return the expected acknowledgement");
           plasmicExtensionInstalled = true;
         }
       },

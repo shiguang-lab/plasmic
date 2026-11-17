@@ -1,6 +1,8 @@
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
+import { DeviceFrame } from "@/wab/client/components/device-frame/DeviceFrame";
+import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import styles from "@/wab/client/components/live/PreviewViewport.module.scss";
 import {
   onLoadInjectLiveRuntime,
@@ -481,11 +483,18 @@ export function PreviewFrame({
     width: width,
     height: height,
   };
+  const deviceFrame = !fillsWindow
+    ? getDeviceFrame(dimensions.width, dimensions.height, viewportMode)
+    : undefined;
+  const presentationSize = {
+    width: dimensions.width + 2 * (deviceFrame?.insetX ?? 0),
+    height: dimensions.height + 2 * (deviceFrame?.insetY ?? 0),
+  };
   const scale = fillsWindow
     ? 1
     : dragging && dragScale !== undefined
       ? dragScale
-      : getViewportScale(available, dimensions);
+      : getViewportScale(available, presentationSize);
   const viewport = {
     viewport: viewportMode,
     ...(fillsWindow ? available : dimensions),
@@ -539,16 +548,17 @@ export function PreviewFrame({
             left: fillsWindow
               ? 0
               : (available.width - dimensions.width * scale) / 2,
-            top: fillsWindow ? 0 : 20,
+            top: fillsWindow ? 0 : 20 + (deviceFrame?.insetY ?? 0) * scale,
             transform: fillsWindow ? undefined : `scale(${scale})`,
             transformOrigin: "top left",
             boxShadow: fillsWindow ? "none" : undefined,
-            borderRadius: fillsWindow ? 0 : 8,
-            outline: fillsWindow
+            borderRadius: fillsWindow ? 0 : deviceFrame?.screenRadius ?? 8,
+            outline: fillsWindow || deviceFrame
               ? undefined
               : "1px solid var(--preview-border)",
           }}
         >
+          {deviceFrame && <DeviceFrame frame={deviceFrame} />}
           <iframe
             src={
               maybeToggleTrailingSlash(
@@ -592,6 +602,11 @@ export function PreviewFrame({
                       })
                 }
                 className={`${styles.resize} ${styles[edge]}`}
+                style={deviceFrame ? {
+                  translate: edge === "bottom"
+                    ? `0 ${deviceFrame.insetY}px`
+                    : `${edge === "left" ? -deviceFrame.insetX : deviceFrame.insetX}px 0`,
+                } : undefined}
                 onPointerDown={(event) => {
                   if (event.button !== 0) {
                     return;

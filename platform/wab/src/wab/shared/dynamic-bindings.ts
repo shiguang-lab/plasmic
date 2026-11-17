@@ -93,11 +93,10 @@ export const getDynamicBindings = (
     return { stringSegments: [], jsSnippets: [] };
   }
   const sanitisedString = dynamicString.trim();
-  let stringSegments: string[], paths: string[];
   // Get the {{binding}} bound values
-  stringSegments = getDynamicStringSegments(sanitisedString);
+  const stringSegments = getDynamicStringSegments(sanitisedString);
   // Get the "binding" path values
-  paths = stringSegments.map((segment) => {
+  const paths = stringSegments.map((segment) => {
     const length = segment.length;
     const matches = isDynamicValue(segment);
     if (matches) {

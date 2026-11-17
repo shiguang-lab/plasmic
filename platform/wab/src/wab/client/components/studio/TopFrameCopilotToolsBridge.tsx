@@ -72,7 +72,7 @@ export function TopFrameCopilotToolsBridge({ onOpenChatChange }: {
           const requestId = crypto.randomUUID();
           // Send execution before cancellation on the same host-frame RPC channel.
           const result = hostFrameApi.executeCopilotToolCall(name, input, outputFormat, caller, requestId);
-          const cancel = () => { void hostFrameApi.cancelCopilotToolCall(requestId).catch(() => {}); };
+          const cancel = () => { void hostFrameApi.cancelCopilotToolCall(requestId).catch(() => { /* Remote cancellation is best effort after the local abort. */ }); };
           signal.addEventListener("abort", cancel, { once: true });
           if (signal.aborted) { cancel(); }
           return await (async () => {

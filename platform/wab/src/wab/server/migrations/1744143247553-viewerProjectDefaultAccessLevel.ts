@@ -10,5 +10,5 @@ export class viewerProjectDefaultAccessLevel1744143247553 implements MigrationIn
     `);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> { /* Previous per-project access levels are not recorded and cannot be restored. */ }
 }

@@ -3,7 +3,7 @@ import { userDbMgr } from "@/wab/server/routes/util";
 import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
 import { UsersResponse } from "@/wab/shared/ApiSchema";
 import { ensureType } from "@/wab/shared/common";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 
 export async function getUsersById(req: Request, res: Response) {
   const mgr = userDbMgr(req);

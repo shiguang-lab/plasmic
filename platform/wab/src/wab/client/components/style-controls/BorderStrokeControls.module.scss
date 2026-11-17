@@ -29,6 +29,15 @@ $control-gap: 4px;
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
+.none {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 0 6px;
+  font: inherit;
+}
+
 .preview {
   display: block;
   position: relative;
@@ -84,7 +93,7 @@ $control-gap: 4px;
 }
 .lineSection { border-top: 1px solid var(--ui-border); margin-top: 12px; padding-top: 10px; }
 .lineStyles {
-  grid-template-columns: repeat(4, $control-size);
+  grid-template-columns: repeat(5, $control-size);
   justify-content: space-between;
 }
 .lineButton.lineButton {

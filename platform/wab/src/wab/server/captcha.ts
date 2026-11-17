@@ -1,4 +1,4 @@
-import { Request } from "express-serve-static-core";
+import type { Request } from "express-serve-static-core";
 
 export async function checkCaptchaToken(_opts: {
   req: Request;

@@ -6,7 +6,7 @@ import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import type { TeamId, UserId } from "@/wab/shared/ApiSchema";
 import { ensure } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { Connection, EntityManager } from "typeorm";
 import { mock } from "vitest-mock-extended";
 vi.hoisted(() => {

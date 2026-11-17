@@ -3,10 +3,10 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 vi.mock("@/wab/client/components/coding/FullCodeEditor", async () => {
-  const React = await import("react");
-  return { FullCodeEditor: React.forwardRef(({ defaultValue, templateVariables }: any, ref) => {
-    const [value, setValue] = React.useState(defaultValue);
-    React.useImperativeHandle(ref, () => ({
+  const ReactModule = await import("react");
+  return { FullCodeEditor: ReactModule.forwardRef(({ defaultValue, templateVariables }: any, ref) => {
+    const [value, setValue] = ReactModule.useState(defaultValue);
+    ReactModule.useImperativeHandle(ref, () => ({
       getValue: () => value,
       resetValue: () => setValue(defaultValue),
       insertAtCursor: (token: string) => setValue((current: string) => current + token),

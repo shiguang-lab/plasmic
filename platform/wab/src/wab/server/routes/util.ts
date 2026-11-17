@@ -22,11 +22,11 @@ import {
   RouterImplementation,
   TsRestExpressOptions,
 } from "@ts-rest/express/src/lib/types";
-import {
+import type {
   NextFunction,
   Request,
   Response,
-  type IRouter,
+  IRouter,
 } from "express-serve-static-core";
 import L from "lodash";
 import type { Readable } from "stream";

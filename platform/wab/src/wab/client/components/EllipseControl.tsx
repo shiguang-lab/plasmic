@@ -23,8 +23,8 @@ export function EllipseControl({ ellipse, onChange }: EllipseControlProps) {
   const initEllipse = React.useRef<Ellipse | null>(null);
 
   function getDragPcts(e: XDraggableEvent) {
-    const orig = ensure(initEllipse.current);
-    const area = ensure(svg.current).getBoundingClientRect();
+    const orig = ensure(initEllipse.current, "Ellipse drag must capture the initial ellipse before calculating deltas");
+    const area = ensure(svg.current, "Ellipse SVG must be mounted before calculating drag percentages").getBoundingClientRect();
     const dx = (e.data.deltaX / area.width) * 100;
     const dy = (e.data.deltaY / area.height) * 100;
 
@@ -41,7 +41,7 @@ export function EllipseControl({ ellipse, onChange }: EllipseControlProps) {
   };
 
   const handleDragKnobRight = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = getDragPcts(e);
+    const { orig, dx } = getDragPcts(e);
     onChange({
       ...orig,
       rx: L.clamp(orig.rx + dx, orig.cx, 100 - orig.cx),
@@ -49,7 +49,7 @@ export function EllipseControl({ ellipse, onChange }: EllipseControlProps) {
   };
 
   const handleDragKnobBottom = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = getDragPcts(e);
+    const { orig, dy } = getDragPcts(e);
     onChange({
       ...orig,
       ry: L.clamp(orig.ry + dy, orig.cy, 100 - orig.cy),
@@ -57,7 +57,7 @@ export function EllipseControl({ ellipse, onChange }: EllipseControlProps) {
   };
 
   const handleDragKnobLeft = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = getDragPcts(e);
+    const { orig, dx } = getDragPcts(e);
     onChange({
       ...orig,
       rx: L.clamp(orig.rx - dx, 0, orig.cx),
@@ -65,7 +65,7 @@ export function EllipseControl({ ellipse, onChange }: EllipseControlProps) {
   };
 
   const handleDragKnobTop = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = getDragPcts(e);
+    const { orig, dy } = getDragPcts(e);
     onChange({
       ...orig,
       ry: L.clamp(orig.ry - dy, 0, orig.cy),

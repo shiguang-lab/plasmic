@@ -29,7 +29,6 @@ import { isNonNil } from "@/wab/shared/common";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { notification } from "antd";
 import * as React from "react";
 
 interface TeamPageProps extends DefaultTeamPageProps {

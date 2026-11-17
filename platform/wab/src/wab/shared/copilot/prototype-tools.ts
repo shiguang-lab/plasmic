@@ -1,4 +1,5 @@
 import { COMMENT_TOOL_META } from "@/wab/shared/copilot/comment-tools";
+import { DEFAULT_MARGIN_FOR_NEW_FRAMES } from "@/wab/shared/canvas-constants";
 import { componentReviewContextSchema, componentReviewResultSchema } from "@/wab/shared/copilot/component-review";
 import { mutationReceiptSchema } from "@/wab/shared/copilot/mutation-receipt";
 import { toolPresentationSchema } from "@/wab/shared/copilot/presentation";
@@ -276,7 +277,7 @@ const EDIT_TOOL_META = {
         width: z.number().int().min(1).max(4096),
         height: z.number().int().min(1).max(16384),
         direction: z.enum(["top", "right", "bottom", "left"]).default("right"),
-        padding: z.number().min(0).max(4096).default(80),
+        padding: z.number().min(0).max(4096).default(DEFAULT_MARGIN_FOR_NEW_FRAMES),
         frameUuid: uuid.optional(),
       })
       .strict(),

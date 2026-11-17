@@ -9,6 +9,7 @@ Select the library and API version before reading component rules or composition
 | [Overseas](overseas/index.md) | plasmic-overseas-*; @shiguang-lab/plasmic-overseas | Current Overseas implementation using Ant Design 6 |
 | [React UI](react_ui/index.md) | plasmic-react-ui-*; @shiguang-lab/plasmic-react-ui | Current @react/ui wrapper using Ant Design 6 |
 | [Ant Design Icons](antd_icons/index.md) | plasmic-antd-icon-*; @shiguang-lab/plasmic-antd-icons | @ant-design/icons 6 |
+| [Material UI](material_ui/index.md) | plasmic-material-ui-*; @shiguang-lab/plasmic-material-ui | Maintained wrapper pins @mui/material 9.5.0; verify target version |
 
 ## Native component selection
 

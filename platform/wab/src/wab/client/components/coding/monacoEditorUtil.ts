@@ -577,9 +577,8 @@ const allModCombos = [
 export function makeMonacoAutoFocus(
   codeEditor: monaco.editor.IStandaloneCodeEditor,
 ) {
-  let didScrollChangeDisposable;
   codeEditor.focus();
-  didScrollChangeDisposable = codeEditor.onDidScrollChange((event) => {
+  const didScrollChangeDisposable = codeEditor.onDidScrollChange(() => {
     didScrollChangeDisposable.dispose();
     codeEditor.focus();
   });

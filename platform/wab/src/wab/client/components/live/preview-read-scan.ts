@@ -1,4 +1,5 @@
 import styles from "@/wab/client/components/canvas/CopilotActivityOverlay.module.scss";
+import { screenClipStyle, viewportScreen } from "@/wab/client/components/device-frame/screen-clip";
 import {
   clipBox,
   computeClipBounds,
@@ -45,12 +46,14 @@ export function installPreviewReadScan(win: Window) {
     region.remove();
   };
   const position = () => {
+    const screen = viewportScreen(iframe);
     if (!target) {
       Object.assign(region.style, {
         inset: "0",
         width: "",
         height: "",
         borderRadius: "inherit",
+        clipPath: "",
       });
       return true;
     }
@@ -71,6 +74,7 @@ export function installPreviewReadScan(win: Window) {
       width: `${rect.width}px`,
       height: `${rect.height}px`,
       borderRadius: "",
+      clipPath: screen ? screenClipStyle(screen, rect).clipPath : "",
     });
     return true;
   };

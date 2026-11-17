@@ -1,6 +1,6 @@
 import { Team } from "@/wab/server/entities/Entities";
 import { ORGANIZATION_LOWER } from "@/wab/shared/Labels";
-import { Request } from "express-serve-static-core";
+import type { Request } from "express-serve-static-core";
 
 export async function sendSupportWelcomeEmail(
   req: Request,

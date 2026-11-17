@@ -1,5 +1,5 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { RepeatingElementSection } from "@/wab/client/components/sidebar-tabs/RepeatingElementSection";
+import { RepeatingElementControl } from "@/wab/client/components/sidebar-tabs/RepeatingElementControl";
 import ImplicitVariablesSection from "@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariablesSection";
 import VariableEditingForm from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingForm";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
@@ -22,7 +22,7 @@ import * as React from "react";
 import { type CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 
 vi.mock("@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor", () => ({ DataPickerEditor: ({value, onChange}: any) => <><output data-testid="collection">{JSON.stringify(value)}</output><button onClick={() => onChange("items.filter(Boolean)")}>Change collection</button></> }));
-vi.mock("@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor", () => ({ StringPropEditor: ({value, onChange}: any) => <input value={value ?? ""} onChange={(event) => onChange(event.target.value)} /> }));
+vi.mock("@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor", () => ({ StringPropEditor: ({value, onChange, disabled, "aria-label": label}: any) => <input aria-label={label} disabled={disabled} value={value ?? ""} onChange={(event) => onChange(event.target.value)} /> }));
 vi.mock("@/wab/client/components/sidebar-tabs/PropEditorRow", () => ({ PropEditorRow: ({attr, expr, onChange}: any) => <div data-testid={attr}><output>{expr ? JSON.stringify(tryExtractJson(expr)) : "unset"}</output><button onClick={() => onChange(codeLit(7))}>Set {attr}</button></div> }));
 vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariableRow", () => ({ default: ({state}: any) => <output data-testid={`implicit-${state.uid}`}>Implicit value</output> }));
 afterEach(() => {cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals();});
@@ -53,9 +53,10 @@ it("publishes nested repetition expression/variable edits and keeps commands on 
   await f.studioCtx.changeUnsafe(() => {tpl.vsettings[0].dataRep = rep;});
   const source = new RepeatingElementInputs(f.view, f.component, tpl), changed = vi.fn(), off = source.subscribe(changed);
   const before = source.getSnapshot();
-  const mounted = render(providers(f, <RepeatingElementSection tpl={tpl} viewCtx={f.view} />));
+  const mounted = render(providers(f, <RepeatingElementControl tpl={tpl} viewCtx={f.view} />));
   try {
-    expect(screen.getByTestId("collection").textContent).toBe('["items"]');
+    fireEvent.click(screen.getByRole("button", {name: "Repeat element"}));
+    expect((await screen.findByTestId("collection")).textContent).toBe('["items"]');
     await act(async () => {await f.studioCtx.changeUnsafe(() => {
       const collection = rep.collection;
       if (!isKnownObjectPath(collection)) {throw new Error("Expected ObjectPath");}
@@ -69,6 +70,46 @@ it("publishes nested repetition expression/variable edits and keeps commands on 
     await waitFor(() => expect(tpl.vsettings[0].dataRep).toBe(rep));
     await waitFor(() => expect(screen.getByTestId("collection").textContent).toContain("items.filter(Boolean)"));
   } finally {mounted.unmount(); off(); await f.studioCtx.awaitEval(); f.studioCtx.dispose();}
+});
+
+it("keeps the repeat entry available and edits three fields without creating repetition on open", async () => {
+  const f = await setup(), tpl = ensureKnownTplTag(f.component.tplTree);
+  let items = [1, 2, 3];
+  vi.spyOn(f.view, "getCanvasEnvForTpl").mockImplementation(() => ({ items, $ctx: {}, $props: {}, $state: {}, $queries: {}, $q: {}, $$: {} }));
+  const owner = f.view.getInspectorReadOwner();
+  act(() => owner.resume());
+  const mounted = render(providers(f, <RepeatingElementControl tpl={tpl} viewCtx={f.view} />));
+  const trigger = () => screen.getByRole("button", {name: "Repeat element"});
+  try {
+    expect(trigger().textContent).toBe("");
+    fireEvent.click(trigger());
+    await screen.findByRole("dialog", {name: "Repeat element"});
+    expect(tpl.vsettings[0].dataRep).toBeUndefined();
+    expect(screen.getByLabelText("Element name")).toHaveProperty("disabled", true);
+    expect(screen.getByLabelText("Index name")).toHaveProperty("disabled", true);
+    fireEvent.click(screen.getByText("Change collection"));
+    await waitFor(() => expect(trigger().textContent).toBe("3"));
+    const rep = ensure(tpl.vsettings[0].dataRep, "Created repetition");
+    expect(rep.element.name).toBe("currentItem");
+    expect(rep.index?.name).toBe("currentIndex");
+    fireEvent.change(screen.getByLabelText("Element name"), {target: {value: "currentIndex"}});
+    await waitFor(() => expect(rep.element.name).not.toBe(rep.index?.name));
+    fireEvent.change(screen.getByLabelText("Index name"), {target: {value: ""}});
+    await waitFor(() => expect(rep.index).toBeNull());
+    act(() => { items = [1, 2, 3, 4, 5]; owner.syncCanvas(); });
+    await waitFor(() => expect(trigger().textContent).toBe("5"));
+    fireEvent.keyDown(document, {key: "Escape"});
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    fireEvent.click(trigger());
+    fireEvent.click(await screen.findByRole("button", {name: "Remove repetition"}));
+    await waitFor(() => expect(tpl.vsettings[0].dataRep).toBeNull());
+    expect(trigger().textContent).toBe("");
+    expect(screen.queryByRole("menu")).toBeNull();
+    await act(async () => { await f.studioCtx.undo(); });
+    await waitFor(() => expect(trigger().textContent).toBe("5"));
+    act(() => { items = []; owner.syncCanvas(); });
+    await waitFor(() => expect(trigger().textContent).toBe("0"));
+  } finally {mounted.unmount(); await f.studioCtx.awaitEval(); f.studioCtx.dispose();}
 });
 
 it("updates implicit-state visibility from native code-component evaluation and follows node renames", async () => {

@@ -24,7 +24,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/VariableRow", () => ({ default: ({ state }: VariableRowProps) => <span data-testid={`regular-${state.uid}`} /> }));
 vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariablesSection", () => ({ default: ({ tpl }: ImplicitVariablesSectionProps) => <span data-testid={`implicit-${tpl.uid}`} /> }));
 vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingModal", () => ({ VariableEditingModal: () => null }));
-vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/ActionBuilder", () => ({ default: ({ interaction, menu }: ActionBuilderProps) => <div data-testid={`interaction-${interaction.uid}`}>{menu}</div> }));
+vi.mock("@/wab/client/components/sidebar-tabs/StateManagement/ActionBuilder", () => ({ default: ({ interaction, onRemove }: ActionBuilderProps) => <div data-testid={`interaction-${interaction.uid}`}><button onClick={onRemove}>Remove</button></div> }));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 function namedState(name: string) {
   const { valueParam, onChangeParam } = mkParamsForState({ name, variableType: "text", accessType: "private", onChangeProp: `on ${name} change` });

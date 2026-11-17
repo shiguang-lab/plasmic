@@ -1,6 +1,3 @@
-import { DATA_SOURCE_CAP, DATA_SOURCE_LOWER } from "@/wab/shared/Labels";
-import { translate } from "@/wab/client/i18n/locales";
-import { getUiLocale } from "@/wab/client/i18n";
 import { showError } from "@/wab/client/ErrorNotifications";
 
 import { AppCtx } from "@/wab/client/app-ctx";
@@ -42,7 +39,6 @@ import {
 import { POSTGRES_META } from "@/wab/shared/data-sources-meta/postgres-meta";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Alert, Form, FormInstance, Input, notification, message } from "antd";
-import { jsonrepair } from "jsonrepair";
 import { isEqual, noop } from "lodash";
 import React from "react";
 import useSWR, { useSWRConfig } from "swr";
@@ -616,43 +612,6 @@ function CredentialsAndSettingsSection(props: {
   const { mutate } = useSWRConfig();
   const api = useApi();
 
-  const trySaveJson = (val: string) => {
-    const strSizeLimit = 500 * 1024; // 500KB
-    if (val.length > strSizeLimit) {
-      notification.error({
-        message: studioUiT("Value is too long"),
-        description: studioUiT(
-          "Please provide a value up to 500KB characters long",
-        ),
-      });
-      return;
-    }
-
-    try {
-      val = jsonrepair(val);
-    } catch {}
-
-    if (val[0] !== "{") {
-      notification.warning({
-        message: <UiText message={"Invalid JSON object"} />,
-        description: (
-          <UiText
-            message={"Only JSON objects (wrapped in {}) are supported."}
-          />
-        ),
-      });
-      return;
-    }
-
-    try {
-      const jsonObj = JSON.parse(val);
-      form.setFieldsValue({
-        credentials: { credentials: jsonObj },
-      });
-    } catch (err) {
-      showError(err, { title: translate(getUiLocale(), "Invalid JSON"), type: "warning" });
-    }
-  };
 
   const renderFormItem = (
     key: string,
@@ -841,7 +800,7 @@ function GoogleSheetsSignInButton(props: {
   const { t: studioUiT } = useI18n();
 
   // Must adhere to Google branding guidelines
-  const { onStart, onSuccess, onFailure, children, disabled } = props;
+  const { onStart, onSuccess, onFailure, disabled } = props;
   return (
     <ConnectOAuthButton
       onStart={onStart}

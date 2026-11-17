@@ -27,11 +27,11 @@ export class InstUtil {
   }
 
   getMetaClassForRealClass(cls: Function) {
-    return ensure(this.realClass2Class.get(cls));
+    return ensure(this.realClass2Class.get(cls), "Model class must have registered metadata");
   }
 
   getInstClass(inst: classes.ObjInst) {
-    return ensure(this.tryGetInstClass(inst));
+    return ensure(this.tryGetInstClass(inst), "Model instance constructor must have registered metadata");
   }
 
   tryGetInstClass(inst: classes.ObjInst) {

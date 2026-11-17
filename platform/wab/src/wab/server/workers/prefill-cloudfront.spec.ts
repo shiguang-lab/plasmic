@@ -128,7 +128,6 @@ describe("Prefill cloudfront", () => {
         const updatePkgVersionMock = vi.fn();
         sudo.updatePkgVersion = updatePkgVersionMock;
 
-        const CODEGEN_HOST = "cghost";
         const PROJECT_ID = "P1";
         const PKG_ID = "p1-pkgId-1";
         const PKG_VERSION = "0.0.1";

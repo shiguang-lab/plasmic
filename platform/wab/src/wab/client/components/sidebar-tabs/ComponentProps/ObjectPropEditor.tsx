@@ -1,3 +1,4 @@
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
@@ -24,7 +25,7 @@ import {
   maybePropTypeToDisplayName,
   StudioPropType,
 } from "@/wab/shared/code-components/code-components";
-import { assert, uncheckedCast, withoutNils } from "@/wab/shared/common";
+import { assert, uncheckedCast } from "@/wab/shared/common";
 import { codeLit, summarizeExpr } from "@/wab/shared/core/exprs";
 import { DefinedIndicatorType } from "@/wab/shared/defined-indicator";
 import { Expr, isKnownExpr, TemplatedString } from "@/wab/shared/model/classes";
@@ -49,7 +50,7 @@ interface ObjectPropEditorProps<Value extends object> {
   modalKey: string;
   ccContextData: any;
   onChange: (val: Value | undefined) => void;
-  buttonType?: React.ComponentProps<typeof Button>["type"];
+  listItem?: boolean;
   defaultShowModal?: boolean;
   onClose?: () => void;
   componentPropValues: any;
@@ -91,7 +92,7 @@ function ObjectPropEditorInputs<Value extends object>(props: ObjectPropEditorPro
 }
 export const ObjectPropEditor = React.memo(ObjectPropEditor_) as typeof ObjectPropEditor_;
 function projectExpressionSummaries(value: object | undefined, exprCtx: PropValueEditorContextData["exprCtx"]) {
-  if (!exprCtx || !value) return {};
+  if (!exprCtx || !value) { return {}; }
   return Object.fromEntries(Object.entries(value).flatMap(([key, field]) => isKnownExpr(field) ? [[key, summarizeExpr(field, exprCtx)]] : []));
 }
 function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorProps<Value> & {expressionSummaries?: Readonly<Record<string, string>>}) {
@@ -102,7 +103,7 @@ function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorPr
     objectNameFunc,
     ccContextData,
     onChange,
-    buttonType,
+    listItem,
     defaultShowModal,
     onClose,
     modalKey,
@@ -276,32 +277,43 @@ function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorPr
 
   switch (display) {
     case "popup":
-    case undefined:
+    case undefined: {
+      const triggerLabel = objectNameFunc?.(
+        evaluatedValue,
+        componentPropValues,
+        ccContextData,
+        { ...controlExtras, item: evaluatedValue },
+      ) ?? <UiText message="Configure..." />;
+      const triggerProps = {
+        ref: setButtonElement,
+        onClick: () => setShowModal(true),
+        disabled,
+        "data-plasmic-prop": props["data-plasmic-prop"],
+      };
       return (
         <>
-          <Button
-            ref={setButtonElement}
-            type={
-              withoutNils(["leftAligned", buttonType]) as React.ComponentProps<
-                typeof Button
-              >["type"]
-            }
-            size="stretch"
-            onClick={() => setShowModal(true)}
-            disabled={disabled}
-            data-plasmic-prop={props["data-plasmic-prop"]}
-            className={shouldShowModal ? "button--active" : undefined}
-          >
-            {objectNameFunc?.(
-              evaluatedValue,
-              componentPropValues,
-              ccContextData,
-              {
-                ...controlExtras,
-                item: evaluatedValue,
-              },
-            ) ?? <UiText message="Configure..." />}
-          </Button>
+          {listItem ? (
+            <div className={paintStyles.fillValue}>
+              <button
+                {...triggerProps}
+                type="button"
+                className={paintStyles.fillEdit}
+                aria-haspopup="dialog"
+                aria-expanded={shouldShowModal}
+              >
+                <span className={paintStyles.fillLabel}>{triggerLabel}</span>
+              </button>
+            </div>
+          ) : (
+            <Button
+              {...triggerProps}
+              type="leftAligned"
+              size="stretch"
+              className={shouldShowModal ? "button--active" : undefined}
+            >
+              {triggerLabel}
+            </Button>
+          )}
           <PopoverFrame
             show={shouldShowModal}
             title={
@@ -353,6 +365,7 @@ function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorPr
           </PopoverFrame>
         </>
       );
+    }
     case "inline": {
       const fieldEntries = Object.entries(fields);
       return (

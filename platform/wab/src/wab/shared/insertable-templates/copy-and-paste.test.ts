@@ -45,7 +45,7 @@ describe("cloneCopyState", () => {
     );
 
     const refOptions: CopyElementsReference[] = [tplOption0, tplOption1].map(
-      (tpl) => ({
+      () => ({
         type: "tpl-node",
         uuid: tplOption0.uuid,
         activeVariantsUuids: [],

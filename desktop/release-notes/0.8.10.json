@@ -1,0 +1,7 @@
+{
+  "en": "- Add the Material UI library for mobile prototypes.\n- Show device shells in the editor, Preview, and project thumbnails.\n- Refine Studio property editing, canvas navigation, and runtime checks.",
+  "zh-CN": "- 新增面向移动端原型的 Material UI 组件库。\n- 在编辑器、预览和项目缩略图中显示设备外壳。\n- 改进 Studio 属性编辑、画布导航和运行时检查。",
+  "zh-TW": "- 新增適用於行動版原型的 Material UI 元件庫。\n- 在編輯器、預覽和專案縮圖中顯示裝置外框。\n- 改善 Studio 屬性編輯、畫布導覽和執行階段檢查。",
+  "ja": "- モバイルプロトタイプ向けの Material UI ライブラリを追加しました。\n- エディター、プレビュー、プロジェクトのサムネイルにデバイスフレームを表示します。\n- Studio のプロパティ編集、キャンバスのナビゲーション、実行時のチェックを改善しました。",
+  "ko": "- 모바일 프로토타입용 Material UI 라이브러리를 추가했습니다.\n- 편집기, 미리보기, 프로젝트 썸네일에 기기 프레임을 표시합니다.\n- Studio 속성 편집, 캔버스 탐색, 런타임 검사를 개선했습니다."
+}

@@ -30,7 +30,7 @@ export function useResizableHandle(opts: {
   );
 
   const onDragStop = React.useCallback(
-    (e: XDraggableEvent) => {
+    () => {
       resizingState.current = null;
       document.body.style.cursor = "";
     },

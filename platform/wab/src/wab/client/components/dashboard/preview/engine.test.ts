@@ -23,7 +23,7 @@ it.each(["counters-test", "global-variant-test", "style-token-overrides", "impor
   const output = await prepare({ projectId: id, revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" });
   expect(fetcher).toHaveBeenCalledExactlyOnceWith(`/api/v1/projects/${id}?revisionNum=42`);
   const free = output.site.arenas.find((a) => a.children.length > 0);
-  const expected = free ? free.children : output.site.pageArenas.map((a) => getArenaFrames(a, true).sort((a, b) => b.width - a.width)[0]).filter(Boolean);
+  const expected = free ? free.children : output.site.pageArenas.map((a) => getArenaFrames(a, true).sort((leftFrame, b) => b.width - leftFrame.width)[0]).filter(Boolean);
   expect(output.pages.map((p) => p.uuid)).toEqual(expected.map((f) => f.uuid));
   expect(output.pages.length).toBeGreaterThan(0);
   expect(new Set(output.modules.map((m) => m.name)).size).toBe(output.modules.length);
@@ -43,7 +43,7 @@ it.each(["counters-test", "global-variant-test", "style-token-overrides", "impor
   } as any;
   const moduleExports: any = {};
   const imported = new Proxy({}, { get: () => () => null });
-  new Function("require", "exports", "window", generated)((name: string) => name === "react" ? { __esModule: true, default: { createElement: (...args: any[]) => args } } : imported, moduleExports, host);
+  new Function("require", "exports", "window", generated)((moduleName: string) => moduleName === "react" ? { __esModule: true, default: { createElement: (...args: any[]) => args } } : imported, moduleExports, host);
   moduleExports.__run();
   let committed = false;
   const rendering = host.__renderCover(output.pages[0].uuid).then(() => { committed = true; });
@@ -121,7 +121,7 @@ it("resolves immutable dependency resources before generating Dashboard artboard
   expect(dependencies.length).toBeGreaterThan(0);
   const resources = new Map(dependencies.map(([depId, model]) => [`/dependency-models/${encodeURIComponent(depId)}`, model]));
   const read = vi.spyOn(Api.prototype, "get").mockImplementation(async (url) => {
-    if (!resources.has(url)) throw new Error("Unexpected resource URL");
+    if (!resources.has(url)) {throw new Error("Unexpected resource URL");}
     return resources.get(url);
   });
   vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({
@@ -132,7 +132,7 @@ it("resolves immutable dependency resources before generating Dashboard artboard
   const output = await prepare({ projectId: id, revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" });
   expect(output.pages.length).toBeGreaterThan(0);
   expect(read).toHaveBeenCalledTimes(dependencies.length);
-  for (const [depId] of dependencies) expect(read).toHaveBeenCalledWith(`/dependency-models/${encodeURIComponent(depId)}`);
+  for (const [depId] of dependencies) {expect(read).toHaveBeenCalledWith(`/dependency-models/${encodeURIComponent(depId)}`);}
 });
 
 it("keeps dependency-resource failures observable instead of rendering incomplete thumbnails", async () => {

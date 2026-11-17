@@ -30,7 +30,7 @@ export const createDefaultBoxShadow = () => new BoxShadow({
   y: new Dim("4", "px"),
   blur: new Dim("16", "px"),
   spread: new Dim("0", "px"),
-  color: "rgba(0,0,0,0.2)",
+  color: "rgba(22,119,255,0.6)",
 });
 
 export function BoxShadowPanel({ defaultShadow: shadow, vsh, expsProvider, onUpdated }: BoxShadowPanelProps) {

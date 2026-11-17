@@ -1,9 +1,9 @@
-import { ready } from "./renderer";
+import { ready } from "@/wab/client/components/dashboard/preview/renderer";
 const realDocument = document;
 let owner: HTMLStyleElement;
 let imported: { type: number; href: string; media: { mediaText: string }; styleSheet: any };
 let mutations: MutationCallback;
-let disconnected = vi.fn();
+const disconnected = vi.fn();
 let fonts = vi.fn(() => Promise.resolve());
 let decode = vi.fn(async () => {});
 beforeEach(() => {

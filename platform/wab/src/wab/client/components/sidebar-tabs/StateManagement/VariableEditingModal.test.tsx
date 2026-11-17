@@ -7,7 +7,7 @@ import * as Tpls from "@/wab/shared/core/tpls";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { vi } from "vitest";
-import { VariableEditingModal } from "./VariableEditingModal";
+import { VariableEditingModal } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingModal";
 vi.mock("@/wab/client/components/sidebar/SidebarModal", () => ({ SidebarModal: ({ children }: any) => <div>{children}</div> }));
 vi.mock("./VariableEditingForm", () => ({ default: ({ state, onDraftChange, onConfirm, onCancel }: any) => <div>
   <span>{state.param.variable.name}</span>

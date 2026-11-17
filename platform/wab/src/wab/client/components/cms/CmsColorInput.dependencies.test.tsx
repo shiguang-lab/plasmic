@@ -28,7 +28,7 @@ it("synchronizes controlled colors silently, reads the current callback and rele
   view.rerender(field("#445566", second));
   expect(pickers.instances).toHaveLength(1);
   expect(initial.setColor).toHaveBeenLastCalledWith("#445566", true);
-  act(() => initial.handlers.get("change")({ toHEXA: () => ({ toString: () => "#778899" }) }));
+  act(() => { initial.handlers.get("change")({ toHEXA: () => ({ toString: () => "#778899" }) }); });
   expect(first).not.toHaveBeenCalled();
   expect(second).toHaveBeenCalledWith("#778899");
   view.rerender(field("#445566", second, true));

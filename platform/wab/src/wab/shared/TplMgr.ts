@@ -287,6 +287,7 @@ import {
   isInvisible,
   setTplVisibility,
 } from "@/wab/shared/visibility-utils";
+import { DEFAULT_MARGIN_FOR_NEW_FRAMES } from "@/wab/shared/canvas-constants";
 import L, { isString, memoize, pickBy, uniqBy } from "lodash";
 import flatten from "lodash/flatten";
 import has from "lodash/has";
@@ -297,8 +298,6 @@ import trim from "lodash/trim";
 import uniq from "lodash/uniq";
 import without from "lodash/without";
 import { CSSProperties } from "react";
-
-export const DEFAULT_MARGIN_FOR_NEW_FRAMES = 80;
 
 export function ensureBaseVariant(comp: Component) {
   if (comp.variants.length === 0) {

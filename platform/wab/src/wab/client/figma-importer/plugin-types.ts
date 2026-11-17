@@ -20,12 +20,6 @@ interface Vector {
   readonly y: number;
 }
 
-interface Rect {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
 
 export interface RGB {
   readonly r: number;
@@ -263,9 +257,6 @@ type BlendMode =
   | "COLOR"
   | "LUMINOSITY";
 
-interface Font {
-  fontName: FontName;
-}
 
 type Reaction = { action: Action; trigger: Trigger };
 

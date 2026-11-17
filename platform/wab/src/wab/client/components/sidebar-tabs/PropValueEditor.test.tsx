@@ -1,3 +1,9 @@
+import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
+import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
+import { mkTokenRef } from "@/wab/commons/StyleToken";
+import { asCode, deserCompositeExpr } from "@/wab/shared/core/exprs";
+import { ensureKnownCompositeExpr, ensureKnownStyleTokenRef } from "@/wab/shared/model/classes";
+import { evalCodeWithEnv } from "@/wab/shared/eval";
 import type { CanvasEnv } from "@/wab/shared/eval";
 import { mock } from "vitest-mock-extended";
 import "@/wab/client/components/sidebar/MixinControls";
@@ -261,10 +267,22 @@ it("edits registered semantic props at their native paths while preserving exist
   }
 
   const { container } = render(<Editors />);
-  for (const element of container.querySelectorAll("details")) {
-    element.open = true;
-  }
-  const padding = screen.getByRole("textbox", { name: "Vertical padding" });
+  const styleEditor = ensure(
+    container.querySelector<HTMLElement>('[data-plasmic-prop="styles"]'),
+    "Missing inline Styles editor"
+  );
+  expect(styleEditor.querySelector("details")).toBeNull();
+  fireEvent.click(within(styleEditor).getByText("popup", { exact: true }));
+  fireEvent.click(within(styleEditor).getByText("listItem", { exact: true }));
+  const padding = screen.getByRole("textbox", { name: "paddingBlock" });
+  expect(padding.closest("details")).toBeNull();
+  const addProperty = within(styleEditor).getByRole("button", { name: "Add CSS property" });
+  expect(addProperty.parentElement).toBe(within(styleEditor).getByLabelText("2 configured").parentElement);
+  expect(within(styleEditor).queryByRole("combobox", { name: "Add CSS property" })).toBeNull();
+  fireEvent.click(addProperty);
+  await screen.findByRole("menuitem", { name: "Horizontal padding · paddingInline" });
+  expect(screen.queryByRole("menuitem", { name: "Vertical padding · paddingBlock" })).toBeNull();
+  fireEvent.keyDown(document, { key: "Escape" });
   fireEvent.change(padding, { target: { value: "24" } });
   fireEvent.blur(padding);
   expect(styleChanged).toHaveBeenLastCalledWith({
@@ -274,23 +292,26 @@ it("edits registered semantic props at their native paths while preserving exist
   expect(styleChanged).toHaveBeenLastCalledWith({
     popup: { listItem: { letterSpacing: "1px" } },
   });
-  fireEvent.mouseDown(screen.getByRole("combobox", { name: "Add CSS property" }));
-  fireEvent.click(await screen.findByText("Horizontal padding · paddingInline"));
+  expect(within(styleEditor).getAllByLabelText("1 configured")).toHaveLength(2);
+  fireEvent.click(addProperty);
+  expect(await screen.findByRole("menuitem", { name: "Vertical padding · paddingBlock" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("menuitem", { name: "Horizontal padding · paddingInline" }));
   expect(styleChanged).toHaveBeenLastCalledWith({
     popup: { listItem: { letterSpacing: "1px", paddingInline: 0 } },
   });
 
-  const styleEditor = ensure(
-    container.querySelector<HTMLElement>('[data-plasmic-prop="styles"]'),
-    "Missing inline Styles editor"
-  );
+  expect(within(styleEditor).getByLabelText("2 configured").textContent).toBe("2");
+  fireEvent.click(addProperty);
+  await screen.findByRole("menuitem", { name: "Vertical padding · paddingBlock" });
+  expect(screen.queryByRole("menuitem", { name: "Horizontal padding · paddingInline" })).toBeNull();
+  fireEvent.keyDown(document, { key: "Escape" });
   const valueButton = within(styleEditor).getByRole("button", {
     name: "View property value",
   });
   fireEvent.focus(valueButton);
   await waitFor(() => expect(document.querySelector(".ant-popover pre")?.textContent).toContain('"paddingInline": 0'));
 
-  const classInput = screen.getByRole("textbox", { name: "List item" });
+  const classInput = screen.getByRole("textbox", { name: "listItem" });
   fireEvent.change(classInput, { target: { value: "custom-option" } });
   fireEvent.blur(classInput);
   expect(classChanged).toHaveBeenLastCalledWith({ popup: { listItem: "custom-option" } });
@@ -399,4 +420,144 @@ it("uses the semantic header menu for object bindings and keeps the binding when
   );
   expect(screen.getByText("Linked", { exact: true })).toBeTruthy();
   expect(screen.getByText("Arguments.headerAppearance")).toBeTruthy();
+});
+
+it("renders array items below their heading with the add button in that heading", () => {
+  const tpl = mkTplTagX("div");
+  const { view, studio } = nativeView(() => ({ invalidArgs: [], componentPropValues: {}, ccContextData: undefined }), tpl);
+  const { container } = render(
+    <StudioCtxContext.Provider value={studio}>
+      <PropEditorRow tpl={tpl} viewCtx={view} env={{}} schema={{}} attr="items" label="Menu items"
+        expr={codeLit([{ name: "First" }, { name: "Second" }])}
+        propType={{ type: "array", itemType: { type: "object", fields: { name: "string" }, nameFunc: (item) => item?.name } }}
+        onChange={vi.fn()} />
+    </StudioCtxContext.Provider>
+  );
+  const add = screen.getByRole("button", { name: "Add item" });
+  const label = screen.getByText("Menu items").closest("label");
+  expect(label?.contains(add)).toBe(false);
+  expect(container.querySelector('[data-test-id="items-header-actions"]')?.contains(add)).toBe(true);
+  expect(add.textContent).toBe("");
+  expect(container.querySelectorAll(".with-connector-line")).toHaveLength(2);
+  expect(screen.getByText("First")).toBeTruthy();
+  expect(screen.getByText("Second")).toBeTruthy();
+});
+
+
+it("edits semantic colors in a swatch popover and preserves theme token references", async () => {
+  vi.stubGlobal("IntersectionObserver", class { observe() { return undefined; } unobserve() { return undefined; } disconnect() { return undefined; } });
+  const tpl = mkTplTagX("div");
+  const { studio, view } = nativeView(() => ({ invalidArgs: [], componentPropValues: {}, ccContextData: undefined }), tpl);
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  const token = await studio.changeUnsafe(() => studio.tplMgr().addStyleToken({ name: "Accent", tokenType: "Color", value: "#112233" }));
+  const changed = vi.fn();
+  function Editor({ initial }: { initial: Expr }) {
+    const [expr, setExpr] = React.useState<Expr>(initial);
+    return <StudioCtxContext.Provider value={studio}>
+      <PropEditorRow tpl={tpl} viewCtx={view} attr="styles" label="Styles"
+        propType={{ type: "object", editor: "semantic", fields: { root: { type: "object" } } }}
+        expr={expr} onChange={(next) => { if (isKnownExpr(next)) { changed(next); setExpr(next); } }} />
+    </StudioCtxContext.Provider>;
+  }
+  try {
+    const initial = codeLit({ root: { color: "#abcdef", paddingBlock: 12 } });
+    const mounted = render(<Editor initial={initial} />);
+    const swatch = screen.getByRole("button", { name: "color" });
+    expect(swatch.textContent).toBe("");
+    expect(swatch.querySelector("[data-color-swatch]")).toBeTruthy();
+    fireEvent.click(swatch);
+    const popover = await screen.findByRole("dialog", { name: "color" });
+    fireEvent.click(await within(popover).findByRole("button", { name: /Accent/ }));
+    await waitFor(() => expect(changed).toHaveBeenCalled());
+    const saved = ensureKnownCompositeExpr(changed.mock.lastCall?.[0]);
+    expect(ensureKnownStyleTokenRef(saved.substitutions['["root"]["color"]']).token).toBe(token);
+    fireEvent.keyDown(document, { key: "Escape" });
+    const padding = screen.getByRole("textbox", { name: "paddingBlock" });
+    fireEvent.change(padding, { target: { value: "24" } });
+    fireEvent.blur(padding);
+    const edited = ensureKnownCompositeExpr(changed.mock.lastCall?.[0]);
+    expect(ensureKnownStyleTokenRef(edited.substitutions['["root"]["color"]']).token).toBe(token);
+    expect(deserCompositeExpr(edited)).toMatchObject({ root: { paddingBlock: 24 } });
+    expect(evalCodeWithEnv(asCode(edited, { component: view.currentComponent(), projectFlags: studio.projectFlags(), inStudio: false }).code, {})).toEqual({ root: { color: mkTokenRef(token), paddingBlock: 24 } });
+    mounted.rerender(<Editor key="reopened" initial={edited} />);
+    const reopened = screen.getByRole("button", { name: "color" });
+    expect(reopened.querySelector<HTMLElement>("[data-color-swatch]")?.style.backgroundColor).toBe("rgb(17, 34, 51)");
+    await act(async () => { await studio.changeUnsafe(() => { token.value = "#445566"; }); });
+    await waitFor(() => expect(reopened.querySelector<HTMLElement>("[data-color-swatch]")?.style.backgroundColor).toBe("rgb(68, 85, 102)"));
+    fireEvent.click(reopened);
+    fireEvent.click(await screen.findByRole("button", { name: "Remove token" }));
+    await waitFor(() => expect(tryExtractJson(changed.mock.lastCall?.[0])).toEqual({ root: { color: "#445566", paddingBlock: 24 } }));
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
+
+it("uses Design dimension menus for semantic CSS units, keywords, and typed tokens", async () => {
+  vi.stubGlobal("IntersectionObserver", class { observe() { return undefined; } unobserve() { return undefined; } disconnect() { return undefined; } });
+  const tpl = mkTplTagX("div");
+  const { studio, view } = nativeView(() => ({ invalidArgs: [], componentPropValues: {}, ccContextData: undefined }), tpl);
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  const font = await studio.changeUnsafe(() => studio.tplMgr().addStyleToken({ name: "Body size", tokenType: "FontSize", value: "16px" }));
+  const gap = await studio.changeUnsafe(() => studio.tplMgr().addStyleToken({ name: "Space", tokenType: "Spacing", value: "8px" }));
+  const changed = vi.fn();
+  function Editor() {
+    const [expr, setExpr] = React.useState<Expr>(codeLit({ root: { fontSize: "inherit", paddingBlock: 12, fontWeight: 400, borderWidth: 1 } }));
+    return <AppCtxContext.Provider value={studio.appCtx}><StudioCtxContext.Provider value={studio}><SidebarModalProvider>
+      <PropEditorRow tpl={tpl} viewCtx={view} attr="styles" label="Styles"
+        propType={{ type: "object", editor: "semantic", fields: { root: { type: "object" } } }}
+        expr={expr} onChange={(next) => { if (isKnownExpr(next)) { changed(next); setExpr(next); } }} />
+    </SidebarModalProvider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  }
+  const current = () => ensureKnownCompositeExpr(changed.mock.lastCall?.[0]);
+  const input = (name: string) => screen.getByRole("textbox", { name });
+  try {
+    render(<Editor />);
+    const size = input("fontSize");
+    const row = ensure(size.closest<HTMLElement>(".cssInput"), "Dimension control");
+    fireEvent.click(within(row).getByRole("button"));
+    expect(await screen.findByRole("listbox")).toBeTruthy();
+    fireEvent.change(size, { target: { value: "initial" } });
+    expect(await screen.findByRole("option", { name: "initial" })).toBeTruthy();
+    fireEvent.change(size, { target: { value: "Space" } });
+    expect(screen.queryByRole("option", { name: "Space" })).toBeNull();
+    fireEvent.change(size, { target: { value: "Body size" } });
+    expect(await screen.findByRole("option", { name: "Body size" })).toBeTruthy();
+    fireEvent.change(size, { target: { value: "larger" } });
+    fireEvent.click(await screen.findByRole("option", { name: "larger" }));
+    expect(tryExtractJson(changed.mock.lastCall?.[0])).toMatchObject({ root: { fontSize: "larger" } });
+    fireEvent.change(size, { target: { value: "18" } });
+    fireEvent.keyDown(size, { key: "Enter" });
+    expect(tryExtractJson(changed.mock.lastCall?.[0])).toMatchObject({ root: { fontSize: 18 } });
+    fireEvent.change(size, { target: { value: "18rem" } });
+    fireEvent.keyDown(size, { key: "Enter" });
+    expect(tryExtractJson(changed.mock.lastCall?.[0])).toMatchObject({ root: { fontSize: "18rem" } });
+    fireEvent.change(size, { target: { value: "calc(1rem + 2px)" } });
+    fireEvent.keyDown(size, { key: "Enter" });
+    expect(tryExtractJson(changed.mock.lastCall?.[0])).toMatchObject({ root: { fontSize: "calc(1rem + 2px)" } });
+    fireEvent.change(size, { target: { value: "Body size" } });
+    fireEvent.click(await screen.findByRole("option", { name: "Body size" }));
+    expect(ensureKnownStyleTokenRef(current().substitutions['["root"]["fontSize"]']).token).toBe(font);
+    fireEvent.click(input("paddingBlock"));
+    fireEvent.click(await screen.findByRole("option", { name: "12em" }));
+    expect(deserCompositeExpr(current())).toMatchObject({ root: { paddingBlock: "12em" } });
+    fireEvent.change(input("paddingBlock"), { target: { value: "Body size" } });
+    expect(screen.queryByRole("option", { name: "Body size" })).toBeNull();
+    fireEvent.change(input("paddingBlock"), { target: { value: "Space" } });
+    fireEvent.click(await screen.findByRole("option", { name: "Space" }));
+    expect(ensureKnownStyleTokenRef(current().substitutions['["root"]["paddingBlock"]']).token).toBe(gap);
+    expect(ensureKnownStyleTokenRef(current().substitutions['["root"]["fontSize"]']).token).toBe(font);
+    fireEvent.change(input("fontWeight"), { target: { value: "Bold" } });
+    fireEvent.click(await screen.findByRole("option", { name: "700" }));
+    expect(deserCompositeExpr(current())).toMatchObject({ root: { fontWeight: 700 } });
+    fireEvent.click(input("borderWidth"));
+    expect(screen.queryByRole("option", { name: "1%" })).toBeNull();
+    fireEvent.click(await screen.findByRole("option", { name: "thin" }));
+    expect(deserCompositeExpr(current())).toMatchObject({ root: { borderWidth: "thin" } });
+    fireEvent.change(input("paddingBlock"), { target: { value: "20" } });
+    fireEvent.keyDown(input("paddingBlock"), { key: "Enter" });
+    expect(deserCompositeExpr(current())).toMatchObject({ root: { paddingBlock: 20 } });
+    expect(current().substitutions['["root"]["paddingBlock"]']).toBeUndefined();
+    expect(ensureKnownStyleTokenRef(current().substitutions['["root"]["fontSize"]']).token).toBe(font);
+  } finally { vi.unstubAllGlobals(); }
 });

@@ -1,3 +1,4 @@
+import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import { ObjectPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/ObjectPropEditor";
 import type { PropValueEditorContextData } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { PropValueEditorContext } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
@@ -11,7 +12,7 @@ import { createSite } from "@/wab/shared/core/sites";
 import { CustomCode } from "@/wab/shared/model/classes";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
 
 vi.mock("@/wab/client/components/sidebar-tabs/PropEditorRow", async () => {
@@ -47,4 +48,37 @@ it("refreshes nested model-expression summaries without replacing command values
     act(() => lifetime.abort());
     expect(mounted.container.textContent).toBe("");
   } finally { mounted.unmount(); recorder.dispose(); models.dispose(); }
+});
+
+vi.mock("@/wab/client/components/sidebar/PopoverFrame", () => ({
+  PopoverFrame: ({ show, onClose }: { show: boolean; onClose: () => void }) =>
+    show ? <button onClick={onClose}>Close editor</button> : null,
+}));
+
+it("uses Design row styles and keeps the edit highlight until the item editor closes", () => {
+  const context = { componentPropValues: {}, ccContextData: {}, paramOwnerNames: [], env: undefined,
+    exprCtx: { component: null, projectFlags: DEVFLAGS, inStudio: true } };
+  const props = {
+    compositeValue: { name: "First" }, evaluatedValue: { name: "First" },
+    fields: { name: "string" as const }, propType: { type: "object" as const, fields: { name: "string" as const } },
+    objectNameFunc: () => "First", modalKey: "items", ccContextData: {}, componentPropValues: {},
+    controlExtras: { path: ["items", 0] }, onChange: vi.fn(), onClose: vi.fn(), listItem: true,
+  };
+  const editor = (disabled = false) => <PropValueEditorContext.Provider value={context}>
+    <ObjectPropEditor {...props} disabled={disabled} />
+  </PropValueEditorContext.Provider>;
+  const { rerender } = render(editor());
+  const button = screen.getByRole("button", { name: "First" });
+  expect(button.classList.contains(paintStyles.fillEdit)).toBe(true);
+  expect(button.parentElement?.classList.contains(paintStyles.fillValue)).toBe(true);
+  expect(button.getAttribute("aria-expanded")).toBe("false");
+  fireEvent.click(button);
+  expect(button.getAttribute("aria-expanded")).toBe("true");
+  fireEvent.click(screen.getByRole("button", { name: "Close editor" }));
+  expect(props.onClose).toHaveBeenCalledOnce();
+  expect(button.getAttribute("aria-expanded")).toBe("false");
+  rerender(editor(true));
+  expect(button.hasAttribute("disabled")).toBe(true);
+  fireEvent.click(button);
+  expect(button.getAttribute("aria-expanded")).toBe("false");
 });

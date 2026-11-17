@@ -181,7 +181,6 @@ describe("ancestorsThroughComponentsWithSlotSelections", () => {
       basicComponentInstance,
       codeComponent,
       describeNode,
-      tree,
     } = ancestorsThroughComponentsUtils();
 
     expect(
@@ -278,12 +277,7 @@ describe("ancestorsThroughComponentsWithSlotSelections", () => {
 describe("computeAncestorsValKey", () => {
   it("should properly use the layers to ignore nodes", () => {
     const {
-      baseVariant,
       basicComponentInstance,
-      codeComponent,
-      describeNode,
-      plainComponent,
-      tree,
     } = ancestorsThroughComponentsUtils();
 
     const ancestors = Tpls.ancestorsThroughComponentsWithSlotSelections(

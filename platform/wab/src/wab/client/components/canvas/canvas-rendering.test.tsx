@@ -61,7 +61,7 @@ import { canvasRefCommands, evalCodeWithEnv } from "@/wab/shared/eval";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { QueryComponentNode, usePlasmicQueries } from "@plasmicapp/data-sources";
-import { $StateSpec, get, set, useDollarState, useDollarStateSnapshot, useDollarStateQueryInput, usePlasmicRefs, getStateCommandValue } from "@plasmicapp/react-web";
+import { $StateSpec, useDollarState, useDollarStateSnapshot, useDollarStateQueryInput, usePlasmicRefs, getStateCommandValue } from "@plasmicapp/react-web";
 import { act, fireEvent, render } from "@testing-library/react";
 import React from "react";
 import { ConfigProvider, Table, Tooltip } from "antd";

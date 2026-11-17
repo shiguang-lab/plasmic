@@ -30,7 +30,7 @@ import {
 } from "@/wab/shared/common";
 import { initServer } from "@ts-rest/express";
 import { NextFunction } from "express";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { differenceBy } from "lodash";
 
 const s = initServer();

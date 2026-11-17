@@ -50,7 +50,7 @@ describe("prototype browser bridge", () => {
     });
     const rendered = render(<TopFrameCopilotToolsBridge />);
     const tools = window.PLASMIC_AI_TOOLS;
-    if (!tools) throw new Error("Bridge missing");
+    if (!tools) {throw new Error("Bridge missing");}
     const controller = new AbortController();
     const first = tools.read({}, undefined, controller.signal);
     const second = tools.read({});

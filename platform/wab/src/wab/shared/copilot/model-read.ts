@@ -57,14 +57,14 @@ export function projectReadFields(resource: Record<string, unknown>, options: Mo
 
 /** Copy literal JSON defaults without invoking callbacks or toJSON methods. */
 function literalDefault(value: unknown, seen = new Set<object>()): unknown {
-  if (value === null || typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) return value;
+  if (value === null || typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) {return value;}
   if (!value || typeof value !== "object" || seen.has(value)
-      || !isPlainObject(value) && !Array.isArray(value)) return undefined;
+      || !isPlainObject(value) && !Array.isArray(value)) {return undefined;}
   seen.add(value);
   const entries = Object.entries(value).map(([key, item]) => [key, literalDefault(item, seen)] as const);
   seen.delete(value);
-  if (Array.isArray(value) && entries.length !== value.length) return undefined;
-  if (entries.some(([, item]) => item === undefined)) return undefined;
+  if (Array.isArray(value) && entries.length !== value.length) {return undefined;}
+  if (entries.some(([, item]) => item === undefined)) {return undefined;}
   return Array.isArray(value) ? entries.map(([, item]) => item) : Object.fromEntries(entries);
 }
 
@@ -80,8 +80,8 @@ export function registrationContract(value: unknown, seen = new Set<object>()): 
     if (["string", "boolean", "number"].includes(typeof meta[key])) { result[key] = meta[key]; }
   }
   if (meta.type !== "slot") {
-    const value = literalDefault(meta.defaultValue);
-    if (value !== undefined) result.defaultValue = value;
+    const defaultValue = literalDefault(meta.defaultValue);
+    if (defaultValue !== undefined) {result.defaultValue = defaultValue;}
   }
   if (Array.isArray(meta.argTypes)) { result.args = meta.argTypes.map((arg) => ({ name: arg.name, ...registrationContract(arg.type, seen) })); }
   else if (Array.isArray(meta.argNames)) { result.args = meta.argNames.map((name) => ({ name, type: "any" })); }

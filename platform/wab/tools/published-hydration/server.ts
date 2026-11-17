@@ -23,7 +23,7 @@ export async function startServer({ fixtureSource, directory, baseline, reactDom
     "css__page.css": 'body{margin:0;background:#f2f3f8}input{margin:12px;padding:6px}form{padding:12px 0}button,a{margin-right:8px}h1{font-size:24px}section[role="dialog"]{padding:16px;border:1px solid #ddd;background:#fff}',
     "css-entrypoint.tsx": 'import "./css__page.css";',
   };
-  for (const [name, content] of Object.entries(files)) await fs.writeFile(path.join(directory, name), content);
+  for (const [name, content] of Object.entries(files)) {await fs.writeFile(path.join(directory, name), content);}
   const bundle = await bundleModules(directory, [{
     components: [{ id: "published-page", displayName: "PublishedPage", plasmicName: "PublishedPage", renderModuleFileName: "page.tsx", skeletonModuleFileName: "page.tsx", cssFileName: "css__page.css", path: "/published", isPage: true, isCode: false, metadata: {} }],
     globalVariants: [{ id: "theme-group", name: "Theme", type: "global-user-defined", contextFileName: "theme.tsx" }],
@@ -36,11 +36,11 @@ export async function startServer({ fixtureSource, directory, baseline, reactDom
   app.use((req, _res, next) => { requests.push({ method: req.method, url: req.url }); next(); });
   const published = express.Router();
   published.get("/api/v1/loader/code/published", (req, res) => {
-    if (req.query.projectId !== `${projectId}@1.2.3`) return res.status(404).json({ error: "Pinned project version required" });
+    if (req.query.projectId !== `${projectId}@1.2.3`) {return res.status(404).json({ error: "Pinned project version required" });}
     return res.redirect(`${req.baseUrl}/api/v1/loader/code/versioned?projectId=${encodeURIComponent(`${projectId}@1.2.3`)}`);
   });
   published.get("/api/v1/loader/code/versioned", (req, res) => {
-    if (req.query.projectId !== `${projectId}@1.2.3`) return res.status(404).json({ error: "Pinned project version required" });
+    if (req.query.projectId !== `${projectId}@1.2.3`) {return res.status(404).json({ error: "Pinned project version required" });}
     return res.json(bundle);
   });
   published.get("/static/js/loader-hydrate.js", getHydrationScript);
@@ -54,7 +54,7 @@ export async function startServer({ fixtureSource, directory, baseline, reactDom
   const server = app.listen(0, "127.0.0.1");
   await new Promise<void>((resolve) => server.once("listening", resolve));
   const address = server.address();
-  if (!address || typeof address === "string") throw new Error("Missing published test address");
+  if (!address || typeof address === "string") {throw new Error("Missing published test address");}
   const url = `http://127.0.0.1:${address.port}`;
   const publicUrl = url + "/codegen";
   process.env.CODEGEN_HOST = publicUrl;
@@ -70,7 +70,7 @@ export async function startServer({ fixtureSource, directory, baseline, reactDom
         const prepare = `<script>{const node=document.querySelector("[data-plasmic-component-data]");const data=JSON.parse(node.getAttribute("data-plasmic-component-data"));data.bundle.modules.browser.push(${JSON.stringify(module).replace(/</g, "\\u003c")});node.setAttribute("data-plasmic-component-data",JSON.stringify(data));}</script>`;
         body = body.replace(/(<script async="" src=)/, prepare + "$1").replace(/src="[^"]*\/static\/js\/loader-hydrate\.js"/, 'src="/baseline.js"');
       }
-      if (mode === "cached-html") body = body.replace(/ data-plasmic-host="[^"]*"/, "");
+      if (mode === "cached-html") {body = body.replace(/ data-plasmic-host="[^"]*"/, "");}
       body = body.replace(/(<script async="" src=)/, '<script>window.__publishedSsr=document.querySelector("[data-testid=published-page]")</script>$1');
       res.type("html").send(`<!doctype html><html><head><meta charset="utf-8"></head><body>${body}</body></html>`);
     } catch (error) { next(error); }

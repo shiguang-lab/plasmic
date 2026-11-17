@@ -78,7 +78,6 @@ import {
 } from "@/wab/shared/variant-sort";
 import { sortBy } from "lodash";
 
-// @ts-ignore
 import reactWebCss from "!!raw-loader!../gen/static/styles/react-web-css.txt";
 import { valKeyProp, valOwnerProp } from "@/wab/shared/canvas-constants";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";

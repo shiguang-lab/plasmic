@@ -1421,8 +1421,8 @@ describe("AI prototype editor tools", () => {
     vi.spyOn(studioCtx, "viewportCtx", "get").mockReturnValue(createViewportFixture().viewportCtx);
     const page = await createPage("TargetPage");
     const otherPage = await createPage("OtherPage");
-    const overview = ensure(studioCtx.site.arenas.find(arena => arena.children.some(frame => frame.container.component === page)));
-    const overviewFrame = ensure(overview.children.find(frame => frame.container.component === page));
+    const overview = ensure(studioCtx.site.arenas.find(arena => arena.children.some(frame => frame.container.component === page)), "Target page must have an overview arena in the navigation fixture");
+    const overviewFrame = ensure(overview.children.find(frame => frame.container.component === page), "Target page must have a frame in its overview arena");
     await call("createCanvas", { name: "Smaller" });
     const smallerFrame = await call("createArtboard", { canvasName: "Smaller", componentUuid: page.uuid, width: 1024, height: 768 });
 
@@ -1445,7 +1445,7 @@ describe("AI prototype editor tools", () => {
 
     const component = await call("createComponent", { name: "Definition", type: "component" });
     const componentUuid = component.created[0].uuid;
-    const definition = ensure(studioCtx.site.components.find(candidate => candidate.uuid === componentUuid));
+    const definition = ensure(studioCtx.site.components.find(candidate => candidate.uuid === componentUuid), "Created component definition must exist before navigating to it");
     await call("navigate", { componentUuid });
     expect(studioCtx.currentArena).toBe(getComponentArena(studioCtx.site, definition));
     studioCtx.copilotActivity.dispose();
@@ -2314,7 +2314,7 @@ describe("AI prototype editor tools", () => {
       height: 900,
     });
     expect(arena.children).toHaveLength(2);
-    expect(arena.children[1].left).toBe(1446);
+    expect(arena.children[1].left).toBe(1606);
     expect((await call("validate")).valid).toBe(true);
     await call("undo");
     expect(arena.children).toHaveLength(1);

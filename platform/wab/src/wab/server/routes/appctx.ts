@@ -3,7 +3,7 @@ import { mkApiTeam } from "@/wab/server/routes/teams";
 import { superDbMgr, userDbMgr } from "@/wab/server/routes/util";
 import { mkApiWorkspace } from "@/wab/server/routes/workspaces";
 import { ApiTeam, ApiWorkspace, AppCtxResponse } from "@/wab/shared/ApiSchema";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 
 export async function getAppCtxData(req: Request, personalWorkspace?: Promise<void>): Promise<AppCtxResponse> {
   const userMgr = userDbMgr(req, { allowUnverifiedEmail: true });

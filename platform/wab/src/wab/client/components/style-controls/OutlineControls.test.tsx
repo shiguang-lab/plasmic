@@ -2,7 +2,7 @@ import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { OutlinePanelSection } from "@/wab/client/components/style-controls/OutlineControls";
-import { SingleRsExpsProvider, StyleTargetContext, createStyleTarget } from "@/wab/client/components/style-controls/StyleComponent";
+import { ExpsProvider, SingleRsExpsProvider, TplExpsProvider, StyleTargetContext, createStyleTarget } from "@/wab/client/components/style-controls/StyleComponent";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -14,7 +14,7 @@ import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { ensureKnownTplTag } from "@/wab/shared/model/classes";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import React from "react";
 
@@ -47,28 +47,28 @@ async function setup() {
   vi.spyOn(view, "awaitSync").mockResolvedValue(undefined);
   studio.setStudioFocusOnFrame({ frame, autoZoom: false });
   const provider = new SingleRsExpsProvider(rs, rsh, studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  return { studio, rsh, provider };
+  return { studio, rsh, provider, view, root, manager, component };
 }
-function section(f: Awaited<ReturnType<typeof setup>>) {
-  return <AppContext.Provider value={f.studio.app}><StudioCtxContext.Provider value={f.studio}><StyleTargetContext.Provider value={createStyleTarget({ expsProvider: f.provider })}>
+function section(f: Awaited<ReturnType<typeof setup>>, provider: ExpsProvider = f.provider) {
+  return <AppContext.Provider value={f.studio.app}><StudioCtxContext.Provider value={f.studio}><StyleTargetContext.Provider value={createStyleTarget({ expsProvider: provider })}>
     <OutlinePanelSection />
   </StyleTargetContext.Provider></StudioCtxContext.Provider></AppContext.Provider>;
 }
 
-async function selectSource(label: "Default" | "Custom" | "None", next: "Custom" | "None" | "Restore default") {
-  fireEvent.click(screen.getByRole("button", { name: `Outline: ${label}` }));
-  fireEvent.click(await screen.findByRole("menuitem", { name: next }));
-}
-
-it("edits a single outline and hides controls for none and default", async () => {
+it("adds only one outline, edits None in its popover and deletes the current override", async () => {
   const f = await setup();
   const { unmount } = render(section(f));
   expect(screen.queryByLabelText("Offset", { selector: "input" })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Add outline" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Add outline" })).toBeEnabled();
+  expect(screen.queryByRole("button", { name: "Outline: Default" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Remove outline" })).not.toBeInTheDocument();
-  await selectSource("Default", "Custom");
+  fireEvent.click(screen.getByRole("button", { name: "Add outline" }));
   await screen.findByLabelText("Width", { selector: "input" });
   expect(f.rsh.get("outline-style")).toBe("solid");
+  expect(screen.getByRole("button", { name: "Add outline" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Add outline" }));
+  expect(document.querySelectorAll('[data-test-id="outline-row"]')).toHaveLength(1);
+  expect(document.querySelector('[data-test-id="drag-handle"]')).toBeNull();
   const color = screen.getByRole("button", { name: "Outline color" });
   fireEvent.click(color);
   const picker = await screen.findByRole("dialog", { name: "Outline color" });
@@ -93,29 +93,73 @@ it("edits a single outline and hides controls for none and default", async () =>
     fireEvent.click(screen.getByRole("button", { name: label }));
     await waitFor(() => expect(f.rsh.get("outline-style")).toBe(value));
   }
-  expect(screen.queryByRole("button", { name: "None" })).not.toBeInTheDocument();
+  expect(within(popup).getByRole("button", { name: "None" })).toBeInTheDocument();
   fireEvent.keyDown(popup, { key: "Escape" });
   await waitFor(() => expect(settings).toHaveAttribute("aria-expanded", "false"));
   await waitFor(() => expect(document.activeElement).toBe(settings));
   unmount();
   render(section(f));
-  expect(screen.getByRole("button", { name: "Outline: Custom" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Add outline" })).toBeDisabled();
   expect(screen.getByLabelText("Width", { selector: "input" })).toHaveValue("4px");
-  await selectSource("Custom", "None");
+  fireEvent.click(screen.getByRole("button", { name: "Outline settings" }));
+  fireEvent.click(within(await screen.findByRole("group", { name: "Outline settings" })).getByRole("button", { name: "None" }));
   await waitFor(() => expect(f.rsh.getRaw("outline-style")).toBe("none"));
   expect(f.rsh.getRaw("outline-width")).toBeUndefined();
   expect(f.rsh.getRaw("outline-offset")).toBeUndefined();
   expect(f.rsh.getRaw("outline-color")).toBeUndefined();
   expect(screen.queryByLabelText("Width", { selector: "input" })).not.toBeInTheDocument();
-  await selectSource("None", "Custom");
+  expect(screen.getByRole("button", { name: "Outline settings" })).toHaveTextContent("None");
+  expect(screen.queryByRole("button", { name: "Outline color" })).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Offset", { selector: "input" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Add outline" })).toBeDisabled();
+  fireEvent.click(within(screen.getByRole("group", { name: "Outline settings" })).getByRole("button", { name: "Dashed" }));
   await screen.findByLabelText("Width", { selector: "input" });
-  await selectSource("Custom", "Restore default");
-  await screen.findByRole("button", { name: "Outline: Default" });
+  expect(f.rsh.get("outline-style")).toBe("dashed");
+  fireEvent.keyDown(screen.getByRole("group", { name: "Outline settings" }), { key: "Escape" });
+  fireEvent.click(screen.getByRole("button", { name: "Remove outline" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Add outline" })).toBeEnabled());
   expect(screen.queryByLabelText("Width", { selector: "input" })).not.toBeInTheDocument();
   for (const prop of ["outline-style", "outline-color", "outline-width", "outline-offset"]) {
     expect(f.rsh.getRaw(prop)).toBeUndefined();
   }
   await act(async () => { await f.studio.undo(); });
-  await screen.findByRole("button", { name: "Outline: Custom" });
+  await screen.findByRole("button", { name: "Outline settings" });
   expect(screen.getByLabelText("Width", { selector: "input" })).toBeInTheDocument();
+});
+
+it("shows inherited outline, clears it with None and restores it by removing the override", async () => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => {
+    f.rsh.set("outline-style", "dotted");
+    f.rsh.set("outline-width", "3px");
+    f.rsh.set("outline-offset", "2px");
+    f.rsh.set("outline-color", "#123456");
+    f.rsh.set("border-top-style", "dashed");
+  });
+  const [variant] = await f.studio.changeUnsafe(() => f.manager.createStyleVariant(f.component, [":hover"]));
+  await act(async () => {
+    f.studio.setStudioFocusOnViewCtxContent(f.view);
+    f.view.setStudioFocusByTpl(f.root);
+    await f.studio.changeUnsafe(() => f.view.currentComponentStackFrame().setTargetVariants([variant]));
+  });
+  await waitFor(() => expect(f.studio.isSelectionPending).toBe(false));
+  const provider = new TplExpsProvider(f.view, f.root);
+  expect(provider.canEdit()).toBe(true);
+  const mounted = render(section(f, provider));
+  expect(screen.getByLabelText("Width", { selector: "input" })).toHaveValue("3px");
+  expect(screen.getByRole("button", { name: "Add outline" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Outline settings" }));
+  fireEvent.click(within(await screen.findByRole("group", { name: "Outline settings" })).getByRole("button", { name: "None" }));
+  await waitFor(() => expect(provider.targetExp().getRaw("outline-style")).toBe("none"));
+  expect(f.rsh.getRaw("outline-style")).toBe("dotted");
+  mounted.unmount();
+  render(section(f, provider));
+  expect(screen.getByRole("button", { name: "Outline settings" })).toHaveTextContent("None");
+  expect(screen.getByRole("button", { name: "Add outline" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Remove outline" }));
+  await waitFor(() => expect(provider.maybeTargetExp()?.has("outline-style") ?? false).toBe(false));
+  expect(screen.getByLabelText("Width", { selector: "input" })).toHaveValue("3px");
+  expect(screen.getByLabelText("Offset", { selector: "input" })).toHaveValue("2px");
+  expect(f.rsh.getRaw("outline-color")).toBe("#123456");
+  expect(f.rsh.getRaw("border-top-style")).toBe("dashed");
 });

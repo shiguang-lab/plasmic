@@ -178,7 +178,7 @@ function pushSlotSelectionMenu(
   node: SlotSelection,
   push: (x: React.ReactNode) => void,
 ) {
-  if (isFixedRootSlot(viewCtx, node)) return;
+  if (isFixedRootSlot(viewCtx, node)) {return;}
   const tpl = ensure(
     node.toTplSlotSelection().tpl,
     "node to tpl slot selection must have a tpl",
@@ -873,7 +873,7 @@ export function makeTplMenu(
           </Menu.Item>,
         );
       });
-      if (!fixedRoot) builder.genSub(<UiText message={"Paste..."} />, (push2) => {
+      if (!fixedRoot) {builder.genSub(<UiText message={"Paste..."} />, (push2) => {
         const clip = viewCtx.getViewOps().clipboard().contents();
         if (clip && isStyleClip(clip)) {
           if (
@@ -917,7 +917,7 @@ export function makeTplMenu(
             </Menu.Item>,
           );
         }
-      });
+      });}
     }
   });
 

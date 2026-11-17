@@ -19,7 +19,7 @@ export default function DirectoryUsers(props: {
 }) {
   const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
-  const { teamId, directoryId } = props;
+  const { directoryId } = props;
   const { users, mutate: mutateUsers } = useDirectoryUsers(appCtx, directoryId);
 
   const { groups } = useDirectoryGroups(appCtx, directoryId);

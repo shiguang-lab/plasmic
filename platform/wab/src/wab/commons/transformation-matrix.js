@@ -30,8 +30,8 @@
  * @copyright Epistemex.com 2014-2016
  */
 function Matrix(context, element) {
-  let me = this,
-    _el;
+  const me = this;
+  let _el;
   me._t = me.transform;
 
   me.a = me.d = 1;
@@ -78,9 +78,9 @@ function Matrix(context, element) {
  * @static
  */
 Matrix.fromTriangles = function (t1, t2, context) {
-  let m1 = new Matrix(),
-    m2 = new Matrix(context),
-    r1,
+  const m1 = new Matrix(),
+    m2 = new Matrix(context);
+  let r1,
     r2,
     rx1,
     ry1,
@@ -156,8 +156,8 @@ Matrix.fromTriangles = function (t1, t2, context) {
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/SVGTransformList|MDN / SVGTransformList}
  */
 Matrix.fromSVGTransformList = function (tList, context, dom) {
-  let m = new Matrix(context, dom),
-    i = 0;
+  const m = new Matrix(context, dom);
+  let i = 0;
 
   while (i < tList.length) {
     m.multiply(tList[i++].matrix);
@@ -193,8 +193,8 @@ Matrix.fromSVGTransformList = function (tList, context, dom) {
  * @static
  */
 Matrix.from = function (a, b, c, d, e, f, context, dom) {
-  let m = new Matrix(context, dom),
-    scale,
+  const m = new Matrix(context, dom);
+  let scale,
     dist,
     q;
 
@@ -234,10 +234,10 @@ Matrix.from = function (a, b, c, d, e, f, context, dom) {
 
 Matrix.prototype = {
   _getPX: function () {
-    let lst = ["t", "oT", "msT", "mozT", "webkitT", "khtmlT"],
-      i = 0,
-      p,
-      style = document.createElement("div").style;
+    const lst = ["t", "oT", "msT", "mozT", "webkitT", "khtmlT"];
+    let i = 0,
+      p;
+    const style = document.createElement("div").style;
 
     while ((p = lst[i++])) {
       if (typeof style[p + "ransform"] !== "undefined") {
@@ -689,7 +689,7 @@ Matrix.prototype = {
    * @see {@link https://en.wikipedia.org/wiki/LU_decomposition|More on LU decomposition}
    */
   decompose: function (useLU) {
-    let me = this,
+    const me = this,
       a = me.a,
       b = me.b,
       c = me.c,
@@ -698,11 +698,11 @@ Matrix.prototype = {
       atan = Math.atan,
       sqrt = Math.sqrt,
       pi = Math.PI,
-      translate = { x: me.e, y: me.f },
-      rotation = 0,
+      translate = { x: me.e, y: me.f };
+    let rotation = 0,
       scale = { x: 1, y: 1 },
-      skew = { x: 0, y: 0 },
-      determ = a * d - b * c; // determinant(), skip DRY here...
+      skew = { x: 0, y: 0 };
+    const determ = a * d - b * c; // determinant(), skip DRY here...
 
     if (useLU) {
       if (a) {
@@ -790,8 +790,8 @@ Matrix.prototype = {
   applyToArray: function (points) {
     let i = 0,
       p,
-      l,
-      mxPoints = [];
+      l;
+    const mxPoints = [];
 
     if (typeof points[0] === "number") {
       l = points.length;
@@ -821,8 +821,8 @@ Matrix.prototype = {
    */
   applyToTypedArray: function (points, use64) {
     let i = 0,
-      p,
-      l = points.length,
+      p;
+    const l = points.length,
       mxPoints = use64 ? new Float64Array(l) : new Float32Array(l);
 
     while (i < l) {
@@ -1100,9 +1100,9 @@ Matrix.prototype = {
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/SVGMatrix|MDN / SVGMatrix}
    */
   toSVGMatrix: function () {
-    let me = this,
-      svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"),
-      svgMatrix = null;
+    const me = this,
+      svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    let svgMatrix = null;
 
     if (svg) {
       svgMatrix = svg.createSVGMatrix();

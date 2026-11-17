@@ -38,7 +38,7 @@ import { sortBy, withoutNils } from "@/wab/shared/common";
 import { GenericDataSource } from "@/wab/shared/data-sources-meta/data-source-registry";
 import { OperationTemplate } from "@/wab/shared/data-sources-meta/data-sources";
 import { prodUrlForProject } from "@/wab/shared/project-urls";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { groupBy, isString, pick, uniq } from "lodash";
 import { Connection } from "typeorm";
 import validator from "validator";
@@ -607,7 +607,7 @@ export async function listRoles(req: Request, res: Response) {
 
 export async function updateAppRole(req: Request, res: Response) {
   const mgr = userDbMgr(req);
-  const { projectId, roleId } = req.params;
+  const { roleId } = req.params;
   const { name } = req.body;
   const role = await mgr.updateAppRole(roleId as string, name);
   res.json(mkApiAppRole(role));
@@ -615,7 +615,7 @@ export async function updateAppRole(req: Request, res: Response) {
 
 export async function deleteAppRole(req: Request, res: Response) {
   const mgr = userDbMgr(req);
-  const { projectId, roleId } = req.params;
+  const { roleId } = req.params;
   await mgr.deleteAppRole(roleId as string);
   res.json({});
 }

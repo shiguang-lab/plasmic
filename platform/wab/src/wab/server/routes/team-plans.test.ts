@@ -12,7 +12,7 @@ import {
 import { ensure } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { pluralizeResourceId } from "@/wab/shared/perms";
-import { Request } from "express-serve-static-core";
+import type { Request } from "express-serve-static-core";
 import { mock } from "vitest-mock-extended";
 
 vi.mock("@/wab/server/app-backend-real", () => ({ runAppServer: vi.fn() }));

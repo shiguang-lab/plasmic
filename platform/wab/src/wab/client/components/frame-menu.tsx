@@ -35,7 +35,7 @@ export function makeFrameMenu({
   onMenuClick?: () => void;
   frame?: ArenaFrame;
 }) {
-  const originArena = ensure(viewCtx.studioCtx.currentArena);
+  const originArena = ensure(viewCtx.studioCtx.currentArena, "A current arena is required to build the frame menu");
   const _canCreateComponentFromFrame = !frame.container.component.name;
 
   const isCombinationPageArenaFrame =

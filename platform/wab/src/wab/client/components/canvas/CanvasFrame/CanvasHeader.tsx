@@ -1,5 +1,6 @@
 import { useCanvasHeaderInputs } from "@/wab/client/components/canvas/CanvasFrame/canvas-header-inputs";
 import { useFrameWidth } from "@/wab/client/studio-ctx/frame-width";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
 import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
@@ -51,7 +52,9 @@ export const CanvasHeader = React.memo(function CanvasHeader(props: {
   frame: ArenaFrame;
 }) {
   const { studioCtx, frame, arena } = props;
-  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+  const [selectedFrames, selectedView] = useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view] as const));
+  useViewSelection(selectedView, useShallow((state) => [state.targets, state.tpls, state.part]));
+  const interactive = useStudioRenderPolicy(studioCtx, (state) => state.interactive);
   const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
   const viewportZoom = useCanvasZoom(studioCtx);
   const width = useFrameWidth(studioCtx, frame);
@@ -88,6 +91,10 @@ export const CanvasHeader = React.memo(function CanvasHeader(props: {
           "CanvasFrame__Label flex flex-vcenter flex-no-shrink-children",
           {
             "CanvasFrame__Label--focused": isFocused,
+            "CanvasFrame__Label--frame-selected": isMixedArena(arena) &&
+              !interactive && selectedFrames.length <= 1 &&
+              (selectedView?.focusedSelectables().length ?? 0) <= 1 &&
+              studioCtx.hoverBoxControlledObj === frame,
           },
         )}
         data-canvas-artboard-uid={frame.uid}

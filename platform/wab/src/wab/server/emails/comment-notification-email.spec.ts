@@ -775,7 +775,7 @@ View in Plasmic${FOOTER_TEXT}`,
                         .map(
                           async (reaction): Promise<Notification> =>
                             await createNotification(
-                              reaction.comment?.commentThreadId!,
+                              rootComment.commentThreadId,
                               users[0],
                               project,
                               reaction.createdAt,

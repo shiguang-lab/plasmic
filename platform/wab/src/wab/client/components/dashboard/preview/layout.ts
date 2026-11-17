@@ -1,5 +1,17 @@
 import type { ArtboardBounds } from "@/wab/client/components/dashboard/preview/types";
 
+/** Include the shared shell's buttons, outline and shadow outside the viewport. */
+export function previewBounds(board: ArtboardBounds) {
+  const x = board.deviceFrame ? board.deviceFrame.insetX + 32 : 0;
+  const y = board.deviceFrame ? board.deviceFrame.insetY + 32 : 0;
+  return {
+    left: board.left - x,
+    top: board.top - y,
+    width: board.width + 2 * x,
+    height: board.height + 2 * y,
+  };
+}
+
 export function overviewLayout(boards: ArtboardBounds[]) {
   if (
     !boards.length ||
@@ -13,6 +25,7 @@ export function overviewLayout(boards: ArtboardBounds[]) {
   ) {
     throw new Error("Invalid or oversized preview artboard");
   }
+  boards = boards.map(previewBounds);
   const left = Math.min(...boards.map((b) => b.left));
   const top = Math.min(...boards.map((b) => b.top));
   const width = Math.max(...boards.map((b) => b.left + b.width)) - left;

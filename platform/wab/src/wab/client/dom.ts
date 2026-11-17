@@ -20,7 +20,7 @@ export function range(
   start?: NodeAndOffset,
   end?: NodeAndOffset,
 ) {
-  const sel = ensure(doc.getSelection());
+  const sel = ensure(doc.getSelection(), "Document selection must be available when reading the selected range");
   if (sel.rangeCount === 0) {
     return null;
   }
@@ -85,7 +85,6 @@ export function* bfs($elt: JQuery, excludeSelf = false) {
 }
 
 export function tag(x) {
-  let left;
   return coalesce(
     maybe(x.get(0).tagName, (x1) => x1.toLowerCase()),
     () => "",
@@ -143,7 +142,7 @@ export const slottedPositionedValues = new Set(["static", "relative"]);
  */
 export function getRect(elt: Element): ClientRect {
   const { width, height } = elt.getBoundingClientRect();
-  const { top, left } = ensure($(elt).offset());
+  const { top, left } = ensure($(elt).offset(), "Element document offset must be available to compute its rectangle");
   return {
     top,
     left,
@@ -171,7 +170,7 @@ export const isWrappedFlexItem = (elt: Element) => {
  */
 export function getOffsetRectOfHTMLElement(elt: HTMLElement): ClientRect {
   if (isWrappedFlexItem(elt)) {
-    return getOffsetRectOfHTMLElement(ensure(elt.parentElement));
+    return getOffsetRectOfHTMLElement(ensure(elt.parentElement, "Wrapped flex item must have a parent element to compute its offset rectangle"));
   }
   const {
     offsetWidth: width,
@@ -196,11 +195,11 @@ export function getOffsetRectOfHTMLElement(elt: HTMLElement): ClientRect {
   let containerHeight: number | undefined;
 
   if (!offsetParent) {
-    containerWidth = ensure(ensure(elt.parentElement).offsetWidth);
-    containerHeight = ensure(ensure(elt.parentElement).offsetHeight);
+    containerWidth = ensure(ensure(elt.parentElement, "Element must have a parent when no offset parent is available").offsetWidth, "Parent element width must be available to compute offset distances");
+    containerHeight = ensure(ensure(elt.parentElement, "Element must have a parent when no offset parent is available").offsetHeight, "Parent element height must be available to compute offset distances");
   } else {
-    containerWidth = ensure($(ensure(offsetParent)).innerWidth());
-    containerHeight = ensure($(ensure(offsetParent)).innerHeight());
+    containerWidth = ensure($(ensure(offsetParent, "Offset parent must exist when measuring its inner width")).innerWidth(), "Offset parent inner width must be available to compute offset distances");
+    containerHeight = ensure($(ensure(offsetParent, "Offset parent must exist when measuring its inner height")).innerHeight(), "Offset parent inner height must be available to compute offset distances");
   }
 
   const [bottom, right] = [
@@ -231,14 +230,14 @@ export function getOffsetRect(elt: Element): ClientRect {
     top:
       (parentBB &&
         parentStyle &&
-        bb.top - parentBB.top - parsePx(ensure(parentStyle.borderLeftWidth))) ??
+        bb.top - parentBB.top - parsePx(ensure(parentStyle.borderLeftWidth, "Parent left border width must be available to compute offset distances"))) ??
       0,
     left:
       (parentBB &&
         parentStyle &&
         bb.left -
           parentBB.left -
-          parsePx(ensure(parentStyle.borderTopWidth))) ??
+          parsePx(ensure(parentStyle.borderTopWidth, "Parent top border width must be available to compute offset distances"))) ??
       0,
     width: bb.width,
     height: bb.height,
@@ -247,21 +246,21 @@ export function getOffsetRect(elt: Element): ClientRect {
         parentStyle &&
         parentBB.bottom -
           bb.bottom -
-          parsePx(ensure(parentStyle.borderBottomWidth))) ??
+          parsePx(ensure(parentStyle.borderBottomWidth, "Parent bottom border width must be available to compute offset distances"))) ??
       0,
     right:
       (parentBB &&
         parentStyle &&
         parentBB.right -
           bb.right -
-          parsePx(ensure(parentStyle.borderRightWidth))) ??
+          parsePx(ensure(parentStyle.borderRightWidth, "Parent right border width must be available to compute offset distances"))) ??
       0,
   };
 }
 
 export function getEffectiveOffsetParent(domElt: Element): Element | null {
   if (isWrappedFlexItem(domElt)) {
-    return getEffectiveOffsetParent(ensure(domElt.parentElement));
+    return getEffectiveOffsetParent(ensure(domElt.parentElement, "Wrapped flex item must have a parent element to resolve its effective offset parent"));
   }
   if (isHTMLElt(domElt)) {
     return domElt.offsetParent;
@@ -287,12 +286,12 @@ export function getPaddingRect(elt: HTMLElement): ClientRect {
   const rect = getElementBounds($(elt));
   const sty = getComputedStyle(elt);
   return {
-    top: rect.top + parsePx(ensure(sty.borderTopWidth)),
-    left: rect.left + parsePx(ensure(sty.borderLeftWidth)),
+    top: rect.top + parsePx(ensure(sty.borderTopWidth, "Top border width must be available to compute the element client rectangle")),
+    left: rect.left + parsePx(ensure(sty.borderLeftWidth, "Left border width must be available to compute the element client rectangle")),
     width: elt.clientWidth,
     height: elt.clientHeight,
-    bottom: rect.top + rect.height - parsePx(ensure(sty.borderBottomWidth)),
-    right: rect.left + rect.width - parsePx(ensure(sty.borderRightWidth)),
+    bottom: rect.top + rect.height - parsePx(ensure(sty.borderBottomWidth, "Bottom border width must be available to compute the element client rectangle")),
+    right: rect.left + rect.width - parsePx(ensure(sty.borderRightWidth, "Right border width must be available to compute the element client rectangle")),
   };
 }
 
@@ -357,7 +356,7 @@ export function getContentOnlyRect(
 
 export function getBoundingClientRect(...elts: Element[]): ClientRect {
   return ensure(
-    Box.mergeBBs(elts.map((x) => x.getBoundingClientRect())),
+    Box.mergeBBs(elts.map((x) => x.getBoundingClientRect())), "At least one element is required to compute a bounding rectangle",
   ).rect();
 }
 

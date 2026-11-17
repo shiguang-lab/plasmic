@@ -21,7 +21,7 @@ it("checks each new step's target before allowing its tour to mount", () => {
   expect(view.result.current.isTargetVisible).toBe(false);
   expect(changed.mock.calls).toEqual([[true], [false]]);
   target.id = "next-target";
-  act(() => vi.advanceTimersByTime(1500));
+  act(() => { vi.advanceTimersByTime(1500); });
   expect(view.result.current.isTargetVisible).toBe(true);
   expect(changed.mock.calls).toEqual([[true], [false], [true]]);
 });
@@ -32,7 +32,7 @@ it("pauses checks while a tutorial step is being prepared and releases its timer
   expect(view.result.current.isTargetVisible).toBe(true);
   view.rerender({ run: false });
   target.style.display = "none";
-  act(() => vi.advanceTimersByTime(3000));
+  act(() => { vi.advanceTimersByTime(3000); });
   expect(view.result.current.isTargetVisible).toBe(false);
   expect(changed.mock.calls).toEqual([[true]]);
   view.rerender({ run: true });

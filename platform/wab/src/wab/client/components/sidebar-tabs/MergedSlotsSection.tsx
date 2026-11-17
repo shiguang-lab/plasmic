@@ -1,5 +1,3 @@
-import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
-import { useShallow } from "zustand/react/shallow";
 import { useInspectorComponentEvalContext } from "@/wab/client/studio-ctx/inspector-state";
 import { ComponentPropsSection } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import {
@@ -13,20 +11,10 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useI18n } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import {
-  getAncestorTplSlot,
-  getSingleTextBlockFromArg,
-  getSingleTplComponentFromArg,
-  getSlotParams,
-} from "@/wab/shared/SlotUtils";
-import { $$$ } from "@/wab/shared/TplQuery";
 import { isPlainObjectPropType } from "@/wab/shared/code-components/code-components";
 import { ensure, hackyCast } from "@/wab/shared/common";
-import { getComponentPropTypes } from "@/wab/shared/component-props";
 import { getContextDependentValue } from "@/wab/shared/context-dependent-value";
-import { getComponentDisplayName } from "@/wab/shared/core/components";
 import { TplComponent } from "@/wab/shared/model/classes";
-import { smartHumanize } from "@/wab/shared/strs";
 import { useMergedSlotInputs } from "@/wab/client/studio-ctx/merged-slot-inputs";
 import React from "react";
 

@@ -38,6 +38,41 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("decorates mobile pages outside the viewport and reacts to resizing without changing page content", async () => {
+  const site = createSite();
+  const component = mkComponent({ name: "Mobile", type: ComponentType.Page, tplTree: mkTplTag("div") });
+  site.components.push(component);
+  const frame = mkArenaFrame({ site, component, name: "Mobile", width: 393, height: 852, left: 0, top: 0 });
+  const arena = mkMixedArena("Mobile", [frame]); site.arenas.push(arena);
+  const { studioCtx, app } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Mobile" });
+  await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+  vi.spyOn(studioCtx, "queueCanvasFrame").mockImplementation(() => vi.fn());
+  const originalTree = component.tplTree;
+  const mounted = render(<AppContext.Provider value={app}><CanvasFrame studioCtx={studioCtx} arena={arena} arenaFrame={frame} isFree onFrameLoad={vi.fn()} /></AppContext.Provider>);
+  try {
+    const iframe = ensure(mounted.container.querySelector("iframe"), "Page iframe");
+    const container = ensure(iframe.parentElement, "Page container");
+    const shell = mounted.container.querySelector('[data-test-id="device-frame"]');
+    expect(shell?.parentElement).toBe(container);
+    expect(container.style.width).toBe("393px");
+    expect(container.style.height).toBe("852px");
+    act(() => updateAutoDerivedFrameHeight(frame, 1800));
+    expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBe(shell);
+    expect(frame.height).toBe(852);
+    await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = 1440; frame.height = 1024; }); });
+    expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    for (const [width, height, kind] of [[834, 1194, "tablet"], [800, 600, undefined], [1194, 834, undefined], [600, 900, undefined], [375, 812, undefined], [393, 852, "phone"]] as const) {
+      await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = width; frame.height = height; }); });
+      expect(mounted.container.querySelector('[data-test-id="device-frame"]')?.getAttribute("data-device")).toBe(kind);
+      expect(container.style.width).toBe(`${width}px`);
+    }
+    await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = 393; frame.height = 852; component.type = ComponentType.Plain; }); });
+    expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    expect(mounted.container.querySelector("iframe")).toBe(iframe);
+    expect(component.tplTree).toBe(originalTree);
+  } finally { mounted.unmount(); studioCtx.dispose(); }
+});
+
 it("ignores a portaled comment preview's clicks without cancelling selection or stopping bubbling, while retaining frame clicks", async () => {
   const site = createSite();
   const component = mkComponent({ name: "Comments", type: ComponentType.Plain, tplTree: mkTplTag("div") });

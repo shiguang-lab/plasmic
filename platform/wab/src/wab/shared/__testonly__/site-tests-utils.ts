@@ -79,7 +79,7 @@ export const createVariantTplMgr = (
   return new VariantTplMgr(
     [
       {
-        // @ts-ignore
+        // @ts-expect-error The frame-independent test stub only supplies a name and variants.
         component: component ?? {
           name: "jest-root",
           variants: [],

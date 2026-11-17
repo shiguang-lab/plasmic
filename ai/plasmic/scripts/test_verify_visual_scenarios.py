@@ -237,6 +237,17 @@ class VisualScenarioTests(unittest.TestCase):
         self.assertIn('unresolved', errors)
         self.assertIn('fresh screenshot', errors)
 
+    def test_reopened_session_resets_counter_but_not_persisted_revision_order(self):
+        review = self.review()
+        first = review['visualScenarios'][0]['attempts'][0]
+        first['checkedState'].update(sessionId='previous-session', changeCounter=6)
+        review['visualScenarios'][0]['attempts'].append(self.attempt())
+        self.assertEqual(self.errors(review), [])
+        first['checkedState']['sessionId'] = STATE['sessionId']
+        self.assertIn('revision/changeCounter order', str(self.errors(review)))
+        first['checkedState'].update(sessionId='previous-session', revision=STATE['revision'] + 1)
+        self.assertIn('revision/changeCounter order', str(self.errors(review)))
+
     def test_reused_image_across_different_scenarios_fails(self):
         self.model['baseVariantTplTree'] = '<div id="conditional" data-visible-if="{{ $state.allowed }}"></div>'
         review = self.review()

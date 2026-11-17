@@ -36,7 +36,7 @@ export const migrate: UnbundledMigrationFn = async (bundle, db, entity) => {
       ) {
         continue;
       }
-      const dataParam = ensure(
+      ensure(
         tpl.component.params.find((p) => p.variable.name === "data"),
         "forms should have a data param",
       );

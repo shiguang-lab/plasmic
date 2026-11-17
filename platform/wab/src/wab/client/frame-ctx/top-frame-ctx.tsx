@@ -167,7 +167,7 @@ export function TopFrameCtxProvider({
         // Override some methods to hide Comlink implementation details.
         async registerUiLocaleListener(localeListener): Promise<() => void> {
           if (disposed) {
-            return Comlink.proxy(() => {});
+            return Comlink.proxy(() => { /* A disposed session registers no listener, so cleanup has nothing to release. */ });
           }
           const dispose = retainSessionListener(sessionDisposers, subscribeUiLocale(() =>
             localeListener(getUiLocale()),
@@ -181,7 +181,7 @@ export function TopFrameCtxProvider({
           appearanceListener,
         ): Promise<() => void> {
           if (disposed) {
-            return Comlink.proxy(() => {});
+            return Comlink.proxy(() => { /* A disposed session registers no listener, so cleanup has nothing to release. */ });
           }
           const dispose = retainSessionListener(sessionDisposers, subscribeUiAppearance(() =>
             appearanceListener(getUiAppearance()),
@@ -191,7 +191,7 @@ export function TopFrameCtxProvider({
         },
         registerLocationListener(locationListener): () => void {
           if (disposed) {
-            return Comlink.proxy(() => {});
+            return Comlink.proxy(() => { /* A disposed session registers no listener, so cleanup has nothing to release. */ });
           }
           return Comlink.proxy(retainSessionListener(sessionDisposers,
             topFrameApi.registerLocationListener(locationListener)));

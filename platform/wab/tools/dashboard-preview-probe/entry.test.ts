@@ -16,10 +16,10 @@ it("coordinates distinct artboards of one component by UUID, then releases the r
   const append = document.body.append.bind(document.body);
   vi.spyOn(document.body, "append").mockImplementation((...elements) => {
     append(...elements);
-    for (const element of elements) if (element instanceof HTMLIFrameElement) {
+    for (const element of elements) {if (element instanceof HTMLIFrameElement) {
       (element.contentWindow as any).coverEngine = engine;
       queueMicrotask(() => element.dispatchEvent(new Event("load")));
-    }
+    }}
   });
   vi.mocked(compose).mockResolvedValue({ blob: new Blob(["png"]), bounds: {}, positions: [] } as any);
   try {
@@ -34,8 +34,8 @@ it("coordinates distinct artboards of one component by UUID, then releases the r
     expect(document.querySelector("#engine")).toBeNull();
   } finally {
     window.coverProbe?.clear();
-    if (decode) Object.defineProperty(HTMLImageElement.prototype, "decode", decode);
-    else delete (HTMLImageElement.prototype as any).decode;
+    if (decode) {Object.defineProperty(HTMLImageElement.prototype, "decode", decode);}
+    else {delete (HTMLImageElement.prototype as any).decode;}
     vi.unstubAllGlobals();
   }
 });

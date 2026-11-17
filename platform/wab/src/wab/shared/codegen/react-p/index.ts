@@ -3272,7 +3272,7 @@ function conditionalComponentArgs(
   const passedToCodeComponent = isCodeComponent(component);
 
   const params = [
-    ...getRealParams(component),
+    ...getRealParams(component, { includeSlots: true }),
     ...getVariantParams(component),
   ].filter(
     (p) =>
@@ -3300,7 +3300,9 @@ function conditionalComponentArgs(
       }
     }
     for (const arg of vs.args) {
-      if (!params.includes(arg.param)) {
+      // RenderExpr slot trees are serialized by serializeTplComponentBase.
+      // Literal and bound slot values still need the ordinary prop path.
+      if (!params.includes(arg.param) || isKnownRenderExpr(arg.expr)) {
         continue;
       }
       const varName = paramToVarName(component, arg.param);
@@ -3370,7 +3372,7 @@ function conditionalComponentArgs(
   if (passedToCodeComponent) {
     params.forEach((p) => {
       const varName = paramToVarName(component, p);
-      if (p.defaultExpr) {
+      if (p.defaultExpr && !isKnownRenderExpr(p.defaultExpr)) {
         const entry = withDefault(param2variant, varName, []);
         if (
           !entry.some(([_expr, variantCombo]) => isBaseVariant(variantCombo))

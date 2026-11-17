@@ -100,7 +100,7 @@ function mkGroup(groupName: string) {
     function* gen() {
       for (const line of specs[0].trim().split("\n")) {
         const [, name, width, height] = ensure(
-          /^ *(.*) (\d+) × (\d+)$/.exec(line),
+          /^ *(.*) (\d+) × (\d+)$/.exec(line), "Frame size specification must match the name, width and height format",
         );
         yield { name, width: +width, height: +height };
       }

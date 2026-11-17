@@ -19,7 +19,7 @@ import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Tr
 import PlasmicIcon__Alert from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
 import { UiActionsWrapper } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
-import { FRAMES_LOWER, FRAME_LOWER } from "@/wab/shared/Labels";
+import { FRAMES_LOWER } from "@/wab/shared/Labels";
 import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
 import { spawn, xGroupBy } from "@/wab/shared/common";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
@@ -119,10 +119,10 @@ export function ResponsivenessPanel_({ breakpoints }: { breakpoints: ResponsiveP
   );
 
   const setupScreenVariants = async (
-    breakpoints: { screenSizeSpec: ScreenSizeSpec; name: string }[],
+    screenBreakpoints: { screenSizeSpec: ScreenSizeSpec; name: string }[],
   ) => {
     return studioCtx.changeUnsafe(() => {
-      breakpoints.forEach((it) => {
+      screenBreakpoints.forEach((it) => {
         studioCtx.tplMgr().createScreenVariant({
           name: it.name,
           spec: it.screenSizeSpec,

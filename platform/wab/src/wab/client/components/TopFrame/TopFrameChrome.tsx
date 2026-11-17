@@ -519,7 +519,7 @@ export function useTopFrameState({
   const topFrameApi = React.useMemo<TopFrameApi>(
     () => ({
       componentReuse: async (request) => {
-        if ("projectId" in request) assert(request.projectId === project?.id, "Invalid component review project");
+        if ("projectId" in request) {assert(request.projectId === project?.id, "Invalid component review project");}
         return desktopComponentReuse(request);
       },
       openDesktopBrowser,

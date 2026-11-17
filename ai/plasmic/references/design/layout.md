@@ -2,7 +2,7 @@
 
 ## Admin content entry
 
-This section governs admin Pages. A `non-admin` Page derives its headings, hero and navigation from its source-backed structure; Antd6 use alone does not impose this admin entry policy.
+This section governs admin Pages in the supported Overseas/Antd6 suite. Other libraries and `non-admin` Pages derive headings and navigation from their source-backed structure and actual shell; library choice alone does not impose this admin entry policy.
 
 Inside an admin AppShell, start with the actual filters, form, Tabs, summary or data region. Do not add a standalone Page title/header, hero, subtitle or explanatory intro. The shell already owns navigation and breadcrumbs. This applies to list, create/edit and detail Pages. Only an explicit current user request for that area permits it; a template, Pen frame or generic detail-header recipe does not opt in. Keep entity names as real information fields and actions in functional toolbars. Legitimate section, Table/Card, Form group, Descriptions and Modal titles remain with their native owners; they do not justify a redundant Page heading.
 

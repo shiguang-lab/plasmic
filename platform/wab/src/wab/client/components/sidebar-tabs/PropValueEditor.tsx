@@ -185,6 +185,7 @@ const PropValueEditor_ = (
     onDelete?: () => void;
     controlExtras?: ControlExtras;
     hideDefaultValueHint?: boolean;
+    arrayHeaderElement?: HTMLElement | null;
   },
   ref,
 ) => {
@@ -386,6 +387,7 @@ const PropValueEditor_ = (
     );
     return (
       <InteractionPropEditor
+        valuePath={controlExtras.path}
         studioCtx={studioCtx}
         viewCtx={viewCtx}
         component={component}
@@ -396,7 +398,7 @@ const PropValueEditor_ = (
         highlightOnMount={highlightOnMount}
         eventHandlerKey={propType.eventHandlerKey}
         data-plasmic-prop={attr}
-        modalTitle={getDisplayNameOfEventHandlerKey(propType.eventHandlerKey, {
+        popoverTitle={getDisplayNameOfEventHandlerKey(propType.eventHandlerKey, {
           tpl,
         })}
       />
@@ -419,6 +421,7 @@ const PropValueEditor_ = (
     );
     return (
       <InteractionPropEditor
+        valuePath={controlExtras.path}
         studioCtx={studioCtx}
         viewCtx={viewCtx}
         component={component}
@@ -431,7 +434,7 @@ const PropValueEditor_ = (
             unwrap(propTypeToWabType(studioCtx.site, propType)),
           ),
         }}
-        modalTitle={label}
+        popoverTitle={label}
       />
     );
   } else if (
@@ -1087,6 +1090,7 @@ const PropValueEditor_ = (
       }
       return (
         <ArrayPropEditor
+          headerElement={props.arrayHeaderElement}
           onChange={(newValue) => {
             onChange(clone(serCompositeExprMaybe(newValue)));
           }}

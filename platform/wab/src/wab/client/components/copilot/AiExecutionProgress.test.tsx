@@ -347,9 +347,9 @@ it.each([true, false])(
     const summary = screen
       .getByTestId("local-ai-operations")
       .querySelector("summary");
-    if (!summary) throw new Error("Process summary missing");
+    if (!summary) {throw new Error("Process summary missing");}
     fireEvent.click(summary);
-    if (chosenOpen) fireEvent.click(summary);
+    if (chosenOpen) {fireEvent.click(summary);}
     view.rerender(
       <AiExecutionProgress
         session={session}

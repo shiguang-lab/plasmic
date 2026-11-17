@@ -9,7 +9,6 @@ import {
 } from "@/wab/client/components/canvas/CanvasText";
 import {
   cachedRenderTplNode,
-  reactHookSpecsToKey,
 } from "@/wab/client/components/canvas/canvas-cache";
 import { wrapCanvasEventHandler } from "@/wab/client/components/canvas/canvas-interactions";
 import { applyCanvasSessionState, canvasSessionInstanceKey, CanvasStateSpec } from "@/wab/client/components/canvas/canvas-session-state";
@@ -128,7 +127,6 @@ import {
   ensureArray,
   ensureInstance,
   ensureType,
-  maybe,
   notNil,
   switchType,
   tuple,
@@ -232,7 +230,6 @@ import { canvasFactory } from "@/wab/client/components/canvas/canvas-factories";
 import {
   CollectionExpr,
   Component,
-  ComponentDataQuery,
   CompositeExpr,
   CustomCode,
   CustomFunctionExpr,
@@ -319,7 +316,6 @@ import {
 } from "lodash";
 import type React from "react";
 import { maybeMakePlasmicImgSrc } from "src/wab/shared/codegen/react-p/image";
-import defer = setTimeout;
 
 export const hasLoadingBoundaryKey = "plasmicInternalHasLoadingBoundary";
 const enableLoadingBoundaryKey = "plasmicInternalEnableLoadingBoundary";
@@ -765,7 +761,7 @@ const createCanvasComponentInputs = canvasFactory((view: ViewCtx, component: Com
 });
 
 const createCanvasComponentController = canvasFactory((view: ViewCtx, component: Component, input: ReturnType<typeof createCanvasComponentInputs>, onRenderInvalidated: () => void) => {
-  const sub = view.canvasCtx.Sub, owner = view.canvasRenderOwner;
+  const owner = view.canvasRenderOwner;
   const controller: CanvasComponentController<CanvasComponentProps, ReturnType<typeof input.getState>, CanvasComponentPrepared, RenderingCtx, ReturnType<typeof input.getState>["tokens"]> = {
     input,
     dataTokenDefinitions: (snapshot) => snapshot.tokens,
@@ -968,7 +964,7 @@ function finishCanvasComponent(
   state: Readonly<Record<string, any>>,
   values: CanvasComponentValues,
 ) {
-  const { renderingCtx, component, viewCtx, pinMap, globalPins, forceDefaultKeys, nodeNamer, env, overrides, stateSpecs, dataTokenDefinitions } = prepared;
+  const { renderingCtx, component, pinMap, globalPins, forceDefaultKeys, nodeNamer, env, overrides, stateSpecs, dataTokenDefinitions } = prepared;
   const activeVariants = deriveActiveVariants(component, state, pinMap, globalPins, renderingCtx);
   const ctx: RenderingCtx = {
     ...renderingCtx,
@@ -1122,12 +1118,12 @@ function makeEmptyRenderingCtx(viewCtx: ViewCtx, valKey: string): RenderingCtx {
     $stateSnapshot: {},
     registerRef: undefined,
     getRefs: undefined,
-    setDollarQueries: () => {},
-    setDollarQ: () => {},
+    setDollarQueries: () => { /* The empty rendering context has no query state to update. */ },
+    setDollarQ: () => { /* The empty rendering context has no query state to update. */ },
     stateSpecs: [],
     plasmicInvalidate: undefined,
     $ccVariants: {},
-    updateVariant: () => {},
+    updateVariant: () => { /* The empty rendering context has no code-component variants to update. */ },
   };
 }
 

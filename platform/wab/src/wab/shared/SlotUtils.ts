@@ -493,7 +493,7 @@ export function fillVirtualSlotContents(
               },
             };
           } else {
-            return { newChildren: [], updateArg: () => {} };
+            return { newChildren: [], updateArg: () => { /* No default children were cloned, so the slot argument needs no update. */ } };
           }
         },
         // We skip cycle check when filling virtual slots.  This is because updating a

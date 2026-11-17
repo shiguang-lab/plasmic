@@ -102,7 +102,7 @@ export function ImagePropEditor(props: {
         <IconButton
           className={"flex-start"}
           hoverText={uiT("Remove image")}
-          onClick={(ev) => {
+          onClick={() => {
             onPicked(undefined);
           }}
         >

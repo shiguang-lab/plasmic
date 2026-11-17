@@ -131,7 +131,7 @@ export function CommentThreadPanel({
     ctx.editThread(value.id, !value.resolved);
     if (!value.resolved) {
       const key = `resolve-comment-${value.id}`;
-      messages.success({
+      void messages.success({
         key,
         content: (
           <Flex align="center" gap={12}>

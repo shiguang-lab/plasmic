@@ -25,7 +25,6 @@ import {
   isContextCodeComponent,
   isHostLessCodeComponent,
 } from "@/wab/shared/core/components";
-import { customFunctionId } from "@/wab/shared/core/query-ids";
 import { createSite, writeable } from "@/wab/shared/core/sites";
 import { addComponentState } from "@/wab/shared/core/states";
 import { mkTplComponent } from "@/wab/shared/core/tpls";
@@ -258,10 +257,6 @@ export async function updateHostlessPackage(
     const existingComponents = site.components
       .filter((c) => !isBuiltinCodeComponent(c))
       .map((c) => c.uuid);
-    const existingLibraries = site.codeLibraries.map((c) => c.name);
-    const existingCustomFunctions = site.customFunctions.map((f) =>
-      customFunctionId(f),
-    );
     const existingParamsByComponent = Object.fromEntries(
       site.components.map(
         (c) =>
@@ -380,23 +375,6 @@ export async function updateHostlessPackage(
       }
     });
 
-    // Assert all custom functions and code libraries have been preserved
-    const newLibraries = new Set(site.codeLibraries.map((c) => c.name));
-    const newCustomFunctions = new Set(
-      site.customFunctions.map((f) => customFunctionId(f)),
-    );
-    existingLibraries.forEach((lib) => {
-      /*assert(
-        newLibraries.has(lib),
-        () => `Code Library ${lib} has been removed!`
-      );*/
-    });
-    existingCustomFunctions.forEach((f) => {
-      /*assert(
-        newCustomFunctions.has(f),
-        () => `Custom Function ${f} has been removed!`
-      );*/
-    });
   });
   return removedParams;
 }

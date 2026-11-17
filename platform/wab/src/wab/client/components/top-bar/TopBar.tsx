@@ -493,7 +493,8 @@ function TopBarContent({ preview }: TopBarProps) {
                 <EditorIconAction
                   action="Published versions"
                   className="editor-history-action"
-                  type="link"
+                  color="primary"
+                  variant="link"
                   title={t("Published versions")}
                   disabled={
                     !appCtx.selfInfo ||
@@ -561,17 +562,6 @@ function TopBarContent({ preview }: TopBarProps) {
                 </Tooltip>
                 <LivePopOutButton iconOnly />
                 <span className="editor-action-divider" />
-                <PublishButton
-                  enable={
-                    studioCtx.canEditProject() && canPublishProject(uiConfig)
-                  }
-                />
-                <span className="editor-action-divider" />
-                <OnlineCollaborators
-                  studioCtx={studioCtx}
-                  selfUser={appCtx.selfInfo}
-                  includeSelf
-                />
                 {navigator.userAgent.includes("PlasmicDesktop/") && (
                   <Tooltip
                     trigger={["hover", "focus"]}
@@ -584,6 +574,17 @@ function TopBarContent({ preview }: TopBarProps) {
                     />
                   </Tooltip>
                 )}
+                <PublishButton
+                  enable={
+                    studioCtx.canEditProject() && canPublishProject(uiConfig)
+                  }
+                />
+                <span className="editor-action-divider" />
+                <OnlineCollaborators
+                  studioCtx={studioCtx}
+                  selfUser={appCtx.selfInfo}
+                  includeSelf
+                />
               </div>
             ),
         }}
@@ -649,7 +650,8 @@ function TopBarContent({ preview }: TopBarProps) {
             >
               <Button
                 ref={projectTriggerRef}
-                type="link"
+                color="primary"
+                variant="link"
                 className="editor-project-trigger"
                 aria-label={t("Project menu")}
                 title={t("Project menu")}

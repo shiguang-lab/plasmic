@@ -12,7 +12,7 @@ import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
 import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import type { CanvasObserverInput } from "@/wab/client/components/canvas/canvas-observer";
 import React from "react";
-import * as ReactDOM from "react-dom";
+import ReactDOM from "react-dom";
 
 const releases: (() => void)[] = [];
 function fixture(input?: CanvasObserverInput) {

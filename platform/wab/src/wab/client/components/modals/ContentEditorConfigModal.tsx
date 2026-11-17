@@ -340,7 +340,7 @@ function JsonControl(props: {
   value?: string;
   onChange?: (value: string) => void;
 }) {
-  const { label, defaultInitialValue, value, onChange } = props;
+  const { defaultInitialValue, value, onChange } = props;
   return (
     <>
       <Input.TextArea

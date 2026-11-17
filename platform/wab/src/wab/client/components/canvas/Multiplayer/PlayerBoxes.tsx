@@ -1,4 +1,5 @@
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { usePlayerSelectionInputs } from "@/wab/client/components/canvas/Multiplayer/player-selection-inputs";
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
@@ -52,6 +53,8 @@ const PlayerBox = React.memo(function PlayerBox({
   studioCtx,
   playerId,
 }: PlayerBoxProps) {
+  "use no memo";
+  // Re-measure the live selection and screen after scroll/resize notifications.
   useContentEditorScope(studioCtx);
   useStudioArena(studioCtx, (state) => state.frames);
   const viewportZoom = useCanvasZoom(studioCtx);
@@ -161,6 +164,7 @@ const PlayerBox = React.memo(function PlayerBox({
         display: "block",
         ...scalerRect,
         ...cssProps,
+        ...canvasScreenClipStyle(viewCtx, scalerRect, viewportZoom),
         borderColor: color,
       }}
     />

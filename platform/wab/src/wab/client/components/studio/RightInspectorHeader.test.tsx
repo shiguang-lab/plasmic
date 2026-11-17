@@ -41,7 +41,7 @@ afterEach(() => {
 });
 
 describe("RightInspectorHeader", () => {
-  it("renders 2-row header with icon-only Create/Go-to component, Base state pill, and read-only description only when present", async () => {
+  it("renders 2-row header with icon-only Create/Go-to component, optional state switcher, and read-only description only when present", async () => {
     vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
     vi.spyOn(ViewCtx.prototype, "scheduleSync").mockImplementation(() => undefined);
     vi.spyOn(ViewCtx.prototype, "awaitSync").mockResolvedValue(undefined);
@@ -86,7 +86,7 @@ describe("RightInspectorHeader", () => {
       isAttachment: false,
       providesData: false,
       hasRef: false,
-      isRepeatable: false,
+      isRepeatable: true,
       subtreePrefetchingConfig: null,
       styleSections: null,
       helpers: null,
@@ -203,12 +203,9 @@ describe("RightInspectorHeader", () => {
       expect(byTestId("header-create-component-btn")).toBeNull();
       expect(byTestId("header-go-to-component-btn")).toBeNull();
       expect(byTestId("inspector-state-switcher")).toBeNull();
-      const baseLabel = ensure(byTestId("inspector-state-label"), "Static Base label");
-      expect(baseLabel.tagName).toBe("SPAN");
-      expect(baseLabel).toHaveTextContent("Base");
-      expect(baseLabel).not.toHaveAttribute("tabindex");
-      fireEvent.click(baseLabel);
-      expect(screen.queryByRole("menu")).toBeNull();
+      expect(byTestId("inspector-state-label")).toBeNull();
+      expect(byTestId("inspector-repeat-trigger")?.textContent).toBe("");
+      expect(byTestId("inspector-repeat-trigger")).not.toHaveTextContent("Repeat");
 
       // Existing component states keep the switcher and its menu available.
       await act(async () => {

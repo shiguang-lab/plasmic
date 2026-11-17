@@ -34,7 +34,7 @@ import {
 import { Octokit } from "@octokit/core";
 import type { components } from "@octokit/openapi-types";
 import * as Sentry from "@sentry/node";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import {
   Result,
   ResultAsync,

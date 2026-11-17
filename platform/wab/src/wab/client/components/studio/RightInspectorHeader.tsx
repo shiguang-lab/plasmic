@@ -1,3 +1,5 @@
+import { isTplCodeComponentStyleable } from "@/wab/client/code-components/code-components";
+import { RepeatingElementControl } from "@/wab/client/components/sidebar-tabs/RepeatingElementControl";
 import { COMMANDS } from "@/wab/client/commands/command";
 import { MenuBuilder, TextAndShortcut } from "@/wab/client/components/menu-builder";
 import { canRenderPrivateStyleVariants } from "@/wab/client/components/sidebar-tabs/Sections";
@@ -29,6 +31,7 @@ import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { PRIVATE_STYLE_VARIANTS_CAP, VARIANTS_CAP } from "@/wab/shared/Labels";
+import { spawn } from "@/wab/shared/common";
 import {
   findOrCreatePrivateStyleVariant,
   isBaseVariant,
@@ -44,7 +47,9 @@ import {
 import { getApplicableSelectors } from "@/wab/shared/core/styles";
 import {
   canToggleVisibility,
+  isComponentRoot,
   isTplComponent,
+  isTplCodeComponent,
   isTplSlot,
   isTplTag,
   summarizeUnnamedTpl,
@@ -56,7 +61,8 @@ import {
 } from "@/wab/shared/model/classes";
 import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
 import { TplVisibility } from "@/wab/shared/visibility-utils";
-import { PublicStyleSection } from "@/wab/shared/ApiSchema";
+import { PublicStyleSection, StyleSectionVisibilities } from "@/wab/shared/ApiSchema";
+import { canEditStyleSection } from "@/wab/shared/ui-config-utils";
 import { Button, Dropdown, Menu, Popover, Tooltip } from "antd";
 import cx from "classnames";
 import { ok } from "neverthrow";
@@ -66,6 +72,8 @@ import { createStore } from "zustand/vanilla";
 
 const FALLBACK_PERMISSIONS_STORE = createStore(() => ({
   componentSectionPermissions: {} as Record<string, boolean>,
+  styleSectionVisibilities: undefined as StyleSectionVisibilities | undefined,
+  contentEditorMode: false,
 }));
 
 interface HeaderSubtitleMeta {
@@ -264,15 +272,7 @@ const VariantStateSwitcher = React.memo(function VariantStateSwitcher(props: {
       (privateVariants.length > 0 || applicableSelectors.length > 0));
 
   if (!hasStateChoices) {
-    return (
-      <span
-        className="editor-panel-state-pill editor-panel-state-pill--static"
-        data-test-id="inspector-state-label"
-      >
-        <span className="editor-panel-state-dot" />
-        <span className="editor-panel-state-label">{activeLabel}</span>
-      </span>
-    );
+    return null;
   }
 
   const buildMenu = () => {
@@ -526,6 +526,14 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
     studioCtx.uiEnvironment?.store ?? FALLBACK_PERMISSIONS_STORE,
     (state) => state.componentSectionPermissions,
   );
+  const repetitionAllowed = useStore(
+    studioCtx.uiEnvironment?.store ?? FALLBACK_PERMISSIONS_STORE,
+    (state) => canEditStyleSection(
+      { styleSectionVisibilities: state.styleSectionVisibilities },
+      PublicStyleSection.Repetition,
+      { isContentCreator: state.contentEditorMode, defaultContentEditorVisible: false },
+    ),
+  );
   const componentNameStore = React.useMemo(
     () =>
       focusedComponent && studioCtx.modelSnapshots
@@ -589,10 +597,10 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
 
     const openSettings = () => {
       if (isPage && focusedComponent && isPageComponent(focusedComponent)) {
-        studioCtx.changeUnsafe(() => {
+        spawn(studioCtx.changeUnsafe(() => {
           studioCtx.pageSettingsPage = focusedComponent;
           studioCtx.pageSettingsOpen = true;
-        });
+        }));
       } else {
         onOpenComponentSettings?.();
       }
@@ -603,24 +611,24 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
         <div className="editor-panel-header">
           {focusedComponent && (isPage || isRealComponent) ? (
             <div className="editor-panel-header__title-group">
-              <span className="editor-inspector-node-icon component-fg">
-                <Icon icon={isPage ? PageIcon : ComponentIcon} />
-              </span>
               <SimpleTextbox
                 key={focusedComponent.uuid}
+                prefixIcon={
+                  <span className="editor-inspector-node-icon component-fg">
+                    <Icon icon={isPage ? PageIcon : ComponentIcon} />
+                  </span>
+                }
                 defaultValue={componentName || ""}
                 onValueChange={(nextName) => {
-                  studioCtx.changeUnsafe(() => {
+                  spawn(studioCtx.changeUnsafe(() => {
                     studioCtx.siteOps().tryRenameComponent(
                       focusedComponent,
                       nextName,
                     );
-                  });
+                  }));
                 }}
                 placeholder={uiT(isPage ? "(unnamed page)" : "(unnamed component)")}
-                fontSize="xlarge"
-                fontStyle="bold"
-                className="flex-fill"
+                className="editor-inspector-name flex-fill"
                 data-test-class="simple-text-box"
               />
             </div>
@@ -702,20 +710,29 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
     !isTplComponent(tpl) &&
     viewCtx.tplMgr().canExtractComponent(tpl);
   const showStateSwitcher = !contentOnly;
+  const showRepetition =
+    !contentOnly &&
+    !partDisplayName &&
+    repetitionAllowed &&
+    (isTplTag(tpl) || isTplComponent(tpl)) &&
+    !isComponentRoot(tpl) &&
+    (!isTplCodeComponent(tpl) ||
+      isTplCodeComponentStyleable(studioCtx.codeComponentsRegistry, tpl) ||
+      tpl.component.codeComponentMeta.isRepeatable);
   const showSubheader =
     Boolean(componentLabel) ||
     Boolean(description) ||
     canGoToComponent ||
     canExtractComponent ||
-    showStateSwitcher;
+    showStateSwitcher || showRepetition;
 
   return (
     <div className="editor-inspector-header">
       <div className="editor-panel-header">
         <div className="editor-panel-header__title-group">
-          {nodeIcon}
           <SimpleTextbox
             key={tpl.uuid}
+            prefixIcon={nodeIcon}
             defaultValue={currentValue}
             onValueChange={(nextName) => {
               if (isTplSlot(tpl)) {
@@ -723,17 +740,15 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
                   viewCtx.getViewOps().tryRenameParam(nextName, tpl.param),
                 );
               } else {
-                COMMANDS.element.rename.execute(
+                spawn(COMMANDS.element.rename.execute(
                   studioCtx,
                   { name: nextName },
                   { tpl, viewCtx },
-                );
+                ));
               }
             }}
             placeholder={placeholder}
-            fontSize="xlarge"
-            fontStyle="bold"
-            className="flex-fill"
+            className="editor-inspector-name flex-fill"
             data-test-class="simple-text-box"
             data-test-id="inspector-element-name"
           />
@@ -804,6 +819,9 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
                   onClick={() => viewCtx.getViewOps().extractComponent(tpl)}
                 />
               </Tooltip>
+            )}
+            {showRepetition && (
+              <RepeatingElementControl key={`${viewCtx.arenaFrame().uuid}:${tpl.uuid}`} tpl={tpl} viewCtx={viewCtx} />
             )}
             {showStateSwitcher && (
               <VariantStateSwitcher

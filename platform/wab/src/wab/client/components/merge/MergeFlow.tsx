@@ -287,14 +287,10 @@ function MergeFlow_(
   }
 
   const {
-    ancestorPkgVersion,
     bundler,
     branches,
-    fromSiteResponse,
-    toSiteResponse,
     pretendMergeResult,
     mergeStep,
-    commitGraph,
     ancestorSite,
     fromSite,
     toSite,
@@ -691,7 +687,7 @@ function MergeFlow_(
             ),
           }}
           showAllSwitchContainer={{
-            wrap: (node) => false,
+            wrap: () => false,
           }}
           showAllSwitch={{
             isChecked: showAll,

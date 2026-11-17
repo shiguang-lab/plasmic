@@ -19,6 +19,6 @@ export function methodCanHaveBody(method: HttpMethod) {
 }
 
 export function ensureHttpMethod(method: any): HttpMethod {
-  assert(httpMethods.includes(method));
+  assert(httpMethods.includes(method), "HTTP method must be one of the supported methods");
   return method;
 }

@@ -20,7 +20,7 @@ import { asyncTimed } from "@/wab/server/timing-util";
 import { withSpan } from "@/wab/server/util/apm-util";
 import { GenericDataSource } from "@/wab/shared/data-sources-meta/data-source-registry";
 import { OperationTemplate } from "@/wab/shared/data-sources-meta/data-sources";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { isString } from "lodash";
 
 export function executeDataSourceOperationWithCurrentUserHandler(

@@ -939,7 +939,7 @@ function getElementsWITree(
         elt.getAttribute("viewBox") || "0 0 16 16"
       ).split(/\s+/);
 
-      const fallbackDimension = ensure(parseCssNumericNew("16"));
+      const fallbackDimension = ensure(parseCssNumericNew("16"), "SVG fallback dimension must parse as a numeric CSS value");
       // Unparseable width/height attrs fallbacks to the viewBox size and then
       // to 16px (instead of crashing the whole import).
       const parsedWidth = parseCssNumericNew(

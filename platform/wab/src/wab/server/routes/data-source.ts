@@ -43,7 +43,7 @@ import {
 import { DATA_SOURCE_LOWER } from "@/wab/shared/Labels";
 import { canEditDataSource } from "@/wab/shared/perms";
 import * as Sentry from "@sentry/node";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { isEmpty, omitBy } from "lodash";
 
 export function mkApiDataSource(

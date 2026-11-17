@@ -65,7 +65,7 @@ it.each([
   const view = render(<a href="/another-page" onClick={click}>Native control</a>, { container });
   expect(fireEvent.click(view.getByRole("link"), modifiers)).toBe(false);
   expect(click).toHaveBeenCalledTimes(allowed ? 1 : 0);
-  if (allowed) expect(click.mock.calls[0][0].defaultPrevented).toBe(true);
+  if (allowed) {expect(click.mock.calls[0][0].defaultPrevented).toBe(true);}
   view.unmount();
   container.remove();
 });

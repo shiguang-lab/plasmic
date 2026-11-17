@@ -934,7 +934,7 @@ export function cloneSite(fromSite: Site) {
           customFunctionExpr.func;
         customFunctionExpr.args.forEach((arg) => fixGlobalRefForExpr(arg));
       })
-      .when([RenderExpr, VirtualRenderExpr], () => {})
+      .when([RenderExpr, VirtualRenderExpr], () => { /* Render expressions carry template nodes rather than direct global references. */ })
       .result();
   };
 

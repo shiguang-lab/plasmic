@@ -21,9 +21,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import React from "react";
 
 beforeEach(() => vi.stubGlobal("IntersectionObserver", class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
 }));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
@@ -160,7 +160,8 @@ it("updates real opacity and typography indicators and avoids context demand whe
     expect(exp.get("text-overflow")).toBe("ellipsis");
     expect(exp.get("overflow")).toBe("hidden");
     fireEvent.contextMenu(title);
-    expect(await screen.findByRole("menuitem", { name: /Remove all Typography styles/ })).toBeTruthy();
+    expect(await screen.findByRole("menuitem", { name: /all Typography styles to a style preset/ })).toBeTruthy();
+    expect(screen.queryByRole("menuitem", { name: /Remove all Typography styles/ })).toBeNull();
     provided.unmount();
   } finally { mounted.unmount(); await studio.awaitEval(); studio.dispose(); }
 });

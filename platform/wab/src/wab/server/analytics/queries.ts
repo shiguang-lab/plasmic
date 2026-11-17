@@ -135,12 +135,10 @@ group by
 // You cannot have conversions based on Team or based on Components
 export function getConversionsQuery(opts: AnalyticsQueryOpts) {
   const {
-    teamId,
     from,
     to,
     timezone,
     projectId,
-    componentId,
     splitId,
     period = "day",
   } = opts;

@@ -17,7 +17,7 @@ import {
 } from "@/wab/shared/core/site-style-tokens";
 import { expandRuleSets } from "@/wab/shared/core/styles";
 import { FinalToken, toFinalToken } from "@/wab/shared/core/tokens";
-import { flattenTpls } from "@/wab/shared/core/tpls";
+import { flattenExprs, flattenTpls } from "@/wab/shared/core/tpls";
 import {
   Component,
   Mixin,
@@ -176,16 +176,18 @@ export function collectUsedTokensForTpl(
       );
     }
     for (const arg of vs.args) {
-      if (isKnownStyleTokenRef(arg.expr)) {
-        collector.add(arg.expr.token);
-      } else if (isKnownStyleExpr(arg.expr)) {
-        for (const sty of arg.expr.styles) {
-          collectUsedTokensForExp(
-            collector,
-            new RuleSetHelpers(sty.rs, "div"),
-            allTokensDict,
-            opts,
-          );
+      for (const expr of flattenExprs(arg.expr)) {
+        if (isKnownStyleTokenRef(expr)) {
+          collector.add(expr.token);
+        } else if (isKnownStyleExpr(expr)) {
+          for (const sty of expr.styles) {
+            collectUsedTokensForExp(
+              collector,
+              new RuleSetHelpers(sty.rs, "div"),
+              allTokensDict,
+              opts,
+            );
+          }
         }
       }
     }

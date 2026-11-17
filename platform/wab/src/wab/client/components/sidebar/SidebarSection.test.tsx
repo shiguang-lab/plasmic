@@ -62,7 +62,7 @@ describe("SidebarSection with Option A Collapse", () => {
   });
 
   it("renders Option A inline pill toggle with text and toggles on click", () => {
-    const { container } = render(
+    render(
       <SidebarSection title="尺寸设置">
         {(renderMaybeCollapsibleRows) =>
           renderMaybeCollapsibleRows([

@@ -1,0 +1,181 @@
+.handler {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  color: var(--ui-text);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.action {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  background: var(--ui-surface);
+}
+
+.dragging {
+  border-color: var(--ui-accent);
+  box-shadow: 0 2px 8px var(--ui-selected);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 4px 6px;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 16px;
+  height: 28px;
+  color: var(--ui-muted);
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+  &:hover {
+    color: var(--ui-text);
+  }
+}
+
+.name {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.nameButton {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 4px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ui-text);
+  font: inherit;
+  font-weight: 500;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ui-hover);
+  }
+}
+
+.nameInput.nameInput {
+  height: 28px;
+  padding: 0 4px;
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  font: inherit;
+  box-shadow: none;
+
+  &:hover {
+    border-color: var(--ui-accent);
+  }
+  &:focus {
+    border-color: var(--ui-accent);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ui-selected);
+  }
+}
+
+.actions,
+.runAnchor {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.actions {
+  gap: 2px;
+}
+
+.iconButton.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  color: var(--ui-muted);
+
+  &:hover:not(:disabled) {
+    color: var(--ui-text);
+  }
+  &:disabled {
+    color: var(--ui-disabled);
+  }
+  svg {
+    display: block;
+  }
+}
+
+.runComplete.runComplete {
+  color: var(--ui-success);
+}
+
+.nameButton,
+.dragHandle {
+  &:focus-visible {
+    outline: 1px solid var(--ui-accent);
+    outline-offset: 1px;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border-top: 1px solid var(--ui-border);
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.condition {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ui-border);
+}
+
+.addAction.addAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  font-size: inherit;
+
+  svg {
+    display: block;
+  }
+}

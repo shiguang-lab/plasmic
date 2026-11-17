@@ -19,7 +19,7 @@ export function migrateAiMessageChannels(
     }));
   return parts.flatMap((value): AiMessagePart[] => {
     const part = value as AiMessagePart;
-    if (part.type !== "markdown" || part.channel) return [part];
+    if (part.type !== "markdown" || part.channel) {return [part];}
     let text = part.text;
     const output: AiMessagePart[] = [];
     while (text) {

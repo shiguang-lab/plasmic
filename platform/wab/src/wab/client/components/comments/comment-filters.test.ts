@@ -21,7 +21,7 @@ const site = createSite();
 const tplMgr = new TplMgr({ site });
 const home = tplMgr.addComponent({ name: "Home", type: ComponentType.Page });
 const other = tplMgr.addComponent({ name: "Other", type: ComponentType.Page });
-const arena = ensure(getDedicatedArena(site, home), "Home arena");
+ensure(getDedicatedArena(site, home), "Home arena");
 const date = (day: number) => new Date(Date.UTC(2026, 9, day)).toISOString();
 const base = {
   createdAt: date(1),

@@ -28,9 +28,10 @@ function setup(crowded: boolean, frameWidth = 1000, clientWidth = 1000) {
     labelWidth = 80,
     top = 100,
     name = "Selected node",
+    frameOutset = 0,
   }) {
     const ref = React.useRef<HTMLDivElement | null>(null);
-    const placement = useTagPlacement(ref, width, 1, vc);
+    const placement = useTagPlacement(ref, width, 1, vc, frameOutset);
     return (
       <div
         ref={(element) => {
@@ -84,6 +85,18 @@ it("hides a crowded label and lets input reach the canvas", () => {
   const style = screen.getByTestId("placement").style;
   expect(style.pointerEvents).toBe("none");
   expect(style.visibility).toBe("hidden");
+});
+
+it.each([0.5, 1, 2])("keeps the selected device label above its shell at %s zoom", (zoom) => {
+  const { vc, selectNode } = setup(false);
+  vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(undefined);
+  const frameOutset = (16 + 3) * zoom;
+  selectNode({ top: 300, frameOutset });
+  const style = screen.getByTestId("placement").style;
+  expect(Number.parseFloat(style.top) + 20).toBeLessThan(-frameOutset);
+  expect(style.visibility).toBe("visible");
+  selectNode({ top: 300 });
+  expect(style.top).toBe("-25px");
 });
 
 it.each([

@@ -61,7 +61,7 @@ it("keeps structured slot defaults as editable elements", () => {
 });
 
 it("accepts an explicit string slot in a component schema without creating a wrapper", () => {
-  const { site, component } = fixture("Button");
+  const { site } = fixture("Button");
   const result = elementSchemaToTpl(site, undefined, { type: "component", name: "Button", props: { children: "新建模板" } }, { codeComponentsOnly: true });
   if (result.isErr()) { throw result.error; }
   expect(flattenTpls(result.value.tpl)).toHaveLength(1);

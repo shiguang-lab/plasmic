@@ -4,17 +4,17 @@ import vm from "node:vm";
 import { parse } from "@babel/parser";
 const root = path.resolve(__dirname, "../../../..");
 function legacyReferences(source: string, filename = "consumer.tsx"): string[] {
-  if (filename.endsWith(".html")) return /refreshXModules|__GetlibsReadyResolver|js\/getlibs\.js/.test(source) ? ["legacy HTML consumer"] : [];
+  if (filename.endsWith(".html")) {return /refreshXModules|__GetlibsReadyResolver|js\/getlibs\.js/.test(source) ? ["legacy HTML consumer"] : [];}
   const file = parse(source, { sourceType: "unambiguous", allowReturnOutsideFunction: true, plugins: ["typescript", "decorators-legacy", ...(/\.[jt]sx$/.test(filename) ? ["jsx" as const] : [])] });
   const references: string[] = [];
   function visit(node: any) {
-    if (!node || typeof node !== "object") return;
-    if (node.type === "Identifier" && ["refreshXModules", "__GetlibsReadyResolver", "SystemJS", "updateModules"].includes(node.name)) references.push(node.name);
-    if (node.type === "StringLiteral" && /client\.527c56\.js|(?:^|\/)js\/getlibs\.js/.test(node.value)) references.push(node.value);
-    if (node.type === "MemberExpression" && node.object?.name === "getBuiltinComponentRegistrations" && node.property?.name === "cache") references.push("getBuiltinComponentRegistrations.cache");
+    if (!node || typeof node !== "object") {return;}
+    if (node.type === "Identifier" && ["refreshXModules", "__GetlibsReadyResolver", "SystemJS", "updateModules"].includes(node.name)) {references.push(node.name);}
+    if (node.type === "StringLiteral" && /client\.527c56\.js|(?:^|\/)js\/getlibs\.js/.test(node.value)) {references.push(node.value);}
+    if (node.type === "MemberExpression" && node.object?.name === "getBuiltinComponentRegistrations" && node.property?.name === "cache") {references.push("getBuiltinComponentRegistrations.cache");}
     for (const value of Object.values(node)) {
-      if (Array.isArray(value)) value.forEach(visit);
-      else if (value && typeof value === "object") visit(value);
+      if (Array.isArray(value)) {value.forEach(visit);}
+      else if (value && typeof value === "object") {visit(value);}
     }
   }
   visit(file);
@@ -23,8 +23,8 @@ function legacyReferences(source: string, filename = "consumer.tsx"): string[] {
 function scan(directory: string): string[] {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(directory, entry.name);
-    if (entry.isDirectory()) return entry.name === "build" ? [] : scan(file);
-    if (!/\.(?:[cm]?[jt]sx?|html)$/.test(entry.name) || /(?:\.test\.|\.spec\.|\.snap$)/.test(entry.name)) return [];
+    if (entry.isDirectory()) {return entry.name === "build" ? [] : scan(file);}
+    if (!/\.(?:[cm]?[jt]sx?|html)$/.test(entry.name) || /(?:\.test\.|\.spec\.|\.snap$)/.test(entry.name)) {return [];}
     return legacyReferences(fs.readFileSync(file, "utf8"), file).map((reference) => `${path.relative(root, file)}: ${reference}`);
   });
 }

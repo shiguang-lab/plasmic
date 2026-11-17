@@ -375,9 +375,14 @@ def check(page_plan, page_review, model, checked_state, project_model=None):
                 issue('Screenshot attempt belongs to an invalid or different project/branch state', scene_id)
             else:
                 order = (state['revision'], state['changeCounter'])
-                if previous is not None and order < previous:
+                # changeCounter resets when an editor session is reopened.
+                # Persisted revisions remain ordered across sessions.
+                if previous is not None and (
+                        state['revision'] < previous['revision'] or
+                        state['sessionId'] == previous['sessionId'] and
+                        order < (previous['revision'], previous['changeCounter'])):
                     issue('Screenshot attempts must follow model revision/changeCounter order', scene_id)
-                previous = order
+                previous = state
             if index == len(attempts) - 1 and state != checked_state:
                 issue('Final screenshot analysis must match the current checkedState', scene_id)
             try:

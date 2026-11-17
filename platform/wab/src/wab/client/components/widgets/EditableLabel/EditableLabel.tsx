@@ -84,7 +84,7 @@ const EditableLabel_: ForwardRefRenderFunction<
     inputBoxFactory = createInputBoxFactory,
     labelFactory: _labelFactoryInput,
     disabled = false,
-    onEdit = L.noop,
+    onEdit,
     doubleClickToEdit = false,
     programmaticallyTriggered = false,
     defaultEditing = false,
@@ -142,8 +142,7 @@ const EditableLabel_: ForwardRefRenderFunction<
 
   const tryFinish = useCallback(
     (val: /*TWZ*/ string) => {
-      // @ts-expect-error
-      if (onEdit!(val.trim()) !== false) {
+      if (onEdit?.(val.trim()) !== false) {
         onAbort?.();
         return _setEditing(false);
       }
@@ -157,7 +156,7 @@ const EditableLabel_: ForwardRefRenderFunction<
   }, [onAbort, _setEditing]);
 
   const finish = useCallback(() => {
-    onEdit?.(_value.trim());
+    void onEdit?.(_value.trim());
     _setEditing(false);
   }, [onEdit, _value, _setEditing]);
 

@@ -37,7 +37,7 @@ export const FontFamilyTokenEditModal = function FontFamilyTokenEditModal(props:
     const [tokenName, activeValue] = snapshot;
 
     const onChange = (val: string) => {
-      assert(val !== undefined);
+      assert(val !== undefined, "Font family token edits must provide a defined value");
       spawn(
         studioCtx.change(() => {
           if (newTokenValueAllowed(token, studioCtx.site, val, vsh)) {

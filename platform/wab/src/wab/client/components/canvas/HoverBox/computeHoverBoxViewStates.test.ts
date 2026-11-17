@@ -1,4 +1,6 @@
 import { computeHoverBoxViewState } from "@/wab/client/components/canvas/HoverBox/computeHoverBoxViewStates";
+import { FrameViewMode, mkArenaFrame } from "@/wab/shared/Arenas";
+import { createSite } from "@/wab/shared/core/sites";
 import { getSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
@@ -21,6 +23,29 @@ vi.mock("@/wab/client/utils/tpl-client-utils", () => ({
 }));
 
 afterEach(() => { document.body.innerHTML = ""; });
+
+it.each([
+  [393, 852, ComponentType.Page, 36],
+  [834, 1194, ComponentType.Page, 12],
+  [1194, 834, ComponentType.Page, 12],
+  [1440, 900, ComponentType.Page, undefined],
+  [393, 852, ComponentType.Plain, undefined],
+])("matches device selection chrome without changing artboard bounds (%s × %s, %s)", (width, height, type, radius) => {
+  const site = createSite();
+  const component = mkComponent({ name: "Screen", type, tplTree: mkTplTagX("div") });
+  const frame = mkArenaFrame({ site, component, width, height, name: "Screen" });
+  frame.viewMode = FrameViewMode.Centered;
+  const vc = {
+    studioCtx: {
+      getArenaFrameScalerRect: () => ({ top: 20, left: 30, width, height }),
+      tplMgr: () => ({ describeArenaFrame: () => "Screen" }),
+    },
+    variantTplMgr: () => undefined,
+  } as unknown as ViewCtx;
+  const state = computeHoverBoxViewState(vc, frame, false, false, undefined).displayProps;
+  expect(state?.deviceFrame?.screenRadius).toBe(radius);
+  expect(state?.visibleBox).toEqual({ top: 20, left: 30, width, height });
+});
 
 function element(box: Box, visible = true) {
   const elt = document.createElement("div");

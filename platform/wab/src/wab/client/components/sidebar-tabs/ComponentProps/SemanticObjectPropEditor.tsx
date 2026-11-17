@@ -1,6 +1,10 @@
-import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
+import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
+import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
+import { fontWeightOptions } from "@/wab/client/typography-utils";
+import { parseCssNumericNew } from "@/wab/shared/css";
+import { LENGTH_UNITS } from "@/wab/shared/css/types";
 import { ConnectorLine } from "@/wab/client/components/widgets/ConnectorLine";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
@@ -8,17 +12,21 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import type { MessageKey } from "@/wab/client/i18n/locales";
 import CodeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Code";
-import PencilSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__PencilSvg";
+import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
+import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import {
   isPlainObjectPropType,
   maybePropTypeToDisplayName,
   type StudioPropType,
 } from "@/wab/shared/code-components/code-components";
+import { mkTokenRef, tokenTypeDimOpts, tryParseTokenRef } from "@/wab/commons/StyleToken";
+import { siteFinalStyleTokensAllDepsDict } from "@/wab/shared/core/site-style-tokens";
+import { isExactlyStyleTokenRef, StyleTokenRef } from "@/wab/shared/model/classes";
 import { tryCatchElse } from "@/wab/shared/common";
 import { smartHumanize } from "@/wab/shared/strs";
 import type { PropType } from "@plasmicapp/host";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Popover, Select, Tooltip } from "antd";
+import { Menu, Popover, Tooltip } from "antd";
 import { isPlainObject } from "lodash";
 import * as React from "react";
 import styles from "@/wab/client/components/sidebar-tabs/ComponentProps/SemanticObjectPropEditor.module.scss";
@@ -29,19 +37,36 @@ type ObjectValue = Record<string, unknown>;
 const cssProperties = {
   backgroundColor: { label: "Fill", initial: "transparent" },
   color: { label: "Text color", initial: "inherit" },
-  paddingInline: { label: "Horizontal padding", initial: 0, unit: "px" },
-  paddingBlock: { label: "Vertical padding", initial: 0, unit: "px" },
-  borderRadius: { label: "Corner radius", initial: 0, unit: "px" },
+  paddingInline: { label: "Horizontal padding", initial: 0 },
+  paddingBlock: { label: "Vertical padding", initial: 0 },
+  borderRadius: { label: "Corner radius", initial: 0 },
   borderColor: { label: "Border color", initial: "currentColor" },
-  borderWidth: { label: "Border width", initial: 0, unit: "px" },
-  fontSize: { label: "Font size", initial: "inherit", unit: "px" },
+  borderWidth: { label: "Border width", initial: 0 },
+  fontSize: { label: "Font size", initial: "inherit" },
   fontWeight: { label: "Weight", initial: "inherit" },
-  minHeight: { label: "Min Height", initial: 0, unit: "px" },
+  minHeight: { label: "Min Height", initial: 0 },
   boxShadow: { label: "Shadow", initial: "none" },
 } satisfies Record<
   string,
-  { label: MessageKey; initial: string | number; unit?: "px" }
+  { label: MessageKey; initial: string | number }
 >;
+
+type DimensionOptions = Pick<React.ComponentProps<typeof DimTokenSpinner>,
+  "allowedUnits" | "allowFunctions" | "tokenType" | "min" | "max" | "extraOptions" | "shorthand"
+>;
+
+const dimensionOptions: Record<string, DimensionOptions> = {
+  paddingInline: { ...tokenTypeDimOpts("Spacing"), tokenType: "Spacing", min: 0, shorthand: true },
+  paddingBlock: { ...tokenTypeDimOpts("Spacing"), tokenType: "Spacing", min: 0, shorthand: true },
+  borderRadius: { ...tokenTypeDimOpts("Spacing"), tokenType: "Spacing", min: 0, shorthand: true },
+  borderWidth: { allowedUnits: LENGTH_UNITS, allowFunctions: true, tokenType: "Spacing", min: 0, shorthand: true, extraOptions: ["thin", "medium", "thick"] },
+  fontSize: { ...tokenTypeDimOpts("FontSize"), tokenType: "FontSize", min: 0, extraOptions: ["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large", "xxx-large", "smaller", "larger"] },
+  fontWeight: { allowedUnits: [""], allowFunctions: true, min: 1, max: 1000, extraOptions: [...fontWeightOptions, "normal", "bold", "bolder", "lighter"] },
+  minHeight: { ...tokenTypeDimOpts("Spacing"), tokenType: "Spacing", min: 0, extraOptions: ["auto", "min-content", "max-content", "fit-content", "stretch"] },
+  lineHeight: { ...tokenTypeDimOpts("LineHeight"), tokenType: "LineHeight", extraOptions: ["normal"] },
+  letterSpacing: { ...tokenTypeDimOpts("Spacing"), tokenType: "Spacing", extraOptions: ["normal"] },
+  opacity: { ...tokenTypeDimOpts("Opacity"), tokenType: "Opacity" },
+};
 
 const cssChoices = Object.entries(cssProperties);
 
@@ -86,7 +111,7 @@ export function canEditSemanticValue(
           ? isObjectValue(entry) &&
               Object.values(entry).every(
                 (style) =>
-                  typeof style === "string" || typeof style === "number",
+                  typeof style === "string" || typeof style === "number" || isExactlyStyleTokenRef(style),
               )
           : typeof entry === "string";
       }))
@@ -155,7 +180,7 @@ export function SemanticObjectPropSection({
 export function SemanticValuePreview({ value }: { value: unknown }) {
   const { t } = useI18n();
   const json = tryCatchElse({
-    try: () => JSON.stringify(value, null, 2),
+    try: () => JSON.stringify(value, (_key, entry) => isExactlyStyleTokenRef(entry) ? mkTokenRef(entry.token) : entry, 2),
     catch: () => undefined,
   });
   return json === undefined ? (
@@ -253,48 +278,69 @@ function SemanticFields({
           </Tooltip>
         );
         const count = isObjectValue(current) ? Object.keys(current).length : 0;
-        const statusLabel = count > 0
-          ? t("{count} configured", { count })
-          : disabled
-            ? t("Not configured")
-            : t("Not configured, click to edit");
+        const statusLabel = t("{count} configured", { count });
+        const currentObject = isObjectValue(current) ? current : {};
+        const choices = cssChoices.filter(
+          ([name]) => !Object.hasOwn(currentObject, name)
+        );
         const objectField =
           typeof field === "object" && field.type === "object";
 
         return (
           <ConnectorLine key={key} isLast={index === entries.length - 1}>
             {objectField ? (
-              <details>
-                <summary className={styles.row}>
+              <div>
+                <div className={styles.row}>
                   {fieldLabel}
-                  <Tooltip title={statusLabel}>
-                    <span className={styles.disclosure} aria-label={statusLabel}>
-                      {count > 0 ? (
-                        <span className={styles.configured}>{count}</span>
-                      ) : (
-                        <span>—</span>
-                      )}
-                      <Icon icon={PencilSvgIcon} aria-hidden="true" />
-                    </span>
-                  </Tooltip>
-                </summary>
+                  <div className={styles.fieldActions}>
+                    <Tooltip title={statusLabel}>
+                      <span className={styles.countTag} aria-label={statusLabel}>
+                        {count}
+                      </span>
+                    </Tooltip>
+                    {!children && (
+                      <IFrameAwareDropdownMenu
+                        disabled={disabled || choices.length === 0}
+                        menu={
+                          <Menu
+                            items={choices.map(([name, property]) => ({
+                              key: name,
+                              label: `${t(property.label)} · ${name}`,
+                              onClick: () =>
+                                update(setField(currentObject, name, property.initial)),
+                            }))}
+                          />
+                        }
+                      >
+                        <button
+                          className={styles.iconButton}
+                          type="button"
+                          disabled={disabled || choices.length === 0}
+                          aria-label={t("Add CSS property")}
+                        >
+                          <Icon icon={PlusIcon} />
+                        </button>
+                      </IFrameAwareDropdownMenu>
+                    )}
+                  </div>
+                </div>
                 <div className={styles.fields}>
                   {children ? (
                     <SemanticFields
                       fields={children}
-                      value={isObjectValue(current) ? current : {}}
+                      value={currentObject}
                       disabled={disabled}
                       onChange={update}
                     />
                   ) : (
                     <CssFields
-                      value={isObjectValue(current) ? current : {}}
+                      value={currentObject}
                       disabled={disabled}
                       onChange={update}
                     />
                   )}
                 </div>
-              </details>
+              </div>
             ) : (
               <div className={styles.row}>
                 {fieldLabel}
@@ -326,7 +372,6 @@ function CssFields({
   const { t } = useI18n();
   const studioCtx = useStudioCtx();
   const properties = Object.entries(value);
-  const choices = cssChoices.filter(([key]) => !Object.hasOwn(value, key));
   return (
     <>
       {properties.map(([key, current], index) => {
@@ -335,52 +380,58 @@ function CssFields({
           : undefined;
         const label = property ? t(property.label) : key;
         const update = (next: unknown) => onChange(setField(value, key, next));
+        const dimOpts = dimensionOptions[key];
+        const cssValue = isExactlyStyleTokenRef(current) ? mkTokenRef(current.token) : String(current);
+        const updateCssValue = (next: string | undefined) => {
+          if (next === undefined || !next.trim()) {
+            update(undefined);
+            return;
+          }
+          const token = tryParseTokenRef(next, siteFinalStyleTokensAllDepsDict(studioCtx.site));
+          const numeric = parseCssNumericNew(next);
+          update(token && next === mkTokenRef(token.base) ? new StyleTokenRef({ token: token.base })
+            : numeric && (numeric.units === "" || (dimOpts && !dimOpts.allowedUnits.includes("") && numeric.units === "px"))
+              ? numeric.num : next);
+        };
         return (
           <ConnectorLine
             key={key}
-            isLast={
-              (disabled || choices.length === 0) &&
-              index === properties.length - 1
-            }
+            isLast={index === properties.length - 1}
           >
             <div className={styles.cssRow}>
               <Tooltip title={label}>
                 <span className={styles.fieldLabel}>{key}</span>
               </Tooltip>
-              {typeof current === "string" &&
+              {(typeof current === "string" || isExactlyStyleTokenRef(current)) &&
               (key === "color" || key.endsWith("Color")) ? (
                 <ColorButton
                   sc={studioCtx}
                   aria-label={key}
-                  color={current}
-                  hideTokenPicker
+                  color={isExactlyStyleTokenRef(current) ? mkTokenRef(current.token) : current}
+                  floatingPicker
                   isDisabled={disabled}
-                  onChange={update}
+                  onChange={updateCssValue}
+                />
+              ) : dimOpts ? (
+                <DimTokenSpinner
+                  {...dimOpts}
+                  className={styles.cssInput}
+                  fieldAriaProps={{ "aria-label": key }}
+                  studioCtx={studioCtx}
+                  value={typeof current === "number" && !dimOpts.allowedUnits.includes("") ? `${current}px` : cssValue}
+                  disabled={disabled}
+                  hideArrow={false}
+                  extraOptions={[...(dimOpts.extraOptions ?? []), "inherit", "initial", "unset", "revert", "revert-layer"]}
+                  onChange={updateCssValue}
                 />
               ) : (
                 <div className={styles.cssInput}>
                   <StringPropEditor
                     aria-label={key}
-                    value={String(current)}
+                    value={cssValue}
                     disabled={disabled}
-                    onChange={(text) => {
-                      const normalized = text.trim();
-                      const numeric = Number(normalized);
-                      update(
-                        !normalized
-                          ? undefined
-                          : /^-?(?:\d+\.?\d*|\.\d+)$/.test(normalized) &&
-                              Number.isFinite(numeric)
-                            ? numeric
-                            : normalized,
-                      );
-                    }}
+                    onChange={updateCssValue}
                   />
-                  {property &&
-                    "unit" in property &&
-                    typeof current === "number" && (
-                      <span className={styles.count}>{property.unit}</span>
-                    )}
                 </div>
               )}
               <button
@@ -390,35 +441,12 @@ function CssFields({
                 aria-label={t("Remove CSS property {name}", { name: label })}
                 onClick={() => update(undefined)}
               >
-                ×
+                <Icon icon={MinusIcon} />
               </button>
             </div>
           </ConnectorLine>
         );
       })}
-      {choices.length > 0 && !disabled && (
-        <ConnectorLine isLast>
-          <Select<string | null>
-            className={`${styles.add} ${configSearch.select}`}
-            aria-label={t("Add CSS property")}
-            placeholder={`+ ${t("Add CSS property")}`}
-            value={null}
-            showSearch
-            optionFilterProp="label"
-            options={choices.map(([key, property]) => ({
-              value: key,
-              label: `${t(property.label)} · ${key}`,
-            }))}
-            onChange={(key) => {
-              const choice = choices.find(([name]) => name === key);
-              if (choice) {
-                const [name, property] = choice;
-                onChange(setField(value, name, property.initial));
-              }
-            }}
-          />
-        </ConnectorLine>
-      )}
     </>
   );
 }

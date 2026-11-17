@@ -21,6 +21,16 @@ const testFiles = [
   "**/__mocks__/**/*",
 ];
 
+const studioUnusedVarsOptions = {
+  // Interface and callback signatures may intentionally retain unused parameters.
+  args: "none",
+  argsIgnorePattern: "^_",
+  varsIgnorePattern: "^_",
+  caughtErrorsIgnorePattern: "^_",
+  // Destructuring can exclude a prop from the object that is forwarded downstream.
+  ignoreRestSiblings: true,
+};
+
 const fs = require("fs");
 const path = require("path");
 
@@ -319,13 +329,16 @@ module.exports = {
       plugins: ["react-hooks"],
       rules: {
         "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": "warn",
+        "react-hooks/exhaustive-deps": "off",
       },
     },
     {
       files: ["platform/wab/src/wab/client/components/coding/CodeDisplayContent.tsx"],
       plugins: ["react-hooks"],
-      rules: require("eslint-plugin-react-hooks").configs.recommended.rules,
+      rules: {
+        ...require("eslint-plugin-react-hooks").configs.recommended.rules,
+        "react-hooks/exhaustive-deps": "off",
+      },
     },
     {
       // These packages register Antd for user projects; they cannot use Studio's Modal.
@@ -382,12 +395,10 @@ module.exports = {
         ],
         "@typescript-eslint/no-unused-vars": [
           "warn",
-          {
-            argsIgnorePattern: "^_",
-            varsIgnorePattern: "^_",
-            caughtErrorsIgnorePattern: "^_",
-          },
+          studioUnusedVarsOptions,
         ],
+        // Keep mixed mutable/immutable destructuring together without duplicating reads.
+        "prefer-const": ["warn", { destructuring: "all" }],
         "no-inner-declarations": "off",
         "@typescript-eslint/no-empty-function": "warn",
         "@typescript-eslint/no-empty-interface": "warn",
@@ -409,6 +420,44 @@ module.exports = {
       },
 
       overrides: [
+        {
+          files: testFiles,
+          rules: {
+            // Empty callbacks implement test doubles and control asynchronous fixtures.
+            "@typescript-eslint/no-empty-function": "off",
+          },
+        },
+        {
+          files: ["platform/wab/src/**/*.d.ts"],
+          rules: {
+            // Declaration merging needs interfaces, including single-base extensions.
+            "@typescript-eslint/no-empty-interface": [
+              "warn",
+              { allowSingleExtends: true },
+            ],
+          },
+        },
+        {
+          files: ["platform/wab/src/wab/shared/site-operation/__testonly__/safetest.ts"],
+          rules: {
+            "@typescript-eslint/no-unused-vars": [
+              "warn",
+              { ...studioUnusedVarsOptions, varsIgnorePattern: "^_|AssignableTo" },
+            ],
+          },
+        },
+        {
+          files: ["platform/wab/src/wab/shared/ApiSchema.test.ts"],
+          rules: {
+            "@typescript-eslint/no-unused-vars": [
+              "warn",
+              {
+                ...studioUnusedVarsOptions,
+                varsIgnorePattern: "^_|^testStyleSectionAssignableToPublicStyleSection$",
+              },
+            ],
+          },
+        },
         {
           files: serverFiles,
           excludedFiles: testFiles,

@@ -34,7 +34,8 @@ export function TopBarLoading({ projectName }: { projectName?: string }) {
             {projectName ?? t("Project")}
           </Button>
           <Button
-            type="link"
+            color="primary"
+            variant="link"
             className="editor-project-trigger"
             aria-label={t("Project menu")}
             disabled
@@ -44,7 +45,8 @@ export function TopBarLoading({ projectName }: { projectName?: string }) {
           <span className="editor-history-divider" />
           <EditorIconAction
             action="Published versions"
-            type="link"
+            color="primary"
+            variant="link"
             className="editor-history-action"
             disabled
           />

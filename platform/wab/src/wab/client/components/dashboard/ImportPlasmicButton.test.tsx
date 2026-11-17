@@ -2,7 +2,6 @@ import { ImportPlasmicButton } from "@/wab/client/components/dashboard/ImportPla
 import * as domUtils from "@/wab/client/dom-utils";
 import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { message } from "antd";
 import * as React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 

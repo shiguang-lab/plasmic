@@ -85,24 +85,24 @@ export function getCanvasOverlayTargets(
   const handlerOwner = descendants.find((tpl) => handlersFor(tpl).length > 0);
   if (handlerOwner) {
     const targets = targetsFor(handlersFor(handlerOwner));
-    if (targets.length) return targets;
+    if (targets.length) {return targets;}
   }
 
   // Delegate only through the component's explicit event-routing contract.
   // Slot membership and argument values are required; names and shared state
   // alone never establish an association.
   for (const [index, owner] of ancestors.entries()) {
-    if (!isCodeComponentTpl(owner)) continue;
+    if (!isCodeComponentTpl(owner)) {continue;}
     for (const binding of context?.getMeta(owner)?.canvasEventBindings ?? []) {
       const slot = setting(owner).args.find(
         (arg) => arg.param.variable.name === binding.slot,
       );
-      if (!slot || !isKnownRenderExpr(slot.expr)) continue;
+      if (!slot || !isKnownRenderExpr(slot.expr)) {continue;}
       const slotNodes = new Set(slot.expr.tpl.flatMap(flattenTpls));
       const sources = ancestors
         .slice(0, index)
         .filter((node) => slotNodes.has(node));
-      if (!sources.length) continue;
+      if (!sources.length) {continue;}
       const args: Record<string, unknown> = {};
       let bound = true;
       for (const [name, { prop }] of Object.entries(binding.args)) {
@@ -122,9 +122,9 @@ export function getCanvasOverlayTargets(
         args[name] =
           context?.getProp(source.tpl, prop) ?? tryExtractJson(source.arg.expr);
       }
-      if (bound) return targetsFor(handlersFor(owner, binding.event), args);
+      if (bound) {return targetsFor(handlersFor(owner, binding.event), args);}
     }
-    if (index === overlayIndex) break;
+    if (index === overlayIndex) {break;}
   }
 
   // Content is never a trigger. Only the declared trigger slot controls its owner.

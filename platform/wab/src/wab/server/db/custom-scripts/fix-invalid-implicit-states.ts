@@ -16,7 +16,7 @@ export async function fixInvalidImplicitStates(
   };
   const refCount = new Map<string, number>();
   for (const inst of Object.values(bundle.map)) {
-    for (const [field, value] of Object.entries(inst)) {
+    for (const [, value] of Object.entries(inst)) {
       if (typeof value === "object" && Array.isArray(value)) {
         for (const item of value) {
           addRef(item);
@@ -26,7 +26,7 @@ export async function fixInvalidImplicitStates(
       }
     }
   }
-  for (const [iid, inst] of Object.entries(bundle.map)) {
+  for (const [, inst] of Object.entries(bundle.map)) {
     if (inst.__type !== "NamedState" && inst.__type !== "State") {
       continue;
     }

@@ -231,13 +231,7 @@ export const makeVariantComboSorter = memoizeModelQuery(function makeVariantComb
       ),
     ]);
     function makeKey(combo: VariantCombo) {
-      const [
-        privateStyleVariants,
-        compStyleVariants,
-        codeComponentVariants,
-        compVariants,
-        globalVariants,
-      ] = partitionVariants(component, combo, true);
+      const [privateStyleVariants, compStyleVariants, , compVariants, globalVariants] = partitionVariants(component, combo, true);
       assert(
         privateStyleVariants.length <= 1,
         "can only have one private style variant in a combo",

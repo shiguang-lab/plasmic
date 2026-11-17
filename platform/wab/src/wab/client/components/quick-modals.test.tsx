@@ -30,7 +30,7 @@ it("cleans the temporary root and its effects after submit, cancel and reopening
       ));
     });
     fireEvent.click(screen.getByRole("button", { name: "Finish prompt" }));
-    await expect(ensure(result)).resolves.toBe(submit ? "answer" : undefined);
+    await expect(ensure(result, "Temporary prompt must return a result promise before it is completed")).resolves.toBe(submit ? "answer" : undefined);
     expect(screen.queryByRole("button", { name: "Finish prompt" })).toBeNull();
     expect(document.body.children.length).toBe(original);
   }

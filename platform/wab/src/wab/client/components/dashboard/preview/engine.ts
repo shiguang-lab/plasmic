@@ -1,4 +1,4 @@
-import { overviewLayout } from "@/wab/client/components/dashboard/preview/layout";
+import { overviewLayout, previewBounds } from "@/wab/client/components/dashboard/preview/layout";
 import { load, ready } from "@/wab/client/components/dashboard/preview/renderer";
 import { rasterize, snapshot } from "@/wab/client/components/dashboard/preview/snapshot";
 import { previewCanvasBackground, previewChannel, type PreviewRequest } from "@/wab/client/components/dashboard/preview/types";
@@ -27,22 +27,39 @@ async function generate(request: PreviewRequest) {
       frame.style.height = `${board.height}px`;
       await (window as any).__renderCover(board.uuid);
       await ready();
-      const shot = await snapshot(document, board.width, board.height, assets);
+      const shot = await snapshot(document, board.width, board.height, assets, board.deviceFrame);
       if (shot.stats.assetErrors.length) {
         throw new Error(shot.stats.assetErrors.join("\n"));
       }
       // Decode one source SVG at a time, then draw directly into a thumbnail-sized canvas.
       // Keeping the SVG viewport intact preserves foreignObject CSS in WebKit.
-      const image = await rasterize(
-        shot.svg,
-        Math.max(1, Math.ceil(rect.width)),
-        Math.max(1, Math.ceil(rect.height)),
-      );
-      const bitmap = await createImageBitmap(image);
-      try {
-        ctx.drawImage(bitmap, rect.left, rect.top, rect.width, rect.height);
-      } finally {
-        bitmap.close();
+      const bounds = previewBounds(board);
+      const scale = rect.width / bounds.width;
+      const screen = {
+        left: rect.left + (board.left - bounds.left) * scale,
+        top: rect.top + (board.top - bounds.top) * scale,
+        width: board.width * scale,
+        height: board.height * scale,
+      };
+      const draw = async (svg: string, target: typeof rect, radius = 0) => {
+        const image = await rasterize(svg, Math.max(1, Math.ceil(target.width)), Math.max(1, Math.ceil(target.height)));
+        const bitmap = await createImageBitmap(image);
+        ctx.save();
+        try {
+          if (radius) {
+            ctx.beginPath();
+            ctx.roundRect(target.left, target.top, target.width, target.height, radius);
+            ctx.clip();
+          }
+          ctx.drawImage(bitmap, target.left, target.top, target.width, target.height);
+        } finally {
+          ctx.restore();
+          bitmap.close();
+        }
+      };
+      await draw(shot.svg, screen, (board.deviceFrame?.screenRadius ?? 0) * scale);
+      if (shot.frameSvg) {
+        await draw(shot.frameSvg, rect);
       }
       (window as any).__Sub.hostUtils.setPlasmicRootNode(null);
       await new Promise<void>((resolve) =>

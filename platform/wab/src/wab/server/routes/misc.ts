@@ -3,7 +3,7 @@ import { makeS3Client } from "@/wab/server/util/s3-util";
 import { GetClipResponse } from "@/wab/shared/ApiSchema";
 import { ensure, ensureType } from "@/wab/shared/common";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 
 const CLIP_BUCKET = process.env.CLIP_BUCKET ?? "plasmic-clips";
 

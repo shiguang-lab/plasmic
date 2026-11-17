@@ -1,6 +1,7 @@
 import { Api } from "@/wab/client/api";
 import { compileModules } from "@/wab/client/components/dashboard/preview/compile-modules";
 import { overviewLayout } from "@/wab/client/components/dashboard/preview/layout";
+import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import {
   previewChannel,
   type PreviewRequest,
@@ -104,6 +105,9 @@ export async function prepare(request: PreviewRequest) {
   const pages = artboards.map((f, index) => ({
     uuid: f.uuid,
     componentId: f.container.component.uuid,
+    deviceFrame: f.container.component.pageMeta
+      ? getDeviceFrame(f.width, getFrameHeight(f))
+      : undefined,
     page: f.container.component.pageMeta
       ? {
           route: f.container.component.pageMeta.path,
@@ -254,7 +258,7 @@ async function prepareRuntime(request: PreviewRequest) {
 export async function load(request: PreviewRequest) {
   const { pages, modules } = await prepareRuntime(request);
   const win = window as Window & Record<string, any>;
-  let dispose = () => {};
+  let dispose = () => { /* No preview subscription exists until syncPreview returns its disposer. */ };
   const rendered = new Promise<void>((resolve, reject) => {
     dispose = syncPreview(win, () => ({ modules, render: { run: "./cover-root.tsx" } }),
       (error) => error ? reject(error) : resolve(), { compileModules });
@@ -282,12 +286,12 @@ export function observeStylesheets(doc: Document) {
   const versions = new WeakMap<Element, string>();
   let failure: unknown;
   const watch = (element: Element) => {
-    if (!element.matches('style,link[rel~="stylesheet"]')) return;
+    if (!element.matches('style,link[rel~="stylesheet"]')) {return;}
     const style = element as HTMLStyleElement | HTMLLinkElement;
-    if (style.disabled || (style.media && !matchMedia(style.media).matches)) return;
-    if (element.tagName === "STYLE" && style.sheet && ![...(style.sheet.cssRules)].some((rule) => rule.type === CSSRule.IMPORT_RULE && (!(rule as CSSImportRule).media.mediaText || matchMedia((rule as CSSImportRule).media.mediaText).matches))) return;
+    if (style.disabled || (style.media && !matchMedia(style.media).matches)) {return;}
+    if (element.tagName === "STYLE" && style.sheet && ![...(style.sheet.cssRules)].some((rule) => rule.type === CSSRule.IMPORT_RULE && (!(rule as CSSImportRule).media.mediaText || matchMedia((rule as CSSImportRule).media.mediaText).matches))) {return;}
     const version = element.textContent + element.getAttribute("href");
-    if (versions.get(element) === version) return;
+    if (versions.get(element) === version) {return;}
     versions.set(element, version);
     const task = new Promise<void>((resolve, reject) => {
       const cleanup = () => { element.removeEventListener("load", loaded); element.removeEventListener("error", failed); cleanups.delete(cleanup); };
@@ -302,11 +306,11 @@ export function observeStylesheets(doc: Document) {
   const observer = new MutationObserver((records) => {
     for (const record of records) {
       const parent = record.target.nodeType === Node.ELEMENT_NODE ? record.target as Element : record.target.parentElement;
-      if (parent?.matches("style")) watch(parent);
-      for (const node of record.addedNodes) if (node.nodeType === Node.ELEMENT_NODE) {
+      if (parent?.matches("style")) {watch(parent);}
+      for (const node of record.addedNodes) {if (node.nodeType === Node.ELEMENT_NODE) {
         const element = node as Element; watch(element);
         element.querySelectorAll('style,link[rel~="stylesheet"]').forEach(watch);
-      }
+      }}
     }
   });
   observer.observe(doc.documentElement, { childList: true, subtree: true, characterData: true });
@@ -318,8 +322,8 @@ export function observeStylesheets(doc: Document) {
         await withTimeout((async () => {
           // Mutation callbacks run before this continuation, including cached CSS loads.
           await Promise.resolve();
-          while (pending.size) await Promise.all([...pending]);
-          if (failure) throw failure;
+          while (pending.size) {await Promise.all([...pending]);}
+          if (failure) {throw failure;}
         })(), "Preview stylesheet timed out", 30000);
       } catch (error) { failure = error; dispose(); throw error; }
     },

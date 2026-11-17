@@ -357,7 +357,8 @@
   align-items: stretch;
   justify-content: flex-start;
   top: 10px;
-  left: 2px;
+  /* A 4px dot centered in its 12px container ends 2px before the label. */
+  left: 6px;
 }
 .indicatorContainernoLabel {
   left: -8px;
@@ -366,5 +367,5 @@
   display: flex;
 }
 .indicatorContainerwithIndicator_padding_noHorizontal {
-  left: -14px;
+  left: -10px;
 }

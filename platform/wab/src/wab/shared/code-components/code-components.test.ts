@@ -9,7 +9,6 @@ import {
   propTypeToWabType,
   componentMetaToComponentParams,
   getNewProps,
-  parseStyles,
   makePlumeComponentMeta,
   mkCodeComponent,
   attachRenderableTplSlots,

@@ -3,16 +3,9 @@ import { reactAlert, reactConfirm } from "@/wab/client/components/quick-modals";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
-import { ApiPermission, ApiProject } from "@/wab/shared/ApiSchema";
+import { ApiProject } from "@/wab/shared/ApiSchema";
 import * as React from "react";
 
-interface ShareModalProps {
-  refreshProjectAndPerms: () => void;
-  project: ApiProject;
-  perms: ApiPermission[];
-  showShareModal: boolean;
-  setShowShareModal: (val: boolean) => Promise<void>;
-}
 
 export async function showRegenerateSecretTokenModal({
   appCtx,

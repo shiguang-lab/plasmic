@@ -69,7 +69,7 @@ import {
   createTeamUrl,
   createWorkspaceUrl,
 } from "@/wab/shared/urls";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import L from "lodash";
 
 export function mkApiTeam(team: Team): ApiTeam {

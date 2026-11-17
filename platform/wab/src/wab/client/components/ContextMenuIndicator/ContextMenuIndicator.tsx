@@ -18,8 +18,8 @@ function createContextMenuContext() {
     onPointerDownSignal: new Signals.Signal(),
     onPointerEnterSignal: new Signals.Signal(),
     onPointerLeaveSignal: new Signals.Signal(),
-    editDynamicValue: () => {},
-    setOpenTooltip: (state: undefined | boolean) => {},
+    editDynamicValue: () => { /* Default context has no dynamic-value editor. */ },
+    setOpenTooltip: (state: undefined | boolean) => { /* Default context has no tooltip state to update. */ },
   };
 }
 

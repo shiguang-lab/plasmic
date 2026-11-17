@@ -48,7 +48,7 @@ it("reorders filtered contexts by their actual tpl identity across an unresolved
   expect(mocks.list.children.map((child: React.ReactElement<any>) => child.props.context.component)).toEqual([last.component, first.component]);
   const heldReorder = mocks.list.onReordered;
   const retiredOrder = site.globalContexts.slice();
-  act(() => mocks.studio.arenaState.reset());
-  act(() => heldReorder(0, 1));
+  act(() => { mocks.studio.arenaState.reset(); });
+  act(() => { heldReorder(0, 1); });
   expect(site.globalContexts).toEqual(retiredOrder);
 });

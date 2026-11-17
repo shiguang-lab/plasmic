@@ -1,7 +1,7 @@
-import { useActionModelInputs } from "@/wab/client/components/sidebar-tabs/StateManagement/action-model-inputs";
 import { useElementPropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useDataPickerSourceInputs } from "@/wab/client/components/sidebar-tabs/DataBinding/data-picker-source-inputs";
 import { useQueryInteractionInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
+import { useActionModelInputs } from "@/wab/client/components/sidebar-tabs/StateManagement/action-model-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import { useStepCacheVersion } from "@/wab/client/studio-ctx/steps-cache-state";
@@ -9,18 +9,22 @@ import { useStepCacheVersion } from "@/wab/client/studio-ctx/steps-cache-state";
 // This file is owned by you, feel free to edit as you see fit.
 import { InteractionExprEditor } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import { PropEditorRow } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
+import styles from "@/wab/client/components/sidebar-tabs/StateManagement/ActionBuilder.module.scss";
 import { ensureGenericFuncTypes } from "@/wab/client/components/sidebar-tabs/StateManagement/HandlerSection";
 import { useSourceOp } from "@/wab/client/components/sidebar-tabs/useSourceOp";
 import { LabeledItem } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
+import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import {
-  DefaultActionBuilderProps,
-  PlasmicActionBuilder,
-} from "@/wab/client/plasmic/plasmic_kit_state_management/PlasmicActionBuilder";
+import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
+import PencilIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Pencil";
+import PlayIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__PlaySvg";
+import DragGripIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__DragGrip";
+import ChevronDownIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
+import ChevronUpIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronUpSvg";
 import {
   ACTIONS_META,
   ActionType,
@@ -40,14 +44,13 @@ import {
 } from "@/wab/client/studio-ctx/steps-cache-state";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
-import { combineProps } from "@/wab/commons/components/ReactUtil";
 import {
   HighlightInteractionRequest,
   isPlainObjectPropType,
   maybePropTypeToDisplayName,
   propTypeToWabType,
 } from "@/wab/shared/code-components/code-components";
-import { assert, ensureInstance, spawn } from "@/wab/shared/common";
+import { assert, cx, ensureInstance, spawn } from "@/wab/shared/common";
 import { InteractionConditionalMode, codeLit } from "@/wab/shared/core/exprs";
 import { mkNameArg } from "@/wab/shared/core/lang";
 import { EventHandlerKeyType } from "@/wab/shared/core/tpls";
@@ -65,14 +68,18 @@ import {
   isKnownExpr,
 } from "@/wab/shared/model/classes";
 import { renameInteractionAndFixExprs } from "@/wab/shared/refactoring";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Popover } from "antd";
+import { Button, Input, Tooltip } from "antd";
 import { isEmpty } from "lodash";
 import { err, ok } from "neverthrow";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
-export interface ActionBuilderProps extends DefaultActionBuilderProps {
+export interface ActionBuilderProps {
+  className?: string;
+  children?: React.ReactNode;
+  isCollapsed?: boolean;
+  isDragging?: boolean;
   tpl: TplComponent | TplTag;
   sc: StudioCtx;
   vc: ViewCtx;
@@ -80,7 +87,7 @@ export interface ActionBuilderProps extends DefaultActionBuilderProps {
   interaction: Interaction;
   eventHandlerKey: EventHandlerKeyType;
   onCollapseClick: () => void;
-  menu: React.ReactNode;
+  onRemove: () => void;
   dragHandleProps?: DraggableProvidedDragHandleProps;
   highlightOnMount?: HighlightInteractionRequest;
   eventHandlerExpr: EventHandler;
@@ -98,13 +105,14 @@ function ActionBuilder_(
     component,
     interaction,
     eventHandlerKey,
-    menu,
+    onRemove,
     dragHandleProps,
     onCollapseClick,
     highlightOnMount,
     eventHandlerExpr,
     isCollapsed,
-    ...rest
+    className,
+    isDragging,
   } = props;
 
   const world = useVariantModelWorld(sc, interaction, vc);
@@ -112,14 +120,24 @@ function ActionBuilder_(
   useQueryInteractionInputs(sc, interaction, eventHandlerKey, vc);
   useStepCacheVersion(sc);
   const canvasEnv = useInspectorCanvasEnv(vc, tpl);
-  const expressionInputs = useActionModelInputs(vc, component, eventHandlerExpr);
-  const subscribeFlags = React.useCallback((listener: () => void) => sc.appCtx.subscribeUiEnvironmentInputs(listener), [sc]);
-  const enabledPreviewSteps = React.useSyncExternalStore(subscribeFlags, () => !!sc.appCtx.appConfig.previewSteps, () => !!sc.appCtx.appConfig.previewSteps);
-  const [hover, setHover] = React.useState(false);
+  const expressionInputs = useActionModelInputs(
+    vc,
+    component,
+    eventHandlerExpr,
+  );
+  const subscribeFlags = React.useCallback(
+    (listener: () => void) => sc.appCtx.subscribeUiEnvironmentInputs(listener),
+    [sc],
+  );
+  const enabledPreviewSteps = React.useSyncExternalStore(
+    subscribeFlags,
+    () => !!sc.appCtx.appConfig.previewSteps,
+    () => !!sc.appCtx.appConfig.previewSteps,
+  );
   const [interactionName, setInteractionName] = React.useState(
     interaction.interactionName,
   );
-  const [isEditingInteractionnName, setIsEditingInteractionName] =
+  const [isEditingInteractionName, setIsEditingInteractionName] =
     React.useState(false);
   const [dataSourceExpr, setDataSourceExpr] = React.useState<
     DataSourceOpExpr | undefined
@@ -136,8 +154,24 @@ function ActionBuilder_(
       ),
     [interaction.args, expressionInputs],
   );
-  const selectInteractionContext = React.useCallback(() => generateInteractionContextData(component, tpl, interaction, eventHandlerKey, vc, sourceMeta), [component, tpl, interaction, eventHandlerKey, vc, sourceMeta]);
-  const interactionsCtx = useDataPickerSourceInputs(sc, component, [["$state"], ["$props"]], selectInteractionContext);
+  const selectInteractionContext = React.useCallback(
+    () =>
+      generateInteractionContextData(
+        component,
+        tpl,
+        interaction,
+        eventHandlerKey,
+        vc,
+        sourceMeta,
+      ),
+    [component, tpl, interaction, eventHandlerKey, vc, sourceMeta],
+  );
+  const interactionsCtx = useDataPickerSourceInputs(
+    sc,
+    component,
+    [["$state"], ["$props"]],
+    selectInteractionContext,
+  );
   const [isInteractionDefaultName, setIsInteractionDefaultName] =
     React.useState(
       () =>
@@ -157,7 +191,9 @@ function ActionBuilder_(
       ) {
         spawn(
           sc.change(() => {
-            if (!world.isCurrent()) { return ok(); }
+            if (!world.isCurrent()) {
+              return ok();
+            }
             renameInteractionAndFixExprs(
               interaction,
               newInteractionDefaultName,
@@ -176,41 +212,126 @@ function ActionBuilder_(
     interaction,
     eventHandlerKey,
   );
-  const hasCachedStepValue = useHasCachedStepValue(vc.studioCtx, interaction.uuid);
+  const hasCachedStepValue = useHasCachedStepValue(
+    vc.studioCtx,
+    interaction.uuid,
+  );
   const cachedStepValue = useCachedStepValue(vc.studioCtx, interaction.uuid);
   const disabledRunInteraction = !canRunInteraction(interaction, vc);
 
+  const cancelRename = React.useRef(false);
+  const startRenaming = () => {
+    cancelRename.current = false;
+    setInteractionName(interaction.interactionName);
+    setIsEditingInteractionName(true);
+  };
+  const finishRenaming = () => {
+    if (!cancelRename.current) {
+      spawn(
+        sc.change(() => {
+          if (!world.isCurrent()) {
+            return ok();
+          }
+          if (interactionName === "" && actionMeta) {
+            const defaultInteractionName = actionMeta.getDefaultName?.(
+              component,
+              args,
+              interactionsCtx,
+            );
+            renameInteractionAndFixExprs(interaction, defaultInteractionName);
+            setInteractionName(interaction.interactionName);
+            setIsInteractionDefaultName(true);
+          } else if (interactionName !== interaction.interactionName) {
+            renameInteractionAndFixExprs(interaction, interactionName);
+            setInteractionName(interaction.interactionName);
+            setIsInteractionDefaultName(false);
+          }
+          return ok();
+        }),
+      );
+    }
+    setIsEditingInteractionName(false);
+  };
+  const runHint = hasCachedStepValue
+    ? uiT("Current value: {value}", {
+        value: (() => {
+          try {
+            return String(JSON.stringify(cachedStepValue));
+          } catch {
+            return uiT("(cannot display)");
+          }
+        })(),
+      })
+    : disabledRunInteraction
+      ? uiT(BLOCKED_RUN_INTERACTION_MESSAGE)
+      : uiT("Run this action");
+
   return (
-    <div style={{ position: "relative" }}>
-      <PlasmicActionBuilder
-        {...rest}
-        isCollapsed={isCollapsed}
-        play={{
-          render: (ps, Comp) => (
-            <Popover
-              overlayStyle={{
-                maxWidth: 300,
+    <div
+      ref={ref}
+      className={cx(styles.action, className, isDragging && styles.dragging)}
+    >
+      <div className={styles.header}>
+        {dragHandleProps && (
+          <div
+            {...dragHandleProps}
+            className={styles.dragHandle}
+            aria-label={uiT("Move")}
+            title={uiT("Move")}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <Icon icon={DragGripIcon} />
+          </div>
+        )}
+        <div className={styles.name}>
+          {isEditingInteractionName ? (
+            <Input
+              className={styles.nameInput}
+              aria-label={uiT("Action name")}
+              size="small"
+              value={interactionName}
+              onChange={(event) => setInteractionName(event.target.value)}
+              onBlur={finishRenaming}
+              onFocus={(event) => event.target.select()}
+              onKeyDown={(event) => {
+                if (event.nativeEvent.isComposing) {
+                  return;
+                }
+                if (event.key === "Enter" || event.key === "Escape") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  cancelRename.current = event.key === "Escape";
+                  event.currentTarget.blur();
+                }
               }}
-              content={
-                hasCachedStepValue
-                  ? // TODO: improve preview value
-                    uiT("Current value: {value}", { value: (() => {
-                      try {
-                        return String(JSON.stringify(cachedStepValue));
-                      } catch (e) {
-                        return uiT("(cannot display)");
-                      }
-                    })() })
-                  : disabledRunInteraction
-                    ? uiT(BLOCKED_RUN_INTERACTION_MESSAGE)
-                    : uiT("Run this action")
-              }
+              autoFocus
+            />
+          ) : (
+            <button
+              type="button"
+              className={styles.nameButton}
+              onClick={onCollapseClick}
+              title={interaction.interactionName}
+              aria-expanded={!isCollapsed}
             >
-              {/* `Comp` is a generated icon that can't take the popover's
-                  ref; anchor on a host element around it. */}
-              <span style={{ display: "inline-flex" }}>
-                <Comp
-                  {...ps}
+              {interaction.interactionName}
+            </button>
+          )}
+        </div>
+        <div className={styles.actions}>
+          {enabledPreviewSteps && (
+            <Tooltip title={runHint}>
+              <span className={styles.runAnchor}>
+                <Button
+                  type="text"
+                  size="small"
+                  className={cx(
+                    styles.iconButton,
+                    hasCachedStepValue && styles.runComplete,
+                  )}
+                  aria-label={uiT("Run this action")}
+                  disabled={disabledRunInteraction}
+                  icon={<Icon icon={PlayIcon} />}
                   onClick={() => {
                     if (world.isCurrent() && !disabledRunInteraction) {
                       runInteraction(interaction, vc, tpl);
@@ -218,164 +339,257 @@ function ActionBuilder_(
                   }}
                 />
               </span>
-            </Popover>
-          ),
-        }}
-        previewSteps={
-          enabledPreviewSteps
-            ? hasCachedStepValue
-              ? "finished"
-              : disabledRunInteraction
-                ? "unable"
-                : "notStarted"
-            : undefined
-        }
-        root={{
-          onMouseEnter: () => setHover(true),
-          onMouseLeave: () => setHover(false),
-          ref,
-        }}
-        actionItem={{
-          render: () => (
-            <LabeledItem label={uiT("Action")} layout={"vertical"}>
-              <StyleSelect
-                data-plasmic-prop={"action-name"}
-                valueSetState={"isSet"}
-                {...{
-                  value: interaction.actionName,
-                  onChange: (val) => {
-                    if (!val) {
-                      return;
-                    }
-                    spawn(
-                      sc.change<Error>(() => {
-                        if (!world.isCurrent()) { return ok(); }
-                        const newActionMeta = getActionMeta(sc, val);
-                        if (!newActionMeta) {
-                          return err(new Error(`Unknown action type ${val}`));
-                        }
-
-                        interaction.actionName = val;
-                        const defaultArgs = makeDefaultArgs(
-                          vc,
-                          component,
-                          newActionMeta,
-                        );
-                        interaction.args = Object.entries(defaultArgs).map(
-                          ([name, expr]) => mkNameArg({ name, expr }),
-                        );
-                        if (isInteractionDefaultName) {
-                          renameInteractionAndFixExprs(
-                            interaction,
-                            newActionMeta.getDefaultName?.(
-                              component,
-                              {},
-                              interactionsCtx,
-                            ) ?? newActionMeta.displayName,
-                          );
-                        }
-
-                        return ok();
-                      }),
-                    );
-                  },
-                  children: [
-                    ...Object.entries(ACTIONS_META)
-                      .filter(
-                        ([__, meta]) =>
-                          !meta.hidden?.({
-                            siteInfo: sc.siteInfo,
-                            flags: sc.appCtx.appConfig,
-                          }),
-                      )
-                      .map(([aName, aMeta]) => (
-                        <StyleSelect.Option key={aName} value={aName}>
-                          {aMeta.displayName}
-                        </StyleSelect.Option>
-                      )),
-                    ...[
-                      ...Array.from(sc.getRegisteredContextsMap().values()),
-                      ...Array.from(sc.getHostLessContextsMap().values()),
-                    ].map(({ meta }) => {
-                      const globalActions =
-                        "globalActions" in meta
-                          ? meta.globalActions
-                          : undefined;
-                      if (!globalActions || isEmpty(globalActions)) {
-                        return null;
-                      }
-                      return (
-                        <StyleSelect.OptionGroup
-                          title={meta.displayName ?? meta.name}
-                        >
-                          {Object.entries(globalActions).map(
-                            ([globalAction, globalActionMeta]: [
-                              string,
-                              any,
-                            ]) => (
-                              <StyleSelect.Option
-                                value={`${meta.name}.${globalAction}`}
-                              >
-                                {globalActionMeta.displayName ?? globalAction}
-                              </StyleSelect.Option>
-                            ),
-                          )}
-                        </StyleSelect.OptionGroup>
-                      );
-                    }),
-                  ],
-                }}
-              />
-            </LabeledItem>
-          ),
-        }}
-        label={uiT("Action")}
-        actionName={interaction.interactionName}
-        isEditingActionName={isEditingInteractionnName}
-        edit={{
-          onClick: () => setIsEditingInteractionName(true),
-        }}
-        editActionName={{
-          value: interactionName,
-          onChange: (e) => setInteractionName(e.target.value),
-          onBlur: () => {
-            spawn(
-              sc.change(() => {
-            if (!world.isCurrent()) { return ok(); }
-                if (interactionName === "" && actionMeta) {
-                  const defaultInteractionName = actionMeta.getDefaultName?.(
-                    component,
-                    args,
-                    interactionsCtx,
-                  );
-                  renameInteractionAndFixExprs(
-                    interaction,
-                    defaultInteractionName,
-                  );
-                  setInteractionName(interaction.interactionName);
-                  setIsInteractionDefaultName(true);
-                } else if (interactionName !== interaction.interactionName) {
-                  renameInteractionAndFixExprs(interaction, interactionName);
-                  setInteractionName(interaction.interactionName);
-                  setIsInteractionDefaultName(false);
+            </Tooltip>
+          )}
+          <Tooltip title={uiT("Rename")}>
+            <Button
+              type="text"
+              size="small"
+              className={styles.iconButton}
+              aria-label={uiT("Rename")}
+              icon={<Icon icon={PencilIcon} />}
+              onClick={startRenaming}
+            />
+          </Tooltip>
+          <Tooltip title={uiT(isCollapsed ? "Expand action" : "Collapse")}>
+            <Button
+              type="text"
+              size="small"
+              className={styles.iconButton}
+              aria-label={uiT(isCollapsed ? "Expand action" : "Collapse")}
+              aria-expanded={!isCollapsed}
+              icon={
+                <Icon icon={isCollapsed ? ChevronDownIcon : ChevronUpIcon} />
+              }
+              onClick={onCollapseClick}
+            />
+          </Tooltip>
+          <Tooltip title={uiT("Remove")}>
+            <Button
+              type="text"
+              size="small"
+              className={styles.iconButton}
+              aria-label={uiT("Remove")}
+              icon={<Icon icon={MinusIcon} />}
+              onClick={onRemove}
+            />
+          </Tooltip>
+        </div>
+      </div>
+      <div className={styles.body} hidden={isCollapsed || isDragging}>
+        <LabeledItem label={uiT("Action")} layout={"vertical"}>
+          <StyleSelect
+            data-plasmic-prop={"action-name"}
+            valueSetState={"isSet"}
+            {...{
+              value: interaction.actionName,
+              onChange: (val) => {
+                if (!val) {
+                  return;
                 }
-                return ok();
-              }),
-            );
-            setIsEditingInteractionName(false);
-          },
-          autoFocus: true,
-        }}
-        isConditional={
-          interaction.conditionalMode === InteractionConditionalMode.Expression
-        }
-        conditionalMode={{
-          render: () => (
+                spawn(
+                  sc.change<Error>(() => {
+                    if (!world.isCurrent()) {
+                      return ok();
+                    }
+                    const newActionMeta = getActionMeta(sc, val);
+                    if (!newActionMeta) {
+                      return err(new Error(`Unknown action type ${val}`));
+                    }
+
+                    interaction.actionName = val;
+                    const defaultArgs = makeDefaultArgs(
+                      vc,
+                      component,
+                      newActionMeta,
+                    );
+                    interaction.args = Object.entries(defaultArgs).map(
+                      ([name, expr]) => mkNameArg({ name, expr }),
+                    );
+                    if (isInteractionDefaultName) {
+                      renameInteractionAndFixExprs(
+                        interaction,
+                        newActionMeta.getDefaultName?.(
+                          component,
+                          {},
+                          interactionsCtx,
+                        ) ?? newActionMeta.displayName,
+                      );
+                    }
+
+                    return ok();
+                  }),
+                );
+              },
+              children: [
+                ...Object.entries(ACTIONS_META)
+                  .filter(
+                    ([__, meta]) =>
+                      !meta.hidden?.({
+                        siteInfo: sc.siteInfo,
+                        flags: sc.appCtx.appConfig,
+                      }),
+                  )
+                  .map(([aName, aMeta]) => (
+                    <StyleSelect.Option key={aName} value={aName}>
+                      {aMeta.displayName}
+                    </StyleSelect.Option>
+                  )),
+                ...[
+                  ...Array.from(sc.getRegisteredContextsMap().values()),
+                  ...Array.from(sc.getHostLessContextsMap().values()),
+                ].map(({ meta }) => {
+                  const globalActions =
+                    "globalActions" in meta ? meta.globalActions : undefined;
+                  if (!globalActions || isEmpty(globalActions)) {
+                    return null;
+                  }
+                  return (
+                    <StyleSelect.OptionGroup
+                      title={meta.displayName ?? meta.name}
+                    >
+                      {Object.entries(globalActions).map(
+                        ([globalAction, globalActionMeta]: [string, any]) => (
+                          <StyleSelect.Option
+                            value={`${meta.name}.${globalAction}`}
+                          >
+                            {globalActionMeta.displayName ?? globalAction}
+                          </StyleSelect.Option>
+                        ),
+                      )}
+                    </StyleSelect.OptionGroup>
+                  );
+                }),
+              ],
+            }}
+          />
+        </LabeledItem>
+        {actionMeta &&
+          Object.entries(actionMeta.parameters).map(
+            ([parameterName, parameterMeta]) => {
+              if (
+                isPlainObjectPropType(parameterMeta) &&
+                "hidden" in parameterMeta &&
+                parameterMeta.hidden?.(args, interactionsCtx, { path: [] })
+              ) {
+                return null;
+              }
+              const failableType = propTypeToWabType(sc.site, parameterMeta);
+              assert(
+                !failableType.isErr(),
+                `couldn't parse parameter meta: ${parameterMeta}`,
+              );
+              const type = failableType.value;
+              const value = args[parameterName];
+              const label =
+                maybePropTypeToDisplayName(parameterMeta) ?? parameterName;
+
+              return (
+                <div
+                  key={`${parameterName}-${type}`}
+                  style={{ position: "relative", width: "100%" }}
+                >
+                  <PropEditorRow
+                    expr={value}
+                    label={label}
+                    attr={parameterName}
+                    definedIndicator={{ source: "invariantable" }}
+                    onDelete={() => {
+                      if (!world.isCurrent() || !interactionsCtx) {
+                        return;
+                      }
+                      const newArgs = { ...args };
+                      delete newArgs[parameterName];
+                      actionMeta.resetDependentArgs?.(
+                        newArgs,
+                        interactionsCtx,
+                        parameterName,
+                      );
+                      spawn(
+                        sc.change(() => {
+                          if (!world.isCurrent()) {
+                            return ok();
+                          }
+                          interaction.args = Object.entries(newArgs).map(
+                            ([name, expr]) =>
+                              mkNameArg({
+                                name,
+                                expr,
+                              }),
+                          );
+                          return ok();
+                        }),
+                      );
+                    }}
+                    onChange={(val) => {
+                      if (!world.isCurrent() || !interactionsCtx) {
+                        return;
+                      }
+                      const newExpr = isKnownExpr(val) ? val : codeLit(val);
+                      const newArgs = {
+                        ...args,
+                        [parameterName]: newExpr,
+                      };
+                      if (
+                        isPlainObjectPropType(parameterMeta) &&
+                        "type" in parameterMeta &&
+                        parameterMeta.type === "dataSourceOp"
+                      ) {
+                        setDataSourceExpr(ensureKnownDataSourceOpExpr(newExpr));
+                      }
+                      if (val == null) {
+                        delete newArgs[parameterName];
+                      }
+                      actionMeta.resetDependentArgs?.(
+                        newArgs,
+                        interactionsCtx,
+                        parameterName,
+                      );
+                      spawn(
+                        sc.change(() => {
+                          if (!world.isCurrent()) {
+                            return ok();
+                          }
+                          interaction.args = Object.entries(newArgs).map(
+                            ([name, expr]) =>
+                              mkNameArg({
+                                name,
+                                expr,
+                              }),
+                          );
+                          ensureGenericFuncTypes(
+                            eventHandlerExpr,
+                            eventHandlerKey,
+                          );
+                          return ok();
+                        }),
+                      );
+                    }}
+                    propType={parameterMeta}
+                    layout="vertical"
+                    disableLinkToProp={true}
+                    viewCtx={vc}
+                    tpl={tpl}
+                    env={actionEnv}
+                    componentPropValues={args}
+                    ccContextData={interactionsCtx}
+                  />
+                  {highlightOnMount?.argName === parameterName && (
+                    <HighlightBlinker doScroll />
+                  )}
+                </div>
+              );
+            },
+          )}
+        <div className={styles.condition}>
+          <LabeledItem label={uiT("Run this step")} layout="vertical">
             <StyleToggleButtonGroup
               value={interaction.conditionalMode}
               onChange={(val) =>
                 sc.change(() => {
-            if (!world.isCurrent()) { return ok(); }
+                  if (!world.isCurrent()) {
+                    return ok();
+                  }
                   interaction.conditionalMode =
                     val as InteractionConditionalMode;
                   return ok();
@@ -410,10 +624,9 @@ function ActionBuilder_(
                 </div>
               </StyleToggleButton>
             </StyleToggleButtonGroup>
-          ),
-        }}
-        condExpr={{
-          render: () => (
+          </LabeledItem>
+          {interaction.conditionalMode ===
+            InteractionConditionalMode.Expression && (
             <InteractionExprEditor
               viewCtx={vc}
               tpl={tpl}
@@ -424,7 +637,9 @@ function ActionBuilder_(
                 }
                 spawn(
                   sc.change(() => {
-            if (!world.isCurrent()) { return ok(); }
+                    if (!world.isCurrent()) {
+                      return ok();
+                    }
                     interaction.condExpr = ensureInstance(
                       val,
                       ObjectPath,
@@ -440,134 +655,9 @@ function ActionBuilder_(
               data-plasmic-prop={"conditional-expr"}
               component={component}
             />
-          ),
-        }}
-        collapse={{
-          onClick: () => onCollapseClick(),
-        }}
-        menuButton={{ menu }}
-        alwaysShowDragHandle
-        dragHandle={{
-          props: dragHandleProps
-            ? combineProps(dragHandleProps, {
-                onMouseDown: (e: React.MouseEvent) => {
-                  e.stopPropagation();
-                },
-                style: {
-                  display: hover && !props.isDragging ? "flex" : "none",
-                },
-              })
-            : { display: "none" },
-        }}
-      >
-        {actionMeta &&
-          Object.entries(actionMeta.parameters).map(
-            ([parameterName, parameterMeta]) => {
-              if (
-                isPlainObjectPropType(parameterMeta) &&
-                "hidden" in parameterMeta &&
-                parameterMeta.hidden?.(args, interactionsCtx, { path: [] })
-              ) {
-                return null;
-              }
-              const failableType = propTypeToWabType(sc.site, parameterMeta);
-              assert(
-                !failableType.isErr(),
-                `couldn't parse parameter meta: ${parameterMeta}`,
-              );
-              const type = failableType.value;
-              const value = args[parameterName];
-              const label =
-                maybePropTypeToDisplayName(parameterMeta) ?? parameterName;
-
-              return (
-                <div style={{ position: "relative", width: "100%" }}>
-                  <PropEditorRow
-                    key={`${parameterName}-${type}`}
-                    expr={value}
-                    label={label}
-                    attr={parameterName}
-                    definedIndicator={{ source: "invariantable" }}
-                    onDelete={() => {
-                      if (!world.isCurrent() || !interactionsCtx) { return; }
-                      const newArgs = { ...args };
-                      delete newArgs[parameterName];
-                      actionMeta.resetDependentArgs?.(
-                        newArgs,
-                        interactionsCtx,
-                        parameterName,
-                      );
-                      spawn(
-                        sc.change(() => {
-            if (!world.isCurrent()) { return ok(); }
-                          interaction.args = Object.entries(newArgs).map(
-                            ([name, expr]) =>
-                              mkNameArg({
-                                name,
-                                expr,
-                              }),
-                          );
-                          return ok();
-                        }),
-                      );
-                    }}
-                    onChange={(val) => {
-                      if (!world.isCurrent() || !interactionsCtx) { return; }
-                      const newExpr = isKnownExpr(val) ? val : codeLit(val);
-                      const newArgs = {
-                        ...args,
-                        [parameterName]: newExpr,
-                      };
-                      if (
-                        isPlainObjectPropType(parameterMeta) &&
-                        "type" in parameterMeta &&
-                        parameterMeta.type === "dataSourceOp"
-                      ) {
-                        setDataSourceExpr(ensureKnownDataSourceOpExpr(newExpr));
-                      }
-                      if (val == null) {
-                        delete newArgs[parameterName];
-                      }
-                      actionMeta.resetDependentArgs?.(
-                        newArgs,
-                        interactionsCtx,
-                        parameterName,
-                      );
-                      spawn(
-                        sc.change(() => {
-            if (!world.isCurrent()) { return ok(); }
-                          interaction.args = Object.entries(newArgs).map(
-                            ([name, expr]) =>
-                              mkNameArg({
-                                name,
-                                expr,
-                              }),
-                          );
-                          ensureGenericFuncTypes(
-                            eventHandlerExpr,
-                            eventHandlerKey,
-                          );
-                          return ok();
-                        }),
-                      );
-                    }}
-                    propType={parameterMeta}
-                    layout="vertical"
-                    disableLinkToProp={true}
-                    viewCtx={vc}
-                    tpl={tpl}
-                    env={actionEnv}
-                    componentPropValues={args}
-                    ccContextData={interactionsCtx}
-                  />
-                  {highlightOnMount?.argName === parameterName && (
-                    <HighlightBlinker doScroll />
-                  )}
-                </div>
-              );
-            },
           )}
-      </PlasmicActionBuilder>
+        </div>
+      </div>
       {highlightOnMount && !highlightOnMount.argName && (
         <HighlightBlinker doScroll />
       )}
@@ -576,10 +666,15 @@ function ActionBuilder_(
 }
 
 const ActionBuilderContent = React.memo(React.forwardRef(ActionBuilder_));
-const ActionBuilder = React.memo(React.forwardRef(function ActionBuilder(props: ActionBuilderProps, ref: HTMLElementRefOf<"div">) {
-  const world = useVariantModelWorld(props.sc, props.interaction, props.vc);
-  return world.alive ? <ActionBuilderContent {...props} ref={ref} /> : null;
-}));
+const ActionBuilder = React.memo(
+  React.forwardRef(function ActionBuilder(
+    props: ActionBuilderProps,
+    ref: HTMLElementRefOf<"div">,
+  ) {
+    const world = useVariantModelWorld(props.sc, props.interaction, props.vc);
+    return world.alive ? <ActionBuilderContent {...props} ref={ref} /> : null;
+  }),
+);
 export default ActionBuilder;
 
 function getActionMeta(sc: StudioCtx, actionName: string) {

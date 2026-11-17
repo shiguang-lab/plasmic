@@ -75,7 +75,7 @@ describe("sendCommentsNotificationEmails", () => {
       async ({ sudo, users, project, userDbs }) => {
         // Create a fresh thread with activity so it appears in the
         // unnotified set for this project.
-        const root = await addComment(userDbs[0](), project.id);
+        await addComment(userDbs[0](), project.id);
 
         // Soft-delete the project so DbMgr.tryGetProjectById(projectId, false)
         // returns null. Threads remain queryable (deletedAt on project only).
@@ -279,7 +279,7 @@ describe("sendCommentsNotificationEmails", () => {
 
         // user 0 selfReply
         // user 1 should not be notified for this because user 1 has not yet responded
-        const user0SelfReply = await addComment(
+        await addComment(
           userDbs[0](),
           project.id,
           user0comment.commentThreadId,
@@ -289,14 +289,14 @@ describe("sendCommentsNotificationEmails", () => {
         const user1Comment = await addComment(userDbs[1](), project.id);
 
         // User 1 reply to user 0 comment
-        const user1ReplyToUser0Comment = await addComment(
+        await addComment(
           userDbs[1](),
           project.id,
           user0comment.commentThreadId,
         );
 
         // user 0 replied to user 1 comment should be notified
-        const user0Replied = await addComment(
+        await addComment(
           userDbs[0](),
           project.id,
           user1Comment.commentThreadId,
@@ -346,14 +346,14 @@ describe("sendCommentsNotificationEmails", () => {
         const user1Comment = await addComment(userDbs[1](), project.id);
 
         // user 1 reply to user 0 comment
-        const user1Reply = await addComment(
+        await addComment(
           userDbs[1](),
           project.id,
           user0comment.commentThreadId,
         );
 
         // user 1 reply to user 0 comment, should not be notified
-        const user1MentionUser0 = await userDbs[1]().postCommentInThread(
+        await userDbs[1]().postCommentInThread(
           { projectId: project.id },
           {
             body: `@<${users[0].email}> should check`,
@@ -363,8 +363,7 @@ describe("sendCommentsNotificationEmails", () => {
         );
 
         // user 1 resolved a thread that user has participated but will not be notified
-        const commentThreadUnResolvedHistoryForUser1Comment =
-          await updatedThreadStatus(
+        await updatedThreadStatus(
             userDbs[1](),
             user0comment.commentThreadId,
             false,
@@ -865,8 +864,7 @@ describe("sendCommentsNotificationEmails", () => {
         );
 
         // user 1 resolved his thread and user should not be notified
-        const commentThreadResolvedHistoryForUser0Comment =
-          await updatedThreadStatus(
+        await updatedThreadStatus(
             userDbs[1](),
             user1Comment.commentThreadId,
             true,
@@ -1908,7 +1906,7 @@ describe("sendCommentsNotificationEmails", () => {
         );
 
         // user 0 reacted to self comment, user 0 should not be notified
-        const user0CommentReaction = await reactOnComment(
+        await reactOnComment(
           userDbs[0](),
           user0comment.id,
         );

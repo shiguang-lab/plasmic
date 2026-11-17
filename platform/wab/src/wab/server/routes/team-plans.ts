@@ -13,13 +13,13 @@ import {
 } from "@/wab/shared/ApiSchema";
 import { DevFlagsType } from "@/wab/shared/devflags";
 import { SiteFeature, TaggedResourceId } from "@/wab/shared/perms";
-import { Request } from "express-serve-static-core";
+import type { Request } from "express-serve-static-core";
 import moment from "moment/moment";
 import Stripe from "stripe";
 
-export async function checkFreeTrialDuration(req: Request, team: Team) {}
+export async function checkFreeTrialDuration(req: Request, team: Team) { /* Trial expiry is not enforced in this build. */ }
 
-export async function checkStripeSubscription(req: Request, team: Team) {}
+export async function checkStripeSubscription(req: Request, team: Team) { /* Stripe subscriptions are not enforced in this build. */ }
 
 export function passPaywall<T>(response: T): MayTriggerPaywall<T> {
   return { paywall: "pass", response };
@@ -56,7 +56,7 @@ export async function checkAndResetTeamTrial(
   teamId: TeamId,
   mgr: DbMgr,
   devflags: DevFlagsType,
-) {}
+) { /* Trial resets are disabled in this build. */ }
 
 export const stripe = new Stripe("BAD_KEY", {
   apiVersion: "2026-08-26.dahlia",
@@ -66,12 +66,12 @@ export function mkStripeCustomerData(
   team: Team,
   teamUrl?: string,
   syncName?: boolean,
-) {}
+) { /* Stripe customer data is not generated in this build. */ }
 
 export async function resetStripeCustomer(
   userMgr: DbMgr,
   superMgr: DbMgr,
   team: Team,
-) {}
+) { /* Stripe customer resets are disabled in this build. */ }
 
-export async function syncDataWithStripe(team: Team, host: string) {}
+export async function syncDataWithStripe(team: Team, host: string) { /* Stripe synchronization is disabled in this build. */ }

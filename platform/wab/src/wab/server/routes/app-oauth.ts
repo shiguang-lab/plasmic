@@ -10,7 +10,7 @@ import { makeStableEncryptor } from "@/wab/server/util/crypt";
 import { UnauthorizedError } from "@/wab/shared/ApiErrors/errors";
 import { ProjectId, UserId } from "@/wab/shared/ApiSchema";
 import crypto from "crypto";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import jwt from "jsonwebtoken";
 import { isString } from "lodash";
 
@@ -59,7 +59,6 @@ export async function issueOauthCode(req: Request, res: Response) {
 
   const {
     client_id: clientId, // clientId is the appId
-    scope: scope,
     state: state,
     response_type: responseType,
     code_challenge: codeChallenge,

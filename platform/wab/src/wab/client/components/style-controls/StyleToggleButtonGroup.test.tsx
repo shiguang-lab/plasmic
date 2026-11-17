@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
-import StyleToggleButton from "./StyleToggleButton";
-import StyleToggleButtonGroup from "./StyleToggleButtonGroup";
+import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
+import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 
 vi.mock("./StyleToggleButton", () => ({ default: (props: { value: string; onClick?: () => void; valueSetState?: string; isDisabled?: boolean }) => <button onClick={props.onClick} disabled={props.isDisabled} aria-pressed={props.valueSetState === "isSet"}>{props.value}</button> }));
 vi.mock("@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButtonGroup", () => ({ PlasmicStyleToggleButtonGroup: ({ children }: React.PropsWithChildren) => <div>{children}</div> }));

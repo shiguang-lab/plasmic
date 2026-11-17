@@ -497,7 +497,7 @@ export function CmsModelDetails_(
         onFinish={(values) => {
           console.log("finish", values);
         }}
-        onValuesChange={(changedValues, allValues) => {
+        onValuesChange={() => {
           setFormValidationErrorMessage(
             computeFormValidationErrorMessage() ?? undefined,
           );
@@ -705,7 +705,7 @@ function ModelFields({
                   }
                 >
                   <Form.Item noStyle shouldUpdate={() => true}>
-                    {({ getFieldValue }) =>
+                    {() =>
                       renderModelFieldForm(
                         database,
                         databaseId,

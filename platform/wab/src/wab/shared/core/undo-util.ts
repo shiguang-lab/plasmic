@@ -4,7 +4,7 @@ import { ModelChange } from "@/wab/shared/core/observable-model";
 import { range } from "lodash";
 
 export function undoChanges(changes: ModelChange[]) {
-  for (const change of arrayReversed(ensure(changes))) {
+  for (const change of arrayReversed(ensure(changes, "Model changes must be provided when applying undo"))) {
     const lastNode = change.changeNode;
     const { inst, field } = lastNode;
     if (change.type === "array-splice") {

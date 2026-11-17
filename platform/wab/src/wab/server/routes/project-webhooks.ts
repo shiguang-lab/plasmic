@@ -11,7 +11,7 @@ import {
   apiProjectWebhookFields,
 } from "@/wab/shared/ApiSchema";
 import { ensureString, ensureType } from "@/wab/shared/common";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import _ from "lodash";
 
 export async function triggerProjectWebhook(req: Request, res: Response) {

@@ -4,7 +4,7 @@ import DataPickerColumn from "@/wab/client/components/sidebar-tabs/DataBinding/D
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { setUiLocale } from "@/wab/client/i18n";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import * as pickerUtil from "./DataPickerUtil";
+import * as pickerUtil from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerUtil";
 import * as React from "react";
 
 afterEach(() => {

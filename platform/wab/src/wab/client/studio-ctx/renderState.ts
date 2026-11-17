@@ -362,7 +362,7 @@ class RenderStateImpl {
     );
     if (bestValCompFullKey) {
       const bestParamKey = splitFullKeys.find(
-        ([k, p]) => k === bestValCompFullKey,
+        ([k]) => k === bestValCompFullKey,
       )?.[1];
       if (bestParamKey) {
         return `${bestValCompFullKey}~${bestParamKey}`;

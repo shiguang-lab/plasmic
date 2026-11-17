@@ -1,6 +1,6 @@
 import { Config } from "@/wab/server/config";
 import type { Mailer } from "@/wab/server/emails/Mailer";
-import { Request } from "express-serve-static-core";
+import type { Request } from "express-serve-static-core";
 import { Mocked } from "vitest";
 
 export function setupEmailTest() {

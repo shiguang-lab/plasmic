@@ -7,7 +7,8 @@ import { AppearancePanelSection } from "@/wab/client/components/sidebar-tabs/App
 import { BoxGeometrySection } from "@/wab/client/components/sidebar-tabs/BoxGeometrySection";
 import { ComponentPropsSection } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import { CustomBehaviorsSection } from "@/wab/client/components/sidebar-tabs/CustomBehaviorsSection";
-import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
+import { FilterEffectsPanelSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
+import { InteractionStylesPanelSection } from "@/wab/client/components/sidebar-tabs/InteractionStylesPanelSection";
 import { GridChildSection } from "@/wab/client/components/sidebar-tabs/GridChildSection";
 import {
   HTMLAttributesSection,
@@ -23,7 +24,6 @@ import {
 import { MixinsSection } from "@/wab/client/components/sidebar-tabs/MixinsSection";
 import { PositioningPanelSection } from "@/wab/client/components/sidebar-tabs/PositioningSection";
 import { RepeaterSection } from "@/wab/client/components/sidebar-tabs/RepeaterSection";
-import { RepeatingElementSection } from "@/wab/client/components/sidebar-tabs/RepeatingElementSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
 import { SimplifiedCodeComponentModeSection } from "@/wab/client/components/sidebar-tabs/SimplifiedCodeComponentModeSection";
 import {
@@ -96,7 +96,6 @@ import {
   isTplColumns,
   isTplComponent,
   isTplContainer,
-  isTplIcon,
   isTplImage,
   isTplSlot,
   isTplTag,
@@ -119,7 +118,6 @@ import * as React from "react";
 
 export enum Section {
   Tag = "tag",
-  RepeatingElement = "repeating-element",
   CustomBehaviors = "custom-behavior",
   HTMLAttributes = "html-attributes",
   Link = "link",
@@ -141,6 +139,7 @@ export enum Section {
   Image = "image",
   ListStyle = "list-style",
   Typography = "typography",
+  InteractionStylesPanel = "interaction-styles-panel",
   TextContentOnly = "text",
   ComponentMergedSlotProps = "component-merged-slots-props",
   ComponentMergedSlotText = "component-merged-slots-text",
@@ -217,13 +216,11 @@ const SECTION_SETTINGS: AllSectionsPresent<SectionSetting> = {
   [Section.Border]: { publicSection: PublicStyleSection.Border },
   [Section.Outline]: { publicSection: PublicStyleSection.Outline },
   [Section.EffectsPanel]: { publicSection: PublicStyleSection.Effects },
+  [Section.InteractionStylesPanel]: { publicSection: PublicStyleSection.Effects },
   [Section.MissingPositionClass]: { publicSection: PublicStyleSection.Layout },
   [Section.Interactions]: { publicSection: PublicStyleSection.Interactions },
   [Section.CustomBehaviors]: {
     publicSection: PublicStyleSection.CustomBehaviors,
-  },
-  [Section.RepeatingElement]: {
-    publicSection: PublicStyleSection.Repetition,
   },
   [Section.Repeater]: { publicSection: PublicStyleSection.Repetition },
   [Section.Tag]: { publicSection: PublicStyleSection.Tag },
@@ -312,6 +309,7 @@ const styleSections = new Set([
   Section.Size,
   Section.ListStyle,
   Section.Typography,
+  Section.InteractionStylesPanel,
   Section.Spacing,
   Section.Layout,
   Section.Overflow,
@@ -357,7 +355,6 @@ function getRenderBySection(
   const isRoot = isComponentRoot(tpl);
   const component = viewCtx.currentComponent();
   const isTypographyTpl = isTypographyNode(tpl);
-  const isIcon = isTplIcon(tpl);
   const isAttachmentComp =
     isComponent &&
     isCodeComponent(tpl.component) &&
@@ -432,18 +429,6 @@ function getRenderBySection(
         isComponent &&
         hasSimplifiedMode(viewCtx, tpl.component) && (
           <SimplifiedCodeComponentModeSection tpl={tpl} viewCtx={viewCtx} />
-        ),
-    ],
-    [
-      Section.RepeatingElement,
-      () =>
-        (isTag || isComponent) &&
-        !isRoot && (
-          <RepeatingElementSection
-            key={`${tpl.uuid}-repeating`}
-            viewCtx={viewCtx}
-            tpl={tpl}
-          />
         ),
     ],
     [
@@ -744,6 +729,17 @@ function getRenderBySection(
         ),
     ],
     [
+      Section.InteractionStylesPanel,
+      () =>
+        isTagOrCodeComponentTpl &&
+        showSection(Section.InteractionStylesPanel) && (
+          <InteractionStylesPanelSection
+            key={`${tpl.uuid}-interaction-styles`}
+            expsProvider={sc.props.expsProvider}
+          />
+        ),
+    ],
+    [
       Section.TextContentOnly,
       () =>
         hasTextContent(tpl) &&
@@ -826,7 +822,7 @@ function getRenderBySection(
       () =>
         isTagOrCodeComponentTpl &&
         showSection(Section.EffectsPanel) && (
-          <EffectsPanelSection
+          <FilterEffectsPanelSection
             key={`${tpl.uuid}-effects`}
             expsProvider={sc.props.expsProvider}
           />
@@ -960,9 +956,6 @@ export function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section>
     // available so it can show a read-only box when a real DOM node exists.
     pushIfNew(Section.BoxGeometry);
     pushIfNew(Section.Visibility);
-    if (tpl.component.codeComponentMeta.isRepeatable) {
-      pushIfNew(Section.RepeatingElement);
-    }
     pushIfNew(Section.ComponentProps);
     pushIfNew(Section.CustomBehaviors);
     pushIfNew(Section.Interactions);
@@ -974,7 +967,6 @@ export function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section>
   pushIfNew(Section.PrivateStyleVariants);
   pushIfNew(Section.Mixins);
   pushIfNew(Section.Visibility);
-  pushIfNew(Section.RepeatingElement);
   pushIfNew(Section.SizeWidthOnly);
 
   pushIfNew(Section.SimplifiedCodeComponentMode);
@@ -983,6 +975,7 @@ export function getOrderedSections(tpl: TplNode, viewCtx: ViewCtx): Set<Section>
   pushIfNew(Section.LayoutPanel);
   pushIfNew(Section.AppearancePanel);
   pushIfNew(Section.Typography);
+  pushIfNew(Section.InteractionStylesPanel);
   pushIfNew(Section.Background, Section.Border, Section.Outline);
   pushIfNew(Section.TextContentOnly);
   // Priority Sections
@@ -1102,7 +1095,6 @@ const PROPS_TAB_SECTIONS = new Set<Section>([
   Section.ComponentMergedSlotProps,
   Section.SimplifiedCodeComponentMode,
   Section.ComponentMergedSlotText,
-  Section.RepeatingElement,
   Section.Repeater,
   Section.Tag,
   Section.Link,
@@ -1115,9 +1107,13 @@ function sectionMatchesTab(
   section: Section,
   tab: StyleTabFilter,
   contentEditorMode: boolean,
+  isComponent: boolean,
 ) {
   if (tab === "interactions") {
     return INTERACTION_TAB_SECTIONS.has(section);
+  }
+  if (!isComponent) {
+    return tab === "design" && !INTERACTION_TAB_SECTIONS.has(section);
   }
   if (tab === "props") {
     return (
@@ -1147,7 +1143,7 @@ export function getOrderedSectionRender(
     .filter(
       (section) =>
         canEditSection(viewCtx.studioCtx, section) &&
-        sectionMatchesTab(section, styleTabFilter, contentEditorMode),
+        sectionMatchesTab(section, styleTabFilter, contentEditorMode, isTplComponent(tpl)),
     )
     .map((section) =>
       ensure(

@@ -74,7 +74,7 @@ export function fakeAppCtx(opts?: {
   const app = fakeApp();
   const history = createMemoryHistory();
 
-  // @ts-expect-error
+  // @ts-expect-error Test fixture omits authentication, routing and top-frame services.
   const appCtx = new AppCtx({
     api,
     app,
@@ -103,7 +103,7 @@ function fakeDbCtx(opts?: {
     devFlagOverrides: opts?.devFlagOverrides,
     teams: opts?.teams,
   });
-  // @ts-expect-error
+  // @ts-expect-error Test fixture omits API and persisted model version metadata.
   const dbCtx = new DbCtx({
     app: appCtxDeps.app,
     appCtx: appCtxDeps.appCtx,

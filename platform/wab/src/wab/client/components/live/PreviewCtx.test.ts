@@ -44,6 +44,26 @@ test("ordinary preview defaults to desktop without carrying artboard dimensions"
   expect(history.location.hash).toBe("#/groups");
 });
 
+test.each([[393, 852, "phone"], [852, 393, "phone"], [834, 1194, "tablet"], [1194, 834, "tablet"]] as const)("opening a device page preserves its authored viewport (%i × %i, %s)", async (width, height, kind) => {
+  const { ctx, history } = await setup();
+  const studio = ctx.studioCtx;
+  try {
+    history.replace("/projects/project");
+    await studio.changeUnsafe(() => studio.addComponent("Mobile", { type: ComponentType.Page }));
+    const frame = ensure(getArenaFrames(studio.currentArena)[0], "Mobile frame");
+    const view = ensure(studio.tryGetViewCtxForFrame(frame), "Mobile view");
+    await studio.changeUnsafe(() => { frame.width = width; frame.height = height; });
+    vi.spyOn(studio, "getPreviewInitialViewCtx").mockResolvedValue(view);
+    const location = await getUrlsForLiveMode(studio, false);
+    const search = new URLSearchParams(location.search);
+    expect(search.get("viewport")).toBe(kind);
+    expect(search.get("width")).toBe(String(width));
+    expect(search.get("height")).toBe(String(height));
+    expect(frame.width).toBe(width);
+    expect(frame.height).toBe(height);
+  } finally { ctx.dispose(); studio.dispose(); }
+});
+
 test("exiting a comment-linked preview preserves the complete editor URL", async () => {
   const { ctx, history } = await setup();
   const studio = ctx.studioCtx;

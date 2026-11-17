@@ -329,7 +329,7 @@ function LeftGeneralTokensPanelContent({ source }: { source: TokenPanelInputs })
     excludeInactiveScreenVariants: true,
   });
 
-  const [screenGlobalVariants, contextGlobalVariants] = partition(
+  const [, contextGlobalVariants] = partition(
     availableTargets,
     (v) => isScreenVariant(v),
   );

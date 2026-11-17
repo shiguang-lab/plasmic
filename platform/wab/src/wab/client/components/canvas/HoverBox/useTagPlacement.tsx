@@ -8,6 +8,7 @@ export function useTagPlacement(
   width: number,
   zoom: number,
   viewCtx?: ViewCtx,
+  frameOutset = 0,
 ) {
   const [placement, setPlacement] = React.useState<React.CSSProperties>({
     visibility: "hidden",
@@ -74,7 +75,7 @@ export function useTagPlacement(
       const left = Math.min(0, width * zoom - w);
       const candidates = toolbarBounds.length
         ? [
-            { left, top: -h },
+            { left, top: -h - frameOutset },
             // Keep the label horizontally associated with its node. When the
             // content toolbar overlaps it, stack the label above the toolbar.
             ...toolbarBounds.map((rect) => ({
@@ -86,10 +87,10 @@ export function useTagPlacement(
             })),
           ]
         : [
-            { left, top: -h },
-            { left, top: bounds.height + 5 },
-            { left: bounds.width + 5, top: 0 },
-            { left: -w - 5, top: 0 },
+            { left, top: -h - frameOutset },
+            { left, top: bounds.height + 5 + frameOutset },
+            { left: bounds.width + 5 + frameOutset, top: 0 },
+            { left: -w - 5 - frameOutset, top: 0 },
           ];
       const collides = (candidate: { left: number; top: number }) => {
         const x = bounds.left + candidate.left;

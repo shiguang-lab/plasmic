@@ -59,13 +59,11 @@ export interface ChangeNode {
   readonly field: string;
 }
 
-interface BaseChange {}
-
 /**
  * Change representing a List or Set field value having
  * items added or removed.
  */
-interface ArraySpliceChange<T = any> extends BaseChange {
+interface ArraySpliceChange<T = any> {
   type: "array-splice";
   object: T[];
   index: number;
@@ -86,7 +84,7 @@ export const mkArrayBeforeSplice = <T = any>(
  * Change representing a List or Set field value having
  * a member replaced.
  */
-interface ArrayUpdateChange<T = any> extends BaseChange {
+interface ArrayUpdateChange<T = any> {
   type: "array-update";
   object: T[];
   index: number;
@@ -98,7 +96,7 @@ interface ArrayUpdateChange<T = any> extends BaseChange {
  * Change representing a Map field value having a new
  * member added.
  */
-interface ObjAddChange<T = any> extends BaseChange {
+interface ObjAddChange<T = any> {
   type: "obj-add";
   object: any;
   key: string | number | symbol;
@@ -109,7 +107,7 @@ interface ObjAddChange<T = any> extends BaseChange {
  * Change representing a Map field value having an existing
  * entry changed.
  */
-interface ObjUpdateChange<T = any> extends BaseChange {
+interface ObjUpdateChange<T = any> {
   type: "obj-update";
   key: string | number | symbol;
   object: any;
@@ -121,7 +119,7 @@ interface ObjUpdateChange<T = any> extends BaseChange {
  * Change representing a Map field value having an existing
  * entry deleted.
  */
-interface ObjDeleteChange<T = any> extends BaseChange {
+interface ObjDeleteChange<T = any> {
   type: "obj-delete";
   key: string | number | symbol;
   object: any;
@@ -132,7 +130,7 @@ interface ObjDeleteChange<T = any> extends BaseChange {
  * Change representing a `ObjInst`'s field being set to a
  * new value.
  */
-interface FieldUpdateChange<T = any> extends BaseChange {
+interface FieldUpdateChange<T = any> {
   type: "update";
   oldValue: T;
   newValue: T;
@@ -1732,7 +1730,7 @@ export class ChangeRecorder implements IChangeRecorder {
 }
 
 export class FakeChangeRecorder implements IChangeRecorder {
-  prune() {}
+  prune() { /* The fake recorder has no recorded changes to prune. */ }
   getToBeDeletedInsts() {
     return new Set<ObjInst>();
   }
@@ -1770,8 +1768,8 @@ export class FakeChangeRecorder implements IChangeRecorder {
   maybeObserveComponents(components: Component[]) {
     return false;
   }
-  dispose() {}
-  setExtraListener(_newListener: (change: ModelChange) => void) {}
+  dispose() { /* The fake recorder owns no subscriptions to dispose. */ }
+  setExtraListener(_newListener: (change: ModelChange) => void) { /* The fake recorder does not dispatch change notifications. */ }
   get isRecording() {
     return false;
   }

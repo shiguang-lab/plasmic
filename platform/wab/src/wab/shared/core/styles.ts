@@ -80,12 +80,16 @@ import {
 import {
   FallbackableExpr,
   codeLit,
+  deserCompositeExpr,
+  serCompositeExprMaybe,
+  tryExtractJson,
   isFallbackableExpr,
 } from "@/wab/shared/core/exprs";
 import {
   getImageAssetVarName,
   resolveAllAssetRefs,
 } from "@/wab/shared/core/image-assets";
+import type { JsonObject } from "@/wab/shared/core/lang";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import {
   TokenRefResolver,
@@ -118,6 +122,7 @@ import { FinalToken, toFinalToken } from "@/wab/shared/core/tokens";
 import {
   canTagHaveChildren,
   findVariantSettingsUnderTpl,
+  flattenExprs,
   isTplCodeComponent,
   isTplColumns,
   isTplComponent,
@@ -159,6 +164,7 @@ import {
   ArenaFrame,
   Arg,
   Component,
+  Expr,
   ImageAsset,
   KeyFrame,
   Mixin,
@@ -167,6 +173,7 @@ import {
   Site,
   StyleExpr,
   StyleToken,
+  StyleTokenRef,
   StyleTokenOverride,
   Theme,
   ThemeLayoutSettings,
@@ -181,6 +188,7 @@ import {
   ensureKnownStyleScopeClassNamePropType,
   ensureKnownTplComponent,
   isKnownClassNamePropType,
+  isKnownCompositeExpr,
   isKnownStyleExpr,
   isKnownStyleScopeClassNamePropType,
   isKnownStyleToken,
@@ -2780,38 +2788,36 @@ export function cloneThemeLayoutSettings(layout: ThemeLayoutSettings) {
   });
 }
 
-interface TokenUsageBase {}
-
-interface TokenUsageByRule extends TokenUsageBase {
+interface TokenUsageByRule {
   value: string;
   prop: string;
   rs: RuleSet;
   type: "rule";
 }
 
-interface TokenUsageByStyleToken extends TokenUsageBase {
+interface TokenUsageByStyleToken {
   styleToken: StyleToken;
   type: "styleToken";
 }
 
-interface TokenUsageByStyleTokenOverride extends TokenUsageBase {
+interface TokenUsageByStyleTokenOverride {
   styleTokenOverride: StyleTokenOverride;
   type: "styleTokenOverride";
 }
 
-interface TokenUsageByVariantedValue extends TokenUsageBase {
+interface TokenUsageByVariantedValue {
   variantedValue: VariantedValue;
   type: "variantedValue";
 }
 
-interface TokenUsageByComponentProp extends TokenUsageBase {
+interface TokenUsageByComponentProp {
   tpl: TplComponent;
   vs: VariantSetting;
   arg: Arg;
   type: "prop";
 }
 
-interface TokenUsageByComponentPropFallback extends TokenUsageBase {
+interface TokenUsageByComponentPropFallback {
   tpl: TplComponent;
   vs: VariantSetting;
   expr: FallbackableExpr;
@@ -2837,6 +2843,22 @@ export function changeTokenUsage(
     : action === "inline"
       ? token.value
       : tokenTypeDefaults(token.type);
+  const replacePropToken = (expr: Expr): Expr => {
+    if (isKnownCompositeExpr(expr)) {
+      const value = deserCompositeExpr<JsonObject>(expr);
+      for (const [path, subExpr] of Object.entries(expr.substitutions)) {
+        const next = replacePropToken(subExpr);
+        const literal = tryExtractJson(next);
+        L.set(value, path, literal === undefined ? next : literal);
+      }
+      return serCompositeExprMaybe(value);
+    }
+    return isKnownStyleTokenRef(expr) && expr.token === token
+      ? isKnownStyleToken(action)
+        ? new StyleTokenRef({ token: action })
+        : codeLit(replaced)
+      : expr;
+  };
   if (usage.type === "rule") {
     usage.rs.values[usage.prop] = replaceAllTokenRefs(
       usage.value,
@@ -2855,9 +2877,9 @@ export function changeTokenUsage(
           ).getActiveTokenValue(toFinalToken(token, site))
         : replaced;
   } else if (usage.type === "prop") {
-    usage.arg.expr = codeLit(replaced);
+    usage.arg.expr = replacePropToken(usage.arg.expr);
   } else if (usage.type === "fallback") {
-    usage.expr.fallback = codeLit(replaced);
+    usage.expr.fallback = replacePropToken(ensure(usage.expr.fallback, "Token usage must have a fallback"));
   } else {
     unreachable(usage);
   }
@@ -2914,7 +2936,10 @@ export function extractTokenUsages(
       findUsageInExpandedRs(vs.rs, tpl);
       if (isTplComponent(tpl)) {
         for (const arg of vs.args) {
-          if (isKnownStyleTokenRef(arg.expr) && arg.expr.token === token) {
+          if (
+            (isKnownStyleTokenRef(arg.expr) || isKnownCompositeExpr(arg.expr)) &&
+            flattenExprs(arg.expr).some((expr) => isKnownStyleTokenRef(expr) && expr.token === token)
+          ) {
             trackComponent();
             usages.add({ type: "prop", tpl, vs, arg });
           } else if (isKnownStyleExpr(arg.expr)) {
@@ -2924,7 +2949,7 @@ export function extractTokenUsages(
             }
           } else if (isFallbackableExpr(arg.expr)) {
             const fallback = arg.expr.fallback;
-            if (isKnownStyleTokenRef(fallback) && fallback.token === token) {
+            if (fallback && flattenExprs(fallback).some((expr) => isKnownStyleTokenRef(expr) && expr.token === token)) {
               trackComponent();
               usages.add({ type: "fallback", tpl, vs, expr: arg.expr });
             }

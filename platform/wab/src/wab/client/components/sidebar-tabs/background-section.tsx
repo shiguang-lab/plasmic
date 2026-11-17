@@ -381,7 +381,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
             const newUrl = isKnownImageAsset(picked)
               ? mkImageAssetRef(picked)
               : picked;
-            updateImg(new ImageBackground({ url: newUrl }), () => {});
+            updateImg(new ImageBackground({ url: newUrl }), () => { /* The replacement image is already configured; no extra mutation is needed. */ });
           }}
           type={ImageAssetType.Picture}
           studioCtx={studioCtx}
@@ -419,7 +419,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
             value={`${lin.angle}deg`}
             onChange={(val) => {
               updateImg(lin, (next) => {
-                const { num, units } = ensure(
+                const { num } = ensure(
                   css.parseCssNumericNew(val || "0"),
                   "Must be a valid numeric value",
                 );

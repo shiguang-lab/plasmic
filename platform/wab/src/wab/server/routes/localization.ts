@@ -10,7 +10,7 @@ import { withSpan } from "@/wab/server/util/apm-util";
 import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { ensureArray } from "@/wab/shared/common";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 
 export async function genTranslatableStrings(req: Request, res: Response) {
   const mgr = userDbMgr(req);

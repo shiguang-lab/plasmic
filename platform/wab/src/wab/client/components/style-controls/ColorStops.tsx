@@ -216,7 +216,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
               >
                 <XDraggable
                   onMouseDown={() => setSelectedStop(stopNum)}
-                  onStart={(e) => {
+                  onStart={() => {
                     props.studioCtx.startUnlogged();
                     return setIsDragging(true);
                   }}

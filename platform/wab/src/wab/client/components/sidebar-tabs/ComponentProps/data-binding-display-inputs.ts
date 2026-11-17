@@ -25,9 +25,9 @@ function createDisplaySource(view: ViewCtx | undefined, value: BindingValue) {
     const read = () => {
       if (!alive()) { return current; }
       const used = new Set<ModelFieldStore<unknown>>(), seen = new Set<Site>();
-      const scan = (value: Site) => {
-        if (seen.has(value)) { return; } seen.add(value);
-        const dependencies = models.field(value, "projectDependencies"); used.add(dependencies);
+      const scan = (dependencySite: Site) => {
+        if (seen.has(dependencySite)) { return; } seen.add(dependencySite);
+        const dependencies = models.field(dependencySite, "projectDependencies"); used.add(dependencies);
         dependencies.getState().forEach((ref) => {
           const dependency = models.resolve(ref), child = models.field(dependency, "site");
           used.add(child); used.add(models.field(dependency, "name")); used.add(models.field(dependency, "projectId")); scan(models.resolve(child.getState()));

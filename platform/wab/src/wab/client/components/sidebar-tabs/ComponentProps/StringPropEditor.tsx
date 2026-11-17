@@ -142,7 +142,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
   const [handle, setHandle] = React.useState<PropEditorRef | null>(null);
   React.useImperativeHandle(
     outerRef,
-    () => handle ?? { element: null, focus: () => {}, isFocused: () => false },
+    () => handle ?? { element: null, focus: () => { /* There is no mounted input to focus yet. */ }, isFocused: () => false },
     [handle],
   );
 

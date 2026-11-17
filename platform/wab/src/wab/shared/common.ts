@@ -595,7 +595,6 @@ export function lastWhere<T>(
   f: (x: T, i: number) => boolean,
 ): [null | T, number] {
   for (let i = xs.length - 1; i >= 0; i--) {
-    const x = xs[i];
     if (f(xs[i], i)) {
       return tuple(xs[i], i);
     }
@@ -1613,9 +1612,9 @@ export function spawnWrapper<T extends (...args: any[]) => Promise<any>>(
   };
 }
 
-export function spawn(_promise: PromiseLike<any> | void) {}
+export function spawn(_promise: PromiseLike<any> | void) { /* The promise is already running; this helper intentionally discards its result. */ }
 
-export function spawnPromise(_promise: Promise<any>) {}
+export function spawnPromise(_promise: Promise<any>) { /* The promise is already running; this helper intentionally discards its result. */ }
 
 export function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -2122,7 +2121,7 @@ export function promiseToCallback<T>(cb: StandardCallback<T>, p: Promise<T>) {
 }
 
 export async function asyncNever() {
-  return new Promise<never>(() => {});
+  return new Promise<never>(() => { /* Neither resolve nor reject is called so this promise remains pending. */ });
 }
 
 /**

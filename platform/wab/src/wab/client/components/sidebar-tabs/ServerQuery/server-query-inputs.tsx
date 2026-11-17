@@ -300,8 +300,8 @@ export class QueryInvalidationInputs extends QueryModelInputs<QueryInvalidationS
     const data: ComponentDataQuery[] = [], server: ComponentServerQuery[] = [];
     for (const ref of this.read(this.site, "components")) {
       const component = this.models.resolve(ref);
-      data.push(...this.read(component, "dataQueries").map(ref => this.models.resolve(ref)));
-      server.push(...this.read(component, "serverQueries").map(ref => this.models.resolve(ref)));
+      data.push(...this.read(component, "dataQueries").map(queryRef => this.models.resolve(queryRef)));
+      server.push(...this.read(component, "serverQueries").map(queryRef => this.models.resolve(queryRef)));
     }
     const options: {value: string; name: string; count?: number; ref: ComponentDataQuery | ComponentServerQuery}[] = [];
     const groups = new Map<string, {value: string; name: string; count: number; ref: ComponentServerQuery}>();
@@ -323,15 +323,15 @@ export class QueryInvalidationInputs extends QueryModelInputs<QueryInvalidationS
     };
     for (const query of [...data, ...server]) {
       const entry = identify(query);
-      if (!entry.enabled) continue;
+      if (!entry.enabled) {continue;}
       if (entry.grouped && isKnownComponentServerQuery(query)) {
         const group = groups.get(entry.id);
-        if (group) group.count++;
-        else groups.set(entry.id, {value: entry.id, name: entry.name, count: 1, ref: query});
-      } else options.push({value: entry.id, name: entry.name, ref: query});
+        if (group) {group.count++;}
+        else {groups.set(entry.id, {value: entry.id, name: entry.name, count: 1, ref: query});}
+      } else {options.push({value: entry.id, name: entry.name, ref: query});}
     }
     options.push(...groups.values());
-    if (this.value) this.ownedVersion(this.value);
+    if (this.value) {this.ownedVersion(this.value);}
     return Object.freeze({
       options: Object.freeze(options.map(option => Object.freeze(option))),
       selectedValues: this.value ? Object.freeze(this.value.invalidationQueries.map(ref => typeof ref === "string" ? ref : identify(ref.ref).id)) : undefined,

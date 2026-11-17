@@ -11,7 +11,7 @@ afterEach(() => { act(() => root.unmount()); container.remove(); });
 const current = () => (root as unknown as { _internalRoot: FiberRoot })._internalRoot.current;
 function visibleIds(tree: Fiber) {
   const ids: string[] = [];
-  traverseTree(tree, node => { if (node.memoizedProps?.["data-node"]) ids.push(node.memoizedProps["data-node"]); }, () => {}, false);
+  traverseTree(tree, node => { if (node.memoizedProps?.["data-node"]) {ids.push(node.memoizedProps["data-node"]);} }, () => {}, false);
   return ids;
 }
 
@@ -21,9 +21,9 @@ it("excludes retained Activity content while hidden and restores it without remo
   // like the DevTools hook, before React can reuse an alternate fiber.
   const onCommit = () => {
     const tree = current();
-    if (tree.alternate) traverseUpdates(tree, tree.alternate, () => {}, () => {}, node => {
-      if (node.memoizedProps?.["data-node"]) unmounted.push(node.memoizedProps["data-node"]);
-    }, () => {});
+    if (tree.alternate) {traverseUpdates(tree, tree.alternate, () => {}, () => {}, node => {
+      if (node.memoizedProps?.["data-node"]) {unmounted.push(node.memoizedProps["data-node"]);}
+    }, () => {});}
   };
   const element = (mode: "visible" | "hidden") => <React.Profiler id="activity" onRender={onCommit}><React.Activity mode={mode}><span data-node="primary">Primary</span></React.Activity><span data-node="outside">Outside</span></React.Profiler>;
   await act(async () => root.render(element("visible")));

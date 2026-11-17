@@ -24,9 +24,9 @@ export const migrate: UnbundledMigrationFn = async (bundle, db, entity) => {
 
   for (const component of site.components) {
     for (const [vs] of findVariantSettingsUnderTpl(component.tplTree)) {
-      // @ts-ignore -- handlers was removed from VariantSetting
+      // @ts-expect-error Legacy bundles have handlers, removed from the current VariantSetting type.
       if (vs.handlers) {
-        // @ts-ignore -- handlers was removed from VariantSetting
+        // @ts-expect-error Read legacy handlers without changing the migration's source schema.
         for (const handler of vs.handlers) {
           for (const interaction of handler.interactions) {
             if (

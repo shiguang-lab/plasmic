@@ -36,9 +36,12 @@ export class CanvasViewInputs {
 
 const emptySubscribe = () => () => undefined;
 const inactiveSnapshot = () => inactive;
-export function useCanvasViewInputs(view: ViewCtx | undefined, recipe: CanvasViewFieldRecipe) {
+function useCanvasViewSource(view: ViewCtx | undefined, recipe: CanvasViewFieldRecipe) {
   const scope = React.useMemo(() => view ? { studio: view.studioCtx, models: view.studioCtx.modelSnapshots, signal: view.disposeSignal } : undefined, [view]);
-  const source = React.useMemo(() => scope ? new CanvasViewInputs(scope, recipe) : undefined, [scope, recipe]);
+  return React.useMemo(() => scope ? new CanvasViewInputs(scope, recipe) : undefined, [scope, recipe]);
+}
+export function useCanvasViewInputs(view: ViewCtx | undefined, recipe: CanvasViewFieldRecipe) {
+  const source = useCanvasViewSource(view, recipe);
   return React.useSyncExternalStore(source?.subscribe ?? emptySubscribe, source?.getSnapshot ?? inactiveSnapshot, source?.getSnapshot ?? inactiveSnapshot);
 }
 export const noCanvasModelFields: CanvasViewFieldRecipe = () => undefined;
@@ -74,6 +77,12 @@ class CanvasViewValue<T> {
 
 export function useCanvasComponentValue<T>(studio: StudioCtx, component: ObjInst, recipe: CanvasViewFieldRecipe, select: () => T): T | undefined {
   const source = useCanvasComponentSource(studio, component, recipe);
+  const value = React.useMemo(() => new CanvasViewValue(source, select), [source, select]);
+  return React.useSyncExternalStore(source?.subscribe ?? emptySubscribe, value.getSnapshot, value.getSnapshot);
+}
+
+export function useCanvasViewValue<T>(view: ViewCtx, recipe: CanvasViewFieldRecipe, select: () => T): T | undefined {
+  const source = useCanvasViewSource(view, recipe);
   const value = React.useMemo(() => new CanvasViewValue(source, select), [source, select]);
   return React.useSyncExternalStore(source?.subscribe ?? emptySubscribe, value.getSnapshot, value.getSnapshot);
 }

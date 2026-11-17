@@ -67,7 +67,7 @@ export class CanvasObservedRenderSource {
     };
   };
   commit() {
-    this.getState();
+    void this.getState();
     if (!this.disposed && this.current) {
       this.view.commitCanvasObserver(this);
       this.view.canvasRenderOwner.commitRender(this.current.pass);

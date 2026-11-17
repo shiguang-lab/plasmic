@@ -113,6 +113,7 @@ const CloneBox = React.memo(function CloneBox({
       className={"ElementHighlightBoxContainer"}
       // Repeated clones (e.g. table rows) often extend past the artboard.
       clipToVisible
+      clipToScreen
     >
       <div
         className="ElementHighlightBoxRendered"

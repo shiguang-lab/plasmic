@@ -87,7 +87,7 @@ it("omits top-right undo/redo and view controls while keeping remaining dividers
   }
 });
 
-it("places Desktop web import at the far right of TopBar and triggers openDesktopBrowser", async () => {
+it("places Desktop web import immediately before Publish and triggers openDesktopBrowser", async () => {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
     "PlasmicDesktop/darwin",
   );
@@ -110,12 +110,13 @@ it("places Desktop web import at the far right of TopBar and triggers openDeskto
   );
 
   try {
-    const actions = container.querySelector(".editor-primary-actions");
     const button = container.querySelector(
       '[data-test-id="import-from-web-button"]',
     );
     expect(button).toBeTruthy();
-    expect(actions?.lastElementChild).toBe(button);
+    expect(button?.nextElementSibling).toBe(
+      screen.getByRole("button", { name: "Publish" }).closest(".editor-publish-wrapper"),
+    );
     fireEvent.click(
       screen.getByRole("button", { name: "Import from the web" }),
     );

@@ -843,7 +843,7 @@ const DataOpExecuteQueueContext = React.createContext<{
   >;
 }>({
   executeQueue: [],
-  setExecuteQueue: () => {},
+  setExecuteQueue: () => { /* The default context has no execution queue provider to update. */ },
 });
 
 function useDataOpExecuteQueue() {

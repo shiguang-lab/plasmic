@@ -518,7 +518,7 @@ it("themes the actual property-source popup outside the document's product theme
   }
 });
 
-describe("removing a section's styles", () => {
+describe("section header menus", () => {
   function setup(mixin = false) {
     const rs = mkRuleSet({ values: { color: "blue", position: "absolute" } });
     const exp = RSH(rs, mkTplTagX("div", {}));
@@ -534,8 +534,7 @@ describe("removing a section's styles", () => {
       changeUnsafe: async (change: () => void) => change(),
     } as unknown as StudioCtx;
     const provider = new SingleRsExpsProvider(rs, exp, studioCtx, [], { kind: "ruleSet", rs, forTag: "div" });
-    // A Tpl provider and a mixin provider differ only in whether the section's
-    // required layout defaults apply. Keep the actual ruleset operations.
+    // Exercise both provider kinds, which use different preset menu labels.
     const expsProvider: ExpsProvider = mixin ? provider : { ...provider };
     render(
       <StudioCtxContext.Provider value={studioCtx}>
@@ -553,17 +552,14 @@ describe("removing a section's styles", () => {
     return rs;
   }
 
-  it("clears removable defaults so inherited styles can take effect", async () => {
-    const rs = setup();
+  it.each([
+    [false, "Extract all Typography styles to a style preset"],
+    [true, "Move all Typography styles to a style preset"],
+  ] as const)("keeps preset actions without bulk style removal (mixin=%s)", async (mixin, label) => {
+    const rs = setup(mixin);
     fireEvent.contextMenu(screen.getByText("Typography"));
-    await act(async () => { fireEvent.click(await screen.findByRole("menuitem", { name: /Remove all Typography styles/ })); });
-    expect(rs.values).toEqual({ position: "relative" });
-  });
-
-  it("clears mixin styles without inserting a component's layout defaults", async () => {
-    const rs = setup(true);
-    fireEvent.contextMenu(screen.getByText("Typography"));
-    await act(async () => { fireEvent.click(await screen.findByRole("menuitem", { name: /Remove all Typography styles/ })); });
-    expect(rs.values).toEqual({});
+    expect(await screen.findByRole("menuitem", { name: new RegExp(label) })).toBeTruthy();
+    expect(screen.queryByRole("menuitem", { name: /Remove all .* styles/ })).toBeNull();
+    expect(rs.values).toEqual({ color: "blue", position: "absolute" });
   });
 });

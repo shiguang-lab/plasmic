@@ -660,3 +660,17 @@ The vendored source scope is documented in [vendor/react-ui](../vendor/react-ui/
 ### Built-in Host cache
 
 The Web container requires both `STUDIO_ORIGIN` and `CANVAS_ORIGIN`. Startup configuration renders these origins, recomputes the content hash of the built-in Host HTML, and updates its compiled references before Nginx starts. Deploy the updated Compose and Nginx configuration with the Web image. Only `host.<sha256>.html` uses immutable HTML caching; the stable Host and Studio entry stay updateable. Retain immutable files needed by already-open builds.
+
+### Material UI mobile component library
+
+Material UI is an independent hostless library from
+`@shiguang-lab/plasmic-material-ui`. Its canvas bundle, runtime exports and package
+tarball are included in the build. After deploying, register the library with the
+server stopped, then restart the server to reload the Component Store catalog:
+
+```sh
+docker compose run --rm server src/wab/server/nas-material-ui.ts
+```
+
+See [the Material UI package](../plasmicpkgs/material-ui/README.md) for component
+coverage, native property/state contracts, theme configuration and validation.

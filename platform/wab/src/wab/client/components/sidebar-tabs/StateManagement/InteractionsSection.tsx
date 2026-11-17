@@ -1,4 +1,3 @@
-import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { useElementPropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useLinkedCodePropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/linked-code-prop-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
@@ -9,7 +8,7 @@ import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 // This file is owned by you, feel free to edit as you see fit.
 import { useI18n } from "@/wab/client/i18n";
 import { useSignalListener } from "@/wab/commons/components/use-signal-listener";
-import { assert, ensure, remove, spawn, unexpected } from "@/wab/shared/common";
+import { assert, remove, spawn, unexpected } from "@/wab/shared/common";
 import {
   Component,
   EventHandler,
@@ -19,7 +18,10 @@ import {
   isKnownVarRef,
 } from "@/wab/shared/model/classes";
 
-import { Select } from "antd";
+import { Button, Menu } from "antd";
+import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
+import { Icon } from "@/wab/client/components/widgets/Icon";
+import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { uniqBy } from "lodash";
 import { ok } from "neverthrow";
 import * as React from "react";
@@ -270,36 +272,28 @@ const AddHandlerFunctionButton = React.memo(
   }) {
     const { t: uiT } = useI18n();
     const { tpl, onSelect, options } = props;
-    const [showing, setShowing] = React.useState(false);
     return (
-      <Select
-        aria-label={uiT("Add event handler")}
-        className={configSearch.select}
-        data-test-id="add-interaction"
-        showSearch
-        value={null}
-        open={showing}
-        onOpenChange={setShowing}
-        style={{ width: 170 }}
-        placeholder={uiT("Add event handler")}
-        popupMatchSelectWidth={240}
-        optionFilterProp="label"
-        onSelect={(value) => {
-          onSelect(
-            ensure(
-              options.find(
-                (option) => value === getIdNameOfEventHandlerKey(option),
-              ),
-              "Event handler must match the component contract",
-            ),
-          );
-          setShowing(false);
-        }}
-        options={options.map((option) => ({
-          value: getIdNameOfEventHandlerKey(option),
-          label: getDisplayNameOfEventHandlerKey(option, { tpl }),
-        }))}
-      />
+      <IFrameAwareDropdownMenu
+        placement="bottomRight"
+        menu={
+          <Menu
+            items={options.map((option) => ({
+              key: getIdNameOfEventHandlerKey(option),
+              label: getDisplayNameOfEventHandlerKey(option, { tpl }),
+              onClick: () => onSelect(option),
+            }))}
+          />
+        }
+      >
+        <Button
+          type="text"
+          size="small"
+          aria-label={uiT("Add event handler")}
+          aria-haspopup="menu"
+          data-test-id="add-interaction"
+          icon={<Icon icon={PlusIcon} />}
+        />
+      </IFrameAwareDropdownMenu>
     );
   },
 );

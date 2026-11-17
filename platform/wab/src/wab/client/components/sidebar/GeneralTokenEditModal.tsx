@@ -50,7 +50,7 @@ export const GeneralTokenEditModal = function GeneralTokenModal(props: {
       : ensure(clientValue, "Resolved native token value must exist");
 
     const onChange = async (val: string | undefined) => {
-      assert(val !== undefined);
+      assert(val !== undefined, "Style token edits must provide a defined value");
       if (!world.isCurrent()) { return; }
       return studioCtx.changeUnsafe(() => {
         if (!world.isCurrent()) { return; }

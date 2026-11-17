@@ -3,7 +3,7 @@
 // Although we are in client/, some test specs import from it and fail if
 // we remove this `if`.
 if (window && "matchMedia" in window) {
-  const tinymce = require("tinymce/tinymce");
+  require("tinymce/tinymce");
 
   require("tinymce/icons/default");
   require("tinymce/models/dom/model");
@@ -27,14 +27,10 @@ if (window && "matchMedia" in window) {
   require("tinymce/plugins/visualblocks");
 }
 
-// @ts-ignore
 import lightSkin from "!!raw-loader!tinymce/skins/ui/tinymce-5/skin.min.css";
-// @ts-ignore
 import darkSkin from "!!raw-loader!tinymce/skins/ui/tinymce-5-dark/skin.min.css";
 
-// @ts-ignore
 import contentCss from "!!raw-loader!../../gen/static/styles/tinymce-content-css.txt";
-// @ts-ignore
 import prismCss from "!!raw-loader!../../gen/static/styles/prismjs-css.txt";
 
 import { getCmsImageUrl } from "@/wab/client/components/sidebar/image-asset-controls";

@@ -19,7 +19,7 @@ vi.mock("@/wab/client/components/coding/monacoEditorUtil", async () => {
     createFilePathWithExtension: (name: string) => name,
     useMonacoEditor: (container: HTMLElement | null, options: any) => {
       useEffect(() => {
-        if (!container) return;
+        if (!container) {return;}
         const editor = {
           getModel: () => mocks.model,
           getSelection: () => ({ startLineNumber: 1, endLineNumber: 1, startColumn: 5, endColumn: 5 }),

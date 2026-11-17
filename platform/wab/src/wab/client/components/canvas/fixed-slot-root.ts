@@ -6,7 +6,7 @@ import { isCodeComponent } from "@/wab/shared/core/components";
 
 export function isFixedRootSlot(view: ViewCtx, slot: SlotSelection) {
   const component = slot.getTpl().component;
-  if (!isCodeComponent(component)) return false;
+  if (!isCodeComponent(component)) {return false;}
   const prop = view.getCodeComponentMeta(component)?.props[slot.slotParam.variable.name];
   return !!prop && typeof prop === "object" && prop.type === "slot" && !!prop.fixedRoot;
 }

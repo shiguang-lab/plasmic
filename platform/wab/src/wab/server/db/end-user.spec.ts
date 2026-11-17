@@ -309,7 +309,6 @@ describe("end-user", () => {
 
         const HRGroup = groups.find((g) => g.name === "HR")!;
         const DevGroup = groups.find((g) => g.name === "Dev")!;
-        const OpsGroup = groups.find((g) => g.name === "Ops")!;
         const FunGroup = groups.find((g) => g.name === "Fun")!;
 
         const accessRules = await sudo.listAppAccessRules(project.id);
@@ -408,7 +407,6 @@ describe("end-user", () => {
 
           const SUPER_ADMIN = roles[0];
           const ADMIN = roles[1];
-          const NORMAL = roles[2];
           const VIEWER = roles[3];
 
           // Should get super admin through HR group

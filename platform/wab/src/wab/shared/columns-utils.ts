@@ -13,7 +13,7 @@ import {
 import { clamp, isEqual, isUndefined, range, sum } from "lodash";
 
 export const hasMaxWidthVariant = (variant: Variant): boolean => {
-  const spec = parseScreenSpec(ensure(variant.mediaQuery));
+  const spec = parseScreenSpec(ensure(variant.mediaQuery, "Screen variant must have a media query to determine its maximum width"));
   return !!spec.maxWidth;
 };
 
@@ -57,7 +57,7 @@ export function isTplColumnsVariantReversed(
   variants: Variant[],
   vtm: VariantTplMgr,
 ) {
-  const tplVs = ensure(vtm.ensureVariantSetting(tpl, variants));
+  const tplVs = ensure(vtm.ensureVariantSetting(tpl, variants), "Responsive columns must have a variant setting before adjusting their layout");
   const rsh = RSH(tplVs.rs, tpl);
   const isReversed =
     isReverseValue(rsh.get("flex-direction")) ||
@@ -103,7 +103,7 @@ export function updateCurrentTplColumns(
   newConfig: Partial<ColumnsConfigParams>,
   vtm: VariantTplMgr,
 ) {
-  const currentConfig = ensure(vtm.effectiveVariantSetting(tpl).columnsConfig);
+  const currentConfig = ensure(vtm.effectiveVariantSetting(tpl).columnsConfig, "Responsive columns must have an effective columns configuration before redistribution");
   const variants = vtm.ensureCurrentVariantSetting(tpl).variants;
   adjustVariantTplColumns(
     tpl,

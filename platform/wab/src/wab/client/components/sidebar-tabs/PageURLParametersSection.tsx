@@ -230,7 +230,7 @@ export function PageURLParametersSection(props: { page: Component }) {
                         sourceMeta,
                         "getList",
                       )(mainDetailsSpec.sourceId, mainDetailsSpec.tableId),
-                      onSave: () => {},
+                      onSave: () => { /* Row selection uses the selection callback, not a save action. */ },
                       onCancel: () => close(),
                       isRowSelector: true,
                       onRowSelected: async (row) => {

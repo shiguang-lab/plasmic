@@ -73,7 +73,7 @@ function reportAndFixOversizedLocalStorage() {
 
 // Monkey patch console.log afterwards based on the devflags
 const originalConsoleLog = console.log;
-console.log = function () {};
+console.log = function () { /* Console logging stays muted until monkeyPatchConsoleLog restores it. */ };
 
 /**
  * main needs to go in Shell rather than main.tsx since Shell is the root of
@@ -115,7 +115,7 @@ export function main() {
 
   (window as any).commithash = ENV.COMMITHASH;
 
-  const appContainerElement = ensure(document.querySelector(".app-container"));
+  const appContainerElement = ensure(document.querySelector(".app-container"), "Studio app container must exist before mounting the React root");
 
   monkeyPatchConsoleLog();
 

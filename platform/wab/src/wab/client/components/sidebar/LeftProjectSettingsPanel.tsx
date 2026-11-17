@@ -35,27 +35,21 @@ import {
 } from "@/wab/shared/common";
 import {
   findVariantGroupForParam,
-  getComponentDisplayName,
   getParamDisplayName,
   getRealParams,
-  isContextCodeComponent,
   isHostLessCodeComponent,
 } from "@/wab/shared/core/components";
 import { asCode, codeLit, tryExtractJson } from "@/wab/shared/core/exprs";
 import { ComponentPropOrigin } from "@/wab/shared/core/lang";
-import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import { tryGetTplOwnerComponent } from "@/wab/shared/core/tpls";
 import { DefinedIndicatorType } from "@/wab/shared/defined-indicator";
 import {
-  Component,
   isKnownExpr,
-  ProjectDependency,
   TplComponent,
 } from "@/wab/shared/model/classes";
 import { isRenderFuncParam, isSlot } from "@/wab/shared/SlotUtils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Menu, notification, Tooltip } from "antd";
-import L from "lodash";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { useStore } from "zustand";

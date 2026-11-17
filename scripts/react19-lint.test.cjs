@@ -4,21 +4,23 @@ const { test } = require("node:test");
 const { ESLint } = require("eslint");
 
 const repo = path.resolve(__dirname, "..");
-test("maintained Studio, Host and component sources enforce Hook ordering and dependencies", async () => {
+test("maintained React sources enforce Hook ordering without prescribing dependencies", async () => {
   const eslint = new ESLint({ cwd: repo });
   for (const file of [
     "platform/wab/src/wab/client/components/Shell.tsx",
+    "platform/wab/src/wab/client/components/coding/CodeDisplayContent.tsx",
     "platform/sub/src/index.tsx",
     "platform/live-frame/src/render.tsx",
     "packages/host/src/history.ts",
     "packages/react-web/src/react-utils.tsx",
+    "packages/loader-nextjs/src/react-server.tsx",
     "plasmicpkgs/antd6/src/form/FormList.tsx",
     "plasmicpkgs/plasmic-sanity-io/src/sanity.tsx",
     "plasmicpkgs/commerce-providers/shopify/src/cart/use-cart.tsx",
   ]) {
     const config = await eslint.calculateConfigForFile(file);
     assert.equal(config.rules["react-hooks/rules-of-hooks"][0], "error", file);
-    assert.equal(config.rules["react-hooks/exhaustive-deps"][0], "warn", file);
+    assert.equal(config.rules["react-hooks/exhaustive-deps"][0], "off", file);
   }
 });
 

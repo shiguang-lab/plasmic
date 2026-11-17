@@ -26,6 +26,7 @@ export interface LabeledListItemProps
   uiId?: UiId;
   menu?: React.ReactNode | MenuMaker;
   noMenuButton?: boolean;
+  alwaysShowActions?: boolean;
   onClick?: (event: React.MouseEvent) => void;
   onDelete?: (event: React.MouseEvent) => void;
   onContextMenu?: (event: React.MouseEvent) => void;
@@ -43,6 +44,7 @@ function LabeledListItem_(
     uiId,
     menu,
     noMenuButton,
+    alwaysShowActions,
     onClick,
     onDelete,
     onContextMenu,
@@ -118,6 +120,7 @@ function LabeledListItem_(
           ? {
               onClick: swallowClick,
               style: {
+                opacity: alwaysShowActions ? 1 : undefined,
                 alignSelf: rest.alignment === "center" ? "center" : undefined,
               },
             }

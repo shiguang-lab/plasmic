@@ -18,7 +18,7 @@ import {
   paramToVarName,
   toVarName,
 } from "@/wab/shared/codegen/util";
-import { assert, ensure } from "@/wab/shared/common";
+import { ensure } from "@/wab/shared/common";
 import { getParamByVarName } from "@/wab/shared/core/components";
 import { fixParentPointers, mkTplComponent } from "@/wab/shared/core/tpls";
 import {
@@ -35,9 +35,8 @@ import {
   maybeIncludeSerializedDefaultSlotContent,
   serializeComponentSubstitutionCallsForDefaultContents,
 } from "@/wab/shared/plume/plume-utils";
-import type { BaseMenuButtonProps, MenuButtonRef } from "@plasmicapp/react-web";
+import type { MenuButtonRef } from "@plasmicapp/react-web";
 import { omit, pick } from "lodash";
-import type React from "react";
 
 const RESERVED_PROPS = ["isOpen", "isDisabled", "menu"];
 

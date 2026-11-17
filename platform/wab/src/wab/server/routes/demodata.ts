@@ -1,4 +1,4 @@
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 
 export async function getFakeTweets(req: Request, res: Response) {
   res.header("Access-Control-Allow-Origin", "*");

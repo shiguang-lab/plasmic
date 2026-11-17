@@ -1,6 +1,6 @@
 # Page purpose and admin page types
 
-Choose `pageType` from the Page's primary user task during [structure design](page-structure.md), before templates or components. For admin work, it routes starting skeletons and composition guidance; for a public website, editorial or other non-admin experience, use `non-admin` and derive the arrangement from `pageStructure.intent` and `source`. A component library does not determine page purpose. Put the type in the minimal plan. Explicit spatial constraints take precedence; otherwise decide arrangement through `pageStructure` reasoning without overriding protected component defaults. Admin pages use the [design scale](scale.md) and linked compositions for region internals.
+Choose `pageType` from the Page's primary user task during [structure design](page-structure.md), before templates or components. For admin work, it routes starting skeletons and composition guidance within the supported Overseas/Antd6 suite; for a public website, editorial or other non-admin experience, use `non-admin` and derive the arrangement from `pageStructure.intent` and `source`. A component library does not determine page purpose. Put the type in the minimal plan. Explicit spatial constraints take precedence; otherwise decide arrangement through `pageStructure` reasoning without overriding protected component defaults. Only the supported admin suite uses the [design scale](scale.md) and linked compositions for region internals. Other libraries retain the task's page classification but use their own component contracts and task-derived layout.
 
 Rendered examples of every admin type live in the Plasmic project 页面类型参考 (`gPHk7DnpyjQisz59sZYNVJ`), one Page per type. Read a Page's model through MCP to compare structure and props; the reference structures below remain the rule.
 
@@ -8,8 +8,8 @@ Rendered examples of every admin type live in the Plasmic project 页面类型�
 
 - Decide `pageType` from the source task: choose an admin type below or `non-admin`; record the purpose and source in `pageStructure`. Do not reclassify an admin Page to bypass its rules.
 - Use the regions below as starting guidance, then decide arrangement from the source and task under [Page structure design](page-structure.md). Omit regions with no source content; retain required regions and explicit arrangements even when they differ from the example. Record source constraints separately from agent reasoning and verify the inventory.
-- Inside an admin AppShell, content starts with the first business region; omit a standalone Page title or intro unless the current user explicitly requests that area, and do not duplicate the shell's breadcrumbs (see [admin content entry](layout.md#admin-content-entry)).
-- Admin top-level regions follow the decided Page structure using native layout components and the shared 16px spacing baseline. Vertical Flex is suitable for sequential regions; Row or horizontal Flex can express simultaneous regions. Do not nest one region's surface inside another's.
+- Inside a supported Overseas/Antd6 admin AppShell, content starts with the first business region; omit a standalone Page title or intro unless the current user explicitly requests that area, and do not duplicate the shell's breadcrumbs (see [admin content entry](layout.md#admin-content-entry)).
+- Supported Overseas/Antd6 admin top-level regions follow the decided Page structure using native layout components and the shared 16px spacing baseline. Vertical Flex is suitable for sequential regions; Row or horizontal Flex can express simultaneous regions. Do not nest one region's surface inside another's.
 - Overlays (Modal, Drawer) belong to the Page that opens them; they are not separate Pages.
 
 ## Choosing the type

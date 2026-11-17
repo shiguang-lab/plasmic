@@ -26,6 +26,7 @@ import { useStore } from "zustand";
 import { MdScreenRotation } from "react-icons/md";
 
 import { BrandLink } from "@/wab/client/components/BrandLink";
+import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import {
   DEVICE_VIEWPORTS,
   isViewportDimension,
@@ -440,7 +441,9 @@ export function PreviewTopBar({
   };
 
   const currentDevice =
-    viewportMode === "custom" ? "desktop" : viewportMode;
+    viewportMode === "custom"
+      ? getDeviceFrame(previewWidth, previewHeight)?.kind ?? "desktop"
+      : viewportMode;
 
   return (
     <div
@@ -675,7 +678,7 @@ export function PreviewTopBar({
               onClick={() => {
                 spawn(
                   previewCtx.pushViewport({
-                    viewport: currentDevice,
+                    viewport: viewportMode,
                     width: previewHeight,
                     height: previewWidth,
                   }),

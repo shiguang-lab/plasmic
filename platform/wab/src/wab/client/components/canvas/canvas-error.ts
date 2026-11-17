@@ -2,7 +2,6 @@ import {
   getEnvId,
   RenderingCtx,
 } from "@/wab/client/components/canvas/canvas-rendering";
-import { handleError } from "@/wab/client/ErrorNotifications";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { getExportedComponentName } from "@/wab/shared/codegen/react-p/serialize-utils";
@@ -15,7 +14,6 @@ import {
   TplNode,
 } from "@/wab/shared/model/classes";
 import { isPlasmicUndefinedDataErrorPromise } from "@plasmicapp/data-sources";
-import { debounce } from "lodash";
 import type React from "react";
 
 export interface CanvasErrorBoundaryProps {
@@ -98,6 +96,3 @@ function deriveOffendingElement(error: Error | null | undefined) {
   const match = error.stack?.match(/at (\w+)/);
   return match?.[1] ?? undefined;
 }
-
-// Only for detecting errors in e2e tests
-const handleCanvasError = debounce(handleError, 500, { leading: true });

@@ -19,3 +19,10 @@ it("validates custom React controls without a browser and still rejects invalid 
     expect(validate({}).isErr()).toBe(true);
   } finally { vi.unstubAllGlobals(); }
 });
+
+it("places array controls below their property label, including function controls", () => {
+  const array = { type: "array" as const, itemType: { type: "object" as const, fields: { name: "string" as const } } };
+  expect(getPropTypeLayout(array)).toBe("vertical");
+  expect(getPropTypeLayout({ type: "function", argNames: [], argValues: [], control: array })).toBe("vertical");
+  expect(getPropTypeLayout("string")).toBe("horizontal");
+});

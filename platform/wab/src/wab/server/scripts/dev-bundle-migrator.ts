@@ -185,8 +185,8 @@ export async function migrateInMemory(bundleJson: string) {
         );
       return pkgBundles.map(([id, b]) => bundleAsDbEntity(id, b) as PkgVersion);
     },
-    allowProjectToDataSources: async () => {},
-    extendProjectIdAndTokens: async () => {},
+    allowProjectToDataSources: async () => { /* The migration-only database stub does not grant data-source permissions. */ },
+    extendProjectIdAndTokens: async () => { /* The migration-only database stub does not extend project credentials. */ },
     tryGetDevFlagOverrides: async () => undefined,
     isDevBundle: true,
   };

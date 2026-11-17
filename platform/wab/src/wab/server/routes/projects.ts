@@ -178,7 +178,7 @@ import { assertSiteInvariants } from "@/wab/shared/site-invariants";
 import { mergeUiConfigs } from "@/wab/shared/ui-config-utils";
 import { getCodegenUrl } from "@/wab/shared/urls";
 import * as Sentry from "@sentry/node";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import {
   fromPairs,
   isString,

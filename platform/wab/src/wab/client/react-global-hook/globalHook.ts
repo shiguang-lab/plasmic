@@ -1103,5 +1103,5 @@ export const globalHookCtx: GlobalHookCtx = officialHook?.plasmic ?? {
   fullKeyToEnvId: new Map(),
   frames: new Map(),
   createFrameState: (frame) => createFrameState(undefined, frame),
-  dispose: () => {},
+  dispose: () => { /* The standalone fallback has no installed global hook to dispose. */ },
 };

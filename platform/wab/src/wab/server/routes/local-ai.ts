@@ -7,7 +7,7 @@ import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import {
   localAiStatusSchema,
 } from "@/wab/shared/copilot/local-edit";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 
 async function authorize(req: Request) {
   getUser(req);

@@ -116,7 +116,7 @@ function CmsModelsList_(
         value: query,
         onChange: (e) => setQuery(e.target.value),
         onKeyDown: (e) => {
-          if (e.key === "Escape") setQuery("");
+          if (e.key === "Escape") {setQuery("");}
         },
       }}
       children={

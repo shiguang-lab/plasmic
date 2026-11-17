@@ -14,7 +14,7 @@ import { TeamId } from "@/wab/shared/ApiSchema";
 import { getEffectiveFeatureTier } from "@/wab/shared/billing/feature-tier";
 import { Bundler } from "@/wab/shared/bundler";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 
 export async function getAnalyticsForTeam(req: Request, res: Response) {
   const mgr = userDbMgr(req);

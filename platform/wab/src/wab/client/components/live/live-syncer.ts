@@ -126,8 +126,8 @@ export function pushPreviewModules(
 
 export function initPreviewInteractionGlobals(frameWindow: Window) {
   // Preview events execute normally without retaining Studio's interaction caches.
-  (frameWindow as any).__PLASMIC_CACHE_$STEP_VALUE = () => {};
-  (frameWindow as any).__PLASMIC_CACHE_EVENT_ARGS = () => {};
+  (frameWindow as any).__PLASMIC_CACHE_$STEP_VALUE = () => { /* Preview execution does not retain Studio interaction caches. */ };
+  (frameWindow as any).__PLASMIC_CACHE_EVENT_ARGS = () => { /* Preview execution does not retain Studio interaction caches. */ };
 }
 
 export async function onLoadInjectLiveRuntime(

@@ -4,7 +4,7 @@ import { getTeamCurrentPeriodRange } from "@/wab/server/routes/team-plans";
 import { ApiFeatureTier } from "@/wab/shared/ApiSchema";
 import { SELF_HOSTED } from "@/wab/shared/deployment";
 import * as Sentry from "@sentry/node";
-import { Request } from "express-serve-static-core";
+import type { Request } from "express-serve-static-core";
 
 export async function isUnderMonthlyViewsLimit(
   featureTier: ApiFeatureTier,

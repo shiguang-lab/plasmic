@@ -240,7 +240,7 @@ async function setupArtboardGestures() {
   const { studioCtx, frames } = fixture;
   const canvas = document.body.appendChild(document.createElement("div"));
   const views = frames.map((frame) => {
-    const view = ensure(studioCtx.tryGetViewCtxForFrame(frame));
+    const view = ensure(studioCtx.tryGetViewCtxForFrame(frame), "Each frame in the selection fixture must have a view context");
     const container = canvas.appendChild(document.createElement("div"));
     Object.defineProperties(container, {
       offsetLeft: { get: () => frame.left },

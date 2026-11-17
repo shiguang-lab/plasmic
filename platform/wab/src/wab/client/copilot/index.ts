@@ -64,6 +64,7 @@ import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { getBaseVariant, isBaseVariant, isScreenVariantGroup } from "@/wab/shared/Variants";
 import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
+import { DEFAULT_MARGIN_FOR_NEW_FRAMES } from "@/wab/shared/canvas-constants";
 import { paramToVarName } from "@/wab/shared/codegen/util";
 import {
   assert,
@@ -327,7 +328,7 @@ function focusCanvas(studio: StudioCtx, arena: ReturnType<typeof findCanvas>, fr
 function findPageArtboard(studio: StudioCtx, page: Component) {
   const candidates = studio.site.arenas.flatMap((arena) => {
     const frames = arena.children.filter((frame) => frame.container.component === page);
-    if (frames.length === 0) return [];
+    if (frames.length === 0) {return [];}
     const coverage = new Set(arena.children.map((frame) => frame.container.component).filter(isPageComponent)).size;
     return [{ arena, frames, coverage }];
   });
@@ -931,7 +932,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
             ? emptyCanvasSpace(studio, {
                 ...input,
                 direction: "right",
-                padding: 80,
+                padding: DEFAULT_MARGIN_FOR_NEW_FRAMES,
               })
             : { x: input.x, y: ensure(input.y, "y missing") };
         const frame = studio
@@ -1847,7 +1848,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           }
         } else if (input.name === "reviewComponentReuse") {
           const parsed = meta.reviewComponentReuse.inputSchema.parse(input.input);
-          for (const target of parsed.targets) inScope(target.componentUuid, target.elementUuid);
+          for (const target of parsed.targets) {inScope(target.componentUuid, target.elementUuid);}
         } else if (input.name === "queryElements") {
           const parsed = meta.queryElements.inputSchema.parse(input.input);
           inScope(parsed.componentUuid, parsed.elementUuid);
@@ -2438,7 +2439,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
                 ...arena.children.map(
                   (candidate) => (candidate.left ?? 0) + candidate.width,
                 ),
-              ) + 80,
+              ) + DEFAULT_MARGIN_FOR_NEW_FRAMES,
               arena.children[0].top ?? 0,
             )
           : new Pt(0, 0);

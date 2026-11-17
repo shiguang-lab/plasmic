@@ -78,6 +78,7 @@ export function LabeledItem(props: {
   tooltip?: React.ReactNode | (() => React.ReactNode);
   definedIndicator?: DefinedIndicatorType | readonly DefinedIndicatorType[];
   rightExtras?: React.ReactNode;
+  alwaysShowActions?: boolean;
   labelAriaProps?: { id?: string; htmlFor?: string };
   "aria-label"?: string;
   isDisabled?: boolean;
@@ -142,9 +143,10 @@ export function LabeledItem(props: {
       data-test-id={dataTestId}
       autoWidth={autoWidth}
       {...contextMenuProps}
-      noMenuButton={props.noMenuButton}
+      noMenuButton={noMenuButton}
       showMoreActions={!!props.rightExtras}
       moreActionButtons={props.rightExtras}
+      alwaysShowActions={props.alwaysShowActions}
       noLabel={!hasLabel}
       noContent={noContent}
       nesting={indentLabel ? "labelOnly" : undefined}

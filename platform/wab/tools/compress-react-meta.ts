@@ -42,7 +42,7 @@ async function main() {
   const freq2Keys: { [freq: number]: number[] } = {};
   // eslint-disable-next-line no-shadow
   for (const key of Object.keys(key2prop).map((key) => +key)) {
-    const freq = ensure(key2tags[key].length);
+    const freq = ensure(key2tags[key].length, "React prop tag count must be available when grouping metadata by frequency");
     if (!(freq in freq2Keys)) {
       freq2Keys[freq] = [];
     }
@@ -54,12 +54,12 @@ async function main() {
 
   // eslint-disable-next-line no-shadow
   for (const freq of Object.keys(freq2Keys).map((freq) => +freq)) {
-    const keys = ensure(freq2Keys[freq]);
+    const keys = ensure(freq2Keys[freq], "React prop keys must exist for the current metadata frequency");
     // Usually frequent props happen to be used by the same set of components
     if (freq * keys.length > 1000) {
       try {
         for (const key of keys) {
-          assert(arrayEqIgnoreOrder(key2tags[key], key2tags[keys[0]]));
+          assert(arrayEqIgnoreOrder(key2tags[key], key2tags[keys[0]]), "React props grouped into a metadata clique must have identical tag sets");
         }
         console.log("Info: found clique of size " + freq * keys.length);
       } catch {

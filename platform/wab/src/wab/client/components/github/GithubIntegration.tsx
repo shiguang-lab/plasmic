@@ -547,7 +547,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
           setDomainTakenError(false);
           setSubdomain(e.target.value);
         },
-        onBlur: (e) => {
+        onBlur: () => {
           setInvalidDomainError(!isValidSubdomainPart(subdomain));
         },
       }}

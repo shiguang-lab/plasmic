@@ -2,7 +2,7 @@ import { uploadFileToS3 } from "@/wab/server/cdn/images";
 import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
 import { isSVG } from "@/wab/shared/svg-utils";
 import fileUpload from "express-fileupload";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import sharp from "sharp";
 
 const MaxImageDim = 4096;

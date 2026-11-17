@@ -22,7 +22,7 @@ import {
 import { parseProjectBranchId } from "@/wab/shared/ApiSchemaUtil";
 import { ensureType, uncheckedCast, withoutNils } from "@/wab/shared/common";
 import express from "express";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { uniq } from "lodash";
 
 export function addCommentsRoutes(app: express.Application) {

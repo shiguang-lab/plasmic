@@ -84,7 +84,7 @@ function CmsSettingsPage_(
                               </Button>
                             ),
                           });
-                        })().catch(async (err) => {
+                        })().catch(async () => {
                           void message.error({
                             content: t("Failed to duplicate CMS"),
                           });

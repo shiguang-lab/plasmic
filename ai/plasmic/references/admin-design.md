@@ -1,12 +1,12 @@
 # Admin design reference index
 
-Use [library and API selection](libraries/index.md) and [native component selection](libraries/index.md#native-component-selection) for the target project's libraries, then select affected references below. Shell reuse follows [shared layout](design/layout.md).
+Use [library and API selection](libraries/index.md) and [native component selection](libraries/index.md#native-component-selection) for the target project's libraries, then select affected references below. The admin scale, page recipes and current template catalog apply to the supported Overseas/Antd6 suite; other libraries retain their own usage references and task-derived layout. Shell reuse follows [shared layout](design/layout.md).
 
 | Affected area | Read |
 | --- | --- |
 | A specific registered component | Its matching library index and component document |
 | Page task, region relationships and arrangement (before detailed planning; review per Page) | [Page structure design](design/page-structure.md), then [Page types](design/page-types.md) for starting skeletons |
-| Spacing, widths, component sizes, typography and density defaults (every Page) | [Admin design scale](design/scale.md) |
+| Spacing, widths, component sizes, typography and density defaults (supported admin suite only) | [Admin design scale](design/scale.md) |
 | Shell, sizing, alignment, overflow, scrolling, responsive layouts or surfaces | [Shared layout](design/layout.md), then the chosen library's layout/shell/surface rules |
 | Supporting text, read-only fields, metrics or headings | Selected library's typography, information/metric components and applicable composition |
 | Queries, scopes, tables, pagination or overflow | Selected libraries' query, table, pagination and overflow components; a composition with matching participants |

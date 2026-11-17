@@ -6,7 +6,7 @@ import { accessLevelRank } from "@/wab/shared/EntUtil";
 import { ensure, ensureString, notNil, omitNils } from "@/wab/shared/common";
 import { MIN_ACCESS_LEVEL_FOR_SUPPORT } from "@/wab/shared/discourse/config";
 import crypto from "crypto";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import L from "lodash";
 
 /**

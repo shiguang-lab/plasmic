@@ -4,7 +4,7 @@ import { logError } from "@/wab/server/server-util";
 import { SendEmailsResponse, TeamId } from "@/wab/shared/ApiSchema";
 import { MIN_ACCESS_LEVEL_FOR_SUPPORT } from "@/wab/shared/discourse/config";
 import { accessLevelRank } from "@/wab/shared/EntUtil";
-import { Request } from "express-serve-static-core";
+import type { Request } from "express-serve-static-core";
 
 export async function sendTeamSupportWelcomeEmail(
   req: Request,

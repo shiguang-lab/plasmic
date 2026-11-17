@@ -70,10 +70,9 @@ export class TypeormStore extends Store {
           return fn();
         }
 
-        let result: any;
         this.debug("GOT %s", session.json);
 
-        result = JSON.parse(session.json);
+        const result = JSON.parse(session.json);
         fn(undefined, result);
       })
       .catch((er) => {

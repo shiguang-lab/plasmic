@@ -271,13 +271,11 @@ import {
   EntityTarget,
   FindConditions,
   FindOneOptions,
-  FindOperator,
   In,
   IsNull,
   MoreThan,
   Not,
   ObjectLiteral,
-  Raw,
   Repository,
   SelectQueryBuilder,
 } from "typeorm";
@@ -785,7 +783,7 @@ export class DbMgr implements MigrationDbMgr {
     checkPermissions(this.actor.type === "SuperUser", `Must be Super User.`);
   }
 
-  private allowAnyone() {}
+  private allowAnyone() { /* Explicit permission marker: this operation permits every actor. */ }
 
   //
   // Entity types.
@@ -5606,7 +5604,7 @@ export class DbMgr implements MigrationDbMgr {
         `Can only add self to team`,
       );
     } else if (this.actor.type === "TeamApiUser") {
-      const user_ = await this.sudo().getUserById(userId);
+      await this.sudo().getUserById(userId);
       checkPermissions(false, `Can only add users owned by team to team`);
     } else if (this.actor.type === "SuperUser") {
       // All good
@@ -8061,7 +8059,7 @@ export class DbMgr implements MigrationDbMgr {
       "change main branch protection",
     );
 
-    const project = await this.getProjectById(projectId);
+    await this.getProjectById(projectId);
     await this.updateProject({
       id: projectId,
       isMainBranchProtected: protected_,
@@ -10676,6 +10674,3 @@ export class DbMgr implements MigrationDbMgr {
     });
   }
 }
-
-const Includes = <T extends string | number>(value: T): FindOperator<T> =>
-  Raw((columnAlias) => `:value = ANY(${columnAlias})`, { value });

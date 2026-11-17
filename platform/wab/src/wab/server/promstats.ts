@@ -1,5 +1,5 @@
 import { MIGRATION_POOL_NAME } from "@/wab/server/db/DbCon";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { Counter, Gauge, Histogram } from "prom-client";
 import { getConnection } from "typeorm";
 import type { WorkerPool } from "workerpool";
@@ -166,7 +166,7 @@ new Gauge({
 });
 
 export function trackPostgresPool(app: string) {
-  const pgPoolTotal = new Gauge({
+  new Gauge({
     name: `pg_pool_total`,
     labelNames: ["pool", "app"],
     help: `Number of total connections in client pool`,
@@ -178,7 +178,7 @@ export function trackPostgresPool(app: string) {
     },
   });
 
-  const pgPoolIdle = new Gauge({
+  new Gauge({
     name: `pg_pool_idle`,
     labelNames: ["pool", "app"],
     help: `Number of idle connections in client pool`,
@@ -190,7 +190,7 @@ export function trackPostgresPool(app: string) {
     },
   });
 
-  const pgWaiting = new Gauge({
+  new Gauge({
     name: `pg_pool_waiting`,
     labelNames: ["pool", "app"],
     help: `Number of waiting requests for client pool`,

@@ -335,7 +335,7 @@ function PermissionsTab_(
 
   const anyEmails = invites.some((v) => !!parseEmailAddress(v));
 
-  const [selecting, setSelecting] = useState(false);
+  const [, setSelecting] = useState(false);
 
   useEffect(() => {
     setRoleId(roles[roles.length - 1]?.id);
@@ -546,7 +546,7 @@ function PermissionsTab_(
                 />
               );
             }),
-            ...accessesByEmail.map((access, idx) => {
+            ...accessesByEmail.map((access) => {
               return (
                 <PermissionRule
                   key={access.id}
@@ -564,7 +564,7 @@ function PermissionsTab_(
                 />
               );
             }),
-            ...accessesByExternalId.map((access, idx) => {
+            ...accessesByExternalId.map((access) => {
               return (
                 <PermissionRule
                   key={access.id}

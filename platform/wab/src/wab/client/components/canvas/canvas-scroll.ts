@@ -107,8 +107,8 @@ export function getCanvasElementVisibility(target: HTMLElement) {
     if (/^(auto|scroll|hidden|clip|overlay)$/.test(style.overflowX)) {
       const edge = rect.left + parent.clientLeft * scaleX;
       if (left < edge || right > edge + parent.clientWidth * scaleX) {
-        if (!canScroll(parent, "X")) reason = "layout-clipped";
-        else if (reason !== "layout-clipped") reason = "scroll-clipped";
+        if (!canScroll(parent, "X")) {reason = "layout-clipped";}
+        else if (reason !== "layout-clipped") {reason = "scroll-clipped";}
       }
       left = Math.max(left, edge);
       right = Math.min(right, edge + parent.clientWidth * scaleX);
@@ -116,14 +116,14 @@ export function getCanvasElementVisibility(target: HTMLElement) {
     if (/^(auto|scroll|hidden|clip|overlay)$/.test(style.overflowY)) {
       const edge = rect.top + parent.clientTop * scaleY;
       if (top < edge || bottom > edge + parent.clientHeight * scaleY) {
-        if (!canScroll(parent, "Y")) reason = "layout-clipped";
-        else if (reason !== "layout-clipped") reason = "scroll-clipped";
+        if (!canScroll(parent, "Y")) {reason = "layout-clipped";}
+        else if (reason !== "layout-clipped") {reason = "scroll-clipped";}
       }
       top = Math.max(top, edge);
       bottom = Math.min(bottom, edge + parent.clientHeight * scaleY);
     }
   }
-  if (reason === "visible" && (left < 0 || top < 0 || right > win.innerWidth || bottom > win.innerHeight)) reason = "outside-viewport";
+  if (reason === "visible" && (left < 0 || top < 0 || right > win.innerWidth || bottom > win.innerHeight)) {reason = "outside-viewport";}
   return { visible: Math.min(right, win.innerWidth) > Math.max(left, 0) && Math.min(bottom, win.innerHeight) > Math.max(top, 0), reason };
 }
 

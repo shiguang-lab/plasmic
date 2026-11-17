@@ -13,10 +13,6 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { zIndex } from "@/wab/client/z-index";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { isNonNil, mkShortId, spawn, uniqueName } from "@/wab/shared/common";
-import {
-  pathToDisplayString,
-  transformDataTokensToDisplay,
-} from "@/wab/shared/eval/expression-parser";
 import { ComponentDataQuery } from "@/wab/shared/model/classes";
 import { Popover, Tooltip } from "antd";
 import { default as classNames } from "classnames";

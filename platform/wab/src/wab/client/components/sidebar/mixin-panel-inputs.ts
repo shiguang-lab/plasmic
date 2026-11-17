@@ -160,7 +160,7 @@ export class MixinPanelInputs {
   }
   private readonly inactiveModel = Object.freeze({alive: false as const, isActive: this.isActive, preview: emptyPreview});
   getModelSnapshot = () => {
-    if (!this.isActive()) return this.inactiveModel;
+    if (!this.isActive()) {return this.inactiveModel;}
     const fields = this.getSnapshot();
     if (!this.modelValue || fields !== this.modelFields) {
       this.modelFields = fields;

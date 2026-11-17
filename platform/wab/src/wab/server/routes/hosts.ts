@@ -1,6 +1,6 @@
 import { userDbMgr } from "@/wab/server/routes/util";
 import { TrustedHostsListResponse } from "@/wab/shared/ApiSchema";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import { pick } from "lodash";
 
 export async function getTrustedHostsData(req: Request): Promise<TrustedHostsListResponse> {

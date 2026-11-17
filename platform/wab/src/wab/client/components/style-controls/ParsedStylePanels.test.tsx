@@ -51,7 +51,7 @@ it("uses parsed filter props, serializes edits through the existing helper and c
 });
 
 it("renders parsed transform replacements and preserves clone-based edits and drag commands", () => {
-  const studio = mock<StudioCtx>(), changed = vi.fn<(value: CssTransform) => void>();
+  const studio = mock<StudioCtx>(), changed = vi.fn<(value: CssTransform | null) => void>();
   const initial = ensure(CssTransform.fromCss("translate3d(1px, 2px, 3px)"), "Expected parsed translation");
   const view = render(<TransformPanel studioCtx={studio} transform={initial} onChange={changed} />);
   const x = within(screen.getByRole("region", { name: "X" }));
@@ -89,7 +89,7 @@ it("keeps transform setting scalar/origin props current and preserves unset, dra
   const current = within(screen.getAllByRole("region", { name: "Origin Left" })[0]);
   fireEvent.change(current.getByRole("textbox"), { target: { value: "65%" } });
   expect(props.updateTransformOrigin).toHaveBeenLastCalledWith({ left: "65%", top: "70%" });
-  const self = within(screen.getByRole("group", { name: "Self Perspective" }));
+  const self = within(screen.getByRole("group", { name: "Self perspective" }));
   expect(self.getByRole("textbox").getAttribute("value")).toBe("300px");
   fireEvent.change(self.getByRole("textbox"), { target: { value: "350px" } });
   expect(props.updateSelfPerspective).toHaveBeenLastCalledWith("350px");

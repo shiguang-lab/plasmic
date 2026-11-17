@@ -220,7 +220,7 @@ export function ensureValidPlumeCodeMeta(
   const states = !meta.states
     ? undefined
     : Object.fromEntries(
-        Object.entries(meta.states).filter(([stateName, stateSpec]) => {
+        Object.entries(meta.states).filter(([, stateSpec]) => {
           // For state, a prop exists if it is going to be added (in `props` above),
           // or it is an existing param.  We use `toVarName()` to match because that's
           // how we match state spec to params in code-components.ts

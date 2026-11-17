@@ -24,7 +24,7 @@ import type { CanvasEnv } from "@/wab/shared/eval";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import { act, cleanup, render } from "@testing-library/react";
 import React from "react";
-import * as ReactDOM from "react-dom";
+import ReactDOM from "react-dom";
 import { mock } from "vitest-mock-extended";
 
 afterEach(() => {

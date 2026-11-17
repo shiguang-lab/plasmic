@@ -36,7 +36,7 @@ import { AccessLevel } from "@/wab/shared/EntUtil";
 import { ApiCmsQuery, FilterClause } from "@/wab/shared/api/cms";
 import { ensure, filterMapTruthy } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { Request, Response } from "express-serve-static-core";
+import type { Request, Response } from "express-serve-static-core";
 import L from "lodash";
 import * as uuid from "uuid";
 import { mock } from "vitest-mock-extended";
@@ -44,7 +44,7 @@ import { mock } from "vitest-mock-extended";
 describe("DbMgr.CMS", () => {
   it("can duplicate the database", () =>
     withDb(async (sudo, [user1], [db1]) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      const { workspace } = await getTeamAndWorkspace(db1());
       const database1 = await db1().createCmsDatabase({
         name: "database1",
         workspaceId: workspace.id,
@@ -329,7 +329,7 @@ describe("DbMgr.CMS", () => {
 
   it("allows crud on database", () =>
     withDb(async (sudo, [user1], [db1]) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      const { workspace } = await getTeamAndWorkspace(db1());
       const database = await db1().createCmsDatabase({
         name: "my db",
         workspaceId: workspace.id,
@@ -354,7 +354,7 @@ describe("DbMgr.CMS", () => {
 
   it("allows crud on tables", () =>
     withDb(async (sudo, [user1], [db1]) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      const { workspace } = await getTeamAndWorkspace(db1());
       const database = await db1().createCmsDatabase({
         name: "my db",
         workspaceId: workspace.id,
@@ -406,7 +406,7 @@ describe("DbMgr.CMS", () => {
         name: "Users",
       });
       expect(table2.identifier).toEqual("myUsers");
-      const table3 = await db1().createCmsTable({
+      await db1().createCmsTable({
         databaseId: database2.id,
         identifier: "users",
         name: "Users",
@@ -443,7 +443,7 @@ describe("DbMgr.CMS", () => {
 
   it("allows crud on rows", () =>
     withDb(async (sudo, [_], [db1]) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      const { workspace } = await getTeamAndWorkspace(db1());
       const database = await db1().createCmsDatabase({
         name: "my db",
         workspaceId: workspace.id,
@@ -648,7 +648,7 @@ describe("DbMgr.CMS", () => {
 
   it("can query for rows", () =>
     withDb(async (sudo, [user1], [db1]) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      const { workspace } = await getTeamAndWorkspace(db1());
       const database = await db1().createCmsDatabase({
         name: "my db",
         workspaceId: workspace.id,
@@ -960,7 +960,7 @@ describe("DbMgr.CMS", () => {
 
   it("can publish rows", () =>
     withDb(async (sudo, [user1], [db1]) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      const { workspace } = await getTeamAndWorkspace(db1());
       const database = await db1().createCmsDatabase({
         name: "my db",
         workspaceId: workspace.id,
@@ -1321,7 +1321,7 @@ describe("DbMgr", () => {
   // TODO This should probably change to be based on the specific invite so as not to be tied to the email. Esp. without email verification. But this is the current behavior.
   it.skip("when creating user, should claim pending invites by email", () =>
     withDb(async (sudo, [user1], [db1]) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      await getTeamAndWorkspace(db1());
     }));
 
   it("when deleting/restoring team or workspace, should delete/restore sub-resources", () =>
@@ -1364,7 +1364,7 @@ describe("DbMgr", () => {
 
   it("supports deleting/restoring workspace-less projects as normal", () =>
     withDb(async (sudo, [user1], [db1], project) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      await getTeamAndWorkspace(db1());
       // project2 is always deleted.
       const { project: project2 } = await db1().createProject({
         name: "My Project 2",
@@ -1690,7 +1690,7 @@ describe("DbMgr", () => {
 
   it("enforces permissions", () =>
     withDb(async (sudo, [user1, user2, user3], [db1, db2, db3], project) => {
-      const { team, workspace } = await getTeamAndWorkspace(db1());
+      const { team } = await getTeamAndWorkspace(db1());
       const pid = project.id;
 
       // Close membership on the project

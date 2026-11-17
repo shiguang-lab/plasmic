@@ -1,0 +1,130 @@
+.frame {
+  position: absolute;
+  box-sizing: border-box;
+  border: solid #111214;
+  box-shadow:
+    0 0 0 1px #090a0c,
+    0 0 0 2px #8b8d93,
+    0 0 0 3px #34363b,
+    0 12px 28px #00000038;
+  pointer-events: none;
+  user-select: none;
+
+  span {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    border-radius: 999px;
+  }
+}
+
+.camera {
+  z-index: 1;
+  width: 100px;
+  height: 28px;
+  top: 11px;
+  left: calc(50% - 50px);
+  background: #030405;
+  box-shadow: inset 0 0 0 1px #202226;
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    top: 11px;
+    right: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #273c58, #080d17 65%);
+    box-shadow: 0 0 0 1px #171c24;
+  }
+}
+
+.home {
+  z-index: 1;
+  width: 120px;
+  height: 5px;
+  bottom: 8px;
+  left: calc(50% - 60px);
+  background: #111214;
+  box-shadow: 0 0 1px 1px #ffffff80;
+}
+
+.buttons {
+  width: 3px;
+  height: 48px;
+  top: 100px;
+  right: -13px;
+  background: linear-gradient(90deg, #35373d, #91939a, #45474e);
+}
+
+.volumeButtons {
+  width: 3px;
+  height: 32px;
+  top: 88px;
+  left: -13px;
+  background: #777980;
+  box-shadow: 0 44px #777980;
+}
+
+.landscape {
+  .camera {
+    left: -25px;
+    top: calc(50% - 14px);
+    transform: rotate(-90deg);
+  }
+
+  .buttons {
+    width: 48px;
+    height: 3px;
+    top: -13px;
+    right: 100px;
+  }
+
+  .volumeButtons {
+    width: 32px;
+    height: 3px;
+    top: auto;
+    bottom: -13px;
+    left: 88px;
+    box-shadow: 44px 0 #777980;
+  }
+}
+
+.tablet {
+  border-color: #17181b;
+
+  .camera {
+    width: 6px;
+    height: 6px;
+    top: -11px;
+    left: calc(50% - 3px);
+    border-radius: 50%;
+    background: #111820;
+
+    &::after {
+      inset: 1px;
+      width: 4px;
+      height: 4px;
+    }
+  }
+
+  .buttons {
+    right: -21px;
+  }
+
+  .volumeButtons {
+    display: none;
+  }
+
+  &.landscape {
+    .camera {
+      top: calc(50% - 3px);
+      left: -11px;
+    }
+    .buttons {
+      top: -21px;
+      right: 100px;
+    }
+  }
+}

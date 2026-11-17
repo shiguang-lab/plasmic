@@ -726,10 +726,10 @@ test("a library upgrade deletes removed AppShell arguments and preserves its oth
   const newShell = mkCodeComponent(meta.name, meta, {});
   oldShell.params.push(mkParam({name:"productName",paramType:"prop",type:typeFactory.text()}), mkParam({name:"breadcrumbItems",paramType:"prop",type:typeFactory.any()}));
   newShell.params.push(mkParam({name:"productName",paramType:"prop",type:typeFactory.text()}));
-  ensure(oldShell.codeComponentMeta).isHostLess = true;
-  ensure(newShell.codeComponentMeta).isHostLess = true;
+  ensure(oldShell.codeComponentMeta, "Previous shell fixture must have code component metadata").isHostLess = true;
+  ensure(newShell.codeComponentMeta, "Updated shell fixture must have code component metadata").isHostLess = true;
   writeable(newShell).uuid = oldShell.uuid;
-  writeable(ensure(newShell.params.find(p => p.variable.name === "productName"))).uuid = ensure(oldShell.params.find(p => p.variable.name === "productName")).uuid;
+  writeable(ensure(newShell.params.find(p => p.variable.name === "productName"), "Updated shell fixture must define the productName prop")).uuid = ensure(oldShell.params.find(p => p.variable.name === "productName"), "Previous shell fixture must define the productName prop").uuid;
   const dep = (version: string, shell: typeof oldShell) => new ProjectDependency({
     name: "Overseas", pkgId: "overseas-pkg", projectId: "overseas-project", version, uuid: version,
     site: createSite({components:[shell]}),

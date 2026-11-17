@@ -1,15 +1,15 @@
-import { extractValueSavedFromDataPicker } from "@/wab/shared/core/exprs";
+import { extractValueSavedFromDataPicker, getCodeExpressionWithFallback } from "@/wab/shared/core/exprs";
 import { isBaseVariantName } from "@/wab/shared/Variants";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import type { ModelFieldStore, ModelRef, ModelSnapshot, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { arrayEq, assert } from "@/wab/shared/common";
+import { arrayEq, assert, ensureInstance } from "@/wab/shared/common";
 import { canDeleteState, isPageComponent } from "@/wab/shared/core/components";
 import { getStateDisplayName, getStateVarName, isPrivateState, type StateVariableType } from "@/wab/shared/core/states";
 import { shallow } from "zustand/shallow";
 import { allComponents, isTplAttachedToSite } from "@/wab/shared/core/sites";
 import { findExprsInNode, isEventHandlerKeyForParam, type EventHandlerKeyType } from "@/wab/shared/core/tpls";
-import { isKnownTplComponent, isKnownTplNode, isKnownTplSlot, isKnownNamedState, type Rep, type VariantSetting, type Expr, type Param, type Component, type EventHandler, type Interaction, type ObjInst, type State, type TplComponent, type TplNode, type TplTag } from "@/wab/shared/model/classes";
+import { CustomCode, ObjectPath, isKnownTplComponent, isKnownTplNode, isKnownTplSlot, isKnownNamedState, type Rep, type VariantSetting, type Expr, type Param, type Component, type EventHandler, type Interaction, type ObjInst, type State, type TplComponent, type TplNode, type TplTag } from "@/wab/shared/model/classes";
 import { groupBy } from "lodash";
 import * as React from "react";
 
@@ -273,8 +273,9 @@ export interface RepeatingElementSnapshot {
   readonly elementName: string;
   readonly indexName: string | undefined;
   readonly collectionValue: string | (string | number)[];
+  readonly collectionCode: string | undefined;
 }
-const noRepetition: RepeatingElementSnapshot = Object.freeze({ base: undefined, repetition: undefined, elementName: "", indexName: undefined, collectionValue: "" });
+const noRepetition: RepeatingElementSnapshot = Object.freeze({ base: undefined, repetition: undefined, elementName: "", indexName: undefined, collectionValue: "", collectionCode: undefined });
 export class RepeatingElementInputs extends StateListInputs<RepeatingElementSnapshot> {
   constructor(view: ViewCtx, private readonly component: Component, private readonly tpl: TplNode) {super(view, component, noRepetition);}
   protected capture(previous: RepeatingElementSnapshot): RepeatingElementSnapshot {
@@ -288,6 +289,7 @@ export class RepeatingElementInputs extends StateListInputs<RepeatingElementSnap
     const repetition = this.read(this.models.resolve(base), "dataRep");
     let elementName = "", indexName: string | undefined;
     let collectionValue: string | (string | number)[] = "";
+    let collectionCode: string | undefined;
     if (repetition) {
       const rep = this.models.resolve(repetition);
       const element = this.models.resolve(this.read(rep, "element"));
@@ -297,13 +299,14 @@ export class RepeatingElementInputs extends StateListInputs<RepeatingElementSnap
       const collection = this.read(rep, "collection");
       const expression = this.models.resolve(collection);
       this.expressionVersion(expression);
+      collectionCode = getCodeExpressionWithFallback(ensureInstance(expression, CustomCode, ObjectPath), { projectFlags: this.view.projectFlags(), component: this.component, inStudio: true });
       const value = extractValueSavedFromDataPicker(expression, { projectFlags: this.view.projectFlags(), component: this.component, inStudio: true }) ?? "";
       if (Array.isArray(value)) {
         const nextValue = [...value]; Object.freeze(nextValue);
         collectionValue = Array.isArray(previous.collectionValue) && arrayEq(previous.collectionValue, value) ? previous.collectionValue : nextValue;
       } else { collectionValue = value; }
     }
-    const next = {base, repetition, elementName, indexName, collectionValue};
+    const next = {base, repetition, elementName, indexName, collectionValue, collectionCode};
     return shallow(previous, next) ? previous : Object.freeze(next);
   }
 }

@@ -8,8 +8,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 vi.mock("@/wab/client/components/widgets", () => ({
-  ListBox: (props: React.ComponentProps<typeof ListBox>) => <div>{props.children}<button onClick={() => props.onReorder?.(0, 1)}>Reorder</button><button onClick={props.onAdd}>Add item</button></div>,
-  ListBoxItem: (props: React.ComponentProps<typeof ListBoxItem>) => <div>{props.mainContent}<button onClick={props.onRemove}>Remove {props.index}</button></div>,
+  ListBox: (props: React.ComponentProps<typeof ListBox>) => <div>{props.children}<button onClick={() => props.onReorder?.(0, 1)}>Reorder</button>{props.onAdd && <button onClick={props.onAdd}>Add item</button>}</div>,
+  ListBoxItem: (props: React.ComponentProps<typeof ListBoxItem>) => <div data-test-id="array-item" data-drag-disabled={props.isDragDisabled}>{props.mainContent}<button onClick={props.onRemove}>Remove {props.index}</button></div>,
 }));
 vi.mock("@/wab/client/components/sidebar-tabs/PropValueEditor", () => ({
   PropValueEditor: (props: React.ComponentProps<typeof PropValueEditor>) => <input aria-label={props.label} value={String(props.value)} onChange={(event) => props.onChange(event.target.value)} />,
@@ -61,7 +61,73 @@ it("passes runtime context identities to item metadata and replaces array edits 
   expect(changed).toHaveBeenLastCalledWith([{ name: "Second" }, { name: "Edited" }]);
   fireEvent.click(screen.getByText("Remove 0"));
   expect(changed).toHaveBeenLastCalledWith([{ name: "Edited" }]);
-  fireEvent.click(screen.getByText("Add item"));
+  fireEvent.click(screen.getByRole("button", { name: "Add item" }));
   expect(changed).toHaveBeenLastCalledWith([{ name: "Edited" }, { name: "New" }]);
   expect(original).toEqual([{ name: "First" }, { name: "Second" }]);
+});
+
+it("places the add control in the property heading and connects its items", () => {
+  const onChange = vi.fn();
+  const header = document.createElement("div");
+  document.body.appendChild(header);
+  const props = {
+    "data-plasmic-prop": "items",
+    modalKey: "items",
+    subfields: { name: { type: "string" as const, defaultValue: "New" } },
+    propType: { type: "array" as const, itemType: { type: "object" as const, fields: { name: "string" as const } } },
+    compositeValue: [{ name: "First" }, { name: "Second" }],
+    evaluatedValue: [{ name: "First" }, { name: "Second" }],
+    ccContextData: {}, componentPropValues: {}, controlExtras: { path: ["items"] },
+    onChange, headerElement: header,
+  };
+  try {
+    const { container, rerender } = render(<ArrayPropEditor {...props} />);
+    const add = screen.getByRole("button", { name: "Add item" });
+    expect(header.contains(add)).toBe(true);
+    expect(container.contains(add)).toBe(false);
+    expect(container.querySelectorAll(".with-connector-line")).toHaveLength(2);
+    expect(container.querySelectorAll(".property-connector-vertical-line")).toHaveLength(1);
+    fireEvent.click(add);
+    expect(onChange).toHaveBeenLastCalledWith([...props.compositeValue, { name: "New" }]);
+    onChange.mockClear();
+    rerender(<ArrayPropEditor {...props} disabled />);
+    expect(add.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(add);
+    expect(onChange).not.toHaveBeenCalled();
+    rerender(<ArrayPropEditor {...props} compositeValue={[]} evaluatedValue={[]} />);
+    expect(container.querySelector(".with-connector-line")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Add item" }));
+    expect(onChange).toHaveBeenLastCalledWith([{ name: "New" }]);
+  } finally {
+    cleanup();
+    header.remove();
+  }
+});
+
+it("disables dragging for one item and restores it when another item is added", () => {
+  const changed = vi.fn();
+  const first = { name: "First" }, second = { name: "Second" };
+  const props = {
+    "data-plasmic-prop": "items", modalKey: "items",
+    subfields: { name: "string" as const },
+    propType: { type: "array" as const, itemType: { type: "object" as const, fields: { name: "string" as const } } },
+    ccContextData: {}, componentPropValues: {}, controlExtras: { path: ["items"] },
+    onChange: changed,
+  };
+  const { container, rerender } = render(<ArrayPropEditor {...props} compositeValue={[first]} evaluatedValue={[first]} />);
+  const items = () => Array.from(container.querySelectorAll('[data-test-id="array-item"]'));
+  expect(items().map((item) => item.getAttribute("data-drag-disabled"))).toEqual(["true"]);
+  fireEvent.click(screen.getByText("Reorder"));
+  expect(changed).not.toHaveBeenCalled();
+  rerender(<ArrayPropEditor {...props} compositeValue={[first, second]} evaluatedValue={[first, second]} />);
+  expect(items().map((item) => item.getAttribute("data-drag-disabled"))).toEqual(["false", "false"]);
+  fireEvent.click(screen.getByText("Reorder"));
+  expect(changed).toHaveBeenLastCalledWith([second, first]);
+  changed.mockClear();
+  rerender(<ArrayPropEditor {...props} compositeValue={[first, second]} evaluatedValue={[first, second]} disabled />);
+  expect(items().map((item) => item.getAttribute("data-drag-disabled"))).toEqual(["true", "true"]);
+  fireEvent.click(screen.getByText("Reorder"));
+  expect(changed).not.toHaveBeenCalled();
+  rerender(<ArrayPropEditor {...props} compositeValue={[first]} evaluatedValue={[first]} />);
+  expect(items().map((item) => item.getAttribute("data-drag-disabled"))).toEqual(["true"]);
 });

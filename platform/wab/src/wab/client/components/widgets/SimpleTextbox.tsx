@@ -11,6 +11,7 @@ type SimpleTextboxProps = React.ComponentProps<"input"> & {
   onValueChange: (value: string) => void;
   defaultValue: string;
   selectAllOnFocus?: boolean;
+  prefixIcon?: React.ReactNode;
   fontSize?: PlasmicTextbox__VariantsArgs["fontSize"];
   fontStyle?: PlasmicTextbox__VariantsArgs["fontStyle"];
   styleType?: PlasmicTextbox__VariantsArgs["styleType"];
@@ -32,6 +33,7 @@ export const SimpleTextbox = React.forwardRef(function SimpleTextbox(
     fontSize,
     fontStyle,
     styleType,
+    prefixIcon,
     ...restInputProps
   } = props;
 
@@ -58,7 +60,9 @@ export const SimpleTextbox = React.forwardRef(function SimpleTextbox(
         fontSize: fontSize,
         fontStyle: fontStyle,
         styleType,
+        withIcons: prefixIcon ? "withPrefix" : undefined,
       }}
+      prefixIcon={prefixIcon}
       root={{ className }}
       textbox={{
         type: "text",
@@ -92,7 +96,7 @@ export const SimpleTextbox = React.forwardRef(function SimpleTextbox(
           }
           onKeyPress && onKeyPress(e);
         },
-        value: isEditing ? curValue : props.defaultValue,
+        value: isEditing ? curValue : defaultValue,
         ...restInputProps,
       }}
     />

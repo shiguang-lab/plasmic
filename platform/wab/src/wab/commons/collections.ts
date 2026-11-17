@@ -1,6 +1,5 @@
 import { assert, tuple } from "@/wab/shared/common";
 import * as _ from "lodash";
-const memoizeOne = ((m: any) => m.default || m)(require("memoize-one"));
 
 export function insertArray<T>(
   array: ReadonlyArray<T>,

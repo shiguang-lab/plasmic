@@ -7,12 +7,12 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { canEditInspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { mkBaseVariant } from "@/wab/shared/Variants";
-import { ensure, ensureInstance } from "@/wab/shared/common";
+import { ensure } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValComponent, ValTag } from "@/wab/shared/core/val-nodes";
-import { TplTag, ensureKnownTplTag } from "@/wab/shared/model/classes";
+import { ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { waitFor } from "@testing-library/react";
 import $ from "jquery";
 
@@ -129,7 +129,7 @@ it("commits focus set by model or navigation paths without a pure selection tran
 it("keeps real edits undoable across transient selection changes and preserves redo", async () => {
   const { sc, vc } = await setup();
   try {
-    const root = ensureInstance(vc.component.tplTree, TplTag);
+    const root = ensureKnownTplTag(vc.component.tplTree);
     const name = root.name;
     await sc.changeUnsafe(() => {
       root.name = "Edited";
@@ -337,7 +337,7 @@ it("leaves queued observers to an in-progress evaluation instead of polling paus
 it("resolves a selected tpl to its ValNode and DOM when hidden content mounts later", async () => {
   const { sc, vc, sync } = await setup();
   try {
-    const tpl = ensureInstance(vc.component.tplTree, TplTag);
+    const tpl = ensureKnownTplTag(vc.component.tplTree);
     const dom = document.createElement("div");
     const lookup = vi
       .spyOn(vc, "maybeDomsForTpl")

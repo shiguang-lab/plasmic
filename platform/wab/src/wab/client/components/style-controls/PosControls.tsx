@@ -499,15 +499,7 @@ function PositionInputs(props: PosControlsProps) {
   );
 }
 
-let nextId = 1;
-const genPopoverId = () => {
-  return nextId++;
-};
 
-const usePopoverId = () => {
-  const [id] = React.useState(genPopoverId());
-  return `__wab-pop-over-${id}`;
-};
 
 const Popover = React.forwardRef(function Popover(
   props: {

@@ -1,4 +1,6 @@
 import { assert, ensure } from "@/wab/shared/common";
+import { deviceFrameSnapshot } from "@/wab/client/components/dashboard/preview/device-snapshot";
+import type { DeviceFrameGeometry } from "@/wab/client/components/device-frame/device-frame";
 
 async function asDataUrl(blob: Blob) {
   return new Promise<string>((resolve, reject) => {
@@ -44,6 +46,7 @@ export async function snapshot(
   width: number,
   height: number,
   assets = new Map<string, Promise<string>>(),
+  deviceFrame?: DeviceFrameGeometry,
 ) {
   const win = ensure(doc.defaultView, "Snapshot window");
   // Skip runtime scripts before cloning; copying multi-megabyte bundles would spike memory.
@@ -251,6 +254,7 @@ export async function snapshot(
   wrapper.append(css, clone);
   const html = new XMLSerializer().serializeToString(wrapper);
   return {
+    frameSvg: deviceFrame ? deviceFrameSnapshot(doc, width, height, deviceFrame, sheetCss) : undefined,
     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><foreignObject width="100%" height="100%">${html}</foreignObject></svg>`,
     stats,
   };
@@ -302,7 +306,7 @@ export async function rasterize(svg: string, width: number, height: number) {
     );
   } finally {
     canvas.width = canvas.height = 0;
-    if (output) output.width = output.height = 0;
+    if (output) {output.width = output.height = 0;}
     image.src = "";
   }
 }

@@ -13,7 +13,7 @@ import errorHandler from "errorhandler";
 import express, { ErrorRequestHandler, RequestHandler } from "express";
 import "express-async-errors";
 import promMetrics from "express-prom-bundle";
-import { NextFunction, Request, Response } from "express-serve-static-core";
+import type { NextFunction, Request, Response } from "express-serve-static-core";
 import session from "express-session";
 import cron from "node-cron";
 import passport from "passport";
@@ -29,7 +29,6 @@ import {
   checkShiguangOrigin,
   shiguangIdentityMiddleware,
 } from "@/wab/server/auth/shiguang";
-import { checkCaptchaToken } from "@/wab/server/captcha";
 import { Config } from "@/wab/server/config";
 import { DbMgr, SUPER_USER } from "@/wab/server/db/DbMgr";
 import { getDevFlagsMergedWithOverrides } from "@/wab/server/db/appconfig";
@@ -268,7 +267,6 @@ import * as teamRoutes from "@/wab/server/routes/teams";
 import { getUsersById, searchIdentities } from "@/wab/server/routes/users";
 import {
   adminOnly,
-  adminOrDevelopmentEnvOnly,
   createTsRestEndpoints,
   superDbMgr,
   withNext,
@@ -302,7 +300,6 @@ import {
   UnauthorizedError,
   transformErrors,
 } from "@/wab/shared/ApiErrors/errors";
-import { CAPTCHA_TOKEN_HEADER } from "@/wab/shared/ApiSchema";
 import { publicCmsReadsContract } from "@/wab/shared/api/cms";
 import { Bundler } from "@/wab/shared/bundler";
 import { mkShortId, safeCast, spawn } from "@/wab/shared/common";
@@ -691,7 +688,7 @@ export function addCmsEditorRoutes(app: express.Application) {
   );
 }
 
-export function addWhiteLabelRoutes(app: express.Application) {}
+export function addWhiteLabelRoutes(app: express.Application) { /* This build does not register white-label routes. */ }
 
 export function addIntegrationsRoutes(app: express.Application) {
   app.post(
@@ -1041,21 +1038,6 @@ export function addMainAppServerRoutes(
   app: express.Application,
   config: Config,
 ) {
-  // Rate limiter for unauthenticated routes such as login, sign-up, and
-  // password reset. Keyed by client IP, since there is no authenticated actor.
-  // Currently using in-memory storage, can be improved to use
-  // redis/postgres.
-  const sensitiveRateLimiter = createRateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 15,
-    skip: (req) => {
-      const shouldRateLimit =
-        config.production || req.get("x-plasmic-test-rate-limit") === "true";
-      return !shouldRateLimit;
-    },
-    keyGenerator: (req) => req.ip ?? "anonymous",
-  });
-
   // Rate limiter for authenticated routes such as sharing/inviting via
   // grant-revoke. Keyed by the authenticated actor (falling back to IP) so it
   // can't be sidestepped by rotating IPs and doesn't penalize a shared office
@@ -1856,20 +1838,6 @@ export async function createApp(
   return { app };
 }
 
-function captcha(expectedAction: string) {
-  return async (req: Request, _res: Response, next: NextFunction) => {
-    try {
-      await checkCaptchaToken({
-        req,
-        captchaToken: req.get(CAPTCHA_TOKEN_HEADER) ?? "",
-        expectedAction,
-      });
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-}
 
 function corsPreflight() {
   const corsHandler = cors({

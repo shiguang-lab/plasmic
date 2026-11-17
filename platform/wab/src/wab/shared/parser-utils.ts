@@ -98,7 +98,7 @@ export function isValidJavaScriptCode(
 ) {
   try {
     // Use AsyncFunction instead of Function to support `await`
-    const AsyncFunction = async function x() {}.constructor as typeof Function;
+    const AsyncFunction = async function x() { /* Only the async function constructor is used for parsing; this body is never executed. */ }.constructor as typeof Function;
     // Do not evaluate it!!! Running this function would be a huge security vulnerability as it runs on the server.
     const _neverCallThisFunction = new AsyncFunction(code);
     return true;

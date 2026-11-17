@@ -16,7 +16,7 @@ it("runs the real local backend for browser acceptance", async()=>{
  emails.forEach((email,index)=>testProfile(email,["Plasmic Admin","Plasmic User","Plasmic User 2"][index]));
  const con=await ensureDbConnection(databaseUri,"default");
  await con.transaction(async em=>{
-  if(!fs.existsSync("/tmp/mobx-comprehensive/seed-complete"))await seedTestDb(em);
+  if(!fs.existsSync("/tmp/mobx-comprehensive/seed-complete")){await seedTestDb(em);}
   const db=new DbMgr(em,SUPER_USER);
   const flags=JSON.parse((await db.tryGetDevFlagOverrides())?.data??"{}");
   await db.setDevFlagOverrides(JSON.stringify({...flags,defaultHostUrl:"https://localhost:3009/static/host.html",codegenOriginHost:"https://localhost:3008",adminEmailWhitelist:[emails[0]],autoSave:true}));
@@ -31,7 +31,7 @@ it("runs the real local backend for browser acceptance", async()=>{
   delete req.headers["x-sg-identity"];
   const session=(req.headers.cookie??"").split(";").map((s:string)=>s.trim()).find((s:string)=>s.startsWith("__Secure-sg_session="))?.split("=").slice(1).join("=");
   const assertion=assertions.get(session);
-  if(assertion)req.headers["x-sg-identity"]=assertion;
+  if(assertion){req.headers["x-sg-identity"]=assertion;}
  };
  const gateway=http.createServer(async(req,res)=>{
   authorize(req);

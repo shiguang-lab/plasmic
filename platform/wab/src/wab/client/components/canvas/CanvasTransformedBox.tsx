@@ -1,4 +1,5 @@
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
+import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
 import { computeElementVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { frameToScalerRect } from "@/wab/client/coords";
@@ -20,6 +21,7 @@ export function CanvasTransformedBox({
   children,
   keepDims,
   clipToVisible,
+  clipToScreen,
 }: {
   relativeTo: "arena" | "frame";
   $elt: JQuery<HTMLElement>;
@@ -34,7 +36,11 @@ export function CanvasTransformedBox({
    * highlights; anchors that must follow the real element should not set it.
    */
   clipToVisible?: boolean;
+  /** Clip painted feedback to the device screen; leave external anchors free. */
+  clipToScreen?: boolean;
 }) {
+  "use no memo";
+  // Element and screen bounds change on resize without changing DOM identities.
   const viewportZoom = useCanvasZoom(viewCtx.studioCtx);
   const element = useElementHasLayout($elt.length > 0 ? $elt[0] : null);
   if (!element) {
@@ -74,6 +80,7 @@ export function CanvasTransformedBox({
         {
           ...cssPropsForJqElt,
           ...style,
+          ...(clipToScreen && frameRect && canvasScreenClipStyle(viewCtx, frameToScalerRect(frameRect, viewCtx), viewportZoom)),
         },
         keepDims ? ["width", "height", "transform"] : [],
       )}

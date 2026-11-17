@@ -43,7 +43,6 @@ export const getTestFigmaData = (id) => {
     "files",
     `${id}-figdata.json`,
   );
-  const raw = fs.readFileSync(figdataPath);
-  // @ts-ignore
+  const raw = fs.readFileSync(figdataPath, "utf8");
   return JSON.parse(raw);
 };
