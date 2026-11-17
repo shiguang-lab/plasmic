@@ -491,6 +491,9 @@ export function mkEventHandlerEnv(
               );
             }
             return;
+          } else if (loc.actionName === "goBack") {
+            showCanvasPageNavigationNotification(studioCtx, "");
+            return;
           } else if (loc.actionName === "login" || loc.actionName === "logout") {
             showCanvasAuthNotification("interactive mode");
             return;

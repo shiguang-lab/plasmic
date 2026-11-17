@@ -1,7 +1,17 @@
 import type { LoaderBundleOutput } from "@/wab/server/loader/module-bundler";
 import type { LibraryArtifact } from "@/wab/server/loader/library-artifacts";
 import type { PreviewPage } from "@plasmic-shared/preview";
+import type { ProjectId } from "@/wab/shared/ApiSchema";
+import type { TemplateMetadata, TemplatePublication } from "@/wab/shared/template-center";
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+
+@Entity("design_template")
+export class DesignTemplate {
+  @PrimaryColumn("text") projectId: ProjectId;
+  @Column("jsonb") draft: TemplateMetadata;
+  @Column("jsonb", { nullable: true }) published: TemplatePublication | null;
+  @Column("timestamptz") updatedAt: Date;
+}
 
 @Entity("preview_publication")
 export class PreviewPublication {

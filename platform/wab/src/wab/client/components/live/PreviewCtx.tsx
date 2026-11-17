@@ -49,6 +49,8 @@ import {
   readBusinessLocation,
   readBusinessQuery,
   resolveBusinessHref,
+  type PageNavigationTransition,
+  type PageTransitionPreset,
   type BusinessQuery,
 } from "@plasmic-shared/preview";
 import * as Sentry from "@sentry/browser";
@@ -112,7 +114,7 @@ export interface PreviewDataSnapshot extends Omit<PreviewDataOutput, "componentP
 export interface PreviewState {
   readonly previewData: PreviewDataSnapshot | undefined;
   readonly isLive: boolean;
-  readonly navigationEntries: readonly Partial<Location>[];
+  readonly navigationEntries: readonly (Partial<Location> & { transition?: PageTransitionPreset })[];
   readonly navigationIndex: number;
   readonly navigating: boolean;
   readonly refreshKey: number;
@@ -129,6 +131,7 @@ export function usePreviewSelector<T>(
 }
 
 export class PreviewCtx {
+  navigationTransition: PageNavigationTransition | undefined;
   private compiler: ReturnType<typeof createPreviewCompiler> | undefined;
   get previewCompiler() {
     if (!this.compiler || this.compiler.disposed) { this.compiler = createPreviewCompiler(); }
@@ -255,6 +258,7 @@ export class PreviewCtx {
 
   private recordNavigation(location: Location) {
     if (!this.isLive) {
+      this.navigationTransition = undefined;
       if (this.navigationEntries.length) {
         this.update({ navigationEntries: [], navigationIndex: -1 });
       }
@@ -270,12 +274,15 @@ export class PreviewCtx {
       ]);
     if (!current || pageKey(current) !== pageKey(location)) {
       this.update({
-        navigationEntries: [...this.navigationEntries.slice(0, this.navigationIndex + 1), location],
+        navigationEntries: [...this.navigationEntries.slice(0, this.navigationIndex + 1), {
+          ...location,
+          transition: this.navigationTransition?.preset,
+        }],
         navigationIndex: this.navigationIndex + 1,
       });
     } else if (!_.isEqual(current, location)) {
       const entries = this.navigationEntries.slice();
-      entries[this.navigationIndex] = location;
+      entries[this.navigationIndex] = { ...location, transition: current.transition };
       this.update({ navigationEntries: entries });
     }
   }
@@ -310,6 +317,13 @@ export class PreviewCtx {
       }
     }
     const previousIndex = this.navigationIndex;
+    const previousTransition = this.navigationTransition;
+    this.navigationTransition = {
+      fromPath: this.previewPath,
+      toPath: readBusinessLocation(location.hash).pathname,
+      preset: (index < previousIndex ? this.navigationEntries[previousIndex] : location).transition,
+      reverse: index < previousIndex,
+    };
     this.update({ navigating: true, navigationIndex: index });
     try {
       // Replace the Studio route; never traverse the editor's browser history.
@@ -318,6 +332,7 @@ export class PreviewCtx {
         true,
       );
     } catch (error) {
+      this.navigationTransition = previousTransition;
       this.update({ navigationIndex: previousIndex });
       throw error;
     } finally {
@@ -622,13 +637,18 @@ export class PreviewCtx {
   }
 
   /** Handle navigation, whether via a link or an interaction. */
-  async handleNavigation(href: string) {
+  async handleNavigation(href: string, transition?: PageTransitionPreset) {
     const current = ensure(this.previewData, "Preview route missing");
     const destination = this.resolveNavigation(href);
     if (!destination) {
       showCanvasPageNavigationNotification(this.studioCtx, href);
       return;
     }
+    this.navigationTransition = {
+      fromPath: current.previewPath,
+      toPath: destination.pathname,
+      preset: transition,
+    };
     return this.pushRoute({
       componentPath: this.componentForNavigation(destination.pathname),
       pageQuery: readBusinessQuery(destination.search),
@@ -841,7 +861,6 @@ function mkPreviewSearch(pageQuery: BusinessQuery | undefined) {
 }
 
 function mkPreviewSettings({
-  full,
   viewport,
   width,
   height,
@@ -850,7 +869,7 @@ function mkPreviewSettings({
 }: PreviewInputData) {
   const hashParams = new URLSearchParams();
 
-  if (!full && viewport !== "desktop") {
+  if (viewport !== "desktop") {
     hashParams.set("viewport", viewport);
     hashParams.set("width", `${width}`);
     hashParams.set("height", `${height}`);

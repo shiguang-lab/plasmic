@@ -228,6 +228,8 @@ export type User = ApiUser;
 
 @Entity()
 export class Project extends Base<"ProjectId"> {
+  /** Internal canvas backing a template, excluded from business projects. */
+  @Column("boolean", { default: false }) isTemplate: boolean;
   @Column("text", { nullable: true, unique: true }) presentationCode: string | null;
   @Column("text") name: string;
   /**

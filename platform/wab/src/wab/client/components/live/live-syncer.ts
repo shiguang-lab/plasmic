@@ -27,7 +27,7 @@ const LIVE_HOST_TIMEOUT_MS = 3 * 60 * 1000;
 
 function currentPreviewUpdate(previewCtx: PreviewCtx) {
   if (!previewCtx.previewData) { return undefined; }
-  return buildPreviewUpdate(previewCtx.studioCtx, {
+  const update = buildPreviewUpdate(previewCtx.studioCtx, {
     component: previewCtx.component,
     previewPath: previewCtx.previewPath,
     variants: previewCtx.variants,
@@ -36,6 +36,10 @@ function currentPreviewUpdate(previewCtx: PreviewCtx) {
     pageQuery: previewCtx.pageQuery,
     appUser: { user: previewCtx.studioCtx.currentAppUser, userAuthToken: previewCtx.studioCtx.currentAppUserCtx.fakeAuthToken },
   });
+  if (update.render && "root" in update.render) {
+    update.render = { ...update.render, pagePath: previewCtx.previewPath, device: previewCtx.viewport, transition: previewCtx.navigationTransition };
+  }
+  return update;
 }
 
 /** Prepare the current page alongside host/library loading, then its authored

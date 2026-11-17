@@ -37,6 +37,7 @@ export const APP_ROUTES = {
   dashboard: route("/"),
   copilot: route("/copilot"),
   allProjects: route("/projects"),
+  templateCenter: route("/template-center"),
   playground: route("/playground"),
   organizations: route("/orgs"),
   workspace: route("/workspaces/:workspaceId"),

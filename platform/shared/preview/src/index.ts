@@ -1,3 +1,5 @@
+export * from "./transitions";
+
 export interface PreviewPage {
   id: string;
   name: string;

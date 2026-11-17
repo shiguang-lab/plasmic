@@ -1,3 +1,4 @@
+import { PAGE_TRANSITION_PRESETS } from "@plasmic-shared/preview";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { $$$ } from "@/wab/shared/TplQuery";
 import {
@@ -1290,17 +1291,21 @@ export const initBuiltinActions = (siteCtx: SiteCtx) =>
     },
     navigation: {
       parameters: {},
-      function: `({ destination }) => {
+      function: `({ destination, transition }) => {
         if (typeof destination === "string" && destination.startsWith("#")) {
           document.getElementById(destination.substr(1)).scrollIntoView({ behavior: "smooth" });
         } else {
           ${
             siteCtx.platform === "nextjs"
-              ? "__nextRouter?.push"
-              : "location.assign"
-          }(destination);
+              ? "return __nextRouter?.push(destination, undefined, { plasmicTransition: transition });"
+              : "location.assign(destination);"
+          }
         }
       }`,
+    },
+    goBack: {
+      parameters: {},
+      function: `() => { ${siteCtx.platform === "nextjs" ? "return __nextRouter?.back();" : "window.history.back();"} }`,
     },
     invokeRefAction: {
       parameters: {
@@ -1385,9 +1390,13 @@ export function interactionActionSchema() {
     runCodeActionSchema(),
     updateVariableActionSchema(),
     updateVariantActionSchema(),
+    z.object({ actionName: z.literal("goBack") }).strict(),
     z.object({
       actionName: z.literal("navigation"),
       destination: z.string().min(1).describe(interpolatedStringFormatDescription),
+      transition: z.enum(PAGE_TRANSITION_PRESETS).optional().describe(
+        "Fixed transition for Phone and Tablet preview devices only. Omit for the built-in push-right fallback. Desktop and Custom devices navigate without animation, regardless of size.",
+      ),
     }),
   ]);
 }
@@ -1519,6 +1528,7 @@ export function isInteractionActionName(
  */
 interface BuildInteractionArgsOptsByAction {
   navigation: {};
+  goBack: {};
   customFunction: {
     /** Event-arg names to keep in scope for the code body. */
     codeArgNames?: string[];
@@ -1545,9 +1555,14 @@ export function buildInteractionArgs(
   opts: BuildInteractionArgsOpts,
 ): Result<Record<string, Expr>, string> {
   switch (action.actionName) {
+    case "goBack":
+      return ok({});
     case "navigation":
       try {
-        return ok({ destination: interpolatedStringToExpr(action.destination) });
+        return ok({
+          destination: interpolatedStringToExpr(action.destination),
+          ...(action.transition !== undefined && { transition: codeLit(action.transition) }),
+        });
       } catch (e) {
         return err(e instanceof Error ? e.message : String(e));
       }

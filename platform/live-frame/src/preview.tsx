@@ -1,4 +1,6 @@
 import * as React from "react";
+import { runPageTransition } from "../../shared/preview/src/transitions";
+import type { PageNavigationTransition, PreviewDevice } from "../../shared/preview/src/transitions";
 
 export type PreviewRender =
   | { notFound: string }
@@ -8,6 +10,9 @@ export type PreviewRender =
       root: string;
       componentUuid: string;
       isPage: boolean;
+      pagePath?: string;
+      device?: PreviewDevice;
+      transition?: PageNavigationTransition;
       depCss: string[];
       propsModule: string;
       globalContexts?: string;
@@ -92,10 +97,11 @@ function NotFound({path}: {path: string}) {
 
 export function createPreview(Sub: any, require: (spec: string) => any, renderRoot: (node: React.ReactNode) => Promise<void>) {
   let current: PreviewSession | undefined;
+  let currentPath: string | undefined;
 
   function render(spec: PreviewRender) {
     if ("notFound" in spec) {
-      return renderRoot(<NotFound path={spec.notFound} />).then(() => { current?.retire(); current = undefined; });
+      return renderRoot(<NotFound path={spec.notFound} />).then(() => { current?.retire(); current = undefined; currentPath = undefined; });
     }
     if ("run" in spec) { return require(spec.run).__run(); }
     spec.depCss.forEach(require);
@@ -114,8 +120,12 @@ export function createPreview(Sub: any, require: (spec: string) => any, renderRo
     const session = new PreviewSession(initialProps, spec.globals);
     const previous = current;
     current = session;
-    return renderRoot(<PreviewRoot session={session} definition={definition} />).then(() => {
+    const transition = previous && spec.isPage && currentPath !== spec.pagePath &&
+      currentPath === spec.transition?.fromPath && spec.pagePath === spec.transition?.toPath
+      ? { ...spec.transition, device: spec.device } : undefined;
+    return runPageTransition(document, () => renderRoot(<PreviewRoot session={session} definition={definition} />), transition).then(() => {
       previous?.retire();
+      currentPath = spec.pagePath;
     }, error => {
       session.retire();
       if (current === session) { current = previous; }

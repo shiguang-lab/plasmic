@@ -2244,6 +2244,17 @@ export class DbMgr implements MigrationDbMgr {
         includeDeleted,
       );
 
+      // Template canvases are private drafts, even if someone has an old
+      // project grant/token. Readers use the template's published snapshot.
+      if (project.isTemplate) {
+        this.checkNotAnonUser();
+        checkPermissions(
+          this.actor.type === "NormalUser" && this.actor.isAdmin,
+          "Only system administrators can access template drafts",
+        );
+        return;
+      }
+
       // Having a valid project API token should give us read access.
       if (
         accessLevelRank(requireLevel) <= accessLevelRank("viewer") &&
@@ -2973,6 +2984,9 @@ export class DbMgr implements MigrationDbMgr {
       .leftJoinAndSelect("t.parentTeam", "pt")
       .leftJoinAndSelect("pt.featureTier", "pft")
       .where(where);
+    if (!where.id) {
+      qb.andWhere('p."isTemplate" = false');
+    }
     if (!includeDeleted) {
       qb.andWhere(
         "p.deletedAt is null and w.deletedAt is null and t.deletedAt is null and pt.deletedAt is null",
@@ -5429,6 +5443,14 @@ export class DbMgr implements MigrationDbMgr {
       }
     }
 
+    if (taggedResourceIds.type === "project") {
+      for (const project of resources as Project[]) {
+        if (project.isTemplate) {
+          levels[project.id] = this.actor.type === "NormalUser" && this.actor.isAdmin
+            ? "editor" : "blocked";
+        }
+      }
+    }
     return levels;
   }
 

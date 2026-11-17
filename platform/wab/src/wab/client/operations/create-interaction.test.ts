@@ -19,9 +19,48 @@ import { typeFactory } from "@/wab/shared/model/model-util";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { err } from "neverthrow";
 import { runInNewContext } from "node:vm";
-import { initBuiltinActions } from "@/wab/shared/core/states";
+import { initBuiltinActions, interactionActionSchema } from "@/wab/shared/core/states";
+import { ACTIONS_META } from "@/wab/client/state-management/interactions-meta";
+import { PAGE_TRANSITION_PRESETS } from "@plasmic-shared/preview";
 
 describe("createInteraction", () => {
+  it.each(["react", "nextjs"] as const)("creates a parameterless Go back action for %s", async (platform) => {
+    const { page, root } = setup();
+    initBuiltinActions({ projectId: "back", platform, projectFlags: DEVFLAGS, inStudio: false });
+    expect(ACTIONS_META.goBack.parameters).toEqual({});
+    const result = createInteraction({ component: page, tpl: root, eventName: "onClick", name: "Back", action: { actionName: "goBack" } });
+    assert(result.isOk(), "Go back must be supported by native interactions");
+    expect(result.value.args).toEqual([]);
+    const back = vi.fn();
+    const run = runInNewContext(`(${asCode(getHandler(root, "onClick"), { component: page, projectFlags: DEVFLAGS, inStudio: false }).code})`, {
+      window: { history: { back } }, __nextRouter: { back },
+    });
+    await run();
+    expect(back).toHaveBeenCalledExactlyOnceWith();
+    expect(interactionActionSchema().safeParse({ actionName: "goBack", destination: "/list" }).success).toBe(false);
+  });
+  it("offers only fixed concrete transition presets in the action contract", () => {
+    const meta = ACTIONS_META.navigation.parameters.transition;
+    expect(meta).toMatchObject({ type: "choice", disableDynamicValue: true, defaultValueHint: "Push from right" });
+    expect((meta as { options: { value: string }[] }).options.map((option) => option.value)).toEqual(PAGE_TRANSITION_PRESETS);
+    expect(interactionActionSchema().safeParse({ actionName: "navigation", destination: "/detail", transition: "default" }).success).toBe(false);
+  });
+
+  it.each([undefined, ...PAGE_TRANSITION_PRESETS])("persists and generates a navigation with transition %s", async (transition) => {
+    const { page, root } = setup();
+    initBuiltinActions({ projectId: "transitions", platform: "nextjs", projectFlags: DEVFLAGS, inStudio: false });
+    const result = createInteraction({ component: page, tpl: root, eventName: "onClick", name: "Details", action: {
+      actionName: "navigation", destination: "/detail", transition,
+    } });
+    expect(result.isOk()).toBe(true);
+    const handler = getHandler(root, "onClick");
+    expect(handler.interactions[0].args.some((arg) => arg.name === "transition")).toBe(transition !== undefined);
+    const code = asCode(handler, { component: page, inStudio: false, projectFlags: DEVFLAGS }).code;
+    const push = vi.fn();
+    await runInNewContext(`(${code})`, { __nextRouter: { push } })();
+    expect(push).toHaveBeenCalledExactlyOnceWith("/detail", undefined, { plasmicTransition: transition });
+  });
+
   function setup() {
     const fixture = setupComponentWithInstance();
     const root = fixture.page.tplTree as TplTag;

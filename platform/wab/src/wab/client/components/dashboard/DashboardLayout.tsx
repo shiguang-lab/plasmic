@@ -47,7 +47,9 @@ export const DashboardLayout = function DashboardLayout({
       team={team}
       workspace={workspace}
       navigation={
-        isPlayground || isPersonalWorkspace
+        APP_ROUTES.templateCenter.parse(pathname)
+          ? "templates"
+          : isPlayground || isPersonalWorkspace
           ? "myProjects"
           : APP_ROUTES.allProjects.parse(pathname)
             ? "allProjects"

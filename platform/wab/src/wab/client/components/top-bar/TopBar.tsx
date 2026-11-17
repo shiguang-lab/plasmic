@@ -22,6 +22,7 @@ import { AvatarGallery } from "@/wab/client/components/studio/Avatar";
 import { OnlineCollaborators } from "@/wab/client/components/studio/OnlineCollaborators";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import LivePopOutButton from "@/wab/client/components/top-bar/LivePopOutButton";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import PublishButton from "@/wab/client/components/top-bar/PublishButton";
 import styles from "@/wab/client/components/top-bar/TopBar.module.scss";
 import { useShareDialog } from "@/wab/client/components/top-bar/useShareDialog";
@@ -593,10 +594,12 @@ function TopBarContent({ preview }: TopBarProps) {
         // Projects outside an org (e.g. in a playground) have no trial.
         freeTrial={team ? { team } : { render: () => null }}
         logoLink={{
-          render: (props) => <BrandLink {...props} brand={brand} />,
+          render: (props) => <BrandLink {...props} brand={studioCtx.siteInfo.isTemplate ? { ...brand, logoHref: APP_ROUTES.templateCenter.fill({}), logoTooltip: t("Back to template center") } : brand} />,
         }}
         projectTitle={{
-          render: () => (
+          render: () => studioCtx.siteInfo.isTemplate ? (
+            <span className="editor-project-title"><span className="editor-project-name">{studioCtx.siteInfo.name}</span></span>
+          ) : (
             <Button
               type="text"
               className="editor-project-title"
@@ -619,7 +622,7 @@ function TopBarContent({ preview }: TopBarProps) {
           ),
         }}
         projectMenu={{
-          render: () => (
+          render: () => studioCtx.siteInfo.isTemplate ? null : (
             <Popover
               arrow={false}
               trigger="click"

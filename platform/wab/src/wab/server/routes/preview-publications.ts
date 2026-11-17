@@ -1,17 +1,17 @@
-import { validatePreviewPages } from "@plasmic-shared/preview";
 import { DbMgr } from "@/wab/server/db/DbMgr";
 import { PreviewPublication } from "@/wab/server/entities/CustomEntities";
 import {
   genPublishedLoaderCodeBundle,
   LATEST_LOADER_VERSION,
 } from "@/wab/server/loader/gen-code-bundle";
-import { mkVersionToSync } from "@/wab/server/loader/resolve-projects";
 import { getProjectLibraryArtifacts } from "@/wab/server/loader/project-library-artifacts";
+import { mkVersionToSync } from "@/wab/server/loader/resolve-projects";
 import { userDbMgr } from "@/wab/server/routes/util";
 import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
 import type { ProjectId } from "@/wab/shared/ApiSchema";
 import { ensure, ensureString } from "@/wab/shared/common";
 import type { PreviewPublication as ApiPublication } from "@plasmic-shared/preview";
+import { validatePreviewPages } from "@plasmic-shared/preview";
 import type { Request, Response } from "express-serve-static-core";
 import { nanoid } from "nanoid";
 
@@ -29,7 +29,9 @@ function previewOrigin() {
   return url.origin;
 }
 
-function serialize(publication: PreviewPublication): ApiPublication {
+export function serializePreviewPublication(
+  publication: PreviewPublication,
+): ApiPublication {
   const { bundle: _bundle, publishedAt, ...metadata } = publication;
   return {
     ...metadata,
@@ -45,7 +47,9 @@ export async function getPreviewPublication(req: Request, res: Response) {
   const publication = await mgr
     .getEntMgr()
     .findOne(PreviewPublication, { projectId });
-  res.json({ publication: publication ? serialize(publication) : null });
+  res.json({
+    publication: publication ? serializePreviewPublication(publication) : null,
+  });
 }
 
 async function publishWebsite(req: Request) {
@@ -57,74 +61,97 @@ async function publishWebsite(req: Request) {
       `preview:${projectId}`,
     ]);
     const txMgr = new DbMgr(em, mgr.actor, mgr.opts);
-    await txMgr.getProjectById(projectId);
-    const pkg = await txMgr.getPkgByProjectId(projectId);
-    if (!pkg) {
-      throw new BadRequestError(
-        "Publish a project version before publishing the website.",
-      );
-    }
-    const version = await txMgr.getLatestPkgVersionNumber(pkg.id, undefined);
-    const libraryArtifacts = await getProjectLibraryArtifacts(txMgr, projectId, version);
-    const existing = await em.findOne(PreviewPublication, { projectId });
-    const bundle = await genPublishedLoaderCodeBundle(txMgr, req.workerpool, {
-      source: "live",
-      platform: "nextjs",
-      platformOptions: {},
-      projectVersions: { [projectId]: mkVersionToSync(version) },
-      loaderVersion: LATEST_LOADER_VERSION,
-      browserOnly: true,
-      libraryArtifacts,
-      i18nKeyScheme: undefined,
-      i18nTagPrefix: undefined,
-    });
-    const pages = bundle.components
-      .filter((c) => c.projectId === projectId && c.isPage && c.path)
-      .map((c) => ({
-        id: c.id,
-        name: c.displayName,
-        path: ensure(c.path, "Page path missing"),
-      }));
-    if (!pages.length) {
-      throw new BadRequestError("This project has no published pages.");
-    }
-    try { validatePreviewPages(pages); } catch (error) {
-      throw new BadRequestError(error instanceof Error ? error.message : String(error));
-    }
-    // A non-hostless custom component needs an application-specific registration.
-    if (bundle.components.some((c) => c.isCode)) {
-      throw new BadRequestError(
-        "This project requires custom code components that are not installed in the preview runtime.",
-      );
-    }
-    const requestedPath = req.body.entryPath ?? existing?.entryPath;
-    const entryPath =
-      requestedPath ||
-      pages.find((page) => page.path === "/")?.path ||
-      pages.find((page) => !page.path.includes("["))?.path;
-    if (
-      !entryPath ||
-      !pages.some((page) => page.path === entryPath) ||
-      entryPath.includes("[")
-    ) {
-      throw new BadRequestError(
-        "Choose a published page with a fixed URL as the entry page.",
-      );
-    }
-    const result = em.create(PreviewPublication, {
-      projectId,
-      code: existing?.code ?? nanoid(10),
-      version,
-      enabled: true,
-      entryPath,
-      pages,
-      bundle,
-      publishedAt: new Date(),
-    });
-    await em.save(result);
-    return result;
+    return publishWebsiteSnapshot(txMgr, req, projectId, req.body.entryPath);
   });
   return publication;
+}
+
+/** Generates an immutable reference snapshot inside the caller's transaction. */
+export async function publishWebsiteSnapshot(
+  txMgr: DbMgr,
+  req: Request,
+  projectId: ProjectId,
+  entryPathOverride?: string,
+  publishedVersion?: string,
+) {
+  previewOrigin();
+  const em = txMgr.getEntMgr();
+  await txMgr.getProjectById(projectId);
+  const pkg = await txMgr.getPkgByProjectId(projectId);
+  if (!pkg) {
+    throw new BadRequestError(
+      "Publish a project version before publishing the website.",
+    );
+  }
+  const version =
+    publishedVersion ??
+    (await txMgr.getLatestPkgVersionNumber(pkg.id, undefined));
+  const libraryArtifacts = await getProjectLibraryArtifacts(
+    txMgr,
+    projectId,
+    version,
+  );
+  const existing = await em.findOne(PreviewPublication, { projectId });
+  const bundle = await genPublishedLoaderCodeBundle(txMgr, req.workerpool, {
+    source: "live",
+    platform: "nextjs",
+    platformOptions: {},
+    projectVersions: { [projectId]: mkVersionToSync(version) },
+    loaderVersion: LATEST_LOADER_VERSION,
+    browserOnly: true,
+    libraryArtifacts,
+    i18nKeyScheme: undefined,
+    i18nTagPrefix: undefined,
+  });
+  const pages = bundle.components
+    .filter((c) => c.projectId === projectId && c.isPage && c.path)
+    .map((c) => ({
+      id: c.id,
+      name: c.displayName,
+      path: ensure(c.path, "Page path missing"),
+    }));
+  if (!pages.length) {
+    throw new BadRequestError("This project has no published pages.");
+  }
+  try {
+    validatePreviewPages(pages);
+  } catch (error) {
+    throw new BadRequestError(
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+  // A non-hostless custom component needs an application-specific registration.
+  if (bundle.components.some((c) => c.isCode)) {
+    throw new BadRequestError(
+      "This project requires custom code components that are not installed in the preview runtime.",
+    );
+  }
+  const requestedPath = entryPathOverride ?? existing?.entryPath;
+  const entryPath =
+    requestedPath ||
+    pages.find((page) => page.path === "/")?.path ||
+    pages.find((page) => !page.path.includes("["))?.path;
+  if (
+    !entryPath ||
+    !pages.some((page) => page.path === entryPath) ||
+    entryPath.includes("[")
+  ) {
+    throw new BadRequestError(
+      "Choose a published page with a fixed URL as the entry page.",
+    );
+  }
+  const result = em.create(PreviewPublication, {
+    projectId,
+    code: existing?.code ?? nanoid(10),
+    version,
+    enabled: true,
+    entryPath,
+    pages,
+    bundle,
+    publishedAt: new Date(),
+  });
+  await em.save(result);
+  return result;
 }
 
 export async function publishPreviewPublication(req: Request, res: Response) {
@@ -133,9 +160,14 @@ export async function publishPreviewPublication(req: Request, res: Response) {
     "editor",
     "publish website",
   );
+  if ((await userDbMgr(req).getProjectById(req.params.projectId)).isTemplate) {
+    throw new BadRequestError("Publish templates from the template center.");
+  }
   const publication = await publishWebsite(req);
   res.json({
-    publication: serialize(ensure(publication, "Published website missing")),
+    publication: serializePreviewPublication(
+      ensure(publication, "Published website missing"),
+    ),
   });
 }
 
@@ -143,6 +175,9 @@ export async function unpublishPreviewPublication(req: Request, res: Response) {
   const mgr = userDbMgr(req);
   const projectId = ensureString(req.params.projectId) as ProjectId;
   await mgr.checkProjectPerms(projectId, "editor", "unpublish website");
+  if ((await mgr.getProjectById(projectId)).isTemplate) {
+    throw new BadRequestError("Unpublish templates from the template center.");
+  }
   await mgr.getEntMgr().transaction(async (em) => {
     await em.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [
       `preview:${projectId}`,

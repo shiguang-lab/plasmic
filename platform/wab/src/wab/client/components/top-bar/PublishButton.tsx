@@ -1,4 +1,5 @@
 import { useI18n } from "@/wab/client/i18n";
+import { TemplatePublishButton } from "@/wab/client/components/top-bar/TemplatePublishButton";
 import { UiText } from "@/wab/client/i18n/UiText";
 /** @format */
 
@@ -52,6 +53,10 @@ export function PublishButton(props: PublishButtonProps) {
 
   if (!props.enable) {
     return null;
+  }
+
+  if (studioCtx.siteInfo.isTemplate) {
+    return <TemplatePublishButton />;
   }
 
   const isPlasmicLevels =

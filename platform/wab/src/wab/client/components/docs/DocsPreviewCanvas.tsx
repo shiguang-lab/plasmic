@@ -52,6 +52,10 @@ async function loadDocsPreviewRuntime(
               args: Record<string, any>,
             ) => {
               try {
+                if (isInteractionLoc(loc) && loc.actionName === "goBack") {
+                  showCanvasPageNavigationNotification(studioCtx, "");
+                  return;
+                }
                 if (isInteractionLoc(loc) && loc.actionName === "navigation") {
                   onAnchorClick(`${args.destination}`);
                   return;

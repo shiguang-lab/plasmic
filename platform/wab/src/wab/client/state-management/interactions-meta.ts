@@ -142,6 +142,7 @@ const ACTIONS = [
   "login",
   "logout",
   "navigation",
+  "goBack",
   "dataSourceOp",
   "customFunctionOp",
 ] as const;
@@ -460,6 +461,19 @@ export const ACTIONS_META: Record<(typeof ACTIONS)[number], ActionType<any>> = {
         type: "href",
         displayName: "Destination",
       },
+      transition: {
+        type: "choice",
+        displayName: "Transition",
+        options: [
+          { value: "none", label: "None" },
+          { value: "fade", label: "Fade" },
+          { value: "push-right", label: "Push from right" },
+          { value: "slide-up", label: "Slide from bottom" },
+        ],
+        defaultValueHint: "Push from right",
+        description: "Applies to Phone and Tablet preview devices only. When unset, uses Push from right. Duration and easing are fixed.",
+        disableDynamicValue: true,
+      },
     },
     getDefaultName: (_component, { destination }) => {
       if (!destination) {
@@ -474,6 +488,12 @@ export const ACTIONS_META: Record<(typeof ACTIONS)[number], ActionType<any>> = {
       }
       return "Go to page";
     },
+    getDefaultArgs: () => ({}),
+  },
+  goBack: {
+    displayName: "Go back",
+    parameters: {},
+    getDefaultName: () => "Go back",
     getDefaultArgs: () => ({}),
   },
   customFunction: {

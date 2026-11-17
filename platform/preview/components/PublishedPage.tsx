@@ -9,7 +9,9 @@ import {
   readBusinessQuery,
   type BusinessHref,
   type PreviewPage,
+  type PageTransitionPreset,
 } from "@plasmic-shared/preview";
+import { usePublishedRoute } from "./usePublishedRoute";
 import type { ComponentRenderData } from "@plasmicapp/loader-nextjs";
 import {
   PlasmicComponent,
@@ -34,19 +36,11 @@ const RouteContext = React.createContext<
       route: string;
       params: Record<string, string | string[]>;
       query: Record<string, string | string[]>;
-      navigate: (href: BusinessHref, replace?: boolean) => Promise<boolean>;
+      navigate: (href: BusinessHref, replace?: boolean, transition?: PageTransitionPreset) => Promise<boolean>;
+      goBack: () => void;
     }
   | undefined
 >(undefined);
-function subscribeRoute(update: () => void) {
-  window.addEventListener("hashchange", update);
-  window.addEventListener("popstate", update);
-  return () => {
-    window.removeEventListener("hashchange", update);
-    window.removeEventListener("popstate", update);
-  };
-}
-
 export default function PublishedPage({
   code,
   projectId,
@@ -58,18 +52,14 @@ export default function PublishedPage({
   const anchorHrefs = React.useRef(
     new WeakMap<HTMLAnchorElement, { source: string; encoded: string }>(),
   );
-  const hash = React.useSyncExternalStore(
-    subscribeRoute,
-    () => window.location.hash,
-    () => "",
-  );
+  const { hash, navigate: navigateRoute, goBack } = usePublishedRoute(entryPath, pages);
   const location = readBusinessLocation(hash, entryPath);
   const path = businessPath(location);
   const match = findPreviewPage(pages, location.pathname);
   const query = readBusinessQuery(location.search);
   React.useEffect(() => {
     if (!window.location.hash.startsWith("#/")) {
-      window.history.replaceState(null, "", publicationPath(code, entryPath));
+      window.history.replaceState(window.history.state, "", publicationPath(code, entryPath));
       window.dispatchEvent(new HashChangeEvent("hashchange"));
     }
   }, [code, entryPath]);
@@ -83,7 +73,7 @@ export default function PublishedPage({
     }
   }, [path]);
   const navigate = React.useCallback(
-    async (value: BusinessHref, replace = false) => {
+    async (value: BusinessHref, replace = false, transition?: PageTransitionPreset) => {
       const href = publicationHref(
         code,
         value,
@@ -94,14 +84,10 @@ export default function PublishedPage({
         window.location.assign(href);
         return true;
       }
-      if (href === window.location.pathname + window.location.hash) {
-        return true;
-      }
-      window.history[replace ? "replaceState" : "pushState"](null, "", href);
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      await navigateRoute(href, replace, transition);
       return true;
     },
-    [code, entryPath],
+    [code, entryPath, navigateRoute],
   );
   const runtime = React.useMemo(() => {
     const loader = initPlasmicLoader({
@@ -120,9 +106,9 @@ export default function PublishedPage({
         route: current.route,
         asPath: current.path,
         query: { ...current.params, ...current.query },
-        push: (href: BusinessHref) => current.navigate(href),
-        replace: (href: BusinessHref) => current.navigate(href, true),
-        back: () => window.history.back(),
+        push: (href: BusinessHref, _as?: BusinessHref, options?: { plasmicTransition?: PageTransitionPreset }) => current.navigate(href, false, options?.plasmicTransition),
+        replace: (href: BusinessHref, _as?: BusinessHref, options?: { plasmicTransition?: PageTransitionPreset }) => current.navigate(href, true, options?.plasmicTransition),
+        back: current.goBack,
         forward: () => window.history.forward(),
         reload: () => window.location.reload(),
         prefetch: async () => undefined,
@@ -212,6 +198,7 @@ export default function PublishedPage({
         params: match.params,
         query,
         navigate,
+        goBack,
       }}
     >
       <div

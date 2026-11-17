@@ -160,6 +160,38 @@ it("reports completion only after the live preview commits", async () => {
   expect(listeners.size).toBe(0);
 });
 
+it("animates a committed page navigation once, but not initial load or model rerenders", async () => {
+  const previousStart = document.startViewTransition;
+  const matchMedia = vi.spyOn(window, "matchMedia").mockImplementation(query => ({
+    matches: false,
+  } as MediaQueryList));
+  const captures: string[] = [];
+  const start = vi.fn((commit: () => void | Promise<void>) => {
+    captures.push(container.textContent ?? "");
+    const updated = Promise.resolve().then(commit);
+    return { ready: updated, updateCallbackDone: updated, finished: updated, skipTransition: vi.fn() } as unknown as ViewTransition;
+  });
+  document.startViewTransition = start;
+  try {
+    const first = update();
+    first.render = { ...spec, pagePath: "/list", device: "phone" };
+    await deliver(first);
+    expect(start).not.toHaveBeenCalled();
+    const second = update('import React from "react"; export default () => <h1>Details</h1>');
+    second.render = { ...spec, pagePath: "/detail", device: "phone", transition: { fromPath: "/list", toPath: "/detail", preset: "slide-up" } };
+    expect(await deliver(second)).toEqual({ error: undefined, text: "Details" });
+    expect(captures).toEqual(["Fresh preview"]);
+    await deliver(second);
+    expect(start).toHaveBeenCalledOnce();
+    first.render = { ...spec, pagePath: "/list", device: "phone", transition: { fromPath: "/detail", toPath: "/list", preset: "slide-up", reverse: true } };
+    await deliver(first);
+    expect(captures).toEqual(["Fresh preview", "Details"]);
+  } finally {
+    document.startViewTransition = previousStart;
+    matchMedia.mockRestore();
+  }
+});
+
 it("commits a custom compiled batch through the same runtime and completion queue", async () => {
   const transpile = createTranspiler();
   const compile = vi.fn<PreviewBatchCompiler>((modules) => Promise.all(modules.map(transpile)));

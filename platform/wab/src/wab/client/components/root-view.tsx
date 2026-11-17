@@ -65,6 +65,7 @@ type LazyPage = React.LazyExoticComponent<React.ComponentType<any>>;
 // immediately, without waiting for a Suspense fallback retry.
 const LoggedInPages = {
   AdminPage: React.lazy(() => import("./pages/admin/AdminPage")),
+  TemplateCenter: React.lazy(() => import("./dashboard/TemplateCenter")),
   AllProjectsPage: React.lazy(() => import("./dashboard/AllProjectsPage")),
   CmsRoot: React.lazy(() => import("./cms/CmsRoot")),
   FromStarterTemplate: React.lazy(() =>
@@ -262,6 +263,11 @@ function LoggedInContainer(props: LoggedInContainerProps) {
                                 <LoggedInPages.AllProjectsPage />
                               </DashboardLayout>
                             ),
+                          }),
+                          switchCase({
+                            exact: true,
+                            route: APP_ROUTES.templateCenter,
+                            render: () => <DashboardLayout><LoggedInPages.TemplateCenter /></DashboardLayout>,
                           }),
                           switchCase({
                             exact: true,

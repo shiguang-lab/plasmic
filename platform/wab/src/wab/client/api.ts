@@ -675,6 +675,7 @@ export function filteredApi(
     saveProjectRevChanges: checkProjectIdInFirstArg,
     computeNextProjectVersion: checkProjectIdInFirstArg,
     publishProject: checkProjectIdInFirstArg,
+    publishDesignTemplate: checkProjectIdInFirstArg,
     listPkgVersionsWithoutData:
       (f) =>
       async (...args) => {

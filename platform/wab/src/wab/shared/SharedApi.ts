@@ -1,3 +1,4 @@
+import type { ApiDesignTemplate, TemplateCenterResponse, TemplateMetadata } from "@/wab/shared/template-center";
 import type { PreviewPublication } from "@plasmic-shared/preview";
 import { toOpaque } from "@/wab/commons/types";
 import type { ProjectRevision } from "@/wab/server/entities/Entities";
@@ -194,6 +195,7 @@ import L, { pick, uniq } from "lodash";
 import semver from "semver";
 
 export interface SiteInfo {
+  isTemplate?: boolean;
   createdAt: string | Date;
   createdById: string | null;
   updatedAt: string | Date;
@@ -1737,6 +1739,25 @@ export abstract class SharedApi {
   getPresentation(code: string): Promise<{ code: string; projectId: ProjectId }> {
     return this.get(`/presentations/${encodeURIComponent(code)}`);
   }
+  listDesignTemplates(): Promise<TemplateCenterResponse> {
+    return this.get("/template-center");
+  }
+  createDesignTemplate(draft: TemplateMetadata): Promise<{ template: ApiDesignTemplate }> {
+    return this.post("/template-center", draft);
+  }
+  updateDesignTemplate(id: ProjectId, draft: TemplateMetadata): Promise<{ template: ApiDesignTemplate }> {
+    return this.put(`/template-center/${id}`, draft);
+  }
+  publishDesignTemplate(id: ProjectId): Promise<{ template: ApiDesignTemplate }> {
+    return this.post(`/template-center/${id}/publish`, {});
+  }
+  unpublishDesignTemplate(id: ProjectId): Promise<{ template: ApiDesignTemplate }> {
+    return this.post(`/template-center/${id}/unpublish`, {});
+  }
+  deleteDesignTemplate(id: ProjectId): Promise<{}> {
+    return this.delete(`/template-center/${id}`);
+  }
+
   getPreviewPublication(projectId: ProjectId): Promise<{ publication: PreviewPublication | null }> {
     return this.get(`/projects/${projectId}/preview-publication`);
   }

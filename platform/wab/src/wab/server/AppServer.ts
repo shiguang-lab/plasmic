@@ -1,3 +1,4 @@
+import * as templateCenter from "@/wab/server/routes/template-center";
 import { getDependencyModelResource, withDependencyModelResources } from "@/wab/server/routes/dependency-model-resources";
 import { createPresentation, getPresentation } from "@/wab/server/routes/presentations";
 import { presentationAccess } from "@/wab/server/routes/presentation-access";
@@ -1062,6 +1063,13 @@ export function addMainAppServerRoutes(
   /**
    * Primary app routes.
    */
+  app.get("/api/v1/template-center", withNext(templateCenter.listDesignTemplates));
+  app.post("/api/v1/template-center", adminOnly, withNext(templateCenter.createDesignTemplate));
+  app.put("/api/v1/template-center/:templateId", adminOnly, withNext(templateCenter.updateDesignTemplate));
+  app.post("/api/v1/template-center/:templateId/publish", adminOnly, withNext(templateCenter.publishDesignTemplate));
+  app.post("/api/v1/template-center/:templateId/unpublish", adminOnly, withNext(templateCenter.unpublishDesignTemplate));
+  app.delete("/api/v1/template-center/:templateId", adminOnly, withNext(templateCenter.deleteDesignTemplate));
+
   app.get("/api/v1/projects/:projectId/preview-publication", withNext(getPreviewPublication));
   app.get("/api/v1/hostless-libraries/:name/canvas", withNext(getHostlessLibraryCanvas));
   app.get("/api/v1/hostless-libraries/:name/release", withNext(getHostlessLibraryRelease));

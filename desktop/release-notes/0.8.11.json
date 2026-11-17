@@ -1,0 +1,7 @@
+{
+  "en": "- Add a top-level Template center with category, device, type, and component-library filters.\n- Let administrators maintain and publish templates while readers see the latest published reference, isolated from draft edits.\n- Add mobile page transitions and a Go back action across Preview and published pages.\n- Improve device viewport handling and property-panel interactions.",
+  "zh-CN": "- 新增独立的模板中心，支持分类、适用端、类型和组件库筛选。\n- 管理员可维护和发布模板，其他用户只能参考最新发布版，草稿修改不影响已发布内容。\n- 为预览和已发布页面新增移动端页面转场及返回操作。\n- 改进设备视口处理和属性面板交互。",
+  "zh-TW": "- 新增獨立的範本中心，支援分類、適用裝置、類型和元件庫篩選。\n- 管理員可維護和發布範本，其他使用者只能參考最新發布版，草稿修改不影響已發布內容。\n- 為預覽和已發布頁面新增行動裝置頁面轉場及返回操作。\n- 改善裝置視窗處理和屬性面板互動。",
+  "ja": "- カテゴリー、デバイス、種類、コンポーネントライブラリで絞り込めるテンプレートセンターを追加しました。\n- 管理者がテンプレートを編集・公開でき、利用者は下書きの変更に影響されず最新の公開版を参照できます。\n- プレビューと公開ページにモバイル向けページ遷移と「戻る」操作を追加しました。\n- デバイスの表示領域の処理とプロパティパネルの操作を改善しました。",
+  "ko": "- 카테고리, 기기, 유형, 컴포넌트 라이브러리로 필터링할 수 있는 독립적인 템플릿 센터를 추가했습니다.\n- 관리자가 템플릿을 편집하고 게시하며, 다른 사용자는 초안 변경의 영향 없이 최신 게시 버전을 참조할 수 있습니다.\n- 미리보기와 게시된 페이지에 모바일 페이지 전환 및 뒤로 가기 동작을 추가했습니다.\n- 기기 뷰포트 처리와 속성 패널 상호작용을 개선했습니다."
+}

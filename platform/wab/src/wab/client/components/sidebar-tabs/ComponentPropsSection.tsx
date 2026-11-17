@@ -460,6 +460,7 @@ export const InteractionPropEditor =
         />
         <PopoverFrame
           title={popoverTitle}
+          width={360}
           show={showInteractionPopover}
           valuePath={valuePath}
           triggerElement={triggerElement ?? undefined}

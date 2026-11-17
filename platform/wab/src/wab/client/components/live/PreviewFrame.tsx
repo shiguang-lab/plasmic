@@ -83,6 +83,10 @@ function installPreviewInteractionHandlers(frameWindow: Window, previewCtx: Prev
       args: Record<string, any>,
     ) => {
       try {
+        if (isInteractionLoc(loc) && loc.actionName === "goBack") {
+          spawn(previewCtx.goBack());
+          return;
+        }
         if (isInteractionLoc(loc) && loc.actionName === "navigation") {
           if (
             typeof args.destination !== "string" ||
@@ -92,7 +96,7 @@ function installPreviewInteractionHandlers(frameWindow: Window, previewCtx: Prev
               "Navigation destination must be a non-empty string",
             );
           }
-          spawn(previewCtx.handleNavigation(args.destination));
+          spawn(previewCtx.handleNavigation(args.destination, args.transition));
           return;
         }
         return fn();

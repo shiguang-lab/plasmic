@@ -44,7 +44,7 @@ test("ordinary preview defaults to desktop without carrying artboard dimensions"
   expect(history.location.hash).toBe("#/groups");
 });
 
-test.each([[393, 852, "phone"], [852, 393, "phone"], [834, 1194, "tablet"], [1194, 834, "tablet"]] as const)("opening a device page preserves its authored viewport (%i × %i, %s)", async (width, height, kind) => {
+test.each([[393, 852, "phone"], [852, 393, "desktop"], [834, 1194, "tablet"], [1194, 834, "desktop"]] as const)("opening a page follows native device preset classification (%i × %i, %s)", async (width, height, kind) => {
   const { ctx, history } = await setup();
   const studio = ctx.studioCtx;
   try {
@@ -56,9 +56,9 @@ test.each([[393, 852, "phone"], [852, 393, "phone"], [834, 1194, "tablet"], [119
     vi.spyOn(studio, "getPreviewInitialViewCtx").mockResolvedValue(view);
     const location = await getUrlsForLiveMode(studio, false);
     const search = new URLSearchParams(location.search);
-    expect(search.get("viewport")).toBe(kind);
-    expect(search.get("width")).toBe(String(width));
-    expect(search.get("height")).toBe(String(height));
+    expect(search.get("viewport")).toBe(kind === "desktop" ? null : kind);
+    expect(search.get("width")).toBe(kind === "desktop" ? null : String(width));
+    expect(search.get("height")).toBe(kind === "desktop" ? null : String(height));
     expect(frame.width).toBe(width);
     expect(frame.height).toBe(height);
   } finally { ctx.dispose(); studio.dispose(); }
@@ -314,6 +314,26 @@ test("Preview back/forward stay within business page history, preserving viewpor
   } finally {
     ctx.dispose();
   }
+});
+
+test("Preview remembers the entering preset for back/forward without persisting it in the URL", async () => {
+  const { ctx, history } = await navigationSetup();
+  try {
+    await ctx.parseRoute();
+    await ctx.handleNavigation("/details", "slide-up");
+    expect(ctx.navigationTransition).toEqual({ fromPath: "/groups", toPath: "/details", preset: "slide-up" });
+    expect(history.location.hash).toBe("#/details");
+    expect(history.location.search).not.toContain("transition");
+    await ctx.pushViewport({ viewport: "phone", width: 390, height: 844 });
+    await ctx.goBack();
+    expect(ctx.navigationTransition).toEqual({ fromPath: "/details", toPath: "/groups", preset: "slide-up", reverse: true });
+    await ctx.goForward();
+    expect(ctx.navigationTransition).toEqual({ fromPath: "/groups", toPath: "/details", preset: "slide-up", reverse: false });
+    await ctx.handleNavigation("/another");
+    expect(ctx.navigationTransition?.preset).toBeUndefined();
+    await ctx.stopLiveMode();
+    expect(ctx.navigationTransition).toBeUndefined();
+  } finally { ctx.dispose(); }
 });
 
 test("query/hash navigation and a new destination after back update Preview history; refresh keeps it", async () => {

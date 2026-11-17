@@ -17,6 +17,7 @@ import { ApiTeam, ApiWorkspace } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import {
   AppstoreOutlined,
+  LayoutOutlined,
   ExperimentOutlined,
   FolderOutlined,
   PlusOutlined,
@@ -29,7 +30,7 @@ import * as React from "react";
 
 export type DefaultLayoutProps = Omit<DefaultDefaultLayoutProps, "navigation"> &
   PlasmicDefaultLayout__OverridesType & {
-    navigation?: "allProjects" | "myProjects" | "spaces";
+    navigation?: "allProjects" | "myProjects" | "spaces" | "templates";
     /** Currently active team, if any. */
     team?: ApiTeam;
     /** Currently active workspace, if any. */
@@ -91,7 +92,9 @@ function DefaultLayout_(
             ? APP_ROUTES.allProjects.fill({})
             : value === "myProjects"
               ? APP_ROUTES.playground.fill({})
-              : APP_ROUTES.organizations.fill({}),
+              : value === "templates"
+                ? APP_ROUTES.templateCenter.fill({})
+                : APP_ROUTES.organizations.fill({}),
         );
       }}
       options={[
@@ -127,6 +130,10 @@ function DefaultLayout_(
               },
             ]
           : []),
+        {
+          value: "templates",
+          label: <span className={styles.navigationLabel}><LayoutOutlined aria-hidden />{t("Template center")}</span>,
+        },
       ]}
     />
   );

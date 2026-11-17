@@ -19,6 +19,8 @@ vi.mock("@/wab/server/loader/project-library-artifacts", () => ({
 }));
 vi.mock("@/wab/server/db/DbMgr", () => ({
   DbMgr: class {
+    constructor(private em: any) {}
+    getEntMgr = () => this.em;
     getProjectById = async () => ({ id: "project" });
     getPkgByProjectId = async () => state.pkg;
     getLatestPkgVersionNumber = async () => state.version;
@@ -48,6 +50,7 @@ vi.mock("@/wab/server/routes/util", () => {
   return {
     userDbMgr: () => ({
       checkProjectPerms: state.perms,
+      getProjectById: async () => ({ id: "project" }),
       getEntMgr: () => em,
       actor: {},
       opts: {},

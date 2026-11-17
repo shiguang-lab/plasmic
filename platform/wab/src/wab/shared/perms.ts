@@ -108,9 +108,12 @@ export function canEditDataSource(
 
 export function getAccessLevelToResource(
   resource: ApiResource,
-  user: ApiUser | null,
+  user: (ApiUser & { isAdmin?: boolean }) | null,
   perms: ApiPermission[],
 ): AccessLevel {
+  if (resource.type === "project" && resource.resource.isTemplate) {
+    return user?.isAdmin ? "editor" : "blocked";
+  }
   return (
     _.maxBy(
       [

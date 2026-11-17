@@ -9414,7 +9414,8 @@ interface CanvasLoadRequest {
   name: string;
 }
 
-function canUserEditProject(user: ApiUser | null, project: SiteInfo) {
+function canUserEditProject(user: (ApiUser & { isAdmin?: boolean }) | null, project: SiteInfo) {
+  if (project.isTemplate) { return user?.isAdmin === true; }
   if (isUnownedProject(project)) {
     // project with no owner and public can be edited
     return true;

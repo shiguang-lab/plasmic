@@ -88,6 +88,7 @@ function setup(props: DefaultLayoutProps = {}, followRoute = false) {
 it.each([
   ["myProjects", "My Playground"],
   ["allProjects", "Projects"],
+  ["templates", "Template center"],
   [undefined, "Spaces"],
 ] as const)(
   "selects only %s navigation when a team is present",
@@ -202,4 +203,10 @@ it("opens the user menu from the shared capsule", async () => {
     await screen.findByRole("menuitem", { name: "Settings" }),
   ).toBeTruthy();
   expect(screen.getByRole("menuitem", { name: "Sign Out" })).toBeTruthy();
+});
+
+it("opens the template center independently of organizations", () => {
+  const { history } = setup({ navigation: "allProjects" });
+  fireEvent.click(screen.getByRole("radio", { name: "Template center" }));
+  expect(history.location.pathname).toBe(APP_ROUTES.templateCenter.fill({}));
 });

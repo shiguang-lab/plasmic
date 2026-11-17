@@ -1,4 +1,5 @@
-export type PreviewViewportMode = "desktop" | "phone" | "tablet" | "custom";
+import type { PreviewDevice } from "@plasmic-shared/preview";
+export type PreviewViewportMode = PreviewDevice;
 
 export interface PreviewViewport {
   viewport: PreviewViewportMode;

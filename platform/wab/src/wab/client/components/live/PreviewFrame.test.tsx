@@ -537,6 +537,19 @@ it.each([null, undefined, "", "   "])(
   },
 );
 
+it("routes Go back through Preview history instead of the editor browser history", async () => {
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: false, isLive: false, pageHash: "" });
+  const hook = renderHook(() => useLivePreview(previewCtx));
+  act(() => hook.result.current.attachFrame(window));
+  await act(async () => hook.result.current.onLoad());
+  const generated = vi.fn();
+  const browserBack = vi.spyOn(window.history, "back");
+  (window as any).__PlasmicWrapUserFunction({ type: "InteractionLoc", actionName: "goBack", interactionUuid: "back" }, generated, {});
+  expect(previewCtx.goBack).toHaveBeenCalledOnce();
+  expect(generated).not.toHaveBeenCalled();
+  expect(browserBack).not.toHaveBeenCalled();
+});
+
 it("routes anchor actions through business history like page actions", async () => {
   const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
     full: false,
@@ -557,6 +570,7 @@ it("routes anchor actions through business history like page actions", async () 
   );
   expect(previewCtx.handleNavigation).toHaveBeenCalledWith(
     "#%E8%A7%84%E5%88%99",
+    undefined,
   );
 });
 

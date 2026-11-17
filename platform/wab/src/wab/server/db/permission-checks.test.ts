@@ -179,3 +179,22 @@ describe("authentication failures across shared permission gates", () => {
     expect(save).toHaveBeenCalledOnce();
   });
 });
+
+describe("template draft isolation", () => {
+  test.each(["viewer", "editor"] as const)("rejects %s even with grants, public access and valid tokens", async level => {
+    const { db, project } = makeDb(normalActor("self" as UserId), { projectIdsAndTokens: [{ projectId: "private-project" as never, projectApiToken: level === "viewer" ? "read-token" : "write-token" }] });
+    Object.assign(project, { isTemplate: true, inviteOnly: false, defaultAccessLevel: "editor" });
+    vi.spyOn(db as any, "_getActorAccessLevelToProject").mockResolvedValue("owner");
+    await expect(db.checkProjectPerms(project.id, level, "access template")).rejects.toMatchObject({ name: "ForbiddenError" });
+  });
+  test("lets a system admin edit a template without individual project grants", async () => {
+    const { db, project } = makeDb(normalActor("admin" as UserId, false, true));
+    project.isTemplate = true;
+    await expect(db.checkProjectPerms(project.id, "editor", "edit template")).resolves.toBeUndefined();
+  });
+  test("anonymous callers cannot read a template draft", async () => {
+    const { db, project } = makeDb(ANON_USER);
+    Object.assign(project, { isTemplate: true, inviteOnly: false });
+    await expect(db.checkProjectPerms(project.id, "viewer", "read template")).rejects.toMatchObject({ name: "UnauthorizedError" });
+  });
+});

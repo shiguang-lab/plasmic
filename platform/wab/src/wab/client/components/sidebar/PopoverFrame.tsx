@@ -24,6 +24,7 @@ interface Store {
 
 interface PopoverStackFrame {
   id: string;
+  width?: number;
   onClose?: () => void;
   element: HTMLDivElement;
   persistOnInteractOutside?: boolean;
@@ -148,6 +149,7 @@ export function PopoverFrameProvider(props: {
 
 export interface PopoverFrameProps {
   show: boolean;
+  width?: number;
   title?: React.ReactNode;
   valuePath: PropValuePath;
   children?: React.ReactNode;
@@ -187,6 +189,7 @@ function PopoverFrameInternal(props: PopoverFrameProps & { frameId: string }) {
     dismissOnEnter,
     persistOnInteractOutside,
     triggerElement,
+    width,
   } = props;
 
   const [element] = React.useState(() => {
@@ -206,8 +209,9 @@ function PopoverFrameInternal(props: PopoverFrameProps & { frameId: string }) {
         persistOnInteractOutside,
         valuePath,
         triggerElement,
+        width,
       }) as PopoverStackFrame,
-    [frameId, onClose, element, persistOnInteractOutside, valuePath, triggerElement],
+    [frameId, onClose, element, persistOnInteractOutside, valuePath, triggerElement, width],
   );
 
   // We push the popover content whenever it changes
@@ -391,6 +395,7 @@ function PopoverFrameShell() {
           id="props-popover"
           className={cx("dev-env panel-popup")}
           style={{
+            width: stack[0]?.width,
             minHeight: minHeight,
             maxHeight: "calc(100vh - 16px)",
             maxWidth: "calc(100vw - 16px)",

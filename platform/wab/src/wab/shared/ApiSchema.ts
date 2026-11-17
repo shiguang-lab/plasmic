@@ -364,6 +364,7 @@ export interface ApiBranch extends ApiEntityBase {
 }
 
 export interface ApiProject extends ApiEntityBase {
+  isTemplate?: boolean;
   id: ProjectId;
   hostUrl: string | null;
   clonedFromProjectId: ProjectId | null;
