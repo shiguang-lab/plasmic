@@ -19,6 +19,8 @@ permissions:
   contents: read
 env:
   PYTHONUTF8: "1"
+  # Shallow llama.cpp checkouts cannot derive the matching UI build number.
+  HF_UI_VERSION: b12119
 jobs:
   runtimes:
     strategy:

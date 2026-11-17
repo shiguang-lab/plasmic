@@ -11,6 +11,8 @@ on:
         type: string
 env:
   PYTHONUTF8: "1"
+  # Keep cold builds on the UI assets verified with llama.cpp v0.9.0.
+  HF_UI_VERSION: b12119
 permissions:
   contents: read
 jobs:
