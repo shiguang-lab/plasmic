@@ -98,6 +98,46 @@ test("artifact authorization failures are never treated as pending", async () =>
   await assert.rejects(waitForInstaller(api, 123, sha), /HTTP 403/);
 });
 
+test("waits for a dispatched run itself to become visible before inspecting artifacts", async () => {
+  let reads = 0;
+  const delays = [];
+  const winner = artifact(9);
+  const api = githubApi({ token: "test-token", repository: "owner/repo" }, async (url) => {
+    if (url.includes("artifacts?")) return Response.json({ artifacts: [winner] });
+    return reads++ < 2 ? new Response("Not Found", { status: 404 }) :
+      Response.json({ head_sha: sha, status: "in_progress" });
+  });
+  assert.deepEqual(await waitForInstaller(api, 123, sha, {
+    pause: async (ms) => { delays.push(ms); },
+  }), winner);
+  assert.deepEqual(delays, [5_000, 5_000]);
+});
+
+test("missing dispatched runs have a bounded synchronization wait", async () => {
+  let reads = 0;
+  const api = githubApi({ token: "test-token", repository: "owner/repo" }, async () => {
+    reads++;
+    return new Response("Not Found", { status: 404 });
+  });
+  await assert.rejects(waitForInstaller(api, 123, sha, { pause: async () => {} }), /synchronization retries/);
+  assert.equal(reads, 12);
+});
+
+test("cleanup also waits for the new run to become visible, then cancels it", async () => {
+  let reads = 0;
+  let cancelled = false;
+  const api = githubApi({ token: "test-token", repository: "owner/repo" }, async (url, init) => {
+    if (init.method === "POST") {
+      assert.ok(url.endsWith("/actions/runs/123/cancel"));
+      cancelled = true;
+      return new Response(null, { status: 202 });
+    }
+    return reads++ ? Response.json({ status: "queued" }) : new Response("Not Found", { status: 404 });
+  });
+  await cancelRace(api, 123, async () => {});
+  assert.equal(cancelled, true);
+});
+
 test("both failures stop publication", async () => {
   await assert.rejects(waitForInstaller(async (_, endpoint) =>
     endpoint.includes("artifacts?") ? { artifacts: [] } : { head_sha: sha, status: "completed", conclusion: "failure" },
@@ -122,7 +162,7 @@ test("cleanup cancels only the child race and tolerates it finishing concurrentl
     return { status: "in_progress" };
   }, 123);
   assert.deepEqual(calls, [
-    ["GET", "/actions/runs/123"],
+    ["GET", "/actions/runs/123", undefined, [404]],
     ["POST", "/actions/runs/123/cancel", undefined, [409]],
   ]);
 });

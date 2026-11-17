@@ -29,6 +29,17 @@ export async function dispatchRace(api, { workflowRef, sourceRef, rendererRunId 
   return result.workflow_run_id;
 }
 
+async function readDispatchedRun(api, runId, pause) {
+  // Dispatch can return an ID before GET endpoints have indexed the new run.
+  // Bound this synchronization wait; permissions and other errors still fail.
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const run = await api("GET", `/actions/runs/${runId}`, undefined, [404]);
+    if (run) return run;
+    if (attempt < 11) await pause(5_000);
+  }
+  throw new Error(`Dispatched ARM run ${runId} is still unavailable after synchronization retries`);
+}
+
 export async function waitForInstaller(api, runId, workflowSha, {
   now = Date.now,
   pause = sleep,
@@ -36,7 +47,7 @@ export async function waitForInstaller(api, runId, workflowSha, {
 } = {}) {
   const deadline = now() + timeoutMs;
   while (now() < deadline) {
-    const run = await api("GET", `/actions/runs/${runId}`);
+    const run = await readDispatchedRun(api, runId, pause);
     if (run.head_sha !== workflowSha) {
       throw new Error("ARM workflow revision differs from the parent release workflow");
     }
@@ -56,8 +67,8 @@ export async function waitForInstaller(api, runId, workflowSha, {
   throw new Error(`Timed out waiting for a verified ARM installer (run ${runId})`);
 }
 
-export async function cancelRace(api, runId) {
-  const run = await api("GET", `/actions/runs/${runId}`);
+export async function cancelRace(api, runId, pause = sleep) {
+  const run = await readDispatchedRun(api, runId, pause);
   if (run.status !== "completed") {
     // A run can finish between GET and POST; GitHub then returns 409.
     await api("POST", `/actions/runs/${runId}/cancel`, undefined, [409]);
