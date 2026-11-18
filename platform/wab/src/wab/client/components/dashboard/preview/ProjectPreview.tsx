@@ -71,7 +71,8 @@ export function ProjectPreview({
     return () => URL.revokeObjectURL(url);
   }, [blob]);
   React.useEffect(() => {
-    if (root.current) return observeCover(root.current, projectId, setBlob);
+    if (!root.current) return;
+    return observeCover(root.current, projectId, setBlob);
   }, [projectId, updatedAt]);
   return (
     <div
