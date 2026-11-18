@@ -1,0 +1,84 @@
+name: Publish 0.9.4 Desktop installers
+on:
+  push:
+    branches: [codex/desktop-0.9.4-installers]
+permissions:
+  contents: read
+concurrency:
+  group: product-release
+  cancel-in-progress: false
+jobs:
+  tests:
+    uses: ./.github/workflows/test-desktop.yml
+    with:
+      source-ref: ${{ github.sha }}
+  desktop:
+    uses: ./.github/workflows/publish-desktop.yml
+    permissions:
+      contents: read
+      actions: write
+    with:
+      release-tag: '0.9.4'
+      source-ref: ${{ github.sha }}
+  release:
+    needs: [tests, desktop]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64}'
+          path: release-artifacts
+      - run: npm ci --prefix desktop --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
+      - run: node desktop/scripts/build-distribution.mjs --from release-artifacts --output release-artifacts/desktop-distribution --tag 0.9.4 --manifests-only
+      - name: Publish verified installers before switching update feeds
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process';
+          import { copyFile, mkdtemp } from 'node:fs/promises';
+          import { tmpdir } from 'node:os';
+          import path from 'node:path';
+          import { collectRelease } from './scripts/github-release.mjs';
+          import { DESKTOP_FEEDS } from './scripts/release-download-contract.mjs';
+          const tag = '0.9.4';
+          const gh = (...args) => execFileSync('gh', args, { encoding: 'utf8' });
+          const info = () => JSON.parse(gh('release', 'view', tag, '--json', 'assets,isDraft,isPrerelease'));
+          const latest = () => gh('release', 'view', '--json', 'tagName', '--jq', '.tagName').trim();
+          if (latest() !== tag || info().isDraft || info().isPrerelease) throw Error('Expected current public 0.9.4 release');
+          const { assets } = await collectRelease({ tag, desktop: true });
+          const feeds = Object.values(DESKTOP_FEEDS);
+          const staging = await mkdtemp(path.join(tmpdir(), 'desktop-feeds-'));
+          async function upload(group, allowFeedUpdate = false) {
+            const before = info().assets;
+            const files = [];
+            for (const asset of group) {
+              const existing = before.find(x => x.name === asset.name);
+              if (existing?.digest === asset.digest && existing.size === asset.size && existing.state === 'uploaded') continue;
+              if (existing && !allowFeedUpdate) throw Error('Existing installer differs: ' + asset.name);
+              let file = asset.file;
+              if (path.basename(file) !== asset.name) {
+                file = path.join(staging, asset.name);
+                await copyFile(asset.file, file);
+              }
+              files.push(file);
+            }
+            if (latest() !== tag) throw Error('Latest release changed');
+            if (files.length) gh('release', 'upload', tag, ...(allowFeedUpdate ? ['--clobber'] : []), ...files);
+            const after = info().assets;
+            for (const asset of group) {
+              if (!after.some(x => x.name === asset.name && x.state === 'uploaded' && x.digest === asset.digest && x.size === asset.size)) throw Error('Upload verification failed: ' + asset.name);
+              console.log('Verified', asset.name, asset.size, asset.digest);
+            }
+          }
+          await upload(assets.filter(x => !feeds.includes(x.name)));
+          await upload(assets.filter(x => feeds.includes(x.name) && x.name.endsWith('.yml')), true);
+          await upload(assets.filter(x => x.name === 'desktop-latest.json'), true);
+          JS

@@ -1,0 +1,7 @@
+{
+  "en": "- Desktop now searches the current project’s component catalog on the server. It reuses search results when the account, project, catalog version, and search purpose match.",
+  "zh-CN": "- 桌面端现在通过服务器搜索当前项目的组件目录。同一账号在同一项目和目录版本下，按相同用途搜索时可复用结果。",
+  "zh-TW": "- 桌面版現在透過伺服器搜尋目前專案的元件目錄。同一帳號在相同專案與目錄版本中，依相同用途搜尋時可重用結果。",
+  "ja": "- デスクトップアプリは、現在のプロジェクトのコンポーネントカタログをサーバーで検索します。アカウント、プロジェクト、カタログのバージョン、検索目的が一致すると、検索結果を再利用します。",
+  "ko": "- 데스크톱 앱이 현재 프로젝트의 컴포넌트 카탈로그를 서버에서 검색합니다. 계정, 프로젝트, 카탈로그 버전, 검색 목적이 같으면 검색 결과를 재사용합니다."
+}
