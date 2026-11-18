@@ -124,3 +124,15 @@ workloads; `PERF_BACKGROUND_GC_CONTROL=1` adds a diagnostic GC only after all na
 idle samples, never to production or headline timing/memory results. Attribution,
 corrected ABBA comparison and lifecycle acceptance:
 [Background memory validation](../../../docs/performance/2026-11-04/background-memory/report.md).
+
+### 组件检索迁移回放
+
+`component-search-replay.cjs` 提供仅绑定回环地址的测试桥接，默认使用原对照组的 126 个 Antd 6 和 Overseas 公共组件契约。在桌面测试桥接进程设置 `COMPONENT_REPLAY_LIBRARY=@shiguang-lab/plasmic-material-ui` 可改用已发布的 Material UI 契约，NAS 服务进程仍预热全部公共库。`component-search-replay.test.ts` 调用 Studio 原生工具，在两个独立的测试模型上依次执行冷缓存和已缓存的同一组编辑。每轮记录工具返回前的总耗时、各操作耗时和候选，桥接端记录累计检索与目录同步请求。计算第二轮调用量时需扣除第一轮计数。
+
+1. 旧版对照使用提交 `a201bc3c959f569d68d36176dc7f9e88d10abd69` 的 `desktop/src/component-reuse.cjs`、`component-embedding.cjs`。将这两个文件放入临时目录，以 `COMPONENT_MODEL_DIRECTORY` 指向已验证的旧版模型目录，启动 `node desktop/tests/performance/component-search-replay.cjs local <临时目录>`。
+2. NAS 对照在隔离环境中启动 `node desktop/tests/performance/component-search-replay.cjs serve <NAS模型目录>`，经认证的私网测试连接访问其回环端口 39045。在桌面端启动 `node desktop/tests/performance/component-search-replay.cjs nas <测试连接的本地源地址>`。通过 `COMPONENT_REPLAY_PORT` 可为各桥接进程指定独立端口。
+3. 分别在 `platform/wab` 中运行 `COMPONENT_REPLAY_BRIDGE=http://127.0.0.1:39047 COMPONENT_REPLAY_REPORT=/tmp/replay node_modules/.bin/vitest run src/wab/client/copilot/component-search-replay.test.ts`，将地址和报告前缀换为对应组的值。对提前准备的 NAS 组设置 `COMPONENT_REPLAY_PREPARED=1`，测试等待编辑器打开时发起的第一次目录同步，记录编辑开始前的 NAS 请求，并从首个编辑开始单独计时。服务端的 `servicePreparationMs` 从服务进程日志读取。输出 `.cold.json` 和 `.cached.json`。测试不修改业务项目。
+
+[2026-11-18 NAS 实机对照数据](../../../docs/performance/2026-11-18/component-search-replay.json)
+
+Material UI 候选排序回归使用已发布的完整项目组件目录。将 `COMPONENT_MODEL_DIRECTORY` 指向与测试主机架构匹配的原生模型目录后，运行 `node --test desktop/tests/performance/material-ui-retrieval.test.cjs`。测试检查中英文侧边编辑面板、触摸手势、单值与范围选择，以及原设计回放中的标签和表格查询的首选组件。

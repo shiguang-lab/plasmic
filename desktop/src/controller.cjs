@@ -395,7 +395,7 @@ class DesktopController {
       };
       return {
         ...identity, ...pick(state, ["running", "windowOpen"]),
-        ...(state.editorContext ? { editorContext: pick(state.editorContext, ["projectName", "branchId", "sessionId", "revision", "changeCounter", "componentUuid", "frameUuid", "selectedElementUuids", "mode", "canEdit", "previewContext"]) } : {}),
+        ...(state.editorContext ? { editorContext: pick(state.editorContext, ["projectName", "publishedTemplateVersion", "branchId", "sessionId", "revision", "changeCounter", "componentUuid", "frameUuid", "selectedElementUuids", "mode", "canEdit", "previewContext"]) } : {}),
         ...(state.operations?.length ? { operations: state.operations } : {}),
       };
     }
@@ -633,6 +633,23 @@ class DesktopController {
         url.searchParams.set("workspaceId", JSON.stringify(input.workspaceId));
       }
       return managementResult(await this.requestStudio(url.pathname + url.search));
+    }
+    if (method === "open_template") {
+      const { templateId } = input;
+      validateResourceId(templateId, "templateId");
+      const catalog = await this.requestStudio("/api/v1/template-center");
+      if (!catalog.templates.some((entry) => entry.id === templateId && entry.published)) {
+        throw new Error("No published template available: " + templateId);
+      }
+      await this.saveBeforeNavigation(await this.state());
+      const url = new URL("/projects/" + templateId, this.config.studioOrigin);
+      url.searchParams.set("publishedTemplate", "true");
+      await win.loadURL(url.href);
+      const { editorContext } = await this.ready();
+      if (editorContext?.projectId !== templateId || !editorContext.publishedTemplateVersion || editorContext.canEdit !== false) {
+        throw new Error("The requested read-only template publication did not open");
+      }
+      return { opened: true, templateId, name: editorContext.projectName, version: editorContext.publishedTemplateVersion };
     }
     if (method === "open_design") {
       if (

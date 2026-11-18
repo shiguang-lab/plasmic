@@ -42,6 +42,7 @@ Authenticated local RPC is a script transport, not an editor operation namespace
 | Rename a project | `rename_project({projectId,name})` | `rename_project` / `{projectId,name}` |
 | Move a project | `move_project({projectId,workspaceId})` | `move_project` / `{projectId,workspaceId}` |
 | Copy a project | `clone_project({projectId,name?,workspaceId?})` | `clone_project` / `{projectId,name?,workspaceId?}` |
+| Open a published template canvas | `open_template({templateId})` | `open_template` / `{templateId}` |
 | Open a project | `open_design({projectId})` | `open_design` / `{projectId}` |
 | Read model | `execute({name:"read",input:{collection:"components"}})` | `execute` / `{name:"read",input:{collection:"components"}}` |
 | Save | `execute({name:"save",input:{}})` | `execute` / `{name:"save",input:{}}` |

@@ -25,13 +25,10 @@ permissions:
   actions: read
 env:
   PYTHONUTF8: "1"
-  # Keep cold builds on the UI assets verified with llama.cpp v0.9.0.
-  HF_UI_VERSION: b12119
 jobs:
   installer:
     runs-on: ${{ inputs.runner }}
-    # A cold Intel build compiles llama.cpp before signing and packaging.
-    timeout-minutes: ${{ inputs.runner == 'macos-15-intel' && 60 || 30 }}
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
@@ -62,19 +59,6 @@ jobs:
           go-version-file: desktop/mcp/go.mod
           cache-dependency-path: desktop/mcp/go.sum
       - run: tar -xzf renderer.tar.gz -C desktop
-      - uses: ./.github/actions/desktop-runtime-cache
-        id: runtime-cache
-        with:
-          runner: ${{ inputs.runner }}
-          target: ${{ inputs.platform }}-${{ inputs.arch }}
-      - name: Prepare native component runtime
-        run: node desktop/scripts/prepare-component-reuse.mjs '${{ inputs.platform }}' '${{ inputs.arch }}'
-      - name: Save native component runtime
-        if: steps.runtime-cache.outputs.hit != 'true'
-        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ${{ steps.runtime-cache.outputs.path }}
-          key: ${{ steps.runtime-cache.outputs.key }}
       - name: Build Go MCP helper
         run: node desktop/scripts/build-mcp.mjs '${{ inputs.platform }}' '${{ inputs.arch }}'
       - name: Install Electron before native verification

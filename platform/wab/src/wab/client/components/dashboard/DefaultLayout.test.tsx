@@ -24,6 +24,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import { createMemoryHistory } from "history";
 import * as React from "react";
@@ -103,9 +104,13 @@ it.each([
 it("groups navigation, creation and user actions in the header and removes the sidebar", () => {
   const { container, history } = setup({ navigation: "allProjects" });
   const header = screen.getByRole("banner");
-  expect(header.contains(screen.getByRole("radio", { name: "Projects" }))).toBe(
-    true,
-  );
+  const navigation = within(header);
+  expect(navigation.getAllByRole("radio")).toEqual([
+    navigation.getByRole("radio", { name: "Template center" }),
+    navigation.getByRole("radio", { name: "Projects" }),
+    navigation.getByRole("radio", { name: "Spaces" }),
+    navigation.getByRole("radio", { name: "My Playground" }),
+  ]);
   const creation = screen.getByRole("button", { name: "New organization" });
   expect(creation.textContent).toContain("New organization");
   const user = screen.getByRole("button", { name: "User" });
@@ -184,11 +189,11 @@ it("navigates to organizations with arrow keys and returns to the personal works
   const { history } = setup({}, true);
   fireEvent.click(screen.getByRole("radio", { name: "My Playground" }));
   fireEvent.keyDown(screen.getByRole("radio", { name: "My Playground" }), {
-    key: "ArrowRight",
+    key: "ArrowLeft",
   });
   expect(history.location.pathname).toBe(APP_ROUTES.organizations.fill({}));
   fireEvent.keyDown(screen.getByRole("radio", { name: "Spaces" }), {
-    key: "ArrowLeft",
+    key: "ArrowRight",
   });
   expect(history.location.pathname).toBe(APP_ROUTES.playground.fill({}));
   expect(

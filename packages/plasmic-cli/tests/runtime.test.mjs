@@ -34,11 +34,11 @@ test("workflow runtime reports supported Python and rejects old or malformed ver
 test("both context resolvers fail before resource access when Python is missing", async (t) => {
   const env = await pythonPath(t);
   const calls = [
-    [new URL("../src/references.mjs", import.meta.url).href, "resolveContext('prototype', {feed:'http://127.0.0.1:1/unreachable'})"],
+    [new URL("../src/context.mjs", import.meta.url).href, "resolveManagedContext('prototype', {feed:'http://127.0.0.1:1/unreachable'})"],
     [new URL("../../../scripts/plasmic-local-context.mjs", import.meta.url).href, "resolveLocalContext('prototype', '/missing-resources', '/missing-cache')"],
   ];
   for (const [url, call] of calls) {
-    const code = `const {resolveContext,resolveLocalContext}=await import(${JSON.stringify(url)}); await ${call};`;
+    const code = `const {resolveManagedContext,resolveLocalContext}=await import(${JSON.stringify(url)}); await ${call};`;
     await assert.rejects(run(process.execPath, ["--input-type=module", "-e", code], { env }), error => {
       assert.match(error.stderr, /Python 3\.9\+.*python3/);
       assert.doesNotMatch(error.stderr, /fetch failed|scandir.*missing-resources/);

@@ -36,7 +36,7 @@ class PlanPreparationTests(unittest.TestCase):
         self.assertEqual(report['templates'][0]['status'], 'not_applicable')
         self.assertIn('visual and runtime acceptance', report['notChecked'])
         page = self.plan['pages'][0]
-        self.assertIn('Local input-format fixture only', page['templatesNotApplicable'])
+        self.assertIn('Local input-format fixture only', page['templatesNotApplicable'][0]['missing'])
         self.assertEqual({c['key'] for c in page['actionContracts']}, {'view', 'disable'})
         # Real source provenance is checked; deleting or changing it cannot pass.
         source = self.path.parent / 'source.md'

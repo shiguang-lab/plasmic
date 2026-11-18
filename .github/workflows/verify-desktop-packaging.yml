@@ -10,12 +10,7 @@ jobs:
     uses: ./.github/workflows/test-desktop.yml
     with:
       source-ref: ${{ github.sha }}
-  runtimes:
-    uses: ./.github/workflows/prepare-desktop-runtime.yml
-    with:
-      source-ref: ${{ github.sha }}
   installers:
-    needs: runtimes
     permissions:
       contents: read
       actions: write

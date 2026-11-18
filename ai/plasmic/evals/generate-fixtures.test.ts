@@ -12,12 +12,6 @@ it("records model and operation fixtures for isolated skill evaluation", async (
     process.env.PLASMIC_SKILL_EVAL_OUTPUT,
     "PLASMIC_SKILL_EVAL_OUTPUT is required",
   );
-  const catalog = JSON.parse(
-    fs.readFileSync(
-      "../../ai/plasmic/references/templates/admin/catalog.json",
-      "utf8",
-    ),
-  );
   const site = createSite();
   const { studioCtx } = fakeStudioCtx({ site });
   const call = async (name: string, input: Record<string, unknown> = {}) =>
@@ -114,10 +108,6 @@ it("records model and operation fixtures for isolated skill evaluation", async (
           editCard: editCard.uuid,
           summary: summary.uuid,
         },
-        catalogStandard: catalog.templates.find(
-          (t: { componentName: string }) =>
-            t.componentName === "StandardListPage",
-        ),
       },
       null,
       2,

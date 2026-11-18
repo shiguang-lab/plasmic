@@ -517,6 +517,12 @@ const htmlProps: {
   Grid: { sx: "object", component: "exprEditor" },
 };
 
+const usageDescriptions: Partial<Record<keyof typeof api, string>> = {
+  Drawer: "A side panel that slides in from a screen edge. Place a detail view or an edit form alongside the current page, or show navigation. Use anchor to choose the edge.",
+  SwipeableDrawer: "A touch-operated navigation drawer. Swipe inward from the screen edge to open it and swipe back to dismiss it.",
+  Slider: "Choose a numeric value by dragging a thumb along a track. Use two thumbs to set the lower and upper bounds of a range.",
+};
+
 export function componentMeta(name: keyof typeof api): CodeComponentMeta<any> {
   const doc = api[name];
   const props: Props = Object.fromEntries(
@@ -673,7 +679,7 @@ export function componentMeta(name: keyof typeof api): CodeComponentMeta<any> {
     name: componentName(name),
     displayName: name,
     section: doc.section,
-    description: `Material UI ${name}. Mobile-first React component. https://mui.com/material-ui/api/${componentName(name).replace("plasmic-material-ui-", "")}/`,
+    description: `Material UI ${name}. ${usageDescriptions[name] ?? "Mobile-first React component."} https://mui.com/material-ui/api/${componentName(name).replace("plasmic-material-ui-", "")}/`,
     importPath,
     importName: name,
     props,

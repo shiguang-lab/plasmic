@@ -1,6 +1,6 @@
 # Admin design reference index
 
-Use [library and API selection](libraries/index.md) and [native component selection](libraries/index.md#native-component-selection) for the target project's libraries, then select affected references below. The admin scale, page recipes and current template catalog apply to the supported Overseas/Antd6 suite; other libraries retain their own usage references and task-derived layout. Shell reuse follows [shared layout](design/layout.md).
+Use [library and API selection](libraries/index.md) and [native component selection](libraries/index.md#native-component-selection) for the target project's libraries, then select affected references below. The admin scale, page recipes and published reference canvas apply to the supported Overseas/Antd6 suite; other libraries retain their own usage references and task-derived layout. Shell reuse follows [shared layout](design/layout.md).
 
 | Affected area | Read |
 | --- | --- |
@@ -18,7 +18,7 @@ Use [library and API selection](libraries/index.md) and [native component select
 | Library icons | [Icon selection](design/icons.md), then the actual icon-library scope |
 | Keyboard, focus, accessible names or readable feedback | [Shared accessibility](design/accessibility.md), then the affected component contracts |
 
-Read [admin templates](admin-templates.md) and [the catalog](templates/admin/catalog.json) when selecting or composing templates. A template's declared/source libraries must match the selected project components; the current catalog is not a default library choice for every project. When it does not fit, compose from the chosen registered library rather than install another library just to use that template. Keep one shell per standalone page and current-project business bindings.
+For Overseas/Antd6 admin design, select references from the [published template canvas](admin-templates.md). Keep one shell per standalone page and bind business behavior in the destination project.
 
 Apply [source precedence and explicit project-policy exceptions](requirement-alignment.md#source-and-scope); live component contracts define available capabilities. Business language remains configured; persisted registrations/Props/Slots retain their identities. Read only affected rules. Run only gates applicable to the selected library/API scope and independently reviewed inventory, then check real Preview behavior under [evidence integrity](verification.md#evidence-integrity). Save/reopen and reread after edits; read-only reviews do not mutate designs. Keep inventories/evidence outside the product UI.
 

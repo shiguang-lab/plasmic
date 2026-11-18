@@ -1,5 +1,5 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { reviewComponents, shouldReviewRegion, componentDocuments } from "@/wab/client/copilot/component-reuse";
+import { reviewComponents, shouldReviewRegion, componentDocuments, startComponentReuse, preparePublishedComponentCatalogue } from "@/wab/client/copilot/component-reuse";
 import { mkComponent, ComponentType } from "@/wab/shared/core/components";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { getBaseVariant } from "@/wab/shared/Variants";
@@ -21,13 +21,12 @@ function fixture() {
   const { studioCtx } = fakeStudioCtx({ site, devFlagOverrides: { enableComponentReuseAdvisory: true } });
   const sync = vi.fn().mockResolvedValue({});
   const review = vi.fn().mockResolvedValue({ status: "completed", indexed: 1, total: 1, elapsedMs: 10, suggestions: [] });
-  const native = { sync, review, cancel: vi.fn(), activity: vi.fn(), release: vi.fn().mockResolvedValue(undefined) };
+  const native = { sync, review, cancel: vi.fn(), release: vi.fn().mockResolvedValue(undefined) };
   const wire = (studio: typeof studioCtx) => {
     const api = mock<TopFrameApi>({ componentReuse: vi.fn(async request => {
     if (request.command === "status") { return { available: true }; }
     if (request.command === "sync" || request.command === "review") { const { command, ...input } = request; return native[command](input); }
     if (request.command === "cancel") { return native.cancel(request.id); }
-    if (request.command === "activity") { return native.activity(); }
     return native.release(request.projectId);
     }) });
     (() => { studio.appCtx.topFrameApi = api; })();
@@ -230,6 +229,24 @@ describe("component advisory preflight", () => {
     const result = await reviewComponents(f.studioCtx, f.operations, f.receipts, purpose);
     expect(result.status).toBe("partial"); expect(result.suggestions).toEqual([]);
   });
+  it("flushes changed contracts on publication without uploading an unchanged catalogue again", async () => {
+    const f = fixture();
+    const stop = startComponentReuse(f.studioCtx);
+    try {
+      await vi.waitFor(() => expect(f.sync).toHaveBeenCalled());
+      f.sync.mockClear();
+      const component = mkComponent({ name: "CustomerSummary", type: ComponentType.Plain, tplTree: customRegion() });
+      f.studioCtx.site.components.push(component);
+      preparePublishedComponentCatalogue(f.studioCtx);
+      await vi.waitFor(() => expect(f.sync).toHaveBeenCalledWith(expect.objectContaining({
+        documents: expect.arrayContaining([expect.objectContaining({ componentUuid: component.uuid })]),
+      })));
+      f.sync.mockClear();
+      preparePublishedComponentCatalogue(f.studioCtx);
+      await Promise.resolve();
+      expect(f.sync).not.toHaveBeenCalled();
+    } finally { stop(); }
+  });
   it("does not inventory pages as reusable components", () => { const f = fixture(); expect(componentDocuments(f.studioCtx).documents.some(doc => doc.componentUuid === f.page.uuid)).toBe(false); });
   it("uses the same first-registration precedence as live contract reads", () => {
     const first = { name: "SharedControl", importPath: "host", description: "Host contract", props: { value: "string" as const } };
@@ -265,6 +282,13 @@ describe("component advisory preflight", () => {
     const result = await reviewComponents(f.studioCtx, f.operations, [{ name: "insertHtml", componentUuid: f.page.uuid, created: roots.map(node => ({ kind: "Element", uuid: node.uuid, componentUuid: f.page.uuid })) }], purpose);
     expect(f.review.mock.calls[0][0].regions).toHaveLength(5);
     expect(result.status).toBe("partial");
+  });
+  it("returns a read-only retry while a new catalogue is being prepared", async () => {
+    const f = fixture();
+    f.sync.mockResolvedValue({ preparing: true, indexed: 0, total: 7 });
+    const result = await reviewComponents(f.studioCtx, f.operations, f.receipts, purpose);
+    expect(result).toMatchObject({ status: "indexing", total: 7, suggestions: [], retry: { arguments: { name: "reviewComponentReuse" } } });
+    expect(f.review).not.toHaveBeenCalled();
   });
   it("times out the entire check, including cache sync, and never starts a late query", async () => {
     const f = fixture(); let release: () => void = () => {};

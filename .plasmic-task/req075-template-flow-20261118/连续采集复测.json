@@ -1,0 +1,412 @@
+{
+  "rounds": [
+    {
+      "seconds": 7.87,
+      "pages": {
+        "资源查询列表": {
+          "page": "A1V7tayO-9GH",
+          "frame": "bhwckw7-9VWl",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "7db1dbad1a6c53af54c7a0a76f5bcde8b5ff7568ded154b44f52a3f1da10dccb"
+        },
+        "列表与抽屉联动": {
+          "page": "SkI5nLNWy2UT",
+          "frame": "lta05kaEaTfO",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "f926a5a867d71cdcbdb50ec3ce98efe21ccec42246af6f83ae9a680bd15e356d"
+        },
+        "分范围表格": {
+          "page": "Lrdw4Jts1Zzd",
+          "frame": "yqGY4RQZ5MAn",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "1d2cdadacba1cfc6b71ea4bcf6e26d0086fc42aa12639be900de3076f8fca318"
+        },
+        "标准管理列表": {
+          "page": "cDYZYokFR4sw",
+          "frame": "g6iKNJJfK8J6",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "e832f62b0632bf7202d62355a0680115179f67fb3a89dfca2fe79ea806fd8cb9"
+        },
+        "目录与标签工作台": {
+          "page": "KYAcKbK6fx1I",
+          "frame": "44U1arRy8od3",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "fc29b5b930097d6b81913a5b9e3f57bb2296e0a88625e94b2632d48b51267b34"
+        },
+        "资源新增表单": {
+          "page": "KWg6A2bKJRd7",
+          "frame": "5hdOhZbIMFun",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "de21be34d8effd2f3f1e57a3adc43c93b7d3fc285157b96a7cc06eb011eddd58"
+        },
+        "记录详情与关联表": {
+          "page": "Rgc3jqPJJ8Ot",
+          "frame": "7tSIbRM6op14",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "2cfbc475c52d952e9e5b61481249d7d2afa50e0b10288f636b96aa5d567aad2c"
+        },
+        "订单排序与展开": {
+          "page": "tAxAvnjwKhs9",
+          "frame": "qsKs5oJaxQov",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "ef674aab2841aba314ee0a44df5d470dc64e83201b5e6dd9ddf9809c4c745685"
+        },
+        "筛选与分范围列表": {
+          "page": "-XnytENqk5ZA",
+          "frame": "xuWAvf6U2de5",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "1dee808ce9dba92aa4da957a46bb0e266ebc278e60759a547da1d51b52909d49"
+        },
+        "目录工作台": {
+          "page": "_CB_zL-ZFkQj",
+          "frame": "MyEeRKAQKGdg",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "9d386625c367452d265574019c30c8bf753759f3149dff5243491d932c06f776"
+        },
+        "基础表单": {
+          "page": "JlNlLGMZp6rp",
+          "frame": "8gZCi0hALe7c",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "01c2edff1b8058cd2fffdbecde8b441516dc2edaf073f7045b78970f5cb451f7"
+        },
+        "分组表单": {
+          "page": "JPk6OAjfMHb6",
+          "frame": "G15spFNCSRvZ",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "bcff8eddc65f15151970203e105af085425606e3ec6dad6e8c9a064db200af49"
+        },
+        "分步表单": {
+          "page": "1DY5ep4ZUAD3",
+          "frame": "SEE-WYfyyhSK",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "4db29261f925269551eeba4efce4fa561ff274fa88b81291b82a73d798d9caa2"
+        },
+        "基础详情": {
+          "page": "QD_36vuUc0I-",
+          "frame": "iIDV8UCIdvLq",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "4ffa7b13156b5c4ad6efb3fda3f7419a1680400dcc55cac663fc058026b51576"
+        },
+        "分区详情": {
+          "page": "gwiY7CvhyIPM",
+          "frame": "Bkzd6veSM9dZ",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "2431798476ee24b42052e575a3290a8ff7978eea1ea3ac90d469d46f60bc29f9"
+        },
+        "运营概览": {
+          "page": "7Y1LgxUgXgSV",
+          "frame": "VD1cbiopNlVp",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "d31092e4f0648829a65e0d065073d632e74d77fd79f4f5a2b8089b6dba60b16e"
+        },
+        "订单行内详情": {
+          "page": "gbrDteTMAczI",
+          "frame": "w6aTTMO_uP8N",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "f04a890dac018916bbef749b3b738564c0c1d7133ef1f01feef024c8a2a1f191"
+        }
+      }
+    },
+    {
+      "seconds": 4.47,
+      "pages": {
+        "订单行内详情": {
+          "page": "gbrDteTMAczI",
+          "frame": "w6aTTMO_uP8N",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "f04a890dac018916bbef749b3b738564c0c1d7133ef1f01feef024c8a2a1f191"
+        },
+        "运营概览": {
+          "page": "7Y1LgxUgXgSV",
+          "frame": "VD1cbiopNlVp",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "23f343a648bb4c9cd6cbcd732b7ba98f073a98a8cb2dc64516b4f979e7eb468a"
+        },
+        "分区详情": {
+          "page": "gwiY7CvhyIPM",
+          "frame": "Bkzd6veSM9dZ",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "cbf11de8db687412fd5b1eec3e9b6ef36699415085c4ba3871fad54668d1e89d"
+        },
+        "基础详情": {
+          "page": "QD_36vuUc0I-",
+          "frame": "iIDV8UCIdvLq",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "6e3d39c0fcdd29595f5247cd01987078cb7b9b731389d15a3ee92fe9c842f257"
+        },
+        "分步表单": {
+          "page": "1DY5ep4ZUAD3",
+          "frame": "SEE-WYfyyhSK",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "e8c891b1d62b41454963c2f522d96768119effad843a9d89943e9edda6e32d3d"
+        },
+        "分组表单": {
+          "page": "JPk6OAjfMHb6",
+          "frame": "G15spFNCSRvZ",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "045c4bf3251140bcdaf4ec7b87909354071b32913782b6957a05f576536db721"
+        },
+        "基础表单": {
+          "page": "JlNlLGMZp6rp",
+          "frame": "8gZCi0hALe7c",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "9b430bbe2b759d7592d74d61890ff593b63e8b8348af286518c4a1fa8787926b"
+        },
+        "目录工作台": {
+          "page": "_CB_zL-ZFkQj",
+          "frame": "MyEeRKAQKGdg",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "4ef5ef27ee2c6e2f9a88f26fc3ace9498c8da180b9d863beb924744beb76abe8"
+        },
+        "筛选与分范围列表": {
+          "page": "-XnytENqk5ZA",
+          "frame": "xuWAvf6U2de5",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "7b4644280b81e568d45a74d2222389b5ec3b55cc1b25ed6e566e259d3554ed1d"
+        },
+        "订单排序与展开": {
+          "page": "tAxAvnjwKhs9",
+          "frame": "qsKs5oJaxQov",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "187bcb8ca1e3e306711f470a7ba4e6b57f0cc87eb35671cf90bbb50171957598"
+        },
+        "记录详情与关联表": {
+          "page": "Rgc3jqPJJ8Ot",
+          "frame": "7tSIbRM6op14",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "71302c4cbdd7bcad508af1889804fba6ee19ff0b14f3706253eaa7bb87301798"
+        },
+        "资源新增表单": {
+          "page": "KWg6A2bKJRd7",
+          "frame": "5hdOhZbIMFun",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "4ab410609be8dd3b3afe21a2b8d703883e54e5f8d488fc0b36e90e168b151aa3"
+        },
+        "目录与标签工作台": {
+          "page": "KYAcKbK6fx1I",
+          "frame": "44U1arRy8od3",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "63d8853aabd747b7de268e3334f6328a29e4d22770647ac891459f3e8a41b849"
+        },
+        "标准管理列表": {
+          "page": "cDYZYokFR4sw",
+          "frame": "g6iKNJJfK8J6",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "bb019761be9ce3357cbc2f876948c44f3248b5956db210825200c4defcb7af9f"
+        },
+        "分范围表格": {
+          "page": "Lrdw4Jts1Zzd",
+          "frame": "yqGY4RQZ5MAn",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "6b8c676a958a93a0c833649b248e4acbf98910164e7be9ac578c51f5e2ace7e4"
+        },
+        "列表与抽屉联动": {
+          "page": "SkI5nLNWy2UT",
+          "frame": "lta05kaEaTfO",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "f93c689bfd3e5f0435e53dbd05ea53dd77eed6783ac2c204a997e8ad84c0b213"
+        },
+        "资源查询列表": {
+          "page": "A1V7tayO-9GH",
+          "frame": "bhwckw7-9VWl",
+          "size": [
+            1440,
+            1024
+          ],
+          "imageHash": "06f42f673dbe8672f99b6cbbfa6f90cbac7323698c6a3bbc0bf17dfbfa7070e8"
+        }
+      }
+    }
+  ],
+  "returned": {
+    "surface": "editor",
+    "ready": true,
+    "projectId": "qEkBAnKZp5atGRf27r892m",
+    "branchId": null,
+    "sessionId": "Yhb4Dq7cvXbo",
+    "mode": "edit",
+    "previewKind": null,
+    "canEdit": true,
+    "arenaId": "Custom arena 1",
+    "componentUuid": "PhlA1MeiBC9Y",
+    "frameUuid": "RXFG0Jp_SAEU"
+  },
+  "publication": {
+    "name": "海外 O 端",
+    "version": "4.0.0"
+  },
+  "screenshotOptions": {
+    "target": "frameUuid returned by navigate(componentUuid)",
+    "liveCanvas": true
+  },
+  "installedCli": {
+    "seconds": 3.58,
+    "pages": [
+      "筛选与分范围列表",
+      "分范围表格",
+      "基础表单",
+      "分组表单",
+      "分步表单"
+    ],
+    "mixed": {
+      "passed": true,
+      "errors": [],
+      "sources": [
+        {
+          "sourceProjectId": "pDf4kvKBxRRLAHnjbGRwGu",
+          "sourceVersion": "4.0.0",
+          "models": [
+            {
+              "name": "筛选与分范围列表",
+              "uuid": "-XnytENqk5ZA"
+            }
+          ],
+          "sourceRead": "passed",
+          "plannedMode": "reference",
+          "actualReuse": "unverified"
+        }
+      ],
+      "reviewedCandidates": [
+        {
+          "componentName": "基础表单",
+          "missing": "SQL 编辑后缺少逐项校验状态"
+        },
+        {
+          "componentName": "分组表单",
+          "missing": "字段分组缺少校验后错误定位"
+        },
+        {
+          "componentName": "分步表单",
+          "missing": "分步录入缺少原位修改和重新校验"
+        }
+      ],
+      "notChecked": [
+        "source interpretation",
+        "actual template insertion/detachment",
+        "adaptation quality"
+      ]
+    },
+    "unmatched": {
+      "passed": true,
+      "errors": [],
+      "sources": [],
+      "status": "not_applicable",
+      "reviewedCandidates": [
+        {
+          "componentName": "基础表单",
+          "missing": "SQL 编辑后缺少逐项校验状态"
+        },
+        {
+          "componentName": "分组表单",
+          "missing": "字段分组缺少校验后错误定位"
+        },
+        {
+          "componentName": "分步表单",
+          "missing": "分步录入缺少原位修改和重新校验"
+        }
+      ],
+      "notChecked": [
+        "correctness of the no-template-fit decision"
+      ]
+    }
+  }
+}

@@ -1,6 +1,6 @@
 ---
 name: plasmic
-compatibility: Requires Node.js >=22.12, Python >=3.9 available as python3, and signed-in Plasmic Desktop MCP for design inspection or editing.
+compatibility: Requires Node.js >=22.12, Python >=3.9 available as python3, tar for CLI upgrades, and signed-in Plasmic Desktop MCP for design inspection or editing.
 description: Create, revise and review editable UI prototypes in Plasmic (原型设计/修改/验收), work with Studio design comments (设计注释/评审反馈), and generate, repair or verify application code from the design (代码生成/修复/还原验收). Use for prototype design when no other tool is specified, explicit Plasmic work, and follow-ups in established Plasmic design/code context. Excludes unrelated application coding and Plasmic platform development.
 ---
 
@@ -24,19 +24,17 @@ For an editable prototype request with no chosen tool or existing design source,
 
 If this skill contains `local-source.json`, read its absolute `resolver` path and run `node RESOLVER_PATH --mode MODE`. This selects current local development resources. A missing resolver/resource is an error; do not fall back to published or cached resources.
 
-Otherwise run the matching published command:
+Otherwise read the `plasmickit-cli-version` marker at the end of this installed file. Resolve `.plasmickit/<that version>/src/index.mjs` relative to this SKILL.md. On first use in the conversation run the installed launcher using its absolute path and the selected mode:
 
 ```sh
-npx -y --prefer-online @plasmickit/cli@latest context resolve --mode inspect
-npx -y --prefer-online @plasmickit/cli@latest context resolve --mode prototype
-npx -y --prefer-online @plasmickit/cli@latest context resolve --mode codegen
+node "LAUNCHER_PATH" context resolve --mode MODE
 ```
 
-Published `context resolve` first synchronizes existing installed skill entries from its CLI bundle, independently of resource updates. Local-source and symlinked entries are preserved. Report `skillUpdate` failures separately; they do not invalidate usable resources. Updated discovery instructions apply when the client reloads skills, not necessarily in this conversation.
+The published resolver uses a recently checked release for up to five minutes and downloads and verifies a newer CLI when advertised. It uses the selected CLI bundle to synchronize installed Skill entries. Local-source and symlinked entries are preserved. Report `skillUpdate` failures separately. Updated discovery instructions apply when the client reloads skills.
 
-Before native inspect/prototype/codegen work, resolve its resources and read every returned `mustRead` file, starting with `referencePath`; follow relevant links from `resourceRoot`. Within the same task, reuse known, already-read resources and retain pending checks; do not resolve again just because a new message arrived. Resolve/read a newly required mode or recover missing resource context before dependent work; reread affected design inputs when they change. Resource readiness or document reading alone does not establish workflow completion.
+Before native inspect/prototype/codegen work, read every `mustRead` file for the selected mode, starting with `referencePath`, and follow relevant links from `resourceRoot`. Keep the published `releaseId`, paths and `mustReadByMode` in the conversation context. Use the same release for follow-ups and mode changes, reading any newly applicable files from the returned list. Resolve again when resource context is lost, local files are missing, or the user requests a refresh. Use `--refresh` for an explicit published update. For the local resolver, resolve a newly required mode locally. Reread affected design inputs when they change and retain pending checks. Resource readiness or document reading alone does not establish workflow completion.
 
-Both resolvers verify that Python 3.9+ is available as `python3` for reference readers and gates. The published resolver also checks the NAS release manifest and verifies resource hashes. Stop dependent work on failure; do not silently use stale references. If it requires a newer CLI before npm has that version, install its returned `cliUrl` and rerun. Relay meaningful preparation progress from stderr; stdout contains the result. Report local versus published resources accurately.
+Both resolvers verify that Python 3.9+ is available as `python3` for reference readers and gates. The published resolver verifies resource hashes. On resolution failure, report the failed stage and stop dependent work. Relay meaningful preparation progress from stderr. Stdout contains the result.
 
 ## Ensure Desktop MCP access
 
@@ -54,7 +52,7 @@ Design the in-scope Pages' region relationships before detailed generation under
 
 Choose page purpose from the task: admin Pages use their matching page type; other experiences use `non-admin` with source-backed structure and focused verification. Component-library choice alone does not make a Page admin.
 
-For admin prototypes using the supported Overseas/Antd6 suite, read `references/admin-templates.md` and its catalog, inspect applicable live templates, then adapt the selected composition to the requirement. Other libraries use their matching component references and compatible templates; page purpose alone does not select Antd recipes. Read the relevant component and composition references before using them. A template or component must fit the current requirement and the project's actual library.
+For Overseas/Antd6 admin prototypes, follow `references/admin-templates.md`: open the published 海外 O 端 canvas with open_template, read the current Page descriptions, and match the business task and region from those descriptions first. Capture the chosen artboard for visual reference. Compare artboards only when the descriptions leave the choice ambiguous. For a clear mismatch, record the closest descriptions and their gaps, then return directly to the business canvas and design with registered components. Other libraries use their own compatible references and component contracts.
 
 Keep plans and acceptance evidence outside the business UI. Prototype mutations require edit permission. Native codegen follows the target application’s architecture.
 

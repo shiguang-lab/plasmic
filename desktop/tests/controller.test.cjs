@@ -275,6 +275,39 @@ test("project and dashboard navigation retain save, access and target checks", a
   await assert.rejects(controller.dispatch("open_design", { projectId: "invalid/project" }), /Invalid projectId/);
 });
 
+test("open_template loads the published canvas even from its own draft", async (t) => {
+  const templateId = "template";
+  const origin = "https://studio.example";
+  let url = origin + "/projects/" + templateId;
+  const loads = [];
+  const controller = new DesktopController(() => studioFixture({
+    isDestroyed: () => false, webContents: { getURL: () => url },
+    loadURL: async (target) => { url = target; loads.push(target); },
+  }), { studioOrigin: origin });
+  t.after(() => controller.close());
+  controller.state = async () => ({ ready: true, projectId: templateId, url });
+  controller.requestStudio = async (path) => {
+    assert.equal(path, "/api/v1/template-center");
+    return { templates: [{ id: templateId, published: { version: "1" } }] };
+  };
+  let saves = 0;
+  controller.editor = async (name) => {
+    if (name === "identify") return { canEdit: true };
+    assert.equal(name, "save"); saves++;
+  };
+  const context = { projectId: templateId, projectName: "海外 O 端", publishedTemplateVersion: "2", canEdit: false };
+  controller.ready = async () => ({ editorContext: context });
+  await assert.rejects(controller.dispatch("open_template", { templateId: "unpublished" }), /No published template/);
+  await assert.rejects(controller.dispatch("open_template", { templateId: "../project" }), /Invalid templateId/);
+  assert.equal(saves, 0);
+  assert.deepEqual(await controller.dispatch("open_template", { templateId }),
+    { opened: true, templateId, name: "海外 O 端", version: "2" });
+  assert.deepEqual(loads, [origin + "/projects/template?publishedTemplate=true"]);
+  assert.equal(saves, 1);
+  context.canEdit = true;
+  await assert.rejects(controller.dispatch("open_template", { templateId }), /read-only template/);
+});
+
 test("reference navigation checks editor context after a queued Preview transition", async (t) => {
   const win = { isDestroyed: () => false, webContents: { getURL: () => "https://studio.example/projects/p" } };
   const controller = new DesktopController(() => studioFixture(win), { studioOrigin: "https://studio.example" });

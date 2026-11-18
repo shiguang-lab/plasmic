@@ -39,7 +39,7 @@ test("installs for every detected CLI and config, sharing universal destinations
   for (const entry of result.installations) {
     assert.equal(entry.status, "installed");
     assert.equal(await readFile(entry.skillPath, "utf8"), bundled);
-    assert.deepEqual(await readdir(entry.target), ["SKILL.md"]);
+    assert.deepEqual((await readdir(entry.target)).sort(), [".plasmickit", "SKILL.md"]);
   }
   assert.equal(await readFile(unrelated, "utf8"), "user skill");
   await assert.rejects(access(path.join(options.home, ".qwen")), { code: "ENOENT" });
@@ -242,7 +242,7 @@ test("automatic synchronization adopts existing unversioned installs without ins
   const before = await stat(path.join(target, "SKILL.md"));
   await installSkill({ ...options, existingOnly: true });
   assert.equal((await stat(path.join(target, "SKILL.md"))).mtimeMs, before.mtimeMs);
-  assert.deepEqual((await readdir(target)).sort(), ["SKILL.md", "notes.txt"]);
+  assert.deepEqual((await readdir(target)).sort(), [".plasmickit", "SKILL.md", "notes.txt"]);
 });
 
 test("automatic synchronization is a no-op without installed clients", async (t) => {
@@ -308,7 +308,7 @@ test("concurrent CLI versions serialize writes and keep the newest entry", async
   const results = await Promise.all([runInstall(oldModule), runInstall(newModule), runInstall(oldModule), runInstall(newModule)]);
   assert.ok(results.every(({ stdout }) => JSON.parse(stdout).ok));
   assert.equal(await readFile(filename, "utf8"), "New instructions\n\n<!-- plasmickit-cli-version: 999.0.0 -->\n");
-  assert.deepEqual(await readdir(path.dirname(filename)), ["SKILL.md"]);
+  assert.deepEqual((await readdir(path.dirname(filename))).sort(), [".plasmickit", "SKILL.md"]);
 });
 
 test("an occupied update lock fails within a bound and can be retried without losing the entry", async (t) => {

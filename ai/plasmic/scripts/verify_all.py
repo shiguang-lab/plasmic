@@ -24,7 +24,6 @@ import verify_slots
 import verify_structure
 import rules_manifest
 import verify_selection
-import verify_templates
 import verify_page_layout
 import verify_references
 import verify_rendering
@@ -340,7 +339,6 @@ def checked_inputs(config, base):
                 yield from sources(child)
     structure = config.get('structure', {})
     if isinstance(structure, dict) and isinstance(structure.get('inventory'), str):
-        contents[verify_templates.CATALOG.resolve()] = verify_templates.CATALOG.read_bytes()
         data = contents.get((base / structure['inventory']).resolve())
         if data is not None:
             try:

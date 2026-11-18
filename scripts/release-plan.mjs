@@ -64,7 +64,7 @@ export function affectedProducts(files) {
         file,
       );
     const platform = /^platform\//.test(file);
-    if (shared || platform || /^deploy\//.test(file)) {
+    if (shared || platform || /^deploy\//.test(file) || file === "desktop/scripts/component-review-contract.mjs") {
       result.studio = true;
     }
     const backend =
@@ -109,6 +109,10 @@ function localeImpact(file, baseline, ref) {
     ![baseline, ref].some(revision => contains(revision, key, studioPaths)))
     ? "desktop" : "shared";
 }
+// The release decision travels with the tag, including manual reruns of that tag.
+const localDesktopOnly = (tag) =>
+  git("tag", "-l", tag, "--format=%(contents:trailers:key=Desktop-Release,valueonly)") === "local-only";
+
 export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
   if (!patterns.studio.test(tag)) throw new Error(`Unsupported release tag: ${tag}`);
   const tags = git("tag", "--merged", ref, "--sort=-version:refname")
@@ -130,6 +134,9 @@ export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
       baselines[product] = legacy && (!baseline || git("merge-base", baseline, legacy) === git("rev-parse", `${baseline}^{commit}`))
         ? legacy : baseline || null;
     }
+    if (product === "desktop" && baselines.desktop && localDesktopOnly(baselines.desktop)) {
+      baselines.desktop = tags.find(t => patterns.studio.test(t) && compareVersions(t, tag) < 0 && !localDesktopOnly(t)) || null;
+    }
     const files = baselines[product]
       ? git("diff", "--name-only", baselines[product], ref)
       : git("ls-tree", "-r", "--name-only", ref);
@@ -150,7 +157,7 @@ export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
   }
   const full = forceAll || !baseline || isNewReleaseSeries(tag, baseline);
   const studio = full || changes.studio.studio;
-  const desktop = full || changes.desktop.desktop || changes.studio.frontend;
+  const desktop = !localDesktopOnly(tag) && (full || changes.desktop.desktop || changes.studio.frontend);
   const cli = full || changes.cli.cli;
   const resources = full || changes.resources.resources || cli;
   if (desktop) {

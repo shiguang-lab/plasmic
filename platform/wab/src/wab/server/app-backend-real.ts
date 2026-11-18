@@ -20,6 +20,7 @@ import * as path from "path";
 // Must initialize globals early so that imported code can detect what
 // environment we're running in.
 import { addSocketRoutes } from "@/wab/server/app-socket-backend-real";
+import { prepareComponentSearch } from "@/wab/server/routes/component-search";
 import { Config } from "@/wab/server/config";
 import { logger } from "@/wab/server/observability";
 import { sendCommentsNotificationEmails } from "@/wab/server/scripts/send-comments-notifications";
@@ -85,6 +86,9 @@ export async function runAppServer(config: Config) {
     });
   });
 
+  if (process.env.COMPONENT_MODEL_DIRECTORY) {
+    await prepareComponentSearch();
+  }
   return runExpressApp(app, (server) => {
     // Upon upgrading to websocket, also proxy to socket server
     if (socketProxy) {

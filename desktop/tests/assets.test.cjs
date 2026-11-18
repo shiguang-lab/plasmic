@@ -39,6 +39,40 @@ before(async () => {
   });
 });
 after(() => fs.rm(root, { recursive: true, force: true }));
+test("canvas host variants share only matching scripts and retain both local URLs", async () => {
+  const { deduplicateCanvasPackages } = await import("../scripts/deduplicate-canvas-packages.mjs");
+  const directory = path.join(root, "static/canvas-packages/build");
+  await fs.mkdir(directory, { recursive: true });
+  const scripts = {
+    "equal.abc.js": "run();\n//# sourceMappingURL=equal.js.abc.map\n",
+    "equal-v2.abc.js": "run();\n//# sourceMappingURL=equal-v2.js.abc.map\n",
+    "different.abc.js": "run();\n//# sourceMappingURL=x.map\nfirst();",
+    "different-v2.abc.js": "run();\n//# sourceMappingURL=x.map\nsecond();",
+    "unpaired-v2.abc.js": "orphan();",
+  };
+  for (const [name, content] of Object.entries(scripts)) {
+    await fs.writeFile(path.join(directory, name), content);
+  }
+  const aliases = await deduplicateCanvasPackages(directory);
+  assert.deepEqual(aliases, { "equal-v2.abc.js": "equal.abc.js" });
+  await assert.rejects(fs.access(path.join(directory, "equal-v2.abc.js")), { code: "ENOENT" });
+  await fs.writeFile(path.join(directory, "aliases.json"), JSON.stringify(aliases));
+  for (const origin of [config.canvasOrigin, config.studioOrigin]) {
+    for (const name of Object.keys(scripts)) {
+      const url = origin + "/static/canvas-packages/build/" + name + "?v=1";
+      const body = scripts[aliases[name] ?? name];
+      for (const method of ["GET", "HEAD"]) {
+        const response = await handler(new Request(url, { method }));
+        assert.equal(response.status, 200);
+        assert.equal(response.headers.get("X-Plasmic-Desktop-Asset"), "local");
+        assert.equal(response.headers.get("Content-Length"), String(Buffer.byteLength(body)));
+        assert.equal(await response.text(), method === "GET" ? body : "");
+      }
+    }
+    const missing = await handler(new Request(origin + "/static/canvas-packages/build/equal-v2.missing.js"));
+    assert.equal(missing.status, 404);
+  }
+});
 test("Studio navigation and refresh use local index without a network fallback", async () => {
   const count = remote.length;
   for (const pathname of [

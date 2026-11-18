@@ -36,26 +36,9 @@
 
 可以从目标项目的 Imported projects 安装素材库项目，再插入需要的组合组件。实例的真实 Slots 可替换字段、列、标题和操作；修改外壳、内部布局或页面级数据时使用 Studio 的 Detach instance。页面模板内部的 Section 也需要按编辑范围展开或解离。以普通组件方式插入的抽屉要先解离组合实例，再由所在页面绑定原生 `Drawer.open` 和内部 Form ref。
 
-Plasmic 官方模板目录使用 [`ui-config.json`](../references/templates/admin/ui-config.json)。`pageTemplates` 包含 4 个整页模板，`insertableTemplates` 包含 4 个区块和 2 个抽屉。`componentResolution: "inline"` 将自定义组合展开为可编辑内容，底层注册组件仍使用各自的真实契约。缩略图已经通过 Desktop `import_image` 上传到本系统资产服务。
+Plasmic 官方模板目录使用 [`ui-config.json`](./ui-config.json)。`pageTemplates` 包含 4 个整页模板，`insertableTemplates` 包含 4 个区块和 2 个抽屉。`componentResolution: "inline"` 将自定义组合展开为可编辑内容，底层注册组件仍使用各自的真实契约。缩略图已经通过 Desktop `import_image` 上传到本系统资产服务。
 
 **当前配置尚未应用到组织或工作区。** 当前 shuhe 为 Free；官方 `Configure Studio UI` 入口要求 Enterprise，实际组织菜单中没有该入口。有可用入口后，将这两个数组合并到组织或工作区现有 UI 配置，保留其他字段。不要为了添加模板开启 `contentEditorMode`。这一行为对应[官方自定义模板说明](https://docs.plasmic.app/learn/custom-templates/)。
-
-## AI 如何参考
-
-[`catalog.json`](../references/templates/admin/catalog.json) 提供真实项目和组件 UUID、适用场景、避免场景、Slots 名称、组合规则、库版本和缩略图。它是 AI 的选型目录，组件的实时模型与注册元数据仍是 Props 和 Slots 的依据。仓库根 `CLAUDE.md` 已要求在设计管理后台原型前读取这个目录，Plasmic skill 的原型 workflow 也要求读取随资源包分发的模板规范与目录，发布到 NAS 后可用于其他项目。Plasmic 内置 AI 的自动检索和自动实例化服务尚未接入。
-
-设计时先读 [模板规范](../references/admin-templates.md) 和目录选择结构，再通过 Desktop MCP 读取模板和所用组件的实时契约。目录和 UiConfig 的唯一维护源位于 `ai/plasmic/references/templates/admin/`，随 skill 资源包发布；其他业务项目无需复制本仓库目录。已有外壳就选 Section；快速查看和短表单选 Drawer；完整详情与长表单选独立页面。组合示例：
-
-```text
-StandardListPage + DrawerDetailSection + DrawerFormSection
-已有 AppShell + TabsTableSection + DrawerFormSection
-SplitTabsPage + DrawerFormSection
-RecordDetailPage ↔ BasicFormPage（两个路由）
-```
-
-可以向 AI 提供以下任务指令：
-
-> 先读取当前 skill 资源包的 references/admin-templates.md 和 references/templates/admin/catalog.json，按当前需求选择和组合模板，再读取素材库实时模型与组件注册契约。复用现有库，布局优先使用 Antd。只保留一个 AppShell；替换示例字段、列和数据；绑定本项目真实事件、状态与路由；在 Preview 中检查查询、分页、校验和抽屉行为，保存后重读。
 
 ## 数据与事件绑定
 

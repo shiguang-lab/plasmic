@@ -41,6 +41,7 @@ x-server: &server
     DISABLE_BWRAP: "1"
     BACKEND_PORT: "3004"
   volumes:
+    - component-vectors:/home/node/.cache/plasmic/component-vectors
     - ./secrets/plasmic.json:/run/secrets/plasmic.json:ro
   depends_on:
     db: { condition: service_healthy }
@@ -235,3 +236,4 @@ networks:
 volumes:
   postgres-data:
   storage-data:
+  component-vectors:

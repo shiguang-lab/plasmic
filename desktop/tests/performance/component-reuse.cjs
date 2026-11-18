@@ -3,8 +3,9 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const os = require("node:os");
 const { execFileSync } = require("node:child_process");
-const { ComponentEmbedding, MODEL } = require("../../src/component-embedding.cjs");
-const { ComponentReuse, hash } = require("../../src/component-reuse.cjs");
+const { ComponentEmbedding, MODEL } = require("../../../platform/wab/src/wab/server/component-reuse/component-embedding.cjs");
+const { reviewIndex } = require("./review-index.cjs");
+const { ComponentReuse, hash } = require("../../../platform/wab/src/wab/server/component-reuse/component-reuse.cjs");
 const repo = path.resolve(__dirname, "../../..");
 const args = process.argv.slice(2);
 const option = name => args.includes(name) ? args[args.indexOf(name) + 1] : undefined;
@@ -44,7 +45,7 @@ async function main() {
       const results = [];
       for (const item of data.cases) {
         const region = { componentUuid: "owning-page", elementUuid: item.id, intent: item.intent, usedComponentUuids: [], facts: [] };
-        const result = await service.review(scope, [region]);
+        const result = await reviewIndex(service, scope, [region]);
         const candidates = result.suggestions[0]?.candidates ?? [];
         results.push({ id: item.id, expected: item.expected, status: result.status, elapsedMs: result.elapsedMs, candidates,
           hit: item.expected.length ? candidates.some(candidate => item.expected.includes(candidate.componentUuid)) : null });
@@ -65,7 +66,7 @@ async function main() {
       embedding = new ComponentEmbedding(runtime); service = new ComponentReuse({ directory, embedding });
       await service.sync(scope, changed);
       started = performance.now(); await embedding.prepare(); report.runtimeVerificationMs = performance.now() - started;
-      const query = item => service.review(scope, [{ componentUuid: "page", elementUuid: item.id, intent: item.intent, usedComponentUuids: [], facts: [] }]);
+      const query = item => reviewIndex(service, scope, [{ componentUuid: "page", elementUuid: item.id, intent: item.intent, usedComponentUuids: [], facts: [] }]);
       const cases = data.cases.filter(item => item.expected.length).slice(0, 10);
       report.firstCachedQuery = await query(cases[0]); await query(cases[1]);
       const samples = [];

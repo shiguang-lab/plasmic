@@ -77,16 +77,11 @@ jobs:
   cli:
     needs: plan
     if: needs.plan.outputs.cli == 'true'
-    permissions:
-      contents: read
-      id-token: write
     uses: ./.github/workflows/publish-plasmic-cli.yml
     with:
       release-tag: ${{ inputs.release-tag || github.ref_name }}
       source-ref: ${{ needs.plan.outputs.revision }}
       force: ${{ needs.plan.outputs.full == 'true' }}
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
   resources:
     needs: [plan, cli]
     if: >-
@@ -97,23 +92,17 @@ jobs:
       release-tag: ${{ inputs.release-tag || github.ref_name }}
       source-ref: ${{ needs.plan.outputs.revision }}
       cli-version: ${{ needs.cli.outputs.version }}
+      prepared-cli: ${{ needs.cli.outputs.publish == 'true' }}
   desktop-tests:
     needs: plan
     if: needs.plan.outputs.desktop == 'true'
     uses: ./.github/workflows/test-desktop.yml
     with:
       source-ref: ${{ needs.plan.outputs.revision }}
-  desktop-runtime:
-    needs: plan
-    if: needs.plan.outputs.desktop == 'true' && needs.plan.outputs.studio == 'true'
-    uses: ./.github/workflows/prepare-desktop-runtime.yml
-    with:
-      source-ref: ${{ needs.plan.outputs.revision }}
   desktop:
-    needs: [plan, studio, desktop-runtime]
+    needs: [plan, studio]
     if: >-
       ${{ !cancelled() && needs.plan.outputs.desktop == 'true' &&
-          (needs.desktop-runtime.result == 'success' || needs.desktop-runtime.result == 'skipped') &&
           (needs.studio.result == 'success' || needs.studio.result == 'skipped') }}
     permissions:
       contents: read
@@ -166,3 +155,28 @@ jobs:
           RELEASE_PLAN: ${{ needs.plan.outputs.plan }}
           RELEASE_REBUILD: ${{ github.event_name == 'push' && github.event.forced == true }}
         run: node scripts/github-release.mjs
+
+  npm:
+    needs: [plan, cli, release]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.cli.outputs.publish == 'true' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.plan.outputs.revision }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: plasmic-cli
+          path: dist/plasmic-cli
+      - name: Mirror the active Plasmic archive to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
+        run: node packages/plasmic-cli/scripts/publish.mjs --mirror --execute --tag "$RELEASE_TAG"

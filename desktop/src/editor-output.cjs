@@ -1,5 +1,5 @@
 // Public editor context excludes native UI persistence and browser import state.
-const contextFields = ["projectId", "projectName", "branchId", "sessionId", "revision", "changeCounter", "componentUuid", "componentName", "frameUuid", "selectedElementUuids", "selectedSlot", "instanceIndex", "mode", "canEdit", "previewContext", "path"];
+const contextFields = ["projectId", "projectName", "publishedTemplateVersion", "branchId", "sessionId", "revision", "changeCounter", "componentUuid", "componentName", "frameUuid", "selectedElementUuids", "selectedSlot", "instanceIndex", "mode", "canEdit", "previewContext", "path"];
 function editorOutput(name, result) {
   if (name === "getEditorContext" && typeof result.output === "string") {
     throw new Error("Editor context requires JSON; call identify with outputFormat:json and retry.");

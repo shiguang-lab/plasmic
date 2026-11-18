@@ -27,11 +27,10 @@ ai/plasmic/references/libraries/material_ui/  MUI 按用途分组的轻量组件
 ai/plasmic/references/engineering/         仅平台/组件实现任务使用的通用验证规则
 ai/plasmic/references/                     设计规范与 MCP 契约
 ai/plasmic/references/admin-templates.md    管理后台模板选择、组合与绑定规范
-ai/plasmic/references/templates/admin/     素材库目录和官方 UiConfig 的唯一维护源
 ai/plasmic/scripts/                        结构、Slot、模型比较检查
 scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI 安装包
 .github/workflows/publish-images.yml       统一 tag，按需发布或全发布，并汇总 GitHub Release
-.github/workflows/publish-plasmic-cli.yml  被统一发布流程调用，发布选中的 CLI 到 npm
+.github/workflows/publish-plasmic-cli.yml  准备选中的 CLI 安装包，供资源和 npm 共用
 ```
 
 根目录不再放置 `skills/`。CLI 直接读取包内 `skill/plasmic/SKILL.md` 安装，无生成副本或复制构建步骤。通过 `references/libraries/index.md` 先匹配项目真实组件库和 API 版本，再读该库的组件索引。每个库/API 范围独立维护 `components/` 与适用的 `compositions/`；Antd 按官方主组件维度维护文档，Form.Item、RangePicker、Descriptions.Item、列、分组等子组件和变体放入父组件小节，不另建文件。标题使用库的主组件名称，文档和索引保留覆盖的 Studio 注册名称及 key。业务组件沿用这一粒度，SearchForm.Item 在 SearchForm 文档内维护。构建器直接打包 references，无组件文档生成副本；测试脚本不进入资源 bundle。
@@ -68,27 +67,27 @@ Page plan 的步骤、命令和读取台账见 [规划](references/planning.md)�
 
 ## 安装和使用
 
-需要 Node.js 22.12 或更高版本，以及当前客户端 PATH 中可调用的 Python 3.9+（`python3`）。本地和发布版 context resolver 都先检查 Python；失败时报告环境缺口，不会把资源就绪当成流程可执行。npm 发布完成后：
+需要 Node.js 22.12 或更高版本和可调用的 Python 3.9+（`python3`）。发布版 CLI 自动升级时用系统的 `tar` 解包。
+
+首次安装 CLI 时，从[发布清单](https://plasmic-studio.shiguanglab.com/desktop-updates/plasmic/latest.json)读取 `releaseId`，下载同一目录下 `releases/<releaseId>/plasmic-cli.tgz`，根据 `artifacts.cli.sha256` 校验安装包，再在下载目录执行：
 
 ```sh
-npx -y --prefer-online @plasmickit/cli@latest skill install
-npx -y --prefer-online @plasmickit/cli@latest context resolve --mode inspect
-npx -y --prefer-online @plasmickit/cli@latest context resolve --mode prototype
-npx -y --prefer-online @plasmickit/cli@latest context resolve --mode codegen
+npm install -g --offline --no-audit --no-fund ./plasmic-cli.tgz
+plasmickit skill install
 ```
 
 `skill install` 非交互地检测本机受支持的 Agent CLI、桌面应用、IDE 扩展和用户配置目录，为所有检测到的客户端安装包内同一份 `plasmic/SKILL.md`，无需选择客户端或输入安装路径。CLI 检测检查 PATH 中的可执行文件，不启动客户端。应用检测使用 macOS 系统/用户 Applications、Windows 开始菜单快捷方式、Linux XDG 桌面入口；IDE 扩展检测包含 VS Code、VS Code Insiders、Cursor 和 Windsurf 的扩展目录。配置目录是安装线索，可能属于尚未卸载干净的客户端；检测依据随结果返回。
 
 默认使用用户级 Skill 目录，不修改当前项目。共用目录按真实路径合并处理；本地开发配置与入口符号链接跳过。内容相同返回 `unchanged`；更新通过临时文件原子替换 `SKILL.md`，保留其他 Skill 与用户附加文件。未发现受支持客户端时不写入并返回非零退出码；某个安装位置失败时继续其他位置，结果逐项报告错误并返回非零退出码。
 
-首次安装后，CLI 的 `context resolve` 在请求 resources 前自动同步已检测客户端中已安装的 `SKILL.md`，不需要重复运行 `skill install`。同步使用正在执行的 CLI 包，和 resources 的版本、缓存或网络结果无关；`--prefer-online` 让 npm 检查最新包信息，仍可复用缓存内容。没有安装 Skill 的客户端不会自动安装；`local-source.json`、Skill 目录自身或 `SKILL.md` 的符号链接均跳过，保留本地开发来源。共享父目录的符号链接仍按真实路径去重。
+已有旧版 Skill 的设备下次执行原有 `npx …@latest context resolve` 时，会强制读取 Plasmic 当前发布清单并直接使用该清单指定的 CLI 和资源。资源校验成功后，将 CLI 写入各 Skill 目录的 `.plasmickit/<版本>/`，再原子替换入口文件。客户端重载后通过 Node 运行该目录中的启动器。即使删除 npx 缓存，也能继续更新。旧设备无法访问 npm 时，使用上面的 Plasmic 安装包完成同一次迁移。本地开发配置和符号链接入口按原规则跳过。
 
-安装文件末尾的 CLI 版本注释随正文一起原子写入；旧的无版本入口在首次同步时补齐，较旧 CLI 不覆盖较新入口。每个安装目录用 `.plasmickit-skill-lock` 串行更新，等待最多 5 秒；进程异常退出遗留锁时，只在确认没有更新进程后删除。同步结果通过 `skillUpdate` 单独返回，包含更新、未变化、跳过原因或失败；入口同步失败不阻止可用资源加载，下次执行重试，资源失败仍按原规则阻止依赖工作。新入口在客户端重新加载技能后采用，不保证当前会话立即刷新；未触发 Skill、未执行 CLI 时不会后台更新。
+安装文件末尾的 CLI 版本注释随正文一起原子写入；旧的无版本入口在首次同步时补齐，较旧 CLI 不覆盖较新入口。入口末尾的版本号也用于定位同目录中对应的启动器。每个安装目录用 `.plasmickit-skill-lock` 串行更新，等待最多 5 秒；进程异常退出遗留锁时，只在确认没有更新进程后删除。同步结果通过 `skillUpdate` 单独返回，包含更新、未变化、跳过原因或失败；首次迁移存在失败项时报告失败，下次执行重试。日常同步单独报告入口失败项，资源失败仍按原规则阻止依赖工作。新入口在客户端重新加载技能后采用，不保证当前会话立即刷新；未触发 Skill、未执行 CLI 时不会后台更新。
 
 只检查检测结果和安装位置，不写文件：
 
 ```sh
-npx -y @plasmickit/cli@latest skill install --dry-run
+plasmickit skill install --dry-run
 ```
 
 ### 受支持的本地客户端
@@ -115,23 +114,17 @@ DeepSeek Harness 的 CLI 和目录契约依据：[CLI 包定义](https://github.
 
 目录规则依据：[Agent Skills 发现约定](https://agentskills.io/client-implementation/adding-skills-support)、[Codex](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)、[Claude Code](https://code.claude.com/docs/en/skills)、[Cursor](https://cursor.com/docs/skills)、[Gemini CLI](https://geminicli.com/docs/cli/using-agent-skills/)、[OpenCode](https://opencode.ai/docs/skills/)、[Copilot](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)、[Antigravity](https://antigravity.google/docs/skills)、[其他客户端的 Skills 安装器注册表](https://github.com/vercel-labs/skills/blob/main/src/agents.ts)。检测注册表在 `packages/plasmic-cli/src/agents.mjs`；增加客户端时同时核对目录契约并添加检测用例。
 
-也可以全局安装；每个任务先检查版本：
+首次使用某个会话时，根据任务选择一个模式：
 
 ```sh
-npm install -g @plasmickit/cli@latest
-plasmickit skill install
-plasmickit version check
-plasmickit references check
-plasmickit references update
 plasmickit context resolve --mode inspect
 plasmickit context resolve --mode prototype
 plasmickit context resolve --mode codegen
-plasmickit references path
 ```
 
-`version check` 查询公开资源服务的当前发布清单；清单的 `version` 是资源版本，`cliVersion` 是所附 npm 包版本。CLI 升级判断只比较 `cliVersion`。命令返回正在运行的 `cliVersion`、公开清单中的 `latestCliVersion`、资源最低要求 `minCliVersion`、`cliUpdateAvailable`、`cliCompatible` 和可直接安装的 `cliUrl`。`references check` 同时返回资源差异与 CLI 版本结果。CLI 低于最低版本时，`update` / `context resolve` 返回升级信息并停止；兼容的旧 CLI 可以加载新 references，同时报告有可用升级。薄 skill 的 `npx …@latest` 入口自动选择 npm 最新 CLI。
+`context resolve` 共用一次 `latest.json` 查询。清单里的 `cliVersion` 比启动版本新时，解析器直接从发布服务下载 `plasmic-cli.tgz`，校验 SHA-256 和大小，再使用新版处理 Skill 和资源。已下载的 CLI 存在用户缓存中，按安装包哈希复用。项目目录和全局安装都无需为自动升级写入文件。`version check` 和 `references check` 可用于手动查看发布版本和兼容性。`references update` 单独更新规则资源。
 
-`context resolve` 每次读取公开资源服务的 `latest.json`，更新并验证全部缓存文件，返回 `releaseId`、`version`、`resourceRoot`、`referencePath` 和该模式的 `mustRead` 绝对路径。inspect 模式返回只读解读流程和共用模型读取契约；prototype 模式返回原型工作流和 planning 必读入口，通过现有规则卡按注册组件和受影响范围送达规则；局部修复复用已有计划并执行针对性检查；codegen 模式返回模型读取、工程与验收规范，数据/交互规范在涉及对应行为时读取。解释模板和设计审查不要求编辑权限，不安装库或保存设计。
+`context resolve` 复用最近 5 分钟成功解析的清单，并验证资源缓存。首次解析、超过 5 分钟或传入 `--refresh` 时查询发布服务。资源缓存完整时直接复用，有新资源或缓存损坏时下载。返回 `releaseId`、`version`、`resourceRoot`、`referencePath`、当前模式的 `mustRead` 和三个模式的 `mustReadByMode`。同一会话保存这些路径，切换模式时读取对应列表即可。需要立即获取刚发布的版本时运行 `plasmickit context resolve --mode prototype --refresh`。
 
 资源命令在 stderr 实时输出友好的阶段提示，版本检查显示当前版本和最新版本，资源无需更新且缓存完整时直接提示当前已是最新版本；需要加载时显示下载与哈希校验进度。正常加载不展示缓存保存、更新协调和工作流入口等内部步骤。下载显示已接收字节与实际进度，阶段持续超过两秒时定期显示等待时长；失败提示标明当前阶段。stdout 仅输出最终 JSON，阶段内失败时，错误 JSON 包含失败阶段 `stage`。AI 应使用运行工具的增量输出能力转述阶段变化；工具若只在退出后返回日志，CLI 无法保证中途显示，AI 应说明仍在等待，不能编造进度。工作流入口就绪只代表文件可供阅读，Agent 仍需读取返回的 `mustRead`。
 
@@ -139,9 +132,9 @@ plasmickit references path
 
 ## 管理后台模板规范
 
-原型 workflow 要求在组合后台页面前读取 [模板规范](references/admin-templates.md) 和 [素材库目录](references/templates/admin/catalog.json)。目录提供 Admin Templates 的真实项目、十个组合组件、适用场景、Slots、版本和组合规则；AI 按需求选型，通过 Desktop MCP 核对实时模型和目标项目契约，再复用或参考结构组合。布局优先使用现有 Antd Flex、Row/Col、Space 和 Card，业务状态、事件和路由由目标项目绑定。
+海外 O 端原型通过 Desktop MCP 的 open_template 进入模板中心「海外 O 端」的发布画布。先按发布页描述匹配场景和结构；明确命中只截选中画板，难以区分才截候选对比，明确不匹配就返回业务项目用组件库设计。见[模板规范](references/admin-templates.md)。
 
-模板规范、目录和 [UiConfig](references/templates/admin/ui-config.json) 均由资源构建器自动纳入 bundle。`admin-templates/` 保存素材库生成函数、使用说明和验收证据；目录和配置只在 `references/templates/admin/` 维护。发布新素材库版本后核对实时 UUID、Slots、依赖和缩略图，更新目录并同步 UiConfig。
+模板规范随 skill 发布。模板示例页在模板中心维护，发布新画布后供后续任务读取。
 
 素材库的 `publishedVersion` 与 skill 资源发布版本独立。规范发布使外部 AI 可以发现素材库，不会应用组织 UiConfig，也不会接入 Studio 内置 AI 检索。配置是否启用、目标用户是否有素材库访问权限，都需要通过当前系统核对。
 
@@ -153,14 +146,14 @@ plasmickit references path
 node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-resources-0.0.59
 ```
 
-版本号是示例，发布前检查 npm 和 GitHub Release 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换公开清单，也不替代正式发布的 npm 内容比较。检查 manifest 包含 `references/admin-templates.md`、`references/templates/admin/catalog.json` 和 `references/templates/admin/ui-config.json`。
+版本号是示例，发布前检查 npm 和 GitHub Release 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换公开清单，也不替代正式发布的 Plasmic 安装包比较。检查 manifest 包含 `references/admin-templates.md`。
 
-正式发布沿用下文的统一 tag 流程：提交规范，推送数字 `<版本>` tag，等待 workflow 成功。仅 references 或资源脚本变化的小版本只构建资源，复用 npm 最新 CLI 的版本和原始安装包；薄 SKILL 或 CLI 发生变化时，同一流程先发布 CLI，再构建引用该版本的资源。统一发布器将校验后的资源上传 GitHub Release。
+统一发布按 tag 打包一次 CLI。资源任务直接使用这一份 tarball，GitHub Release 发布并切换 Plasmic 清单后，npm 任务读取公开清单、下载对应 tarball，与构建产物逐字节比对，通过后才发布同一文件到 npm。仅规则变化的补丁版本复用 Plasmic 当前生效的 CLI 原包。npm 失败时可单独重跑失败任务。
 
 GitHub Release 发布成功后，客户端执行：
 
 ```sh
-npx -y @plasmickit/cli@latest context resolve --mode prototype
+plasmickit context resolve --mode prototype --refresh
 ```
 
 核对返回的 `version`、`releaseId`，以及返回 `resourceRoot` 下的模板规范和目录。原型 workflow 会引导读取这些文件。已有兼容 CLI 可以下载新的 references；无需重新安装 skill 或 Desktop App。更新只影响下一次规范加载，已运行任务应重新 resolve/read 后使用新规则。
@@ -187,24 +180,24 @@ npx -y @plasmickit/cli@latest context resolve --mode prototype
 | 补丁版本：后端变化 | Studio 镜像 |
 | 补丁版本：前端或共享 renderer 变化 | Studio 镜像和 Desktop |
 | 补丁版本：Desktop 自身变化 | Desktop，复用已有 Studio 镜像 |
-| 补丁版本：CLI 或薄 Skill 变化 | CLI 和引用该 npm 包的资源 |
-| 补丁版本：references 或资源脚本变化 | 资源，复用 npm latest CLI |
+| 补丁版本：CLI 或薄 Skill 变化 | Plasmic CLI 和资源，随后同步同一包到 npm |
+| 补丁版本：references 或资源脚本变化 | 资源，复用 Plasmic 当前 CLI |
 | 仅文档、测试或 workflow 变化 | 不发布，不创建 Release |
 | 手动 workflow dispatch 勾选 `force-all` | 所有产物，包含内容未变的补丁版本 |
 
-发布范围取变更集合；例如同时修改后端和 references，就发布 Studio 和资源。资源始终在选中的 CLI 发布成功后构建，校验 npm 版本与完整性，复用原始安装包。只有资源变化时无需发布新 CLI。全发布和实际发布的 CLI/资源版本来自统一 tag；未发布的产物保留现有版本。源码 package.json 的 CLI 版本用于开发。
+发布范围取变更集合；例如同时修改后端和 references，就发布 Studio 和资源。资源构建校验选中的 CLI 安装包并将其纳入发布清单。只有资源变化时无需发布新 CLI。全发布和实际发布的 CLI/资源版本来自统一 tag；未发布的产物保留现有版本。源码 package.json 的 CLI 版本用于开发。
 
 发布前运行 `node scripts/release-plan.mjs <tag>` 检查范围，设置 `RELEASE_FORCE_ALL=true` 检查强制全发布。选中 Desktop 时，其 package/lockfile 版本必须等于 tag，并有五语言发布说明；同时构建 Studio 时 `webImage` 指向该 tag，仅发布 Desktop 时指向已有镜像。校验失败则不开始构建。
 
-所有选中的任务成功后才公开同一个 GitHub Release。CLI/资源资产包含 `plasmic-cli.tgz`、`resources.json.gz`、`plasmic-latest.json` 和 `plasmic-manifest.json`；薄 Skill 已包含在 CLI 包中。每个实际发布的数字版本都包含六份公开 latest 清单，未更新产品沿用此前清单的原始字节、版本和下载地址。资产上传后按大小和 SHA-256 验证，失败保留草稿供重跑；全部就绪后才推进 GitHub latest。资源 artifact 仍包含原始 `latest.json` 和 `releases/<releaseId>/`，供发布校验使用。固定首尔代理会自动跟随 latest，发布不修改代理配置或部署 NAS 服务。
+所有选中的构建任务成功后才公开同一个 GitHub Release。CLI/资源资产包含 `plasmic-cli.tgz`、`resources.json.gz`、`plasmic-latest.json` 和 `plasmic-manifest.json`；薄 Skill 已包含在 CLI 包中。每个实际发布的数字版本都包含六份公开 latest 清单，未更新产品沿用此前清单的原始字节、版本和下载地址。资产上传后按大小和 SHA-256 验证，失败保留草稿供重跑；全部就绪后才推进 GitHub latest。资源 artifact 仍包含原始 `latest.json` 和 `releases/<releaseId>/`，供发布校验使用。固定首尔代理会自动跟随 latest，发布不修改代理配置或部署 NAS 服务。
 
 `MIN_CLI_VERSION` 位于 `src/protocol.mjs`，不得高于资源清单的 `cliVersion`。资源目录使用内容哈希 `releaseId`，记录所有文件和安装包的 SHA-256 与大小。
 
 ### CI 必要配置
 
-- npm：需要有 `@plasmickit` scope 发布权限、启用 Bypass 2FA 的 granular `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、调用方 workflow `publish-images.yml`；workflow 已声明 `id-token: write` 并安装最新版 npm。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
+- npm：需要有 `@plasmickit` scope 发布权限、启用 Bypass 2FA 的 granular `NPM_TOKEN` secret，或已登记该包的 Trusted Publisher。OIDC 配置填写 GitHub owner `shiguang-lab`、repo `plasmic`、调用方 workflow `publish-images.yml`；workflow 已声明 `id-token: write`。参考 [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
 
-统一的 Actions 按计划调用 npm 发布、Studio 镜像、Desktop 和资源构建任务，并汇总 Release。Studio 服务的 NAS 部署在本机单独执行；客户端下载和资源由 GitHub Release 托管。
+统一的 Actions 在 GitHub Release 生效后执行选中的 npm 同步。Studio 服务的 NAS 部署在本机单独执行；客户端下载和资源由 GitHub Release 托管。
 
 ## 部署公开资源下载
 
@@ -223,13 +216,13 @@ latest 固定转发至 GitHub latest。资源按内容哈希存入固定的 `pla
 ```sh
 node packages/plasmic-cli/src/index.mjs skill install --dry-run
 node scripts/build-plasmic-resources.mjs --version 0.0.59
-# 默认只对 npm 做 dry-run（会查询真实 registry，不上传）：
+# 准备候选 CLI，并与 Plasmic 当前公开版本比较：
 node packages/plasmic-cli/scripts/publish.mjs --tag 0.4.3
-# 资源仅使用已经发布并校验的 CLI：
+# 单独更新规则，使用 Plasmic 已发布的 CLI：
 node scripts/release-resources.mjs --tag 0.4.3
 ```
 
-统一版本主/次版本升级或强制全发布会发布当前 CLI 包内容；补丁版本按需比较实际包内容，要求 npm 版本递增。上传 npm 需要显式加 `--execute`；统一 CI 会自动传入，全发布另传 `RELEASE_FORCE_ALL=true`。
+统一版本主/次版本升级或强制全发布会发布当前 CLI 包内容；补丁版本按需比较实际包内容，要求 npm 版本递增。向 npm 同步已公开的安装包需要显式加 `--mirror --execute`；统一 CI 会自动传入，全发布另传 `RELEASE_FORCE_ALL=true`。
 
 资源使用以下公开下载路径，由首尔从 GitHub Release 获取：
 

@@ -989,8 +989,10 @@ Required parent candidates are retained within the three-candidate budget and
 identified by `requiredBy`; an existing matching ancestor satisfies that dependency.
 Contract summaries prioritize requested fields and registration order, report
 `truncated`, and never replace reading the full live contract before composition.
-macOS native runtimes use loader-relative paths. Preparation and final signed
-packaging both verify an actual embedding request.
+The authenticated NAS project endpoint builds the visible catalogue index, runs
+BM25 and embedding search, and ranks candidates. Desktop caches completed
+candidate lists by account, project, catalogue version and purpose. Region
+filtering and parent selection run on each edit, including cache hits.
 
 Installation and upgrades wait for registrations to load. Failed downloads and
 registration loads reject without blocking the next retry. A version change

@@ -1,0 +1,105 @@
+{
+  "templateVersion": "4.0.1",
+  "descriptions": 17,
+  "descriptionScreenshotCount": 0,
+  "requirements": [
+    {
+      "module": "客群列表",
+      "selected": [
+        "筛选与分范围列表"
+      ],
+      "screenshots": 1
+    },
+    {
+      "module": "SQL 圈选校验",
+      "reviewedDescriptions": [
+        {
+          "componentName": "基础表单",
+          "missing": "常规属性与备注录入，缺少针对 SQL 的逐项检查及复验。"
+        },
+        {
+          "componentName": "资源新增表单",
+          "missing": "名称、分类和说明一次提交，缺少编辑查询后独立触发的校验结果。"
+        },
+        {
+          "componentName": "分组表单",
+          "missing": "普通配置分区后统一保存，缺少检查项失败原因与查询修改后的重验。"
+        },
+        {
+          "componentName": "分步表单",
+          "missing": "按阶段录入并确认，缺少在同一编辑区反复修改 SQL 并核对诊断的流程。"
+        }
+      ],
+      "screenshots": 0
+    }
+  ],
+  "screenshotCalls": [
+    {
+      "frameUuid": "xuWAvf6U2de5",
+      "liveCanvas": true
+    }
+  ],
+  "businessProject": "qEkBAnKZp5atGRf27r892m",
+  "previewChecks": [
+    {
+      "kind": "text",
+      "present": true,
+      "text": "新客首贷"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "沉默用户召回"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "到期客户回访"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "沉默用户召回"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "到期客户回访"
+    },
+    {
+      "kind": "text",
+      "present": false,
+      "text": "新客首贷"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "校验失败"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "第 1 行缺少"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "待校验"
+    },
+    {
+      "kind": "text",
+      "present": false,
+      "text": "校验失败"
+    },
+    {
+      "kind": "text",
+      "present": true,
+      "text": "校验通过"
+    },
+    {
+      "kind": "text",
+      "present": false,
+      "text": "校验失败"
+    }
+  ]
+}

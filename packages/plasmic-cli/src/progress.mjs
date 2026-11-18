@@ -1,6 +1,7 @@
 const labels = {
   runtime: ["运行环境", "正在检查运行环境", "运行环境检查通过"],
   manifest: ["版本检查", "正在检查版本", "版本检查完成"],
+  "cli-update": ["CLI 更新", "正在下载并校验新版 CLI", "新版 CLI 已就绪"],
   download: ["资源下载", "正在下载资源", "下载完成"],
   verify: ["资源校验", "正在校验资源", "校验通过"],
 };
@@ -65,9 +66,8 @@ export function formatProgress(event) {
       event.status === "completed" &&
       event.upToDate !== undefined
     ) {
-      return event.upToDate
-        ? "✓ 当前资源已是最新版本\n"
-        : "… 正在准备加载资源\n";
+      if (!event.upToDate) return "… 正在准备加载资源\n";
+      return event.recent ? "✓ 已复用最近校验的资源\n" : "✓ 当前资源已是最新版本\n";
     }
     if (
       event.stage === "activate" &&
@@ -108,7 +108,8 @@ export function formatProgress(event) {
         ? `当前版本 ${event.currentCliVersion}，最新版本 ${event.cliVersion}`
         : `当前版本 ${event.currentVersion ?? "尚未加载"}，最新版本 ${event.version}`;
   }
-  if (event.stage === "download" && event.bytes !== undefined) {
+  if (event.stage === "cli-update") details.push(`版本 ${event.cliVersion}`);
+  if (["download", "cli-update"].includes(event.stage) && event.bytes !== undefined) {
     details.push(
       `${size(event.bytes)}${event.totalBytes ? ` / ${size(event.totalBytes)}` : ""}`,
     );

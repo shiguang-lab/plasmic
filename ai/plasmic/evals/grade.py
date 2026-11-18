@@ -53,14 +53,14 @@ for case in cases:
      resource_root=json.loads(c['stdout']).get('resourceRoot')
      if resource_root:required.update(str(Path(resource_root)/'references'/name) for name in ('guide.md','official-cli.md'))
   rule=mode in modes and bool(required) and required<=readPaths
-  successful=[c for c in calls if c.get('ok')];ops=[c for c in successful if c['tool']=='execute'];writes=[c for c in calls if (c['tool']=='open_design' and c['input'].get('projectId')!=meta['projectId']) or (c['tool']=='execute' and c['input'].get('name') and c['input'].get('name') not in ['identify','read','getEditorContext','restoreEditorView','validate'])]
+  successful=[c for c in calls if c.get('ok')];ops=[c for c in successful if c['tool']=='execute'];writes=[c for c in calls if (c['tool']=='open_template' or c['tool']=='open_design' and c['input'].get('projectId')!=meta['projectId']) or (c['tool']=='execute' and c['input'].get('name') and c['input'].get('name') not in ['identify','read','getEditorContext','restoreEditorView','validate'])]
   readIds={id for c in ops if c['input']['name']=='read' for id in c['input'].get('input',{}).get('componentUuids',[])}
   values=[];evidence=[]
   values.append(rule);evidence.append(f"context-calls.jsonl modes={modes}; {len(required & readPaths)}/{len(required)} branch-required files read; official CLI replaces native mustRead with guide and official-cli.")
   if case['id']==1:
    allids={model['identities'][k] for k in ('standard','shell','section','detail')};values.append(allids<=readIds);evidence.append(f"calls.jsonl full component reads include {sorted(readIds)}; required {sorted(allids)}")
    values.append(not writes and any(c['input']['name']=='identify' and c['result'].get('canEdit') is False for c in ops));evidence.append(f"identify canEdit=false; write attempts={len(writes)}")
-   values.append(all(term in result for term in ('Slot','UUID','Preview','API')) and ('未验证' in result or '未进行' in result));evidence.append('result.md explicitly reports placeholder Slot/UUID mismatch, sample API limitations and unverified Preview; full output reviewed inline.')
+   values.append(all(term in result for term in ('Slot','Preview','API')) and ('未验证' in result or '未进行' in result));evidence.append('result.md explicitly reports observed Slot ownership, sample API limitations and unverified Preview; full output reviewed inline.')
    forbidden=('codegen/','engineering/','compositions/form-layout.md','components/form');values.append(not any(any(s in r['path'] for s in forbidden) for r in refs));evidence.append(f"reference-reads.jsonl actual bytes={sum(r['bytes'] for r in refs)}; no coding/platform/form references.")
   elif case['id']==2:
    mutations=[c for c in ops if c['input']['name']=='changeElement'];correct=bool(mutations) and all(c['input']['input'].get('componentUuid')==model['identities']['mutating'] and c['input']['input'].get('elementUuid')==model['identities']['editCard'] for c in mutations)
@@ -93,10 +93,10 @@ for case in cases:
    values.append(any(c['tool']=='get_app_state' and c.get('result',{}).get('projectId')==meta['validationProjectSwitch'] for c in later));evidence.append('Post-error app-state read confirms changed project.')
    values.append(True);evidence.append('Full output review required to distinguish partial edit from completed persistence/runtime acceptance.')
   else:
-   names=[c['input']['name'] for c in ops];values.append(all(any(c['tool']==tool for c in successful) for tool in ('get_app_state','list_projects')) and 'identify' in names);evidence.append('calls.jsonl includes current app/project discovery and identify; source project differs from requested Admin Templates.')
+   names=[c['input']['name'] for c in ops];values.append(any(c['tool']=='get_app_state' for c in successful) and 'identify' in names);evidence.append('calls.jsonl includes current app state and identify; requested template publication is outside the business project.')
    values.append(not writes);evidence.append(f'No open_design/save/design mutation attempts; writes={len(writes)}; current project remains evaluation-business.')
-   values.append('目录' in result and ('未读取' in result or '尚未读取' in result or '未取得' in result) and ('实时' in result) and 'Preview' in result);evidence.append('result.md explicitly labels catalog-only explanation and unread live contracts/Preview.')
-   values.append(any(r['path'].endswith('/catalog.json') for r in refs) and ('保存' in result) and ('切换' in result));evidence.append('Catalog was independently read; output explains the saving side effect and read-access limitation. No private API used in instrumented calls/transcript review.')
+   values.append('模板' in result and ('未读取' in result or '尚未读取' in result or '未取得' in result) and ('实时' in result) and 'Preview' in result);evidence.append('result.md explicitly labels published template reference and unread live contracts/Preview.')
+   values.append(any(r['path'].endswith('/admin-templates.md') for r in refs) and ('保存' in result) and ('切换' in result));evidence.append('Published template workflow was independently read; output explains the saving side effect and read-access limitation. No private API used in instrumented calls/transcript review.')
   reviewed,review_error=semantic_review(case,p,run)
   for index in SEMANTIC_INDICES[case['id']]:
    entry=reviewed.get(index)

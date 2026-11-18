@@ -10,8 +10,6 @@ import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 import runtimeSecurity from "../src/runtime-security.cjs";
 import { installMacLauncher } from "./mac-launcher.mjs";
 import { buildMcp, mcpBuildDirectory } from "./build-mcp.mjs";
-import { prepareComponentReuse } from "./prepare-component-reuse.mjs";
-import { verifyComponentReuseRuntime } from "./component-reuse-runtime.mjs";
 import { buildBlockMap } from "app-builder-lib/out/targets/blockmap/blockmap.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -70,7 +68,6 @@ const mcpLicenses = path.join(mcpDirectory, "LICENSES.mcp.txt");
 if (values["prepared-mcp"]) {
   await Promise.all([access(mcpExecutable), access(mcpLicenses)]);
 }
-const componentReuseDirectory = await prepareComponentReuse(platform, arch);
 console.time("electron-builder installer generation");
 const outputs = await build({
   projectDir: root,
@@ -84,7 +81,6 @@ const outputs = await build({
     files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
     extraResources: [
-      { from: componentReuseDirectory, to: "component-reuse" },
       { from: mcpExecutable, to: `mcp/${mcpName}` },
       { from: mcpLicenses, to: "mcp/LICENSES.mcp.txt" },
     ],
@@ -117,7 +113,6 @@ const outputs = await build({
     afterSign: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
       verifyMacSignature(path.join(context.appOutDir, "Plasmic.app"), signingCertificate);
-      if (arch === process.arch) await verifyComponentReuseRuntime(path.join(context.appOutDir, "Plasmic.app/Contents/Resources/component-reuse"));
     },
     artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],

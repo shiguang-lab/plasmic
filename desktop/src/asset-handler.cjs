@@ -34,6 +34,8 @@ function createAssetHandler({
   bundledFontCss = "",
 }) {
   root = path.resolve(root);
+  const canvasPackages = path.join(root, "static", "canvas-packages", "build");
+  let canvasAliases;
   return async function handle(request) {
     const url = new URL(request.url);
     const cors = { "Access-Control-Allow-Origin": "*" };
@@ -208,6 +210,15 @@ function createAssetHandler({
       });
     }
     try {
+      if (path.dirname(target) === canvasPackages && /-v2\.[^.]+\.js$/.test(target)) {
+        canvasAliases ??= fs.readFile(path.join(canvasPackages, "aliases.json"), "utf8")
+          .then(JSON.parse, (error) => {
+            if (error.code === "ENOENT") return {};
+            throw error;
+          });
+        const canonical = (await canvasAliases)[path.basename(target)];
+        if (canonical) return await fileResponse(path.join(canvasPackages, canonical));
+      }
       return await fileResponse(target);
     } catch (error) {
       if (!["ENOENT", "EISDIR", "ENOTDIR"].includes(error.code)) {

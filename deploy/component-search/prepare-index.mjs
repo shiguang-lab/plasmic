@@ -4,12 +4,12 @@ import os from "node:os";
 import path from "node:path";
 
 const require = createRequire(import.meta.url);
-const { ComponentReuse, hash } = require("../src/component-reuse.cjs");
-const { ComponentEmbedding, MODEL, fileHash } = require("../src/component-embedding.cjs");
+const { ComponentReuse, hash } = require("../../platform/wab/src/wab/server/component-reuse/component-reuse.cjs");
+const { ComponentEmbedding, MODEL, fileHash } = require("../../platform/wab/src/wab/server/component-reuse/component-embedding.cjs");
 
 // Public build inputs only. Private/project components are never written to seeds.
 export async function prepareComponentReuseIndex(directory) {
-  const documents = JSON.parse(await readFile(new URL("../src/component-reuse-public-documents.json", import.meta.url), "utf8"));
+  const documents = JSON.parse(await readFile(new URL("../../platform/wab/src/wab/server/component-reuse/component-reuse-public-documents.json", import.meta.url), "utf8"));
   const inputSha256 = hash(JSON.stringify([MODEL.signature, documents]));
   const manifestPath = path.join(directory, "runtime.json"); const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   if (manifest.seedInputSha256 === inputSha256 && manifest.seedSignature === MODEL.signature) {
@@ -20,13 +20,18 @@ export async function prepareComponentReuseIndex(directory) {
   console.time("Generate public vector index");
   const temporary = await mkdtemp(path.join(os.tmpdir(), "component-public-seeds-"));
   const embedding = new ComponentEmbedding(directory); const account = hash("public-library-build-inputs");
-  const service = new ComponentReuse({ directory: temporary, embedding, backgroundDelayMs: 0, idlePauseMs: 0 });
+  const service = new ComponentReuse({ directory: temporary, embedding, backgroundDelayMs: 0 });
   try {
     await service.sync({ account, project: "public-library-build" }, documents);
-    const deadline = Date.now() + 600000;
+    let lastCount = service.stats.documentEmbeddings;
+    let lastProgress = Date.now();
     while (service.coverage().indexed < service.coverage().total) {
       if (service.failure) throw service.failure;
-      if (Date.now() > deadline) throw new Error("Public vector seed preparation timed out");
+      if (service.stats.documentEmbeddings !== lastCount) {
+        lastCount = service.stats.documentEmbeddings;
+        lastProgress = Date.now();
+      }
+      if (Date.now() - lastProgress > 600000) throw new Error("Public vector seed preparation stalled");
       await new Promise(resolve => setTimeout(resolve, 25));
     }
     const keys = [...new Set(service.state.documents.flatMap(doc => doc.pieces.map(piece => piece.key)))];

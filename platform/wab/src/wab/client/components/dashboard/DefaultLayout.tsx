@@ -17,10 +17,10 @@ import { ApiTeam, ApiWorkspace } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import {
   AppstoreOutlined,
-  LayoutOutlined,
   ExperimentOutlined,
   FolderOutlined,
   PlusOutlined,
+  SnippetsOutlined,
 } from "@ant-design/icons";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -99,20 +99,20 @@ function DefaultLayout_(
       }}
       options={[
         {
+          value: "templates",
+          label: (
+            <span className={styles.navigationLabel}>
+              <SnippetsOutlined aria-hidden />
+              {t("Template center")}
+            </span>
+          ),
+        },
+        {
           value: "allProjects",
           label: (
             <span className={styles.navigationLabel}>
               <AppstoreOutlined aria-hidden />
               {t("Projects")}
-            </span>
-          ),
-        },
-        {
-          value: "myProjects",
-          label: (
-            <span className={styles.navigationLabel}>
-              <ExperimentOutlined aria-hidden />
-              {t("My Playground")}
             </span>
           ),
         },
@@ -131,8 +131,13 @@ function DefaultLayout_(
             ]
           : []),
         {
-          value: "templates",
-          label: <span className={styles.navigationLabel}><LayoutOutlined aria-hidden />{t("Template center")}</span>,
+          value: "myProjects",
+          label: (
+            <span className={styles.navigationLabel}>
+              <ExperimentOutlined aria-hidden />
+              {t("My Playground")}
+            </span>
+          ),
         },
       ]}
     />

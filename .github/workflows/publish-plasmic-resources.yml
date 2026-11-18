@@ -8,6 +8,9 @@ on:
       source-ref:
         required: true
         type: string
+      prepared-cli:
+        default: false
+        type: boolean
       cli-version:
         default: ''
         type: string
@@ -27,11 +30,20 @@ jobs:
         with:
           python-version: '3.12'
       - run: node --test desktop/tests/plasmic-resources.test.cjs
-      - name: Build resources with the verified npm CLI
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        if: inputs.prepared-cli
+        with:
+          name: plasmic-cli
+          path: dist/plasmic-cli
+      - name: Bundle the prepared CLI or reuse the active Plasmic archive
         env:
           RELEASE_TAG: ${{ inputs.release-tag }}
           CLI_VERSION: ${{ inputs.cli-version }}
-        run: node scripts/release-resources.mjs --tag "$RELEASE_TAG" --cli-version "$CLI_VERSION"
+          PREPARED_CLI: ${{ inputs.prepared-cli }}
+        run: |
+          args=()
+          if [[ "$PREPARED_CLI" == "true" ]]; then args+=(--artifact dist/plasmic-cli/plasmic-cli.tgz); fi
+          node scripts/release-resources.mjs --tag "$RELEASE_TAG" --cli-version "$CLI_VERSION" "${args[@]}"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
           name: plasmic-resources-${{ inputs.release-tag }}

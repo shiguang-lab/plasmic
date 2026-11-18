@@ -84,7 +84,7 @@ import {
 import { personalProjectPaywallMessage } from "@/wab/client/components/widgets/plasmic/ShareDialogContent";
 import { clientToFramePt, frameToScalerRect } from "@/wab/client/coords";
 import { CopilotActivity } from "@/wab/client/copilot/activity";
-import { startComponentReuse } from "@/wab/client/copilot/component-reuse";
+import { preparePublishedComponentCatalogue, startComponentReuse } from "@/wab/client/copilot/component-reuse";
 import { DbCtx, WithDbCtx } from "@/wab/client/db";
 import {
   AddFakeItem,
@@ -8171,6 +8171,7 @@ export class StudioCtx extends WithDbCtx {
       await mutate(calculateNextVersionKey(this));
       const newPkg = ensure(resp.pkg, "newPkg should exist");
       this.versionHistory.prependRelease(newPkg);
+      preparePublishedComponentCatalogue(this);
       return PublishResult.PreFilling;
     } catch (e) {
       // TODO

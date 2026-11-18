@@ -884,6 +884,7 @@ def required_reads(plan, stage='compose', root=None):
     # libraries retain their component-owned rules without borrowing a v6 page contract.
     if 'components' in plan and admin_page(plan):
         add(SCALE, None)
+        add('references/admin-templates.md', None)
         page_types = PAGE_TYPE_RULE.split('#', 1)[0]
         kind = plan.get('pageType')
         add(page_types, {kind, 'regions-inside-any-type'} if kind in PAGE_TYPES else {'choosing-the-type'})
@@ -972,7 +973,7 @@ def check(expected, readback=None, page_path=None, reads=None):
     for page_index, plan in plans:
         path = plan.get('path')
         template_report = ({'passed': False, 'errors': []} if plan.get('templates') == rules_manifest.PENDING
-                           else verify_templates.check_page(plan))  # Reported once as decisionPending.
+                           else verify_templates.check_page(plan, overseas=admin_page(plan)))  # Reported once as decisionPending.
         templates.append({'path': path, **template_report})
         errors.extend({'path': path, 'check': 'templateSource', 'pointer': f'/pages/{page_index}/templates', 'message': message} for message in template_report['errors'])
         if not isinstance(path, str) or not path.startswith('/'):

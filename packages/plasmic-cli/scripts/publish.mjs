@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { setTimeout as delay } from "node:timers/promises";
 import { buildCli } from "../../../scripts/build-plasmic-resources.mjs";
-import { CLI_VERSION, MAX_BYTES, compareVersions } from "../src/protocol.mjs";
+import { CLI_VERSION, artifactUrl, compareVersions, feedUrl, validateReleaseEnvelope, verifyArtifact } from "../src/protocol.mjs";
+import { download } from "../src/references.mjs";
 import { inspectCliArtifact } from "../../../scripts/plasmic-cli-artifact.mjs";
 import { isNewReleaseSeries } from "../../../scripts/release-version.mjs";
 
@@ -63,55 +64,63 @@ async function inspectRegistry(registry, fetchRelease, name = "@plasmickit/cli")
   return { url, published: response.ok ? await response.json() : null };
 }
 
-export async function prepareRelease({ tag, output, force = false, registry = "https://registry.npmjs.org/", fetchRelease = fetch } = {}) {
+export async function prepareRelease({ tag, output, force = false, feed, fetchRelease = fetch } = {}) {
   releaseVersion(tag);
-  const local = await buildCli(CLI_VERSION);
+  const local = await buildCli(tag);
   const localPackage = await inspectCliArtifact(local);
-  const { published } = await inspectRegistry(registry, fetchRelease);
-  const latest = published?.["dist-tags"]?.latest;
-  const previous = await publishedCli({ published, fetchRelease });
-  const unchanged = previous && (await inspectCliArtifact(previous.cliArtifact)).contentHash === localPackage.contentHash;
+  const previous = await publishedCli({ feed, fetchRelease });
+  const latest = previous.cliVersion;
+  const unchanged = (await inspectCliArtifact(previous.cliArtifact)).contentHash === localPackage.contentHash;
   const directory = path.resolve(output || "dist/plasmic-cli");
-  // A later job can fail after npm succeeds. Retry with npm's original bytes.
+  // A retry after Plasmic promotion must mirror the exact public bytes.
   if (latest === tag && unchanged) {
     await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, "plasmic-cli.tgz"), previous.cliArtifact);
     return { directory, version: tag, skipped: false };
   }
+  if (compareVersions(tag, latest) <= 0) throw new Error(`Changed CLI requires a version newer than the Plasmic release ${latest}`);
   if (!force && unchanged && tag !== CLI_VERSION && !isNewReleaseSeries(tag, previous.cliVersion)) {
     return { skipped: true, version: previous.cliVersion, reason: "Package contents are unchanged" };
   }
-  if (latest && compareVersions(tag, latest) <= 0) throw new Error(`Changed CLI requires a version newer than npm latest ${latest}`);
   await mkdir(directory, { recursive: true });
-  await writeFile(path.join(directory, "plasmic-cli.tgz"), await buildCli(tag));
+  await writeFile(path.join(directory, "plasmic-cli.tgz"), local);
   return { directory, version: tag, skipped: false };
 }
 
-export async function publishedCli({ published, registry = "https://registry.npmjs.org/", fetchRelease = fetch } = {}) {
-  if (published === undefined) ({ published } = await inspectRegistry(registry, fetchRelease));
-  const latest = published?.["dist-tags"]?.latest;
-  if (!latest) return null;
-  compareVersions(latest, latest);
-  const dist = published.versions?.[latest]?.dist;
-  if (!dist?.tarball || !dist.integrity) throw new Error("npm latest is missing its verified CLI artifact");
-  const url = new URL(dist.tarball);
-  if (url.protocol !== "https:" && !(url.protocol === "http:" && url.hostname === "127.0.0.1")) throw new Error("CLI artifact URL must use HTTPS");
-  const response = await fetchRelease(url, { cache: "no-store", signal: AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error(`Cannot download published CLI: HTTP ${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.length > MAX_BYTES) throw new Error("CLI artifact exceeds limit");
-  const integrity = "sha512-" + createHash("sha512").update(bytes).digest("base64");
-  if (integrity !== dist.integrity) throw new Error("Published CLI integrity mismatch");
-  if ((await inspectCliArtifact(bytes)).version !== latest) throw new Error("npm latest does not match CLI artifact version");
-  return { cliVersion: latest, cliArtifact: bytes };
+export async function publishedCli({ feed, fetchRelease = fetch } = {}) {
+  const base = feedUrl(feed);
+  const manifest = validateReleaseEnvelope(JSON.parse(
+    (await download(new URL("latest.json", base), undefined, fetchRelease)).toString("utf8"),
+  ));
+  const cliArtifact = await download(artifactUrl(base, manifest, "cli"), undefined, fetchRelease);
+  verifyArtifact(cliArtifact, manifest.artifacts.cli);
+  if ((await inspectCliArtifact(cliArtifact)).version !== manifest.cliVersion) {
+    throw new Error("Plasmic CLI archive version does not match its manifest");
+  }
+  return { cliVersion: manifest.cliVersion, cliArtifact };
+}
+
+export async function mirrorCli({ directory, tag, feed, fetchPlasmic, ...npmOptions }) {
+  const live = await publishedCli({ feed, fetchRelease: fetchPlasmic });
+  const built = await readFile(path.join(directory, "plasmic-cli.tgz"));
+  if (live.cliVersion !== tag || !live.cliArtifact.equals(built)) {
+    throw new Error("Plasmic has not activated the expected CLI artifact");
+  }
+  return publishCli({ directory, tag, ...npmOptions });
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const { values } = parseArgs({ options: { tag: { type: "string" }, output: { type: "string" }, execute: { type: "boolean" }, force: { type: "boolean" } } });
+  const { values } = parseArgs({ options: { tag: { type: "string" }, output: { type: "string" }, mirror: { type: "boolean" }, execute: { type: "boolean" }, force: { type: "boolean" } } });
   const tag = releaseVersion(values.tag || process.env.GITHUB_REF_NAME || "");
   if (process.env.GITHUB_REF_TYPE === "tag" && tag !== process.env.GITHUB_REF_NAME) throw new Error("Requested release does not match the GitHub tag");
-  const built = await prepareRelease({ output: values.output, tag, force: values.force || process.env.RELEASE_FORCE_ALL === "true" });
-  const result = built.skipped ? built : await publishCli({ directory: built.directory, tag, execute: Boolean(values.execute) });
-  if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `publish=${!built.skipped}\nversion=${built.version}\n`);
-  console.log(JSON.stringify(result, null, 2));
+  if (values.mirror) {
+    console.log(JSON.stringify(await mirrorCli({
+      directory: values.output || "dist/plasmic-cli", tag, execute: Boolean(values.execute),
+    }), null, 2));
+  } else {
+    if (values.execute) throw new Error("--execute requires --mirror");
+    const built = await prepareRelease({ output: values.output, tag, force: values.force || process.env.RELEASE_FORCE_ALL === "true" });
+    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `publish=${!built.skipped}\nversion=${built.version}\n`);
+    console.log(JSON.stringify(built, null, 2));
+  }
 }

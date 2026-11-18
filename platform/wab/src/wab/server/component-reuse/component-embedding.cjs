@@ -30,10 +30,10 @@ function normalize(vector) {
   return vector.map(value => value / norm);
 }
 
-// Only this native child loads weights. No ONNX/Python/Go runtime in Electron.
+// Run the CPU model in a separate process on the search host.
 class ComponentEmbedding {
-  constructor(directory, { idleMs = 15000 } = {}) {
-    this.directory = directory; this.idleMs = idleMs; this.signature = MODEL.signature;
+  constructor(directory) {
+    this.directory = directory; this.signature = MODEL.signature;
     this.child = null; this.closed = false;
   }
   async verify() {
@@ -42,11 +42,7 @@ class ComponentEmbedding {
     for (const entry of manifest.files) {
       if (path.basename(entry.name) !== entry.name || !/^[a-f0-9]{64}$/.test(entry.sha256)) throw new Error("Invalid component runtime manifest");
       const file = path.join(this.directory, entry.name);
-      // App packaging re-signs Mach-O/PE files. Their build hashes are provenance;
-      // the signed application covers those binaries. Model/vector bytes stay fixed.
-      const signable = /(?:\.dylib|\.dll|\.exe)$/.test(entry.name) || entry.name === "llama-server";
-      if (signable && ["darwin", "win32"].includes(process.platform)) { if (!(await fs.stat(file)).isFile()) throw new Error("Component runtime binary is missing"); }
-      else if (await fileHash(file) !== entry.sha256) throw new Error("Component runtime integrity check failed");
+      if (await fileHash(file) !== entry.sha256) throw new Error("Component runtime integrity check failed");
     }
     if (!manifest.files.some(entry => entry.name === MODEL.file && entry.sha256 === MODEL.sha256) || !manifest.files.some(entry => entry.name === (process.platform === "win32" ? "llama-server.exe" : "llama-server"))) throw new Error("Incomplete component embedding runtime");
     return true;
@@ -54,7 +50,7 @@ class ComponentEmbedding {
   prepare() { return this.verified ??= this.verify().catch(error => { this.verified = null; throw error; }); }
   async start(signal) {
     if (this.closed) throw new Error("Component embeddings closed");
-    signal.throwIfAborted(); clearTimeout(this.timer);
+    signal.throwIfAborted();
     await this.prepare(); signal.throwIfAborted();
     await this.stopping; signal.throwIfAborted();
     if (this.child) return;
@@ -69,6 +65,9 @@ class ComponentEmbedding {
       "--threads", "2", "--threads-batch", "2", "--threads-http", "1", "--gpu-layers", "0", "--no-warmup",
       "--host", "127.0.0.1", "--port", String(port), "--api-key", this.key,
     ], { cwd: this.directory, stdio: ["ignore", "ignore", "pipe"], windowsHide: true, env: { ...process.env, VECLIB_MAXIMUM_THREADS: "2" } });
+    const stopOnExit = () => child.kill();
+    process.once("exit", stopOnExit);
+    child.once("close", () => process.off("exit", stopOnExit));
     let failure; let diagnostics = "";
     child.stderr?.on("data", data => { diagnostics = (diagnostics + data.toString()).slice(-2000); });
     child.once("error", error => { failure = error; });
@@ -87,26 +86,19 @@ class ComponentEmbedding {
     } catch (error) { await this.stop(); throw error; }
   }
   async encode(text, { signal = AbortSignal.timeout(5000) } = {}) {
-    clearTimeout(this.timer);
-    const cancel = () => { void this.stop(); };
-    signal.addEventListener("abort", cancel, { once: true });
-    try {
-      await this.start(signal); signal.throwIfAborted();
-      const post = async (endpoint, body) => {
-        const response = await fetch(this.url + endpoint, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + this.key }, body: JSON.stringify(body), signal, redirect: "error" });
-        if (!response.ok) { await response.body?.cancel(); throw new Error("Component embedding request failed: " + response.status); }
-        return response.json();
-      };
-      const { tokens } = await post("/tokenize", { content: text, add_special: true });
-      const output = await post("/v1/embeddings", { input: [tokens.slice(0, 512)], encoding_format: "float" });
-      return normalize(output.data?.[0]?.embedding);
-    } finally {
-      signal.removeEventListener("abort", cancel);
-      this.timer = setTimeout(() => { void this.stop(); }, this.idleMs); this.timer.unref?.();
-    }
+
+    await this.start(signal); signal.throwIfAborted();
+    const post = async (endpoint, body) => {
+      const response = await fetch(this.url + endpoint, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + this.key }, body: JSON.stringify(body), signal, redirect: "error" });
+      if (!response.ok) { await response.body?.cancel(); throw new Error("Component embedding request failed: " + response.status); }
+      return response.json();
+    };
+    const { tokens } = await post("/tokenize", { content: text, add_special: true });
+    const output = await post("/v1/embeddings", { input: [tokens.slice(0, 512)], encoding_format: "float" });
+    return normalize(output.data?.[0]?.embedding);
   }
   async stop() {
-    clearTimeout(this.timer);
+
     if (this.stopping) return this.stopping;
     const child = this.child; this.child = null;
     if (!child || child.exitCode !== null) return;

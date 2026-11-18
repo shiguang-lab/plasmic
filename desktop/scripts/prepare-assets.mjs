@@ -18,6 +18,7 @@ import {
 } from "../../scripts/build-identity.mjs";
 import { bundleStudioFonts } from "../../scripts/bundle-studio-fonts.mjs";
 import { buildReferenceBrowserUi } from "./build-reference-browser-ui.mjs";
+import { deduplicateCanvasPackages } from "./deduplicate-canvas-packages.mjs";
 
 const desktop = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -82,6 +83,9 @@ try {
     recursive: true,
     filter: (file) => !file.endsWith(".map"),
   });
+  const canvasDirectory = path.join(target, "static/canvas-packages/build");
+  const aliases = await deduplicateCanvasPackages(canvasDirectory);
+  await writeFile(path.join(canvasDirectory, "aliases.json"), JSON.stringify(aliases));
   await bundleStudioFonts(target, config.studioOrigin);
   if (fromIndex >= 0) await buildReferenceBrowserUi(target);
   else await readFile(path.join(target, "reference-browser-ui.js"));

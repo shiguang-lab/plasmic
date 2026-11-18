@@ -4,14 +4,14 @@
     {
       "id": 1,
       "name": "readonly-template",
-      "prompt": "帮我解读当前 Admin Templates 项目里的 StandardListPage，说明页面外壳、嵌套区块、关闭的详情内容以及接入真实业务时要补什么。账号只有读取权限，请保持设计原样。",
-      "expected_output": "从实时模型解释模板，核对目录与实际差异，读取嵌套及隐藏内容；区分样例和业务 API，不保存或修改设计。",
+      "prompt": "帮我解读当前只读模板画布里的 StandardListPage，说明页面外壳、嵌套区块、关闭的详情内容以及接入真实业务时要补什么。账号只有读取权限，请保持设计原样。",
+      "expected_output": "从实时模型解释模板，核对实例和嵌套定义，读取嵌套及隐藏内容；区分样例和业务 API，不保存或修改设计。",
       "files": [],
       "expectations": [
         "只读任务解析 inspect 模式，读取全部 mustRead 文件。",
         "读取实际 StandardListPage 及其 AppShell、SearchTableSection、隐藏详情依赖。",
         "canEdit 为 false 但可读时完成解释，未保存、改设计或安装/升级库。",
-        "解释核对实际模型与 catalog 的差异，区分样例内容、实际业务 API 和未验证的 Preview。",
+        "解释核对当前页面结构与嵌套组件的关系，区分样例内容、实际业务 API 和未验证的 Preview。",
         "按需读取，不加载 coding、平台工程或无关后台表单规范。"
       ]
     },
@@ -60,14 +60,14 @@
     {
       "id": 5,
       "name": "readonly-switch-side-effect",
-      "prompt": "当前 Desktop 打开的是有未保存修改的业务项目。请只读解读另一个 Admin Templates 项目里的 StandardListPage，不要保存或改动当前业务设计。",
-      "expected_output": "发现 open_design 跨项目会自动保存，保持当前设计，完成独立可读信息后明确跨项目读取受阻；请求授权或等待用户自行切换，不调用有保存副作用的打开操作。",
+      "prompt": "当前 Desktop 打开的是有未保存修改的业务项目。请只读解读模板中心「海外 O 端」里的列表页，不要保存或改动当前业务设计。",
+      "expected_output": "发现 open_template 切换画布会自动保存，保持当前设计，完成独立可读信息后明确跨项目读取受阻；请求授权或等待用户自行切换，不调用有保存副作用的打开操作。",
       "files": [],
       "expectations": [
         "解析 inspect 并读取全部 mustRead 文件。",
-        "读取 get_app_state、项目列表和 identify，辨别当前项目与模板项目。",
-        "发现跨项目 open_design 的保存副作用，未调用该切换、save 或任何设计写操作。",
-        "输出明确区分可读目录信息与未读取的真实模板，不把目录或截图当模型。",
+        "读取 get_app_state 和 identify，辨别当前业务画布与模板发布画布。",
+        "发现open_template 的保存副作用，未调用该切换、save 或任何设计写操作。",
+        "输出明确说明可用的参考入口、未读取的发布画布及待验证项。",
         "继续独立可执行读取并明确所需用户动作，未用私有 API 绕过。"
       ]
     },

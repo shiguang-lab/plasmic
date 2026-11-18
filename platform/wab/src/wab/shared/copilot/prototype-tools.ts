@@ -658,6 +658,7 @@ const EDIT_TOOL_META = {
     inputSchema: z.object({}).strict(),
     outputSchema: z.object({
       projectName: z.string(),
+      publishedTemplateVersion: z.string().optional(),
       projectSummary: z.object({
         artboards: z.number().int().nonnegative(),
         canvases: z.number().int().nonnegative(),

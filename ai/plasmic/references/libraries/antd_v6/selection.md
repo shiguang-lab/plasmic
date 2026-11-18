@@ -72,7 +72,7 @@ The fragment is not a complete Page. Declare `feedback:[]` when there are no ope
 
 ## Preflight and acceptance
 
-Each Page declares its [template selection and live-source evidence](../../admin-templates.md#source-evidence-before-composition) in the existing structure inventory. Missing selections/reads fail full selection preflight. A source-reviewed no-fit decision uses explicit empty selections; directory-only reading, missing installation and different sample fields do not establish that decision.
+Each Page declares its [template selection and live-source evidence](../../admin-templates.md#source-evidence-before-composition) in the existing structure inventory. Missing selections/reads fail full selection preflight. For a clear mismatch, record the closest published descriptions and their specific gaps. Use empty selections when the whole Page lacks a reference. Inspect candidate layouts only when the descriptions leave the decision open.
 
 Before composition also complete [authored names and UI copy](../../design/content-review.md): functional names reuse `components`; `nodes` covers other authored nodes; `copy.entries` reviews every UI text/binding at its native location. Full Page preflight requires these declarations, and readback checks both missing and unexpected content. Format matching does not replace source interpretation.
 

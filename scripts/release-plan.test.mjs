@@ -44,6 +44,7 @@ test("backend and preview changes do not rebuild Desktop", () => {
   }
 });
 test("Desktop is independent and CLI changes refresh the resource feed's CLI artifact", () => {
+  assert.deepEqual(products(["desktop/scripts/component-review-contract.mjs"]), ["studio", "desktop"]);
   assert.deepEqual(products(["desktop/src/main.cjs"]), ["desktop"]);
   assert.deepEqual(products(["desktop/desktop.config.json"]), ["desktop"]);
   assert.deepEqual(products(["packages/plasmic-cli/src/index.mjs"]), [
@@ -180,6 +181,16 @@ test("unified patches select changed products; minor, major and manual full rele
     git("tag", "2.0.2");
     assert.equal(releasePlan("2.0.3").baselines.resources, "2.0.2");
     assert.equal(releasePlan("2.0.3").publish, false);
+    put("desktop/src/main.cjs", "local desktop change");
+    put("platform/wab/src/wab/client/theme.ts", "new Studio renderer");
+    commit();
+    git("-c", "user.name=Release test", "-c", "user.email=test@example.invalid", "tag", "-a", "2.0.3", "-m", "Release 2.0.3", "-m", "Desktop-Release: local-only");
+    assert.deepEqual(selected("2.0.3"), ["studio"]);
+    assert.equal(releasePlan("2.0.3", "HEAD", { forceAll: true }).desktop, false);
+    desktop("2.0.4", "2.0.3");
+    commit();
+    assert.equal(releasePlan("2.0.4").baselines.desktop, "2.0.2");
+    assert.deepEqual(selected("2.0.4"), ["desktop"]);
   } finally {
     process.chdir(original);
     rmSync(repo, { recursive: true, force: true });

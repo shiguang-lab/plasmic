@@ -99,7 +99,7 @@ export async function collectRelease(plan, root = ".") {
       add(artifact.file, file);
     }
     notes.push(
-      `Workflow resources ${manifest.version}; npm CLI ${manifest.cliVersion}.`,
+      `Workflow resources ${manifest.version}; CLI ${manifest.cliVersion}.`,
       `Resource release ID: ${manifest.releaseId}`,
       "",
     );

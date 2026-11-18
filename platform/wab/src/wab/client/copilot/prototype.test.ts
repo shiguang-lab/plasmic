@@ -102,10 +102,21 @@ describe("AI prototype editor tools", () => {
       initialUrl: "/projects/template?publishedTemplate=true",
       siteInfo: { id: toOpaque("template"), isTemplate: true, publishedTemplateVersion: "1.0.0" },
     });
+    const pageMeta = ensure(page.pageMeta, "Page metadata is required");
+    pageMeta.description = "Review a record and its related activity";
     appCtx.selfInfo = mock<NonNullable<typeof appCtx.selfInfo>>({ isAdmin: true });
     const edit = { name: "Draft page", type: "page", path: "/draft" };
     const call = (name: string, input: Record<string, unknown> = {}) =>
       COPILOT_TOOLS[name].execute(studioCtx, reviewedInput(name, input));
+    expect(JSON.parse(await call("getEditorContext"))).toMatchObject({
+      publishedTemplateVersion: "1.0.0", canEdit: false,
+    });
+    const inventory = JSON.parse(await call("read", {
+      collection: "components", fields: ["uuid", "name", "type", "description", "pageMeta"],
+    }));
+    expect(inventory.results[0].components).toContainEqual(expect.objectContaining({
+      uuid: page.uuid, type: "page", pageMeta: expect.objectContaining({ description: pageMeta.description }),
+    }));
     const reads = { componentUuids: [page.uuid], view: "full" };
     const before = await call("read", reads);
     const readOnly = { message: expect.stringContaining("Published templates are read-only"), operationExecuted: false };

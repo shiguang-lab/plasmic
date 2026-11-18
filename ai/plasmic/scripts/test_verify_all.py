@@ -66,7 +66,7 @@ class SuiteTests(unittest.TestCase):
                         "scrolling": "AppShell content owns vertical scrolling",
                         "actions": "This validation fixture has no business submit action"},
                     "wireframe": {"notApplicable": "Prose-only fixture requirement without a text wireframe"},
-                    "templates": [], "templatesNotApplicable": "Focused native Form fixture without a template-driven layout",
+                    "templates": [], "templatesNotApplicable": [{"componentName": "Example list", "missing": "The fixture requires a standalone record entry form."}],
                     "appContext": {"required": False, "evidence": {"path": str(source), "sha256": hashlib.sha256(source.read_bytes()).hexdigest(), "quote": source.read_text()}}, "components": [
                        {"nodeName": "AppShell", "component": "plasmic-overseas-app-shell", "role": "shell", "purpose": "Standalone page navigation", "source": "requirement §Navigation", "rule": "references/libraries/overseas/components/app-shell.md"},
                        {"nodeName": "FormCard", "component": "plasmic-antd6-card", "role": "surface", "purpose": "Record form surface", "source": "requirement §Fields", "rule": "references/libraries/antd_v6/components/card.md",
@@ -260,20 +260,23 @@ class SuiteTests(unittest.TestCase):
     def test_template_capture_is_pinned_against_changes_during_verification(self):
         import verify_templates
         from test_verify_templates import SourceDesktop
-        data = verify_templates.capture(SourceDesktop(), 'source', ['TabbedList'])
+        project = verify_templates.OVERSEAS_TEMPLATE_ID
+        desktop = SourceDesktop(project)
+        desktop.state['editorContext'].update(publishedTemplateVersion='1.0', canEdit=False)
+        data = verify_templates.capture(desktop, project, ['TabbedList'])
         source = self.root / 'template-source.json'
         write_json(source, data)
         expected = read_json(self.root / 'structure.json')
         page = expected['pages'][0]
         page.pop('templatesNotApplicable')
-        page['templates'] = [{'sourceProjectId': 'source', 'componentName': 'TabbedList', 'mode': 'reference',
+        page['templates'] = [{'sourceProjectId': project, 'componentName': 'TabbedList', 'mode': 'reference',
                              'adaptation': 'Use source hierarchy with native fixture fields',
                              'evidence': {'path': str(source), 'sha256': hashlib.sha256(source.read_bytes()).hexdigest()}}]
         write_json(self.root / 'structure.json', expected)
         original = verify_templates.check_page
 
-        def change_after_read(plan):
-            result = original(plan)
+        def change_after_read(plan, **options):
+            result = original(plan, **options)
             source.write_text(source.read_text() + '\n')
             return result
 

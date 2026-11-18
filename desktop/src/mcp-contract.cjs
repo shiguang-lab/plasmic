@@ -222,6 +222,11 @@ const tools = [
     inputSchema: { ...object({ projectId: resourceId, name: resourceName, workspaceId: resourceId }), required: ["projectId"] },
   },
   {
+    name: "open_template",
+    description: "Open the latest published version of a Template Center template in its read-only Studio canvas. Saves the current editable project before navigation. Returns the loaded template ID, name and version. Use execute read and get_screenshot to inspect its current Pages.",
+    inputSchema: { ...object({ templateId: resourceId }), required: ["templateId"] },
+  },
+  {
     name: "open_design",
     description:
       "Open a NAS project. Supply componentUuid only when explicitly opening that Page/component's dedicated canvas. Saves the current editable design before switching projects. Requires desktop login.",

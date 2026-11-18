@@ -1,0 +1,856 @@
+{
+  "source": {
+    "opened": true,
+    "templateId": "pDf4kvKBxRRLAHnjbGRwGu",
+    "name": "海外 O 端",
+    "version": "4.0.0"
+  },
+  "inventory": [
+    {
+      "name": "资源查询列表",
+      "uuid": "A1V7tayO-9GH",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/list",
+        "title": "资源查询列表",
+        "description": "场景：按条件查找并浏览资源。 结构：名称、分类和状态筛选，搭配分页表格和行操作。"
+      }
+    },
+    {
+      "name": "列表与抽屉联动",
+      "uuid": "SkI5nLNWy2UT",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/templates",
+        "title": "列表与抽屉联动",
+        "description": "场景：在列表中查看详情或新增记录。 结构：筛选表格、只读详情抽屉和带校验的表单抽屉。"
+      }
+    },
+    {
+      "name": "分范围表格",
+      "uuid": "Lrdw4Jts1Zzd",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/scope-table",
+        "title": "分范围表格",
+        "description": "场景：按责任范围浏览记录，无需单独的筛选区。 结构：全部和我负责的两个标签，各自包含表格，创建入口位于标签栏。"
+      }
+    },
+    {
+      "name": "标准管理列表",
+      "uuid": "cDYZYokFR4sw",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/standard-list",
+        "title": "标准管理列表",
+        "description": "场景：管理单一资源的日常操作。 结构：统一后台框架、搜索区、创建入口和全宽记录表格。"
+      }
+    },
+    {
+      "name": "目录与标签工作台",
+      "uuid": "KYAcKbK6fx1I",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/workspace-tabs",
+        "title": "目录与标签工作台",
+        "description": "场景：在同一模块内分别管理业务与平台配置。 结构：左栏可搜索目录，右栏含配置标签和各自的筛选表格。"
+      }
+    },
+    {
+      "name": "资源新增表单",
+      "uuid": "KWg6A2bKJRd7",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/resource-form",
+        "title": "资源新增表单",
+        "description": "场景：独立创建资源并录入分类和说明。 结构：同一表单承载名称、分类、说明以及提交取消操作。"
+      }
+    },
+    {
+      "name": "记录详情与关联表",
+      "uuid": "Rgc3jqPJJ8Ot",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/record-detail",
+        "title": "记录详情与关联表",
+        "description": "场景：查看一条主记录并浏览其关联记录。 结构：基本信息描述列表与下方关联记录表。"
+      }
+    },
+    {
+      "name": "订单排序与展开",
+      "uuid": "tAxAvnjwKhs9",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/table-sorting-expansion",
+        "title": "订单排序与展开",
+        "description": "场景：按金额或创建时间比较订单，并快速核对收货信息。结构：后台导航、可排序订单表、行首展开按钮和行内收货详情。"
+      }
+    },
+    {
+      "name": "筛选与分范围列表",
+      "uuid": "-XnytENqk5ZA",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/tabbed-list",
+        "title": "筛选与分范围列表",
+        "description": "场景：在全部记录和我负责的记录之间切换。 结构：公共筛选区、独立标签面板和各自的表格。"
+      }
+    },
+    {
+      "name": "目录工作台",
+      "uuid": "_CB_zL-ZFkQj",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/catalog-workspace",
+        "title": "目录工作台",
+        "description": "场景：从目录中选择模块并查看对应配置。 结构：左侧目录，右侧搜索、操作和记录表格。"
+      }
+    },
+    {
+      "name": "基础表单",
+      "uuid": "JlNlLGMZp6rp",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/basic-form",
+        "title": "基础表单",
+        "description": "场景：录入或编辑少量字段。 结构：单块表单、字段校验和提交取消操作。"
+      }
+    },
+    {
+      "name": "分组表单",
+      "uuid": "JPk6OAjfMHb6",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/grouped-form",
+        "title": "分组表单",
+        "description": "场景：录入相互关联的多组信息。 结构：字段按信息主题分组，共用一次提交。"
+      }
+    },
+    {
+      "name": "分步表单",
+      "uuid": "1DY5ep4ZUAD3",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/step-form",
+        "title": "分步表单",
+        "description": "场景：按有先后依赖的步骤完成录入。 结构：步骤导航、当前步骤内容和前进后退操作。"
+      }
+    },
+    {
+      "name": "基础详情",
+      "uuid": "QD_36vuUc0I-",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/basic-detail",
+        "title": "基础详情",
+        "description": "场景：核对一条记录的主要字段。 结构：状态和只读字段按信息区集中展示。"
+      }
+    },
+    {
+      "name": "分区详情",
+      "uuid": "gwiY7CvhyIPM",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/tabbed-detail",
+        "title": "分区详情",
+        "description": "场景：按信息主题浏览同一条记录。 结构：摘要及分区标签，切换查看不同的详情内容。"
+      }
+    },
+    {
+      "name": "运营概览",
+      "uuid": "7Y1LgxUgXgSV",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/overview",
+        "title": "运营概览",
+        "description": "场景：快速查看运营指标和近期记录。 结构：摘要指标与列表信息组成概览页面。"
+      }
+    },
+    {
+      "name": "订单行内详情",
+      "uuid": "gbrDteTMAczI",
+      "type": "page",
+      "pageMeta": {
+        "__type": "PageMeta",
+        "path": "/order-inline-details",
+        "title": "订单行内详情",
+        "description": "场景：留在订单列表中核对指定订单的收货信息。结构：后台导航、订单表、操作列的详情入口和行内信息区。"
+      }
+    }
+  ],
+  "candidateSheet": [
+    "基础表单",
+    "筛选与分范围列表",
+    "分组表单",
+    "分步表单",
+    "分范围表格"
+  ],
+  "sourceChecks": [
+    {
+      "passed": true,
+      "errors": [],
+      "sources": [
+        {
+          "sourceProjectId": "pDf4kvKBxRRLAHnjbGRwGu",
+          "sourceVersion": "4.0.0",
+          "models": [
+            {
+              "name": "筛选与分范围列表",
+              "uuid": "-XnytENqk5ZA"
+            }
+          ],
+          "sourceRead": "passed",
+          "plannedMode": "reference",
+          "actualReuse": "unverified"
+        }
+      ],
+      "notChecked": [
+        "source interpretation",
+        "actual template insertion/detachment",
+        "adaptation quality"
+      ]
+    },
+    {
+      "passed": true,
+      "errors": [],
+      "sources": [],
+      "status": "not_applicable",
+      "reason": "检查全部17项和三个表单模型截图，普通字段、分组和步骤未覆盖 SQL 编辑和按查询返回校验；采用 TextArea、Button、Alert。",
+      "notChecked": [
+        "correctness of the no-template-fit decision"
+      ]
+    }
+  ],
+  "startedIn": {
+    "projectId": "qEkBAnKZp5atGRf27r892m",
+    "sessionId": "Vem99U6zW8v6",
+    "canEdit": true
+  },
+  "publication": {
+    "projectId": "pDf4kvKBxRRLAHnjbGRwGu",
+    "sessionId": "2ZukXbLhceYG",
+    "canEdit": false,
+    "revision": 0,
+    "changeCounter": 0
+  },
+  "returnedTo": {
+    "projectId": "qEkBAnKZp5atGRf27r892m",
+    "sessionId": "_k3aK5e0bycW",
+    "canEdit": true
+  },
+  "saved": {
+    "projectId": "qEkBAnKZp5atGRf27r892m",
+    "revision": 8,
+    "saved": true
+  },
+  "reopened": {
+    "sessionId": "kcVCVpV3PXVo",
+    "canEdit": true,
+    "revision": 8,
+    "changeCounter": 0
+  },
+  "publishedTemplateImported": false,
+  "assertions": {
+    "all": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "沉默用户召回"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "新客首贷"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "到期客户回访"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "PhlA1MeiBC9Y",
+        "errors": [],
+        "generation": 1,
+        "status": "ready"
+      },
+      "canGoBack": false,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "PhlA1MeiBC9Y",
+          "componentName": "客群列表",
+          "path": "/audiences",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": false,
+          "canGoForward": false
+        }
+      }
+    },
+    "back": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "沉默用户召回"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "新客首贷"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "到期客户回访"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "PhlA1MeiBC9Y",
+        "errors": [],
+        "generation": 1,
+        "status": "ready"
+      },
+      "canGoBack": false,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "PhlA1MeiBC9Y",
+          "componentName": "客群列表",
+          "path": "/audiences",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": false,
+          "canGoForward": false
+        }
+      }
+    },
+    "intersection": {
+      "checks": [
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "沉默用户召回"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "新客首贷"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "到期客户回访"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "PhlA1MeiBC9Y",
+        "errors": [],
+        "generation": 1,
+        "status": "ready"
+      },
+      "canGoBack": false,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "PhlA1MeiBC9Y",
+          "componentName": "客群列表",
+          "path": "/audiences",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": false,
+          "canGoForward": false
+        }
+      }
+    },
+    "invalid": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "校验失败"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "第 1 行缺少"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "1lrsRya2knla",
+        "errors": [],
+        "generation": 2,
+        "status": "ready"
+      },
+      "canGoBack": true,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "1lrsRya2knla",
+          "componentName": "SQL 圈选",
+          "path": "/audiences/sql",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": true,
+          "canGoForward": false
+        }
+      }
+    },
+    "invalidated": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "待校验"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "校验失败"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "1lrsRya2knla",
+        "errors": [],
+        "generation": 2,
+        "status": "ready"
+      },
+      "canGoBack": true,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "1lrsRya2knla",
+          "componentName": "SQL 圈选",
+          "path": "/audiences/sql",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": true,
+          "canGoForward": false
+        }
+      }
+    },
+    "keyword": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "新客首贷"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "沉默用户召回"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "到期客户回访"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "PhlA1MeiBC9Y",
+        "errors": [],
+        "generation": 1,
+        "status": "ready"
+      },
+      "canGoBack": false,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "PhlA1MeiBC9Y",
+          "componentName": "客群列表",
+          "path": "/audiences",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": false,
+          "canGoForward": false
+        }
+      }
+    },
+    "mine": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "沉默用户召回"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "到期客户回访"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "新客首贷"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "PhlA1MeiBC9Y",
+        "errors": [],
+        "generation": 1,
+        "status": "ready"
+      },
+      "canGoBack": false,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "PhlA1MeiBC9Y",
+          "componentName": "客群列表",
+          "path": "/audiences",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": false,
+          "canGoForward": false
+        }
+      }
+    },
+    "reset": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "沉默用户召回"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "到期客户回访"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "新客首贷"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "PhlA1MeiBC9Y",
+        "errors": [],
+        "generation": 1,
+        "status": "ready"
+      },
+      "canGoBack": false,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "PhlA1MeiBC9Y",
+          "componentName": "客群列表",
+          "path": "/audiences",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": false,
+          "canGoForward": false
+        }
+      }
+    },
+    "unrecognized": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "未取得校验结果"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "校验通过"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "1lrsRya2knla",
+        "errors": [],
+        "generation": 2,
+        "status": "ready"
+      },
+      "canGoBack": true,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "1lrsRya2knla",
+          "componentName": "SQL 圈选",
+          "path": "/audiences/sql",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": true,
+          "canGoForward": false
+        }
+      }
+    },
+    "valid": {
+      "checks": [
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "校验通过"
+          },
+          "passed": true
+        },
+        {
+          "actual": true,
+          "check": {
+            "kind": "text",
+            "present": true,
+            "text": "输出 uid 和 app_source"
+          },
+          "passed": true
+        },
+        {
+          "actual": false,
+          "check": {
+            "kind": "text",
+            "present": false,
+            "text": "校验失败"
+          },
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "runtime": {
+        "componentUuid": "1lrsRya2knla",
+        "errors": [],
+        "generation": 2,
+        "status": "ready"
+      },
+      "canGoBack": true,
+      "canGoForward": false,
+      "context": {
+        "projectId": "qEkBAnKZp5atGRf27r892m",
+        "branchId": null,
+        "sessionId": "kcVCVpV3PXVo",
+        "revision": 8,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "mode": "preview",
+        "previewKind": "in-app",
+        "previewContext": {
+          "componentUuid": "1lrsRya2knla",
+          "componentName": "SQL 圈选",
+          "path": "/audiences/sql",
+          "width": 1280,
+          "height": 800,
+          "canGoBack": true,
+          "canGoForward": false
+        }
+      }
+    }
+  },
+  "businessImports": [
+    {
+      "id": "f3f4ju424PVNTAQPkwovrE",
+      "name": "overseas",
+      "version": "3.2.0"
+    },
+    {
+      "id": "eYLujTHmWfX9qEoQaFDSi4",
+      "name": "antd6",
+      "version": "5.7.0"
+    }
+  ]
+}

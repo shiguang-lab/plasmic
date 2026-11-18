@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from verify_templates import capture, check_page, source_names, CATALOG, FULL_FIELDS
+from verify_templates import capture, check_page, OVERSEAS_TEMPLATE_ID, FULL_FIELDS
 
 
 class SourceDesktop:
@@ -17,6 +18,8 @@ class SourceDesktop:
 
     def call(self, method, values):
         self.calls.append((method, values))
+        if method == 'get_screenshot':
+            return {'data': 'UklGRhoAAABXRUJQVlA4', 'mimeType': 'image/webp'}
         if method != 'get_app_state':
             raise AssertionError('Unexpected state-changing operation: ' + method)
         result = copy.deepcopy(self.state)
@@ -26,13 +29,16 @@ class SourceDesktop:
 
     def execute(self, name, values):
         self.calls.append((name, values))
+        if name == 'navigate':
+            page = values['componentUuid']
+            return {'componentUuid': page, 'frameUuid': 'frame-' + page}
         if name != 'read':
             raise AssertionError('Unexpected mutation: ' + name)
         project = values.get('fromProject', self.state['projectId'])
         if 'nameContains' in values:
             component = values['nameContains']
             return {'results': [{'id': project, 'components': [{
-                'uuid': component + '-uuid', 'name': component, 'baseVariantTplTree': '<div>Native layout</div>',
+                'uuid': component + '-uuid', 'name': component, 'type': 'page', 'baseVariantTplTree': '<div>Native layout</div>',
                 **{key: [] for key in FULL_FIELDS - {'baseVariantTplTree'}}}]}],
                 'read': {'itemFields': list(FULL_FIELDS), 'itemDepth': 'all'}}
         if 'componentUuids' in values:
@@ -132,15 +138,89 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(result['sources'][0]['actualReuse'], 'unverified')
         self.assertIn('actual template insertion/detachment', result['notChecked'])
 
-    def test_catalog_nested_templates_are_captured_and_required(self):
-        catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
-        project = catalog['projectId']
-        self.assertEqual(source_names(project, ['StandardListPage']), ['StandardListPage', 'SearchTableSection'])
-        self.data = capture(SourceDesktop(project), project, ['StandardListPage'])
-        self.item.update(sourceProjectId=project, componentName='StandardListPage')
-        self.assertTrue(check_page(self.plan())['passed'])
-        del self.data['fullReads']['SearchTableSection']
-        self.assertFalse(check_page(self.plan())['passed'])
+    def test_current_published_pages_supply_model_version_and_pixels(self):
+        desktop = SourceDesktop(OVERSEAS_TEMPLATE_ID)
+        self.item.update(sourceProjectId=OVERSEAS_TEMPLATE_ID)
+        with self.assertRaisesRegex(ValueError, 'read-only publication'):
+            capture(desktop, OVERSEAS_TEMPLATE_ID, ['Draft'])
+        for version, name in [('1.0', 'Queue'), ('2.0', 'MarketWorkbench')]:
+            desktop.state['editorContext'].update(publishedTemplateVersion=version, canEdit=False)
+            self.item['componentName'] = name
+            self.data = capture(desktop, OVERSEAS_TEMPLATE_ID, [name])
+            result = check_page(self.plan(), overseas=True)
+            self.assertTrue(result['passed'], result)
+            self.assertEqual(result['sources'][0]['sourceVersion'], version)
+            del self.data['screenshots'][name + '-uuid']
+            self.assertFalse(check_page(self.plan(), overseas=True)['passed'])
+
+    def test_description_inventory_pages_without_screenshots_or_model_reads(self):
+        desktop = SourceDesktop(OVERSEAS_TEMPLATE_ID)
+        desktop.state['editorContext'].update(publishedTemplateVersion='1.0', canEdit=False)
+        pages = [{'uuid': 'p1', 'name': 'First', 'type': 'page', 'pageMeta': {'path': '/a', 'description': 'Search records'}},
+                 {'uuid': 'p2', 'name': 'Second', 'type': 'page', 'pageMeta': {'path': '/b'}}]
+
+        def inventory(name, values):
+            self.assertEqual(name, 'read')
+            self.assertEqual(values['collection'], 'components')
+            self.assertEqual(set(values['fields']), {'uuid', 'name', 'type', 'pageMeta'})
+            offset = values['offset']
+            items = [pages[0], {'type': 'code'}] if offset == 0 else [pages[1]]
+            return {'results': [{'id': OVERSEAS_TEMPLATE_ID, 'components': items}],
+                    'nextOffset': 2 if offset == 0 else None}
+
+        with patch.object(desktop, 'execute', side_effect=inventory) as reads:
+            result = capture(desktop, OVERSEAS_TEMPLATE_ID)
+        self.assertEqual([call.args[1]['offset'] for call in reads.call_args_list], [0, 2])
+        self.assertEqual(result['screenshotCount'], 0)
+        self.assertEqual([p['description'] for p in result['pages']], ['Search records', None])
+        self.assertEqual(result['sourceVersion'], '1.0')
+        self.assertEqual([name for name, _ in desktop.calls], ['get_app_state', 'get_app_state'])
+
+    def test_each_published_page_is_navigated_before_its_frame_is_captured(self):
+        desktop = SourceDesktop(OVERSEAS_TEMPLATE_ID)
+        desktop.state['editorContext'].update(publishedTemplateVersion='1.0', canEdit=False)
+        data = capture(desktop, OVERSEAS_TEMPLATE_ID, ['First', 'Second'])
+        steps = [call for call in desktop.calls if call[0] in ('navigate', 'get_screenshot')]
+        self.assertEqual(steps, [
+            ('navigate', {'componentUuid': 'First-uuid'}), ('get_screenshot', {'frameUuid': 'frame-First-uuid', 'liveCanvas': True}),
+            ('navigate', {'componentUuid': 'Second-uuid'}), ('get_screenshot', {'frameUuid': 'frame-Second-uuid', 'liveCanvas': True}),
+        ])
+        for page, image in data['screenshots'].items():
+            self.assertEqual(image['frameUuid'], 'frame-' + page)
+
+    def test_unresolved_artboard_stops_before_screenshot(self):
+        for target in ({'componentUuid': 'Page-uuid'}, {'componentUuid': 'Other-uuid', 'frameUuid': 'frame'}):
+            desktop = SourceDesktop(OVERSEAS_TEMPLATE_ID)
+            desktop.state['editorContext'].update(publishedTemplateVersion='1.0', canEdit=False)
+            execute = desktop.execute
+            with patch.object(desktop, 'execute', side_effect=lambda n, v: target if n == 'navigate' else execute(n, v)):
+                with self.assertRaisesRegex(ValueError, 'artboard for Page'):
+                    capture(desktop, OVERSEAS_TEMPLATE_ID, ['Page'])
+            self.assertNotIn('get_screenshot', [name for name, _ in desktop.calls])
+
+    def test_overseas_no_fit_records_each_candidate_and_its_gap(self):
+        candidates = [{'componentName': 'Grouped form', 'missing': 'No per-rule feedback after editing the query'}]
+        for value in ('No suitable template', [], ['Grouped form'], [{'missing': 'No feedback'}],
+                      [{'componentName': 'Grouped form', 'missing': ' '}], candidates + [{}]):
+            self.assertFalse(check_page({'templates': [], 'templatesNotApplicable': value}, overseas=True)['passed'])
+        plan = {'templates': [], 'templatesNotApplicable': candidates}
+        result = check_page(plan, overseas=True)
+        self.assertTrue(result['passed'], result)
+        self.assertEqual(result['reviewedCandidates'], candidates)
+        self.assertEqual(result['status'], 'not_applicable')
+
+        desktop = SourceDesktop(OVERSEAS_TEMPLATE_ID)
+        desktop.state['editorContext'].update(publishedTemplateVersion='1.0', canEdit=False)
+        self.data = capture(desktop, OVERSEAS_TEMPLATE_ID, ['TabbedList'])
+        self.item['sourceProjectId'] = OVERSEAS_TEMPLATE_ID
+        mixed = {**self.plan(), 'templatesNotApplicable': candidates}
+        result = check_page(mixed, overseas=True)
+        self.assertTrue(result['passed'], result)
+        self.assertEqual(result['reviewedCandidates'], candidates)
+        self.assertEqual(len(result['sources']), 1)
+
+    def test_overseas_selection_requires_published_source(self):
+        self.assertFalse(check_page(self.plan(), overseas=True)['passed'])
 
     def test_identity_change_or_missing_source_fails_without_navigation(self):
         desktop = SourceDesktop()

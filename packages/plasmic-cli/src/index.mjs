@@ -3,22 +3,22 @@ import { realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { resolveManagedContext } from "./context.mjs";
 import { formatProgress } from "./progress.mjs";
 import { CLI_VERSION, MODE_REFERENCES } from "./protocol.mjs";
 import {
   checkCliVersion,
   checkReferences,
   referencePath,
-  resolveContext,
   updateReferences,
 } from "./references.mjs";
-import { installSkill } from "./skill.mjs";
+import { installSkill, needsSkillMigration } from "./skill.mjs";
 
 const usage = `plasmickit commands:
   skill install [--dry-run]
   version check [--feed HTTPS_URL]
   references check|update|path [--feed HTTPS_URL] [--home CACHE_ROOT]
-  context resolve --mode inspect|prototype|codegen [--feed HTTPS_URL] [--home CACHE_ROOT]
+  context resolve --mode inspect|prototype|codegen [--refresh] [--feed HTTPS_URL] [--home CACHE_ROOT]
   --version
 `;
 export async function main(argv) {
@@ -28,6 +28,7 @@ export async function main(argv) {
     options: {
       "dry-run": { type: "boolean" },
       mode: { type: "string" },
+      refresh: { type: "boolean" },
       feed: { type: "string" },
       home: { type: "string" },
       help: { type: "boolean" },
@@ -55,7 +56,12 @@ export async function main(argv) {
     );
   let output;
   if (command === "skill" && action === "install") {
-    output = await installSkill({ dryRun: values["dry-run"] });
+    if (!values["dry-run"] && await needsSkillMigration()) {
+      const context = await resolveManagedContext("inspect", { ...values, refresh: true, installAll: true });
+      output = context.skillUpdate;
+    } else {
+      output = await installSkill({ dryRun: values["dry-run"] });
+    }
   } else if (command === "version" && action === "check") {
     output = await checkCliVersion(values);
   } else if (command === "references" && action === "check") {
@@ -67,16 +73,7 @@ export async function main(argv) {
     output = await referencePath(values);
   } else if (command === "context" && action === "resolve") {
     if (!Object.hasOwn(MODE_REFERENCES, values.mode)) throw new Error("--mode must be inspect, prototype or codegen");
-    let skillUpdate;
-    try { skillUpdate = await installSkill({ existingOnly: true }); }
-    catch (error) { skillUpdate = { ok: false, error: error.message, installations: [] }; }
-    for (const entry of skillUpdate.installations) {
-      if (entry.status === "updated") process.stderr.write(`✓ Skill 入口已更新：${entry.skillPath}；客户端重新加载技能后采用新入口\n`);
-      if (entry.status === "failed") process.stderr.write(`! Skill 入口更新失败：${entry.skillPath}：${entry.error}\n`);
-    }
-    if (skillUpdate.error) process.stderr.write(`! Skill 入口更新失败：${skillUpdate.error}\n`);
-    try { output = { ...await resolveContext(values.mode, values), skillUpdate }; }
-    catch (error) { error.skillUpdate = skillUpdate; throw error; }
+    output = await resolveManagedContext(values.mode, values);
   } else {
     throw new Error(`Unknown command: ${command} ${action}`);
   }

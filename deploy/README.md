@@ -9,6 +9,11 @@ changes publish resources. Documentation, tests and workflow-only changes publis
 nothing. The workflow dispatch input `force-all` explicitly selects every product
 for an existing numeric tag, including an unchanged patch.
 
+To keep Desktop local for a release, use an annotated numeric tag with the
+trailer `Desktop-Release: local-only`. This skips public Desktop artifacts
+and preserves its previous feeds. The next release compares Desktop changes
+across deferred tags.
+
 The plan compares each product's source against the preceding numeric release,
 using a more recent historical product tag as its initial comparison point when
 necessary. Preview it with `node scripts/release-plan.mjs <tag>`; set
@@ -679,3 +684,23 @@ docker compose run --rm server src/wab/server/nas-material-ui.ts
 
 See [the Material UI package](../plasmicpkgs/material-ui/README.md) for component
 coverage, native property/state contracts, theme configuration and validation.
+
+### Component reuse search
+
+The server image includes the pinned CPU embedding model and public registration
+vectors in `/opt/plasmic-component-search`. Building the model stage verifies
+the model digest and generates the public vectors. The builder discovers the
+component library tarballs published to `platform/wab/public/static/packages`,
+runs each packed library's `registerAll`, and uses those component contracts for
+both the vector seeds and the server catalogue. Adding a public workspace
+component library to the release automatically includes it in the next index.
+Global contexts and tokens are outside the component catalogue. To verify the
+generated documents against a local release directory, run
+`node deploy/component-search/generate-documents.mjs <package-directory> --check`. At each rollout or restart,
+the NAS web server runs one embedding and loads the public BM25 terms and vectors
+before opening its HTTP listener. A failed warm-up keeps the instance out of
+rotation. Project vectors are populated
+incrementally from the editor's current registration snapshot and stored in the
+`component-vectors` volume. The project endpoint authenticates both catalogue
+sync and search. Deploy the server route before distributing Desktop clients
+that use candidate caching.

@@ -242,7 +242,7 @@ Figma 输入按三层推进：视觉参考、可编辑布局、真实组件映�
 - [仓库工程与组件契约规则](../CLAUDE.md)
 - [Desktop 能力与验收记录](../desktop/MCP-CAPABILITIES.md)
 - [Desktop 架构说明](../desktop/README.md)
-- [Admin Templates 使用规范](../ai/plasmic/references/admin-templates.md)与[模板目录](../ai/plasmic/references/templates/admin/catalog.json)
+- [Admin Templates 使用规范](../ai/plasmic/references/admin-templates.md)与[模板目录](../ai/plasmic/admin-templates/catalog.json)
 - [原生代码实现与交付验收](../ai/plasmic/references/codegen/acceptance.md)
 - [Studio 操作实现](../platform/wab/src/wab/client/copilot/index.ts)
 - [Figma 组件映射实现](../platform/wab/src/wab/client/figma-importer/utils.ts)

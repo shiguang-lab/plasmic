@@ -37,11 +37,27 @@ export function resourcePath(name) {
   }
   return name;
 }
-export function validateManifest(manifest) {
-  if (!manifest || manifest.schemaVersion !== 1 || !/^\d+\.\d+\.\d+$/.test(manifest.version) ||
-      !/^\d+\.\d+\.\d+$/.test(manifest.cliVersion) ||
-      !/^\d+\.\d+\.\d+$/.test(manifest.minCliVersion) || manifest.releaseId !== releaseId(manifest)) {
+function validateArtifact(artifact, name) {
+  if (!artifact || artifact.file !== name || !/^[a-f0-9]{64}$/.test(artifact.sha256) ||
+      !Number.isSafeInteger(artifact.size) || artifact.size <= 0 || artifact.size > MAX_BYTES) {
+    throw new Error(`Invalid ${name} artifact`);
+  }
+}
+// The starter needs this envelope to obtain the CLI that understands the resources.
+export function validateReleaseEnvelope(manifest) {
+  if (!manifest || !/^\d+\.\d+\.\d+$/.test(manifest.cliVersion) ||
+      manifest.releaseId !== releaseId(manifest)) {
     throw new Error("Invalid resource manifest or release checksum");
+  }
+  compareVersions(manifest.cliVersion, manifest.cliVersion);
+  validateArtifact(manifest.artifacts?.cli, "plasmic-cli.tgz");
+  return manifest;
+}
+export function validateManifest(manifest) {
+  validateReleaseEnvelope(manifest);
+  if (manifest.schemaVersion !== 1 || !/^\d+\.\d+\.\d+$/.test(manifest.version) ||
+      !/^\d+\.\d+\.\d+$/.test(manifest.minCliVersion)) {
+    throw new Error("Invalid resource manifest schema or version");
   }
   if (compareVersions(manifest.minCliVersion, manifest.cliVersion) > 0) throw new Error("Required CLI version exceeds published CLI version");
   compareVersions(manifest.version, manifest.version);
@@ -62,11 +78,7 @@ export function validateManifest(manifest) {
   for (const reference of new Set(Object.values(MODE_REFERENCES).flat())) {
     if (!files.has(reference)) throw new Error(`Missing task reference: ${reference}`);
   }
-  for (const [kind, name] of [["resources", "resources.json.gz"], ["cli", "plasmic-cli.tgz"]]) {
-    const artifact = manifest.artifacts?.[kind];
-    if (!artifact || artifact.file !== name || !/^[a-f0-9]{64}$/.test(artifact.sha256) ||
-        !Number.isSafeInteger(artifact.size) || artifact.size <= 0 || artifact.size > MAX_BYTES) throw new Error(`Invalid ${kind} artifact`);
-  }
+  validateArtifact(manifest.artifacts?.resources, "resources.json.gz");
   return manifest;
 }
 export function verifyArtifact(bytes, artifact) {

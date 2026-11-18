@@ -10,3 +10,9 @@
 **/__pycache__
 desktop/renderer
 desktop/desktop-report
+
+desktop/.cache
+desktop/component-reuse-runtime
+
+# Recreate the public package catalogue from this release.
+platform/wab/public/static/packages

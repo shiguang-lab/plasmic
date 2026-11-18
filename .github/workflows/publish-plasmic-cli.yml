@@ -1,4 +1,4 @@
-name: Publish selected Plasmic CLI
+name: Prepare selected Plasmic CLI
 on:
   workflow_call:
     inputs:
@@ -11,22 +11,22 @@ on:
       force:
         default: false
         type: boolean
-    secrets:
-      NPM_TOKEN:
-        required: false
     outputs:
+      publish:
+        description: A CLI archive is ready for promotion
+        value: ${{ jobs.prepare-cli.outputs.publish }}
       version:
-        description: Verified npm CLI version for the resource bundle
-        value: ${{ jobs.publish-cli.outputs.version }}
+        description: Selected CLI version for the resource bundle
+        value: ${{ jobs.prepare-cli.outputs.version }}
 permissions:
   contents: read
-  id-token: write
 jobs:
-  publish-cli:
+  prepare-cli:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     outputs:
-      version: ${{ steps.publish.outputs.version }}
+      version: ${{ steps.prepare.outputs.version }}
+      publish: ${{ steps.prepare.outputs.publish }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
         with:
@@ -34,20 +34,17 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org/
       - name: Verify CLI
         run: |
-          npm install -g npm@latest
           npm --prefix packages/plasmic-cli test
-      - name: Publish selected CLI
-        id: publish
+      - name: Prepare selected CLI
+        id: prepare
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_TAG: ${{ inputs.release-tag }}
           RELEASE_FORCE_ALL: ${{ inputs.force }}
-        run: node packages/plasmic-cli/scripts/publish.mjs --tag "$RELEASE_TAG" --execute
+        run: node packages/plasmic-cli/scripts/publish.mjs --tag "$RELEASE_TAG"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
-        if: steps.publish.outputs.publish == 'true'
+        if: steps.prepare.outputs.publish == 'true'
         with:
           name: plasmic-cli
           path: dist/plasmic-cli/plasmic-cli.tgz

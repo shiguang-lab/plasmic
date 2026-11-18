@@ -83,6 +83,7 @@ test("management tools expose strict MCP schemas and forward valid calls through
     assert.equal(retired.isError, true);
     assert.match(retired.content[0].text, /Unknown desktop tool/);
     const valid = [
+      ["open_template", { templateId: "published" }],
       ["preview", { action: "back" }],
       ["preview", { action: "forward" }],
       ["preview", { action: "refresh" }],
@@ -189,6 +190,8 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["get_workspace", { workspaceId: "../workspace" }],
       ["get_project", {}],
       ["get_project", { projectId: "project?private" }],
+      ["open_template", { templateId: "../draft" }],
+      ["open_template", { projectId: "wrong-parameter" }],
       ["get_project", { projectId: "project", view: "full" }],
       ["rename_project", { projectId: "project", name: " " }],
       ["rename_project", { name: "Orders" }],
@@ -205,7 +208,7 @@ test("management tools expose strict MCP schemas and forward valid calls through
       const result = await client.callTool({ name, arguments: input });
       assert.equal(result.isError, true, name);
     }
-    for (const name of ["list_orgs", "list_projects", "create_project", "get_workspace", "get_project", "rename_project", "move_project", "clone_project", "open_design"]) {
+    for (const name of ["list_orgs", "list_projects", "create_project", "get_workspace", "get_project", "rename_project", "move_project", "clone_project", "open_design", "open_template"]) {
       const input = { name: "Draft", projectId: "project" };
       const result = await client.callTool({ name: "execute", arguments: { name, input } });
       assert.equal(result.isError, true);

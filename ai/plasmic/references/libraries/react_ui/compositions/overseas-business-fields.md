@@ -2,7 +2,7 @@
 
 Use this composition when a form saves an overseas user, a department and a
 dictionary item and the record is shown in a list and details. It fits a
-[BasicFormPage, SearchTableSection and DetailSection](../../../admin-templates.md#select-by-scenario)
+[matching form, list and detail regions](../../../admin-templates.md#select-by-scenario)
 or a short form and detail Drawer in an existing AppShell. Read the live
 Ant Design 6 and React UI contracts before wiring the destination.
 

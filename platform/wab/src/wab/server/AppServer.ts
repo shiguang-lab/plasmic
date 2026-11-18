@@ -1,3 +1,4 @@
+import { componentSearch } from "@/wab/server/routes/component-search";
 import * as templateCenter from "@/wab/server/routes/template-center";
 import { getDependencyModelResource, withDependencyModelResources } from "@/wab/server/routes/dependency-model-resources";
 import { createPresentation, getPresentation } from "@/wab/server/routes/presentations";
@@ -1261,6 +1262,7 @@ export function addMainAppServerRoutes(
    * Self routes
    */
   app.get("/api/v1/app-config", getAppConfig);
+  app.post("/api/v1/projects/:projectId/component-search", withNext(componentSearch));
   app.get("/api/v1/projects/:projectId/ai/edit/status", withNext(localAiStatus));
   app.get("/api/v1/projects/:projectId/ai/edit/models", withNext(localAiModels));
   app.get("/api/v1/projects/:projectId/ai/chat", withNext(aiChatHistory));

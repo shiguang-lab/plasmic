@@ -1,0 +1,247 @@
+{
+  "fixture": "component-search-replay.test.ts",
+  "scope": "Real Studio edit tools in the test host, 104 packed Material UI component contracts injected by the replay bridge. Private mTLS connection to isolated Intel Pentium Gold 8505 NAS, Linux x64 CPU only, 2 CPU quota. Excludes Electron rendering, production gateway, authorization database and agent deliberation.",
+  "index": {
+    "publicComponents": 239,
+    "publicVectors": 602,
+    "publicLibraries": {
+      "antd6": 123,
+      "material-ui": 104,
+      "overseas": 3,
+      "react-ui": 9
+    },
+    "materialUiVectors": 321,
+    "seedInputSha256": "815d3ce123ced9996d4bf5e9d9165539abf0f375436e6e9fa16fe5e5e33f3bc2",
+    "computedVectorsThisBuild": 436,
+    "seedBuildMs": 280929,
+    "nasPreparationMs": 1750.351322
+  },
+  "timing": "Preparation is complete before the listener opens. Wait for the normal project-open sync before timing edits. First round starts with empty candidate/query caches. Second round retains candidate cache.",
+  "runs": {
+    "cold": {
+      "projectOpenRequests": [
+        {
+          "command": "sync",
+          "ms": 327.90379199999734
+        }
+      ],
+      "coverageAtEditStart": {
+        "indexed": 104,
+        "total": 104
+      },
+      "editOperations": 12,
+      "reviewCalls": 8,
+      "requestsDuringEdits": [
+        {
+          "command": "search",
+          "intent": "Switch customer information panels and keep the selected tab and content in sync on the same page",
+          "ms": 188.66150000001653
+        },
+        {
+          "command": "search",
+          "intent": "Display customer records in a sortable paginated table",
+          "ms": 141.39212500001304
+        },
+        {
+          "command": "search",
+          "intent": "Edit customer details in a slide-out panel from the right",
+          "ms": 118.9362919999985
+        }
+      ],
+      "editWallMs": 633.2761249999967,
+      "fixtureToFinishMs": 1025.437791999997,
+      "observations": [
+        {
+          "operation": "createComponent",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 20.606457999994745
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-tabs"
+          ],
+          "ms": 223.86229099999764
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-table",
+            "plasmic-material-ui-table-pagination",
+            "plasmic-material-ui-table-sort-label"
+          ],
+          "ms": 169.59795799999847
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-slider"
+          ],
+          "ms": 141.8857080000016
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [],
+          "ms": 17.233542000001762
+        },
+        {
+          "operation": "insertHtml",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 7.477707999998529
+        },
+        {
+          "operation": "createComponent",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 4.559958999998344
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-tabs"
+          ],
+          "ms": 12.507041999997455
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-table",
+            "plasmic-material-ui-table-pagination",
+            "plasmic-material-ui-table-sort-label"
+          ],
+          "ms": 11.24758400000428
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-slider"
+          ],
+          "ms": 10.49737499999901
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [],
+          "ms": 9.490124999996624
+        },
+        {
+          "operation": "insertHtml",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 4.272000000004482
+        }
+      ]
+    },
+    "cached": {
+      "projectOpenRequests": [],
+      "coverageAtEditStart": {
+        "indexed": 104,
+        "total": 104
+      },
+      "editOperations": 12,
+      "reviewCalls": 8,
+      "requestsDuringEdits": [],
+      "editWallMs": 80.81274999999732,
+      "fixtureToFinishMs": 96.91074999999546,
+      "observations": [
+        {
+          "operation": "createComponent",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 2.6936249999998836
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-tabs"
+          ],
+          "ms": 9.439083000004757
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-table",
+            "plasmic-material-ui-table-pagination",
+            "plasmic-material-ui-table-sort-label"
+          ],
+          "ms": 8.33233299999847
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-slider"
+          ],
+          "ms": 8.44195800000307
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [],
+          "ms": 10.257917000002635
+        },
+        {
+          "operation": "insertHtml",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 3.949749999999767
+        },
+        {
+          "operation": "createComponent",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 1.3796670000010636
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-tabs"
+          ],
+          "ms": 8.115666999998211
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-table",
+            "plasmic-material-ui-table-pagination",
+            "plasmic-material-ui-table-sort-label"
+          ],
+          "ms": 8.27033400000073
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [
+            "plasmic-material-ui-slider"
+          ],
+          "ms": 8.002957999997307
+        },
+        {
+          "operation": "insertHtml",
+          "status": "completed",
+          "candidates": [],
+          "ms": 8.530375000002095
+        },
+        {
+          "operation": "insertHtml",
+          "status": "skipped",
+          "candidates": [],
+          "ms": 3.3719160000036936
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,691 @@
+{
+  "baselineCommit": "a201bc3c959f569d68d36176dc7f9e88d10abd69",
+  "fixture": "component-search-replay.test.ts",
+  "componentCatalogueSize": 126,
+  "network": "Desktop to isolated NAS via mutually authenticated HTTPS over the private network",
+  "scope": "Real Studio model edits and component review in the test host; excludes Electron rendering, production gateway, project permission database query and agent deliberation. Tool wall time includes the common loopback bridge.",
+  "nas": "Intel Pentium Gold 8505, x86_64 CPU-only, 2 CPU quota",
+  "client": "Apple Silicon arm64",
+  "sameRuntimeParityCases": 20,
+  "runs": {
+    "local": {
+      "cold": {
+        "editOperations": 12,
+        "editWallMs": 810.79,
+        "reviewCalls": 8,
+        "requests": [],
+        "observations": [
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 15.384000000001834
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 669.8568750000013
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 35.88012499999968
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-descriptions",
+              "plasmic-antd6-carousel"
+            ],
+            "ms": 34.244416999998066
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 10.6875
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 3.8089169999984733
+          },
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.328417000000627
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 9.646749999999884
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 8.048124999997526
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-descriptions",
+              "plasmic-antd6-carousel"
+            ],
+            "ms": 8.8159169999999
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 9.299209000000701
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.7591670000001614
+          }
+        ],
+        "queryEmbeddings": 3,
+        "queryCacheHits": 5
+      },
+      "cached": {
+        "editOperations": 12,
+        "editWallMs": 74.507,
+        "reviewCalls": 8,
+        "requests": [],
+        "observations": [
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.2927080000008573
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 10.647499999999127
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 8.835666000002675
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-descriptions",
+              "plasmic-antd6-carousel"
+            ],
+            "ms": 8.14012499999808
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 7.858166999998502
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.274042000000918
+          },
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 1.159083999998984
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 8.30975000000035
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 7.591583000001265
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-descriptions",
+              "plasmic-antd6-carousel"
+            ],
+            "ms": 7.431000000000495
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 7.783332999999402
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.1599999999998545
+          }
+        ],
+        "queryEmbeddings": 0,
+        "queryCacheHits": 8
+      }
+    },
+    "nas": {
+      "cold": {
+        "editOperations": 12,
+        "editWallMs": 2765.105,
+        "reviewCalls": 8,
+        "requests": [
+          {
+            "command": "sync",
+            "ms": 690.9094580000019
+          },
+          {
+            "command": "search",
+            "ms": 1622.5142090000008
+          },
+          {
+            "command": "search",
+            "ms": 116.54445799999667
+          },
+          {
+            "command": "search",
+            "ms": 149.21279200000572
+          }
+        ],
+        "observations": [
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 15.47570899999846
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 2361.1531250000007
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 144.39408399999957
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 168.49245800000062
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 20.896832999998878
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 7.3932500000009895
+          },
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 3.8155420000002778
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 11.487084000000323
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 9.650082999996812
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 9.615334000001894
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 8.691915999999765
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 4.007666000001336
+          }
+        ],
+        "candidateCacheHits": 5,
+        "queryP50Ms": 149.21279200000572,
+        "queryP95NearestRankMs": 1622.5142090000008
+      },
+      "cached": {
+        "editOperations": 12,
+        "editWallMs": 73.36,
+        "reviewCalls": 8,
+        "requests": [],
+        "observations": [
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.863207999998849
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 11.47741699999824
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 7.9238750000004075
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 8.258958000002167
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 7.144749999999476
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.5254580000000715
+          },
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 1.241291000002093
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 6.758957999998529
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 6.452832999999373
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 8.184333000001061
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 7.6667080000006536
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.8379580000000715
+          }
+        ],
+        "candidateCacheHits": 8
+      }
+    },
+    "nasPrepared": {
+      "servicePreparationMs": 1804.241033,
+      "timing": "NAS readiness includes a real warm-up inference plus preparation of the public BM25 terms and vectors. Observe the editor-open sync before starting the 12 timed edits. Candidate and query caches start empty. Fixture-to-finish includes project initialization, sync, edits and stats reads.",
+      "cold": {
+        "editOperations": 12,
+        "editWallMs": 566.67,
+        "fixtureToFinishMs": 830.78,
+        "reviewCalls": 8,
+        "beforeEditRequests": [
+          {
+            "command": "sync",
+            "ms": 200.16474999999627
+          }
+        ],
+        "requestsDuringEdits": [
+          {
+            "command": "search",
+            "ms": 148.9329579999976
+          },
+          {
+            "command": "search",
+            "ms": 127.91587499999878
+          },
+          {
+            "command": "search",
+            "ms": 130.14758399999846
+          }
+        ],
+        "observations": [
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 19.79791699999987
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 180.8601669999989
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 149.80954100000235
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 147.97045900000012
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 15.603542000000743
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 7.332041999998182
+          },
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 3.745875000000524
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 11.625292000000627
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 10.180041999999958
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 10.035958000000392
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 5.92766599999959
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 3.748374999999214
+          }
+        ]
+      },
+      "cached": {
+        "editOperations": 12,
+        "editWallMs": 70.29,
+        "fixtureToFinishMs": 87.33,
+        "reviewCalls": 8,
+        "beforeEditRequests": [],
+        "requestsDuringEdits": [],
+        "observations": [
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.2831250000017462
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 7.975834000000759
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 7.9962500000001455
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 7.28020800000013
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 8.220124999999825
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 3.133750000000873
+          },
+          {
+            "operation": "createComponent",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 1.3657080000011774
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-tabs",
+              "plasmic-antd6-tab-item",
+              "plasmic-antd6-segmented"
+            ],
+            "ms": 5.763750000001892
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-table",
+              "plasmic-antd6-table-column",
+              "plasmic-antd6-pagination"
+            ],
+            "ms": 6.580000000001746
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [
+              "plasmic-antd6-drawer",
+              "plasmic-antd6-carousel",
+              "plasmic-antd6-descriptions"
+            ],
+            "ms": 8.306040999999823
+          },
+          {
+            "operation": "insertHtml",
+            "status": "completed",
+            "candidates": [],
+            "ms": 8.57537500000035
+          },
+          {
+            "operation": "insertHtml",
+            "status": "skipped",
+            "candidates": [],
+            "ms": 2.7805000000007567
+          }
+        ]
+      }
+    }
+  }
+}

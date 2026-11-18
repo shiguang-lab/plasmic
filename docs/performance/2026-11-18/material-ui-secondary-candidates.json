@@ -1,0 +1,130 @@
+{
+  "scope": "Isolated Intel Pentium Gold 8505 NAS (Linux x64, two CPU quota). All 104 Material UI contracts fully indexed. Production ranker and Desktop candidate selection. Same native model, query strings and persisted document vectors before and after. No latency measurements.",
+  "originalAdmissionCutoff": 0.68,
+  "originalQueryEvidence": [
+    {
+      "component": "drawer",
+      "matchedTerms": [
+        "edit",
+        "detail",
+        "slide",
+        "panel"
+      ],
+      "bm25": 24.25917567819816,
+      "overviewCosine": 0.7097727242387912,
+      "bestPieceCosine": 0.7097727242387912,
+      "bestPieceText": "title: plasmic-material-ui-drawer | text: Drawer\nMaterial UI Drawer. A side panel that slides in from a screen edge. Place a detail view or an edit form alongside the current page, or show navigation. Use anchor to choose the edge. https://mui.com/material-ui/api/drawer/",
+      "originalFusedScore": 0.03278688524590164
+    },
+    {
+      "component": "slider",
+      "matchedTerms": [],
+      "bm25": 0,
+      "overviewCosine": 0.6521607308431283,
+      "bestPieceCosine": 0.6818920921236734,
+      "bestPieceText": "title: plasmic-material-ui-slider | text: marks: exprEditor — Marks indicate predetermined values to which the user can move the slider. If true the marks are spaced according the value of the step prop. If an array, it should contain objects with value and an optional label keys.\nmax: number — The maximum allowed value of the slider. Should not be equal to min.\nmin: number — The minimum allowed value of the slider. Should not be equal to max.\nname: string — Name attribute of the hidden input element.\nonBlur: eventHandler\nEvent arguments: event: object\nonChange: eventHandler — Callback function that is fired when the slider's value changed.\nEvent arguments: event: object, value: object, activeThumb: number\nonChangeCommitted: eventHandler — Callback function that is fired when the pointer or touch interaction ends.\nEvent arguments: event: object, value: object\nonClick: eventHandler\nEvent arguments: event: object\nonFocus: eventHandler\nEvent arguments: event: object\nonKeyDown: eventHandler\nEvent arguments: event: object\norientation: choice — The component orientation.\nrole: string\nscale: exprEditor — A transformation function, to change the scale of the slider.",
+      "originalFusedScore": 0.016129032258064516
+    }
+  ],
+  "queries": [
+    {
+      "purpose": "Edit customer details in a slide-out panel from the right",
+      "expectedFirst": "drawer",
+      "before": [
+        "drawer",
+        "slider"
+      ],
+      "after": [
+        "drawer"
+      ]
+    },
+    {
+      "purpose": "Open a side panel beside the list so I can update a record without leaving the page",
+      "expectedFirst": "drawer",
+      "before": [
+        "drawer",
+        "table",
+        "table-pagination"
+      ],
+      "after": [
+        "drawer",
+        "table",
+        "table-pagination"
+      ]
+    },
+    {
+      "purpose": "Let users adjust the minimum and maximum price by dragging two handles along a track",
+      "expectedFirst": "slider",
+      "before": [
+        "slider",
+        "linear-progress"
+      ],
+      "after": [
+        "slider",
+        "linear-progress"
+      ]
+    },
+    {
+      "purpose": "Change the volume by dragging a thumb to the desired numeric value",
+      "expectedFirst": "slider",
+      "before": [
+        "slider",
+        "rating"
+      ],
+      "after": [
+        "slider",
+        "rating"
+      ]
+    },
+    {
+      "purpose": "Swipe from the edge of the screen to open navigation and swipe back to close it",
+      "expectedFirst": "swipeable-drawer",
+      "before": [
+        "swipeable-drawer",
+        "drawer",
+        "menu"
+      ],
+      "after": [
+        "swipeable-drawer",
+        "drawer",
+        "menu"
+      ]
+    },
+    {
+      "purpose": "从右侧滑出面板，编辑客户资料",
+      "expectedFirst": "drawer",
+      "before": [
+        "drawer",
+        "table",
+        "table-pagination"
+      ],
+      "after": [
+        "drawer"
+      ]
+    },
+    {
+      "purpose": "Switch customer information panels and keep the selected tab and content in sync on the same page",
+      "expectedFirst": "tabs",
+      "before": [
+        "tabs"
+      ],
+      "after": [
+        "tabs"
+      ]
+    },
+    {
+      "purpose": "Display customer records in a sortable paginated table",
+      "expectedFirst": "table",
+      "before": [
+        "table",
+        "table-pagination",
+        "table-sort-label"
+      ],
+      "after": [
+        "table",
+        "table-pagination",
+        "table-sort-label"
+      ]
+    }
+  ]
+}

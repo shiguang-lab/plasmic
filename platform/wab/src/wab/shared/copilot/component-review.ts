@@ -70,8 +70,7 @@ export interface ReviewRegion {
 
 export type ComponentReuseCommand =
   | { command: "status" }
-  | { command: "sync"; projectId: string; documents: ReviewComponentDocument[]; unavailable: number; retry?: boolean }
+  | { command: "sync"; projectId: string; documents: ReviewComponentDocument[]; unavailable: number; retry?: boolean; defer?: boolean }
   | { command: "review"; projectId: string; id: string; regions: ReviewRegion[] }
   | { command: "cancel"; id: string }
-  | { command: "activity" }
   | { command: "release"; projectId: string };

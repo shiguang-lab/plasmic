@@ -7,9 +7,9 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { buildCli, buildResources } from "../../../scripts/build-plasmic-resources.mjs";
-import { prepareRelease, publishedCli, publishCli, releaseVersion } from "../scripts/publish.mjs";
+import { prepareRelease, publishedCli, mirrorCli, publishCli, releaseVersion } from "../scripts/publish.mjs";
 import { prepareResources } from "../../../scripts/release-resources.mjs";
-import { CLI_VERSION, compareVersions } from "../src/protocol.mjs";
+import { CLI_VERSION, compareVersions, releaseId, sha256 } from "../src/protocol.mjs";
 
 test("only stable repository version tags release the CLI", () => {
   assert.equal(releaseVersion("0.0.35"), "0.0.35");
@@ -93,10 +93,17 @@ async function registryFixture(t, bytes, version = "0.0.60") {
       integrity: "sha512-" + createHash("sha512").update(bytes).digest("base64"),
     } } },
   };
-  const fetchRelease = async (url) => String(url) === tarball
-    ? { ok: true, arrayBuffer: async () => bytes }
-    : { ok: true, json: async () => metadata };
-  return { output, metadata, fetchRelease };
+  const manifest = { cliVersion: version, artifacts: {
+    cli: { file: "plasmic-cli.tgz", size: bytes.length, sha256: sha256(bytes) },
+  } };
+  manifest.releaseId = releaseId(manifest);
+  const feed = "https://plasmic.example/releases/";
+  const fetchRelease = async (url) => {
+    if (String(url) === feed + "latest.json") return Response.json(manifest);
+    if (String(url) === feed + `releases/${manifest.releaseId}/plasmic-cli.tgz`) return new Response(bytes);
+    throw new Error("Unexpected release URL: " + url);
+  };
+  return { output, metadata, feed, manifest, fetchRelease };
 }
 
 test("npm scan processing can exceed three minutes before the verified version becomes public", async (t) => {
@@ -129,7 +136,7 @@ test("unchanged CLI skips publication without producing a resource release", asy
   assert.deepEqual(published.cliArtifact, bytes);
 });
 
-test("forced patch releases publish unchanged CLI and retries preserve npm's original bytes", async (t) => {
+test("forced patch releases publish unchanged CLI and retries preserve Plasmic's original bytes", async (t) => {
   const bytes = await buildCli("0.0.60");
   const options = await registryFixture(t, bytes);
   const forced = await prepareRelease({ ...options, tag: "0.0.61", force: true });
@@ -196,11 +203,11 @@ for (const filename of ["src/index.mjs", "skill/plasmic/SKILL.md"]) {
     const resources = await prepareResources({ ...options, tag: "0.0.82", cliVersion: "0.0.60" });
     assert.equal(resources.manifest.cliVersion, "0.0.60");
     assert.deepEqual(await readFile(path.join(resources.directory, "plasmic-cli.tgz")), old);
-    await assert.rejects(prepareResources({ ...options, tag: "0.0.82", cliVersion: "0.0.82" }), /Expected npm CLI/);
+    await assert.rejects(prepareResources({ ...options, tag: "0.0.82", cliVersion: "0.0.82" }), /Expected Plasmic CLI/);
     const built = await prepareRelease({ ...options, tag: "0.0.82" });
     assert.equal(built.version, "0.0.82");
     let calls = 0;
-    const result = await publishCli({ directory: built.directory, tag: "0.0.82", fetchRelease: options.fetchRelease,
+    const result = await publishCli({ directory: built.directory, tag: "0.0.82", fetchRelease: async () => new Response(null, { status: 404 }),
       runNpm: (args) => { calls++; assert.ok(args.includes("publish")); return "dry run"; },
     });
     assert.equal(calls, 1);
@@ -210,11 +217,32 @@ for (const filename of ["src/index.mjs", "skill/plasmic/SKILL.md"]) {
   });
 }
 
-test("release comparison ignores package version but verifies downloaded npm integrity", async (t) => {
+test("release comparison ignores package version but verifies downloaded Plasmic integrity", async (t) => {
   const first = await buildCli("0.0.60");
   const second = await buildCli("0.0.82");
   assert.equal((await inspectCliArtifact(first)).contentHash, (await inspectCliArtifact(second)).contentHash);
   const options = await registryFixture(t, first);
-  options.metadata.versions["0.0.60"].dist.integrity = "sha512-wrong";
-  await assert.rejects(prepareRelease({ ...options, tag: "0.0.82" }), /integrity mismatch/);
+  options.manifest.artifacts.cli.sha256 = sha256("wrong");
+  options.manifest.releaseId = releaseId(options.manifest);
+  await assert.rejects(prepareRelease({ ...options, tag: "0.0.82" }), /checksum mismatch/);
+});
+
+test("npm mirror requires identical live Plasmic bytes and publishes the prepared archive", async (t) => {
+  const bytes = await buildCli("0.0.60");
+  const live = await registryFixture(t, bytes);
+  const archive = path.join(live.output, "plasmic-cli.tgz");
+  const received = [];
+  const options = { tag: "0.0.60", directory: live.output, feed: live.feed,
+    fetchPlasmic: live.fetchRelease, fetchRelease: async () => new Response(null, { status: 404 }),
+    runNpm: (args) => { received.push(args[1]); return "dry run"; },
+  };
+  await writeFile(archive, "different");
+  await assert.rejects(mirrorCli(options), /not activated/);
+  assert.deepEqual(received, []);
+  await writeFile(archive, bytes);
+  await mirrorCli(options);
+  assert.deepEqual(received, [archive]);
+  const built = await prepareResources({ tag: "0.0.61", cliVersion: "0.0.60", artifact: archive, output: live.output,
+    fetchRelease: () => assert.fail("prepared releases use their local archive") });
+  assert.deepEqual(await readFile(path.join(built.directory, "plasmic-cli.tgz")), bytes);
 });

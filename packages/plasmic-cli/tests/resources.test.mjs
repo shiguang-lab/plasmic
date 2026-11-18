@@ -15,7 +15,7 @@ import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 import { gzipSync } from "node:zlib";
-import { buildResources } from "../../../scripts/build-plasmic-resources.mjs";
+import { buildCli, buildResources } from "../../../scripts/build-plasmic-resources.mjs";
 import { REFERENCE_SIZE_LIMITS, validateReferences } from "../../../scripts/validate-plasmic-references.mjs";
 import {
   CLI_VERSION,
@@ -29,11 +29,17 @@ import {
   checkCliVersion,
   checkReferences,
   referencePath,
-  resolveContext,
   updateReferences,
 } from "../src/references.mjs";
 
 const run = promisify(execFile);
+const cliEntry = new URL("../src/index.mjs", import.meta.url).pathname;
+async function resolveContext(mode, { feed, home, env }) {
+  const { stdout } = await run(process.execPath, [
+    cliEntry, "context", "resolve", "--mode", mode, "--feed", feed, "--home", home, "--refresh",
+  ], { env });
+  return JSON.parse(stdout);
+}
 function fixture(text = "first release") {
   const files = ["guide", "prototype", "codegen", "desktop-mcp", "inspect"].map(
     (name) => ({ path: `references/${name}.md`, content: text + name }),
@@ -92,6 +98,8 @@ async function setup(t) {
       } else {
         res.end(state.corrupt ? Buffer.from("invalid") : state.bytes);
       }
+    } else if (req.url === `/releases/${state.manifest.releaseId}/plasmic-cli.tgz` && state.cliBytes) {
+      res.end(state.cliBytes);
     } else {
       res.writeHead(404).end();
     }
@@ -179,11 +187,9 @@ test(
     );
     const cached = await run(process.execPath, args, { env: options.env });
     assert.equal(JSON.parse(cached.stdout).updated, false);
-    assert.match(cached.stderr, /当前资源已是最新版本/);
-    assert.match(
-      cached.stderr,
-      new RegExp(`当前版本 ${CLI_VERSION}，最新版本 ${CLI_VERSION}`),
-    );
+    assert.match(cached.stderr, /已复用最近校验的资源/);
+    assert.doesNotMatch(cached.stderr, /\[版本检查\]/);
+    assert.equal(options.state.requests.filter((request) => request.path === "/latest.json").length, 1);
     assert.doesNotMatch(
       cached.stderr,
       /本地缓存|缓存保存|工作流入口|更新协调|版本兼容/,
@@ -220,7 +226,7 @@ test("CLI failures identify the failed stage and give a readable action without 
     },
   );
 });
-test("CLI syncs installed entries independently of resource changes and resource failures", async (t) => {
+test("CLI syncs installed entries only after successful resolution", async (t) => {
   const options = await setup(t);
   const target = path.join(options.home, ".agents/skills/plasmic/SKILL.md");
   await mkdir(path.dirname(target), { recursive: true });
@@ -243,26 +249,27 @@ test("CLI syncs installed entries independently of resource changes and resource
 
   options.state.failure = true;
   await writeFile(target, "entry before unavailable resources");
-  await assert.rejects(run(process.execPath, args, { env: options.env }), (error) => {
+  await assert.rejects(run(process.execPath, [...args, "--refresh"], { env: options.env }), (error) => {
     const result = JSON.parse(error.stderr.trim().split("\n").at(-1));
     assert.equal(result.ok, false);
-    assert.equal(result.skillUpdate.ok, true);
-    assert.equal(result.skillUpdate.installations.find((item) => item.agents.includes("codex")).status, "updated");
+    assert.equal(result.skillUpdate, undefined);
     assert.equal(result.stage, "manifest");
     return true;
   });
-  assert.equal(await readFile(target, "utf8"), expected);
+  assert.equal(await readFile(target, "utf8"), "entry before unavailable resources");
 
   options.state.failure = false;
   const broken = path.join(options.home, ".claude/skills/plasmic/SKILL.md");
   await mkdir(broken, { recursive: true });
-  const partial = await run(process.execPath, args, { env: options.env });
-  const result = JSON.parse(partial.stdout);
-  assert.equal(result.ok, true);
-  assert.equal(result.skillUpdate.ok, false);
-  assert.equal(result.skillUpdate.installations.find((item) => item.agents.includes("claude-code")).status, "failed");
-  assert.match(partial.stderr, /Skill 入口更新失败/);
-  await access(result.referencePath);
+  await assert.rejects(run(process.execPath, args, { env: options.env }), error => {
+    const result = JSON.parse(error.stderr.trim().split("\n").at(-1));
+    assert.equal(result.ok, false);
+    assert.equal(result.skillUpdate.ok, false);
+    assert.equal(result.skillUpdate.installations.find(item => item.agents.includes("claude-code")).status, "failed");
+    assert.match(error.stderr, /Skill 入口更新失败/);
+    return true;
+  });
+  assert.equal(await readFile(target, "utf8"), expected);
   await rm(broken, { recursive: true });
   await writeFile(broken, "retry entry");
   const retried = JSON.parse((await run(process.execPath, args, { env: options.env })).stdout);
@@ -281,7 +288,108 @@ test("invalid context modes do not synchronize skills", async (t) => {
   assert.equal(options.state.requests.length, 0);
 });
 
-test("context checks the feed every task, reuses valid bytes and switches both modes to changed resources", async (t) => {
+test("published context upgrades from the release feed and shares a fresh release across calls", async (t) => {
+  const { home, feed, state, env } = await setup(t);
+  const newerVersion = CLI_VERSION.replace(/\d+$/, (patch) => String(Number(patch) + 1));
+  const cliBytes = await buildCli(newerVersion);
+  state.manifest.cliVersion = newerVersion;
+  state.manifest.artifacts.cli = {
+    file: "plasmic-cli.tgz", size: cliBytes.length, sha256: sha256(cliBytes),
+  };
+  state.manifest.releaseId = releaseId(state.manifest);
+  const filename = new URL("../src/index.mjs", import.meta.url).pathname;
+  const cli = (mode, ...extras) => run(process.execPath, [
+    filename, "context", "resolve", "--mode", mode, "--home", home, "--feed", feed, ...extras,
+  ], { env });
+  const paths = () => state.requests.map((request) => request.path);
+  const cliPath = `/releases/${state.manifest.releaseId}/plasmic-cli.tgz`;
+  state.cliBytes = Buffer.from("corrupt");
+  await assert.rejects(cli("inspect"), /Artifact checksum mismatch/);
+  assert.deepEqual(paths(), ["/latest.json", cliPath]);
+  await assert.rejects(access(path.join(home, "current.json")), { code: "ENOENT" });
+  state.cliBytes = cliBytes;
+  state.requests.length = 0;
+
+  const results = await Promise.all([cli("inspect"), cli("codegen")]);
+  const [inspect, codegen] = results.map(({ stdout }) => JSON.parse(stdout));
+  assert.deepEqual(paths(), ["/latest.json", cliPath, `/releases/${inspect.releaseId}/resources.json.gz`]);
+  assert.equal(inspect.cliVersion, newerVersion);
+  assert.equal(inspect.skillUpdate.cliVersion, newerVersion);
+  assert.equal(inspect.cliUpdateAvailable, false);
+  assert.equal(codegen.releaseId, inspect.releaseId);
+  assert.deepEqual(codegen.mustRead, inspect.mustReadByMode.codegen);
+  for (const filename of Object.values(inspect.mustReadByMode).flat()) await access(filename);
+
+  await cli("prototype", "--refresh");
+  assert.equal(paths().at(-1), "/latest.json");
+  const afterRefresh = paths().length;
+  await cli("prototype");
+  assert.equal(paths().length, afterRefresh);
+  const current = path.join(home, "current.json");
+  const expired = JSON.parse(await readFile(current, "utf8"));
+  expired.checkedAt -= 5 * 60 * 1000;
+  await writeFile(current, JSON.stringify(expired));
+  await cli("prototype");
+  assert.deepEqual(paths().slice(afterRefresh), ["/latest.json"]);
+});
+
+test("legacy npx entry migrates to the latest Plasmic CLI despite a warm cache, then runs without npm", async (t) => {
+  const { home, feed, state, env } = await setup(t);
+  const cache = path.join(home, "resources");
+  await updateReferences({ feed, home: cache });
+  const before = JSON.parse(await readFile(path.join(cache, "current.json"), "utf8"));
+  const skill = path.join(home, ".agents/skills/plasmic");
+  await mkdir(skill, { recursive: true });
+  await mkdir(path.join(home, ".codex"));
+  const legacy = "npx -y --prefer-online @plasmickit/cli@latest context resolve --mode prototype";
+  await writeFile(path.join(skill, "SKILL.md"), legacy);
+  const latest = CLI_VERSION.replace(/\d+$/, patch => String(Number(patch) + 1));
+  const bridgeBytes = await buildCli(CLI_VERSION);
+  state.cliBytes = await buildCli(latest);
+  state.manifest.cliVersion = latest;
+  state.manifest.artifacts.cli = { file: "plasmic-cli.tgz", size: state.cliBytes.length, sha256: sha256(state.cliBytes) };
+  state.manifest.releaseId = releaseId(state.manifest);
+  const tarballPath = `/@plasmickit/cli/-/cli-${CLI_VERSION}.tgz`;
+  const registry = createServer((req, res) => {
+    if (req.url === tarballPath) return res.end(bridgeBytes);
+    if (decodeURIComponent(req.url).toLowerCase() !== "/@plasmickit/cli") return res.writeHead(404).end();
+    const name = "@plasmickit/cli";
+    const metadata = { name, version: CLI_VERSION, bin: { plasmickit: "src/index.mjs" },
+      dist: { tarball: `http://127.0.0.1:${registry.address().port}${tarballPath}` } };
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ name, "dist-tags": { latest: CLI_VERSION }, versions: { [CLI_VERSION]: metadata } }));
+  });
+  await new Promise(resolve => registry.listen(0, "127.0.0.1", resolve));
+  t.after(() => { registry.closeAllConnections(); registry.close(); });
+  const npmCache = path.join(home, "npm-cache");
+  const isolatedEnv = Object.fromEntries(Object.entries(env).filter(([name]) => !/^npm_/i.test(name)));
+  const localEnv = { ...isolatedEnv, PLASMIC_RESOURCE_URL: feed, PLASMIC_RESOURCE_HOME: cache,
+    npm_config_cache: npmCache, npm_config_registry: `http://127.0.0.1:${registry.address().port}/`,
+    npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
+  const npxArgs = legacy.split(" ").slice(1);
+  const npx = () => process.platform === "win32"
+    ? run(process.execPath, [path.join(path.dirname(process.execPath), "node_modules/npm/bin/npx-cli.js"), ...npxArgs], { cwd: home, env: localEnv })
+    : run("npx", npxArgs, { cwd: home, env: localEnv });
+  state.failure = true;
+  await assert.rejects(npx(), /HTTP 503/);
+  assert.equal(await readFile(path.join(skill, "SKILL.md"), "utf8"), legacy);
+  state.failure = false;
+  const migrated = JSON.parse((await npx()).stdout);
+  assert.equal(migrated.cliVersion, latest);
+  assert.equal(migrated.skillUpdate.ok, true);
+  assert.notEqual(migrated.releaseId, before.releaseId);
+  assert.match(await readFile(path.join(skill, "SKILL.md"), "utf8"), new RegExp("plasmickit-cli-version: " + latest));
+  await rm(npmCache, { recursive: true });
+  const requests = state.requests.length;
+  const launcher = path.join(skill, ".plasmickit", latest, "src/index.mjs");
+  const next = JSON.parse((await run(process.execPath, [launcher, "context", "resolve", "--mode", "inspect"],
+    { cwd: home, env: { ...localEnv, npm_config_offline: "true" } })).stdout);
+  assert.equal(next.cliVersion, latest);
+  assert.equal(next.releaseId, migrated.releaseId);
+  assert.equal(state.requests.length, requests);
+});
+
+test("explicit resource resolution rereads the feed and switches modes to changed resources", async (t) => {
   const options = await setup(t);
   assert.equal((await checkReferences(options)).updateAvailable, true);
   await assert.rejects(access(path.join(options.home, "current.json")));
@@ -394,7 +502,7 @@ test("newer required CLI returns the immutable install URL and does not select r
   );
   await assert.rejects(access(path.join(options.home, "current.json")));
 });
-test("compatible newer CLI is reported while resources can still update", async (t) => {
+test("standalone resource commands report compatible CLI updates without selecting a CLI", async (t) => {
   const options = await setup(t);
   const newerVersion = CLI_VERSION.replace(/\d+$/, (patch) =>
     String(Number(patch) + 1),
@@ -404,9 +512,9 @@ test("compatible newer CLI is reported while resources can still update", async 
   const status = await checkCliVersion(options);
   assert.equal(status.cliUpdateAvailable, true);
   assert.equal(status.cliCompatible, true);
-  const context = await resolveContext("prototype", options);
-  assert.equal(context.latestCliVersion, newerVersion);
-  assert.equal(context.cliVersion, CLI_VERSION);
+  const resources = await updateReferences(options);
+  assert.equal(resources.latestCliVersion, newerVersion);
+  assert.equal(resources.cliVersion, CLI_VERSION);
 });
 test("new resource versions update references without reporting a CLI upgrade", async (t) => {
   const options = await setup(t);
@@ -472,7 +580,7 @@ test("path traversal, duplicates, manifest tampering and missing entrypoints are
   manifest.version = "2.0.0";
   assert.throws(() => validateManifest(manifest), /checksum/);
 });
-test("built NAS artifacts install a working CLI binary and only the thin skill", async (t) => {
+test("built NAS artifacts install a working CLI binary and its persistent Skill launcher", async (t) => {
   const temporary = await mkdtemp(path.join(tmpdir(), "plasmic-pack-test-"));
   t.after(() => rm(temporary, { recursive: true, force: true }));
   const built = await buildResources(path.join(temporary, "feed"), "0.0.60");
@@ -609,7 +717,7 @@ test("built NAS artifacts install a working CLI binary and only the thin skill",
   const codexSkill = installed.installations.find((result) =>
     result.agents.includes("codex"),
   );
-  assert.deepEqual(await readdir(codexSkill.target), ["SKILL.md"]);
+  assert.deepEqual((await readdir(codexSkill.target)).sort(), [".plasmickit", "SKILL.md"]);
   assert.equal(
     await readFile(codexSkill.skillPath, "utf8"),
     (await readFile(

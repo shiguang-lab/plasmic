@@ -57,35 +57,42 @@ export function componentDocuments(studio: StudioCtx) {
   documents.sort((a, b) => a.componentUuid.localeCompare(b.componentUuid)); return { documents, unavailable };
 }
 
+// Publication can happen before the debounced registration or model notification.
+const publishCatalogues = new WeakMap<StudioCtx, () => void>();
+export function preparePublishedComponentCatalogue(studio: StudioCtx) {
+  publishCatalogues.get(studio)?.();
+}
+
 /** One editor lifetime; tracked contract fields do not include instance styles/text. */
 export function startComponentReuse(studio: StudioCtx) {
   if (!studio.appCtx.appConfig.enableComponentReuseAdvisory) {return () => { /* Disabled advisory creates no subscription to dispose. */ };}
   const api = studio.appCtx.topFrameApi;
   if (!api) {return () => { /* Without a top-frame API there is no advisory subscription to dispose. */ };}
-  let closed = false; let lastActivity = 0; let dispose = () => { /* No advisory subscription exists until initialization finishes. */ };
-  const activity = () => { if (Date.now() - lastActivity > 350) { lastActivity = Date.now(); void api.componentReuse({ command: "activity" }).catch(() => { /* Activity reporting is best effort and must not interrupt editing. */ }); } };
-  const events = ["pointermove", "keydown", "wheel"] as const;
+  let closed = false; let dispose = () => { /* No advisory subscription exists until initialization finishes. */ };
   void api.componentReuse({ command: "status" }).then(status => {
     if (closed || !(status && typeof status === "object" && "available" in status && status.available === true)) {return;}
     let previous: ReturnType<typeof componentDocuments> | undefined;
     let pending: ReturnType<typeof setTimeout> | undefined;
     const publish = () => {
+      clearTimeout(pending);
       pending = undefined;
       if (closed) { return; }
       const catalogue = componentDocuments(studio);
       if (isEqual(previous, catalogue)) { return; }
       previous = catalogue;
-      void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).then(value => { if (!closed) { rememberCoverage(studio, value); } }).catch(() => { /* Catalogue synchronization is advisory and must not interrupt editing. */ });
+      void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).then(value => { if (!closed) { rememberCoverage(studio, value); } }).catch(() => { if (previous === catalogue) { previous = undefined; } });
     };
     const schedule = () => { if (!closed && !pending) { pending = setTimeout(publish, 250); } };
     const stopModel = studio.subscribeModelChanges(schedule);
     const stopVersion = studio.dbCtx().subscribeVersionInputs(schedule);
     const stopRegistrations = studio.subscribeCodeRegistrations(schedule);
-    dispose = () => { stopModel(); stopVersion(); stopRegistrations(); clearTimeout(pending); };
+    publishCatalogues.set(studio, () => {
+      void Promise.resolve().then(publish).catch(() => { /* Publishing has already succeeded. */ });
+    });
+    dispose = () => { publishCatalogues.delete(studio); stopModel(); stopVersion(); stopRegistrations(); clearTimeout(pending); };
     publish();
-    events.forEach(name => window.addEventListener(name, activity, { passive: true }));
   }).catch(() => { /* An unavailable advisory service must not interrupt editing. */ });
-  return () => { closed = true; dispose(); events.forEach(name => window.removeEventListener(name, activity)); void api.componentReuse({ command: "release", projectId: studio.siteInfo.id }).catch(() => { /* Releasing the advisory session is best effort during cleanup. */ }); };
+  return () => { closed = true; dispose(); void api.componentReuse({ command: "release", projectId: studio.siteInfo.id }).catch(() => { /* Releasing the advisory session is best effort during cleanup. */ }); };
 }
 
 function nodesAndUsed(root: TplNode) {
@@ -191,7 +198,11 @@ export async function reviewComponents(studio: StudioCtx, operations: Operation[
       if (ended) {return { ...skipped, status: "timeout" };}
       if (!(status && typeof status === "object" && "available" in status && status.available === true)) {return { ...skipped, status: "unavailable" };}
       const catalogue = componentDocuments(studio);
-      rememberCoverage(studio, await api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue, ...(retry ? { retry: true } : {}) }));
+      const coverage = await api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue, ...(retry ? { retry: true } : { defer: true }) });
+      rememberCoverage(studio, coverage);
+      if (coverage && typeof coverage === "object" && "preparing" in coverage && coverage.preparing === true) {
+        return { ...skipped, ...coverageSnapshots.get(studio), status: "indexing", issues: ["indexing"], retry: retryCall(1000), elapsedMs: performance.now() - started };
+      }
       if (ended) {return { ...skipped, status: "timeout" };}
       const result = componentReviewResultSchema.parse(await api.componentReuse({ command: "review", projectId: studio.siteInfo.id, id, regions }));
       rememberCoverage(studio, result);

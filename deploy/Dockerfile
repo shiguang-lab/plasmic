@@ -39,9 +39,29 @@ RUN cd plasmicpkgs/overseas && pnpm pack --pack-destination ../../platform/wab/p
 RUN cd plasmicpkgs/react-ui && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/material-ui && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 
+RUN node deploy/component-search/generate-documents.mjs
+
+FROM node:24.16.0-bookworm-slim AS component-model
+RUN apt-get update && apt-get install -y --no-install-recommends cmake build-essential git ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /plasmic
+RUN git clone --depth 1 --branch v0.9.0 https://github.com/ggml-org/llama.cpp.git /tmp/llama \
+    && test "$(git -C /tmp/llama rev-parse HEAD)" = cd959bae99ff4bed22bef2604f45241c09bbb8c8 \
+    && cmake -S /tmp/llama -B /tmp/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DGGML_NATIVE=OFF -DGGML_BACKEND_DL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_USE_PREBUILT_UI=OFF -DLLAMA_OPENSSL=OFF -DLLAMA_CURL=OFF \
+    && cmake --build /tmp/build --target llama-server -j 4 \
+    && mkdir /opt/plasmic-component-search \
+    && cp /tmp/build/bin/llama-server /opt/plasmic-component-search/ \
+    && cp /tmp/llama/LICENSE /opt/plasmic-component-search/LICENSE.llama.cpp \
+    && git -C /tmp/llama rev-parse HEAD > /opt/plasmic-component-search/llama-commit
+ADD --chmod=0644 --checksum=sha256:ea905fd08e8061db77a0031cbb5096d459d7cfd2bdd0ad2ba66e483f16719493 https://huggingface.co/unsloth/embeddinggemma-2-GGUF/resolve/031f0d4b35536f69ab3509d4893c923264fcf253/embeddinggemma-2-UD-Q4_K_XL.gguf?download=true /opt/plasmic-component-search/embeddinggemma-2-UD-Q4_K_XL.gguf
+COPY deploy/component-search deploy/component-search
+COPY --from=builder /plasmic/platform/wab/src/wab/server/component-reuse platform/wab/src/wab/server/component-reuse
+RUN node deploy/component-search/prepare-model.mjs /opt/plasmic-component-search
+
 FROM node:24.16.0-bookworm-slim AS server
-RUN apt-get update && apt-get install -y --no-install-recommends bash git ca-certificates libssl3 && rm -rf /var/lib/apt/lists/* && corepack enable
+ENV COMPONENT_MODEL_DIRECTORY=/opt/plasmic-component-search
+RUN apt-get update && apt-get install -y --no-install-recommends bash git ca-certificates libssl3 libgomp1 && rm -rf /var/lib/apt/lists/* && corepack enable
 WORKDIR /plasmic/platform/wab
+COPY --from=component-model /opt/plasmic-component-search /opt/plasmic-component-search
 COPY --from=builder --chown=node:node /plasmic/node_modules /plasmic/node_modules
 COPY --from=builder --chown=node:node /plasmic/packages /plasmic/packages
 COPY --from=builder --chown=node:node /opt/plasmic-loader-react /plasmic/packages/loader-react
@@ -63,7 +83,7 @@ COPY --chown=node:node deploy/nas-ai-init.ts src/wab/server/nas-ai-init.ts
 COPY --chown=node:node deploy/ai-chat/migrate-message-channels.cjs /plasmic/deploy/ai-chat/migrate-message-channels.cjs
 COPY --chown=node:node deploy/migrate-domains.cjs /plasmic/deploy/migrate-domains.cjs
 COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
-RUN chmod +x /usr/local/bin/plasmic-server
+RUN chmod +x /usr/local/bin/plasmic-server && install -d -o node -g node /home/node/.cache/plasmic/component-vectors
 USER node
 ENV NODE_ENV=development PLASMIC_SELF_HOSTED=1 MAX_HEAP_SIZE=1536 NODE_PATH=/plasmic/platform/wab/node_modules
 RUN node -r ./tools/backend-register.cjs -e 'for (const name of ["@plasmicapp/host", "@plasmicapp/query", "@plasmicapp/data-sources", "@plasmicapp/data-sources-context", "@plasmicapp/react-web", "@plasmicapp/loader-react"]) { require(name); console.log("Loaded " + name); }'

@@ -33,6 +33,8 @@ Use TextField for a labeled input with helper/error content; compose lower-level
 
 ### Values and events
 
+Use Slider for numeric input along a track. Bind a number for a single thumb or a two-value range for lower and upper bounds.
+
 TextField/Input/Select/NativeSelect callbacks expose event.target.value; Checkbox/Switch/Radio use event.target.checked. RadioGroup, Slider, Rating and Autocomplete expose the next value as the second callback argument. Read live event arguments before binding; a registration's writable-state helper extracts values without changing the native callback signature. Keep numeric/range values, nullable ratings and multi-select arrays in their actual types.
 
 Initial-value controls use the registration's editOnly/uncontrolledProp mapping (value to defaultValue or checked to defaultChecked). Use the exposed Studio control/state instead of inventing an additional default prop binding. Choose a single business owner for controlled state.

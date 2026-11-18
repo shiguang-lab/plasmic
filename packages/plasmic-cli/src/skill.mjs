@@ -1,10 +1,13 @@
-import { lstat, mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { cp, lstat, mkdir, mkdtemp, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { promisify } from "node:util";
 import { detectInstalledAgents } from "./agents.mjs";
 import { CLI_VERSION, compareVersions } from "./protocol.mjs";
 
+const run = promisify(execFile);
 const versionMarker = /^<!-- plasmickit-cli-version: (.+) -->$/m;
 
 async function optionalStat(filename) {
@@ -17,6 +20,50 @@ async function skipReason(target, existingOnly) {
   const file = await optionalStat(path.join(target, "SKILL.md"));
   if ((await optionalStat(target))?.isSymbolicLink() || file?.isSymbolicLink()) return "symlink";
   if (existingOnly && !file) return "not-installed";
+}
+
+export async function needsSkillMigration() {
+  for (const agent of await detectInstalledAgents()) {
+    const target = path.join(agent.skillsRoot, "plasmic");
+    try {
+      if (await skipReason(target, true)) continue;
+      const filename = path.join(target, "SKILL.md");
+      if (!(await optionalStat(filename))?.isFile()) continue;
+      const instructions = await readFile(filename, "utf8");
+      const version = instructions.match(versionMarker)?.[1];
+      if (!version || !/^\d+\.\d+\.\d+$/.test(version) || !instructions.includes(".plasmickit/")) return true;
+      const entry = path.join(target, ".plasmickit", version, "src/index.mjs");
+      if (!(await optionalStat(entry))?.isFile()) return true;
+    } catch (error) {
+      // installSkill reports inaccessible destinations individually while updating the others.
+      if (!["ENOTDIR", "EACCES", "EPERM", "ENOENT"].includes(error.code)) throw error;
+    }
+  }
+  return false;
+}
+
+// Under the destination lock, install the executable before switching SKILL.md.
+async function installLauncher(target) {
+  const root = path.join(target, ".plasmickit");
+  const destination = path.join(root, CLI_VERSION);
+  if ((await optionalStat(root))?.isSymbolicLink() || (await optionalStat(destination))?.isSymbolicLink()) {
+    throw new Error("Skill launcher directory is a symlink: " + destination);
+  }
+  if ((await optionalStat(path.join(destination, "src/index.mjs")))?.isFile()) return;
+  await mkdir(root, { recursive: true });
+  const staging = await mkdtemp(path.join(root, ".install-"));
+  try {
+    for (const name of ["src", "package.json", "skill/plasmic/SKILL.md"]) {
+      await cp(new URL("../" + name, import.meta.url), path.join(staging, name), { recursive: true });
+    }
+    const { stdout } = await run(process.execPath, [path.join(staging, "src/index.mjs"), "--version"], { timeout: 10000 });
+    if (stdout.trim() !== CLI_VERSION) throw new Error("Installed launcher version mismatch");
+    // Only an incomplete launcher of this exact version can exist under this lock.
+    if (await optionalStat(destination)) await rm(destination, { recursive: true, force: true });
+    await rename(staging, destination);
+  } finally {
+    await rm(staging, { recursive: true, force: true });
+  }
 }
 
 async function writeSkill(destination, content, existingOnly) {
@@ -45,6 +92,7 @@ async function writeSkill(destination, content, existingOnly) {
     if (installedVersion && compareVersions(installedVersion, CLI_VERSION) > 0) {
       return { status: "skipped", reason: "newer-installed", installedVersion };
     }
+    await installLauncher(target);
     if (previous === content) return { status: "unchanged" };
     const temporary = path.join(target, `.SKILL-${randomUUID()}.tmp`);
     try {
@@ -68,7 +116,7 @@ export async function installSkill({ dryRun = false, existingOnly = false, ...op
   const detected = await detectInstalledAgents(options);
   if (!detected.length && !existingOnly) return { ok: false, mode: "bootstrap", detected, installations: [], error: "No supported local Agent CLI or app detected. Install or initialize a supported client, then rerun skill install." };
   const bundled = await readFile(new URL("../skill/plasmic/SKILL.md", import.meta.url), "utf8");
-  // Keep version and instructions in one atomic replacement, without a sidecar file.
+  // The marker selects the immutable launcher directory for these instructions.
   const content = `${bundled.trimEnd()}\n\n<!-- plasmickit-cli-version: ${CLI_VERSION} -->\n`;
   const destinations = new Map();
   const installations = [];

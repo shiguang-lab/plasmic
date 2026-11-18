@@ -28,4 +28,4 @@ Props, Slots, defaults and event signatures retain public identities across UI l
 
 Keep plans/evidence/mock boundaries outside UI. Report source/resource versions, checks and limits. Save, publish and deploy require their respective authorization.
 
-`context resolve` verifies freshness/integrity; failure blocks dependent work. `references path` is offline only. See CLI help.
+Published `context resolve` selects a checked release and verifies resource integrity. Reuse it within the conversation and use `mustReadByMode` when switching workflows. Resolution failure blocks dependent work. `references path` is offline only. See CLI help.

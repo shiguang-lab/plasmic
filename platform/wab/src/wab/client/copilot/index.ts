@@ -2582,6 +2582,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             }
           : null,
       projectName: studio.siteInfo.name,
+      publishedTemplateVersion: studio.siteInfo.publishedTemplateVersion,
       projectSummary: {
         artboards: studio.currentArena ? getArenaFrames(studio.currentArena).length : 0,
         canvases: studio.site.arenas.length,

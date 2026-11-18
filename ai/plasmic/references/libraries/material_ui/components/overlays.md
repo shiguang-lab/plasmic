@@ -18,7 +18,9 @@ Library: [Material UI](../index.md).
 
 ## Generation rules
 
-Dialog composes its title, content and actions through children. Drawer/SwipeableDrawer use their actual anchor and variant contracts; Menu needs a real anchor or intended position, Tooltip a usable trigger, and Snackbar transient feedback. Choose placement, size and actions from content and the requirement; Antd Modal/Drawer widths and footer recipes do not apply.
+Use Drawer when navigation, record details or an edit form should slide in alongside the current page. Set `anchor` to the requested screen edge. Choose SwipeableDrawer when the user needs to open or dismiss the panel with a swipe.
+
+Dialog composes its title, content and actions through children. Menu needs a real anchor or intended position, Tooltip a usable trigger, and Snackbar transient feedback. Choose placement, size and actions from content and the requirement; Antd Modal/Drawer widths and footer recipes do not apply.
 
 The wrapper adds defaultOpen and onOpenChange(open) for Dialog, Drawer, SwipeableDrawer, Menu, Tooltip and Snackbar. Studio exposes the initial open control via editOnly/uncontrolledProp and writable open state. Native onClose/onOpen callbacks retain their original arguments; onOpenChange receives the boolean. Keep one business state owner and bind opening, dismissal and any confirmation separately. Do not interpret closing as confirmation.
 

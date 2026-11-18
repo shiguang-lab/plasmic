@@ -7,8 +7,9 @@ import { captureComponentContracts } from "../../../scripts/capture-component-co
 import { loadComponentReviewContract } from "../../scripts/component-review-contract.mjs";
 
 const require = createRequire(import.meta.url);
-const { ComponentEmbedding, MODEL } = require("../../src/component-embedding.cjs");
-const { ComponentReuse, hash } = require("../../src/component-reuse.cjs");
+const { ComponentEmbedding, MODEL } = require("../../../platform/wab/src/wab/server/component-reuse/component-embedding.cjs");
+const { reviewIndex } = require("./review-index.cjs");
+const { ComponentReuse, hash } = require("../../../platform/wab/src/wab/server/component-reuse/component-reuse.cjs");
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const contract = await loadComponentReviewContract();
 const cases = JSON.parse(await readFile(new URL("component-reuse-cases.json", import.meta.url), "utf8"));
@@ -36,7 +37,7 @@ for (const label of ["before", "after"]) {
     const results = [];
     for (const item of cases) {
       const context = contract.componentReviewContextSchema.parse(item.retrieval);
-      const result = await service.review(scope, [{ componentUuid: "page", elementUuid: item.id, intent: context.purpose, facts: [], usedComponentUuids: [] }]);
+      const result = await reviewIndex(service, scope, [{ componentUuid: "page", elementUuid: item.id, intent: context.purpose, facts: [], usedComponentUuids: [] }]);
       const candidates = result.suggestions[0]?.candidates ?? [];
       results.push({ id: item.id, expected: item.expected, elapsedMs: result.elapsedMs, status: result.status, candidates, hit: item.expected.length ? candidates.some(candidate => item.expected.includes(candidate.componentUuid)) : null });
     }
@@ -47,7 +48,7 @@ for (const label of ["before", "after"]) {
       const chineseResults = [];
       for (const item of cases) {
         const context = contract.componentReviewContextSchema.parse({ purpose: item.purpose });
-        const result = await service.review(scope, [{ componentUuid: "page", elementUuid: item.id, intent: context.purpose, facts: [], usedComponentUuids: [] }]);
+        const result = await reviewIndex(service, scope, [{ componentUuid: "page", elementUuid: item.id, intent: context.purpose, facts: [], usedComponentUuids: [] }]);
         const candidates = result.suggestions[0]?.candidates ?? [];
         chineseResults.push({ id: item.id, expected: item.expected, candidates, hit: item.expected.length ? candidates.some(candidate => item.expected.includes(candidate.componentUuid)) : null });
       }
