@@ -36,7 +36,7 @@ app.whenReady().then(async () => {
     const contents = studio.webContents, pid = contents.getOSProcessId(), canvas = rss();
     const iframePids = contents.mainFrame.framesInSubtree.map(frame => frame.processId);
     await studio.loadURL(origin + "/projects");
-    await studio.waitForEditorExit(AbortSignal.timeout(5000));
+    for (let i = 0; i < 200 && app.getAppMetrics().some(p => p.pid === pid); i++) await new Promise(resolve => setTimeout(resolve, 25));
     assert.equal(contents.isDestroyed(), true);
     assert(!app.getAppMetrics().some(p => p.pid === pid), "Retired editor PID must exit without GC");
     assert.notEqual(studio.webContents.getOSProcessId(), pid);

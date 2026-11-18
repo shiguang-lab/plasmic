@@ -89,58 +89,6 @@ async function hidden() {
   }
   win.destroy();
 }
-async function dashboard() {
-  const fixture=process.argv[4];if(!fixture)throw Error("Dashboard requires offline fixture directory");
-  const opening=JSON.parse(fs.readFileSync(path.join(fixture,"project-response.json"))),startup=opening.startup;
-  const models={...JSON.parse(fs.readFileSync(path.join(fixture,"model-resources.json"))),...JSON.parse(fs.readFileSync(path.join(fixture,"plume-resources.json")))};
-  const codes=JSON.parse(fs.readFileSync(path.join(fixture,"code-resources.json")));
-  const canonical=s=>{const u=new URL(s,"https://plasmic-studio.shiguanglab.com");u.searchParams.sort();return u.pathname+u.search;};
-  const codeMap=new Map(Object.entries(codes).map(([k,v])=>[canonical(k),v]));
-  const studioOrigin="https://plasmic-studio.shiguanglab.com",ses=session.fromPartition("dashboard-seven");
-  report.unknown=[];
-  const remoteFetch=async req=>{
-    const u=new URL(req.url),s=u.pathname;
-    const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":"*"};
-    if(req.method!=="GET"&&req.method!=="HEAD")return new Response(null,{status:405});
-    if(models[s])return new Response(models[s].body,{headers:{...headers,...models[s].headers}});
-    const code=codeMap.get(canonical(req.url));if(code)return new Response(Buffer.from(code.body,"base64"),{headers:{...headers,...code.headers,"Content-Type":"application/javascript"}});
-    if(s===`/api/v1/projects/${startup.projectId}`)return Response.json(opening,{headers});
-    if(s==="/api/v1/hosts")return Response.json(startup.hosts,{headers});
-    if(s==="/api/v1/app-config")return Response.json(startup.appConfig,{headers});
-    if(s==="/api/v1/auth/self")return Response.json(startup.selfInfo,{headers});
-    if(s==="/api/v1/latest-bundle-version")return Response.json({latestBundleVersion:startup.latestBundleVersion},{headers});
-    if(!report.unknown.includes(s))report.unknown.push(s);return new Response("Offline asset missing",{status:404});
-  };
-  const fontDir=root+"/renderer/static/desktop-fonts";
-  const bundledFontCss=fs.readdirSync(fontDir).filter(f=>f.endsWith(".css")).map(f=>fs.readFileSync(path.join(fontDir,f),"utf8")).join("\n");
-  const handler=require(root+"/src/asset-handler.cjs").createAssetHandler({root:root+"/renderer",studioOrigin,bundledFontCss,
-    canvasOrigin:"https://plasmic-canvas.shiguanglab.com",remoteFetch,previewHostPath:root+"/src/preview-host.html"});
-  ses.protocol.handle("https",handler);ses.protocol.handle("http",remoteFetch);
-  ses.webRequest.onBeforeRequest({urls:["ws://*/*","wss://*/*"]},(_d,cb)=>cb({cancel:true}));
-  const parent=new BrowserWindow({show:false,webPreferences:{session:ses,backgroundThrottling:false}});
-  await parent.loadURL("data:text/html,Dashboard diagnostic");
-  let invoke;const handle=ipcMain.handle.bind(ipcMain);
-  ipcMain.handle=(name,fn)=>{if(name==="desktop:dashboard-preview")invoke=fn;return handle(name,fn);};
-  const previews=require(root+"/src/dashboard-preview.cjs").createDashboardPreviews({session:ses,studioOrigin,trustedSender:e=>e.sender===parent.webContents,waitForEditorExit:()=>{}});
-  ipcMain.handle=handle;
-  const request={projectId:startup.projectId,revision:opening.rev.revision,flags:startup.appConfig.config,staticBaseUrl:studioOrigin+"/static"};
-  const src=studioOrigin+"/canvas-preview/index.html#live=true&origin="+encodeURIComponent(studioOrigin)+"&staticBaseUrl="+encodeURIComponent(request.staticBaseUrl);
-  report.samples=[];
-  for(const scale of [2,1,2,2,2,2,2,2,2,2,2,2]) {
-    let peak=0,peakProcesses=0,peakWindows=0;
-    const timer=setInterval(()=>{const all=metrics();peak=Math.max(peak,all.reduce((n,p)=>n+p.rssKiB,0)/1024);peakProcesses=Math.max(peakProcesses,all.length);peakWindows=Math.max(peakWindows,BrowserWindow.getAllWindows().length);},50);
-    const start=performance.now();let bytes;
-    try{bytes=await invoke({sender:parent.webContents},crypto.randomUUID(),src,request,scale);}finally{clearInterval(timer);}
-    const ms=performance.now()-start;
-    const image=require("electron").nativeImage.createFromBuffer(Buffer.from(bytes));assert(!image.isEmpty());
-    await sleep(700);
-    report.samples.push({scale,ms,outputBytes:bytes.length,pixelHash:hash(image.toBitmap()),imageSize:image.getSize(),peakRssSumMiB:peak,peakProcesses,peakWindows,
-      windowsAfter:BrowserWindow.getAllWindows().length,after:metrics()});
-    assert.equal(BrowserWindow.getAllWindows().length,1);
-  }
-  report.afterIdle=await sample(undefined,6000);
-  previews.dispose();parent.destroy();
-}
 async function lease() {
   const {EventEmitter}=require("node:events");
   const {screen}=require("electron");screen.getCursorScreenPoint=()=>({x:-10000,y:-10000});
@@ -231,7 +179,6 @@ app.whenReady().then(async()=>{
   if(mode==="reference")await reference();
   else if(mode==="hidden")await hidden();
   else if(mode==="capture")await capture();
-  else if(mode==="dashboard")await dashboard();
   else if(mode==="lease")await lease();
   else throw Error("Unknown mode");
 }).catch(e=>{report.error={message:e?.message||String(e),stack:e?.stack,keys:Object.keys(e||{})};console.error(e);process.exitCode=1;}).finally(()=>{

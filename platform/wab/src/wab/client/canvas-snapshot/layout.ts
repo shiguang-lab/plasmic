@@ -1,4 +1,11 @@
-import type { ArtboardBounds } from "@/wab/client/components/dashboard/preview/types";
+import type { DeviceFrameGeometry } from "@/wab/client/components/device-frame/device-frame";
+interface ArtboardBounds {
+  deviceFrame?: DeviceFrameGeometry;
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+}
 
 /** Include the shared shell's buttons, outline and shadow outside the viewport. */
 export function previewBounds(board: ArtboardBounds) {

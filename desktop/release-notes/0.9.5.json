@@ -1,0 +1,7 @@
+{
+  "en": "- Project cards display full-canvas WebP covers captured on the NAS. The previous cover stays visible while the next one renders.",
+  "zh-CN": "- 项目卡片展示 NAS 截取的整张画布 WebP 封面。新封面生成期间保留上次成功的封面。",
+  "zh-TW": "- 專案卡片顯示 NAS 擷取的完整畫布 WebP 封面。產生新封面期間會保留上次成功的封面。",
+  "ja": "- プロジェクトカードに NAS で撮影したキャンバス全体の WebP カバーを表示します。新しいカバーの生成中は前回のカバーを表示します。",
+  "ko": "- 프로젝트 카드에 NAS에서 캡처한 전체 캔버스의 WebP 표지를 표시합니다. 새 표지를 생성하는 동안 이전 표지를 유지합니다."
+}

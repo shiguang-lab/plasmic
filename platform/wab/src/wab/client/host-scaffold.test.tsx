@@ -42,7 +42,6 @@ afterEach(() => {
 it.each([
   "/static/host.html",
   `/static/host.${"a".repeat(64)}.html`,
-  "/canvas-preview/index.html",
 ])("mounts the Host scaffold on %s", (path) => {
   load(path);
   expect(createRoot).toHaveBeenCalledExactlyOnceWith(

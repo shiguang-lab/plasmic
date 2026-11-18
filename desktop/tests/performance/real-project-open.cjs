@@ -8,7 +8,6 @@ const { StudioWindow } = require("../../src/studio-window.cjs");
 const isolatedSessions = process.env.PERF_OPEN_SESSIONS === "1";
 const { LibraryCache } = require("../../src/library-cache.cjs");
 const { createAssetHandler } = require("../../src/asset-handler.cjs");
-const { createDashboardPreviews } = require("../../src/dashboard-preview.cjs");
 const task = path.resolve(process.argv[2]);
 const mode = process.argv[3] || "timing";
 const buildRoot = process.env.PERF_BUILD_ROOT || path.join(task,"build-installed");
@@ -53,12 +52,12 @@ const report = {
   scope: "Real saved project, exact immutable dependencies, explicitly selected renderer; offline fixture replay from native dashboard card click. Excludes live API/auth latency, native draft bridge, sockets and business endpoints.",
   mode, dataset, cachePolicy, debuggerEnabled, build: JSON.parse(fs.readFileSync(path.join(buildRoot,"desktop-assets.json"))),
   project: { id: startup.projectId, name: opening.project.name, revision: opening.rev.revision, objects: Object.keys(projectBundle.map).length, sha256: hash(opening.rev.data), dependencies: opening.depPkgs.map(p => ({ id:p.id, version:p.version, resource:"/api/v1/dependency-models/"+p.modelResourceId, sha256:hash(models["/api/v1/dependency-models/"+p.modelResourceId].body) })) },
-  requests: [], resources: [], samples: [], errors: [], blocked: [], previewErrors: []
+  requests: [], resources: [], samples: [], errors: [], blocked: []
 };
 if (sparePolicy) report.spareRenderer = {policy:sparePolicy,arguments:spareArguments,electron:process.versions.electron};
 const now = () => performance.timeOrigin + performance.now();
 const firstFrames=new Map();
-let phase = "dashboard-bootstrap", win, tracing = false, previews, memoryTimer, nativeBridge;
+let phase = "dashboard-bootstrap", win, tracing = false, memoryTimer, nativeBridge;
 const progressPrefix = "REAL_PROJECT_PROGRESS ";
 function progress(step, details = {}) {
   const entry = { at: new Date().toISOString(), phase, step, ...details };
@@ -73,7 +72,6 @@ app.setName("Plasmic real-project diagnostic");
 app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platform}`;
 app.setPath("userData", path.join(task, "profile-" + profileKey));
 app.on("window-all-closed", () => {});
-ipcMain.on("desktop:preview-host-error", (_event,message) => report.previewErrors.push({phase,message:String(message)}));
 function bootstrap(countStyles, blockPhysicalInput) {
   window.__openProbe = { longTasks: [], paints: [] };
   for (const event of ["beforeunload", "unload"]) {
@@ -246,7 +244,7 @@ app.whenReady().then(async () => {
     return response;
   };
   ses.protocol.handle("http", remoteFetch);
-  const assets=createAssetHandler({root:buildRoot,studioOrigin:origin,canvasOrigin,remoteFetch,previewHostPath:path.resolve(__dirname,"../../src/preview-host.html")});
+  const assets=createAssetHandler({root:buildRoot,studioOrigin:origin,canvasOrigin,remoteFetch});
   ses.protocol.handle("https",async request=>{
     const response=customHost && new URL(request.url).origin === canvasOrigin && new URL(request.url).pathname === customHost.pathname
       ? new Response(customHost.html,{headers:{"Content-Type":"text/html; charset=utf-8","Access-Control-Allow-Origin":"*"}})
@@ -258,7 +256,7 @@ app.whenReady().then(async () => {
   });
   const preload = path.join(task,"preview-only-preload.cjs");
   if (process.env.PERF_OPEN_NATIVE) nativeBridge = await require('./open-native-bridge.cjs').install({task,mode,origin,startup,ipcMain,getWindow:()=>win,report});
-  fs.writeFileSync(preload,`const {contextBridge,ipcRenderer}=require('electron');contextBridge.exposeInMainWorld('desktopPreview',{render:(...args)=>ipcRenderer.invoke('desktop:dashboard-preview',...args),cancel:id=>ipcRenderer.send('desktop:dashboard-preview-cancel',id)});${isolatedSessions ? "let active=true;const activeListeners=new Set();ipcRenderer.on('desktop:view-state',(_,state)=>{active=state.active;for(const listener of activeListeners)listener(state);});contextBridge.exposeInMainWorld('desktopNavigation',{navigate:url=>ipcRenderer.invoke('desktop:navigate',url),isActive:()=>active,onActiveChange:listener=>{activeListeners.add(listener);return()=>activeListeners.delete(listener);}});" : ''}${nativeBridge?.preload || ''}`);
+  fs.writeFileSync(preload,`const {contextBridge,ipcRenderer}=require('electron');${isolatedSessions ? "let active=true;const activeListeners=new Set();ipcRenderer.on('desktop:view-state',(_,state)=>{active=state.active;for(const listener of activeListeners)listener(state);});contextBridge.exposeInMainWorld('desktopNavigation',{navigate:url=>ipcRenderer.invoke('desktop:navigate',url),isActive:()=>active,onActiveChange:listener=>{activeListeners.add(listener);return()=>activeListeners.delete(listener);}});" : ''}${nativeBridge?.preload || ''}`);
   const webPreferences={session:ses,preload,v8CacheOptions:cachePolicy,contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false,
     ...(sparePolicy && spareArguments === "production" ? {additionalArguments:[`--shiguang-system-languages=${JSON.stringify(app.getPreferredSystemLanguages())}`]} : {})};
   const nativeWindow = new BrowserWindow({width:1512,height:887,show:true,webPreferences:isolatedSessions?{session:ses,...(sparePolicy && spareArguments === "production" ? {additionalArguments:webPreferences.additionalArguments} : {})}:webPreferences});
@@ -277,12 +275,6 @@ app.whenReady().then(async () => {
     if(event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame)throw Error("Stale renderer navigation");
     return win.loadURL(url);
   });
-  if(isolatedSessions) {
-    win.on("contents-deactivated",contents=>previews?.cancelFor(contents));
-    win.on("contents-released",contents=>previews?.cancelFor(contents));
-  }
-  previews = createDashboardPreviews({session:ses,studioOrigin:origin,trustedSender:event=>event.sender===win.webContents && (!isolatedSessions || event.sender===win.dashboard?.webContents),
-    waitForEditorExit: signal => isolatedSessions ? win.waitForEditorExit(signal) : undefined});
   await win.loadURL(origin+"/projects");
   report.card = await dashboard();
   const initialDashboard = win.webContents;
@@ -451,7 +443,6 @@ app.whenReady().then(async () => {
 }).catch(e => {report.error=e?.stack ?? String(e);console.error(e);process.exitCode=1;}).finally(async () => {
   if (tracing) await contentTracing.stopRecording(path.join(task,"list-open.trace.json"));
   clearInterval(memoryTimer);
-  previews?.dispose();
   fs.writeFileSync(path.join(task,"list-open-"+mode+".json"),JSON.stringify(report,null,2),{mode:0o600});
   for (const w of BrowserWindow.getAllWindows()) w.destroy();
   app.exit(process.exitCode||0);

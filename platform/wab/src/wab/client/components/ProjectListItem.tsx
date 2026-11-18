@@ -231,7 +231,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
         <div className={styles.thumbnail} aria-hidden>
           {DEVFLAGS.dashboardCanvasPreview && selfInfo?.id ? (
             <ProjectPreview
-              userId={selfInfo.id}
+              key={selfInfo.id + project.id}
               projectId={project.id}
               updatedAt={new Date(project.updatedAt).toISOString()}
             />

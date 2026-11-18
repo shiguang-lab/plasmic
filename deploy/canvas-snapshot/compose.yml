@@ -1,0 +1,47 @@
+name: plasmic-canvas-snapshot
+services:
+  canvas-snapshot-page:
+    image: ghcr.io/shiguang-lab/plasmic-server:${IMAGE_TAG:?}
+    entrypoint: ["node", "/snapshot/studio.cjs"]
+    restart: unless-stopped
+    environment:
+      CANVAS_ORIGIN: ${CANVAS_ORIGIN:?}
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - ./covers:/covers:ro
+      - ./jobs:/jobs
+      - ./secrets/db:/run/secrets/reader-password:ro
+      - ./secrets/key:/run/secrets/snapshot-key:ro
+    networks: [studio]
+  canvas-screenshot:
+    image: ghcr.io/shiguang-lab/plasmic-server:${IMAGE_TAG:?}
+    entrypoint: ["node", "/snapshot/worker.cjs"]
+    restart: unless-stopped
+    init: true
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp]
+    environment:
+      STUDIO_ORIGIN: http://edge:8080
+      STUDIO_ASSET_ORIGINS: ${STUDIO_ORIGIN:?},${CANVAS_ORIGIN:?}
+      CHROMIUM_PATH: /snapshot/chrome.sh
+    volumes:
+      - ../../browser/chromium-1080:/runtime/chromium:ro
+      - ../../browser/playwright-core:/runtime/playwright-core:ro
+      - ./browser-lib:/snapshot/lib:ro
+      - ./secrets/key:/run/secrets/snapshot-key:ro
+      - ./covers:/covers
+      - ./jobs:/jobs
+      - /etc/fonts:/etc/fonts:ro
+      - /usr/share/fonts:/usr/share/fonts:ro
+      - /var/cache/fontconfig:/var/cache/fontconfig:ro
+    networks: [studio]
+networks:
+  studio:
+    external: true
+    name: shiguang-plasmic-images_default

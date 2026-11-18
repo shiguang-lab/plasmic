@@ -58,6 +58,7 @@ COPY --from=builder /plasmic/platform/wab/src/wab/server/component-reuse platfor
 RUN node deploy/component-search/prepare-model.mjs /opt/plasmic-component-search
 
 FROM node:24.16.0-bookworm-slim AS server
+COPY deploy/canvas-snapshot/studio.cjs deploy/canvas-snapshot/worker.cjs deploy/canvas-snapshot/covers.cjs deploy/canvas-snapshot/chrome.sh /snapshot/
 ENV COMPONENT_MODEL_DIRECTORY=/opt/plasmic-component-search
 RUN apt-get update && apt-get install -y --no-install-recommends bash git ca-certificates libssl3 libgomp1 && rm -rf /var/lib/apt/lists/* && corepack enable
 WORKDIR /plasmic/platform/wab

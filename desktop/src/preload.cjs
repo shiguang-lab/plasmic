@@ -70,14 +70,6 @@ if (window.top === window) {
       root.inert = editorInert;
     }
   });
-  if (!process.argv.includes("--plasmic-dashboard-preview-in-page")) {
-    // Dashboard previews render in a separate offscreen renderer process.
-    contextBridge.exposeInMainWorld("desktopPreview", {
-      render: (id, src, request, scale) =>
-        ipcRenderer.invoke("desktop:dashboard-preview", id, src, request, scale),
-      cancel: (id) => ipcRenderer.send("desktop:dashboard-preview-cancel", id),
-    });
-  }
   contextBridge.exposeInMainWorld("desktopBrowser", {
     open: () => ipcRenderer.invoke("desktop:open-reference-browser"),
     openPreview: (url) => ipcRenderer.invoke("desktop:open-preview", url),

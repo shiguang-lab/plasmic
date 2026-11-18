@@ -30,7 +30,6 @@ function createAssetHandler({
   updateUiPath,
   updateDialogPath,
   rendererI18nPath,
-  previewHostPath,
   bundledFontCss = "",
 }) {
   root = path.resolve(root);
@@ -132,13 +131,6 @@ function createAssetHandler({
     }
     if (updateUiPath && pathname === "/static/desktop/update-ui.js") {
       return fileResponse(updateUiPath);
-    }
-    if (
-      previewHostPath &&
-      studio &&
-      pathname === "/static/desktop/preview-host.html"
-    ) {
-      return fileResponse(previewHostPath);
     }
     if (
       updateDialogPath &&

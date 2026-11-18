@@ -231,6 +231,7 @@ import {
   getPkgVersionPublishStatus,
   getPlumePkg,
   getPlumePkgVersionStrings,
+  getProjectCover,
   getProjectMeta,
   getProjectRev,
   getProjectRevWithoutData,
@@ -1072,6 +1073,7 @@ export function addMainAppServerRoutes(
   app.post("/api/v1/template-center/:templateId/unpublish", adminOnly, withNext(templateCenter.unpublishDesignTemplate));
   app.delete("/api/v1/template-center/:templateId", adminOnly, withNext(templateCenter.deleteDesignTemplate));
 
+  app.get("/api/v1/projects/:projectId/cover", withNext(getProjectCover));
   app.get("/api/v1/projects/:projectId/preview-publication", withNext(getPreviewPublication));
   app.get("/api/v1/hostless-libraries/:name/canvas", withNext(getHostlessLibraryCanvas));
   app.get("/api/v1/hostless-libraries/:name/release", withNext(getHostlessLibraryRelease));

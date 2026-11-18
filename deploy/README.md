@@ -105,6 +105,8 @@ virtual-host bucket addresses; its storage domain and Docker network aliases mus
 match the endpoint hostname. The web health check waits for address injection and
 Nginx startup.
 
+The NAS project-cover service runs alongside Studio. Upgrade its Compose services to the same image tag after switching the active Studio slot. See [NAS project covers](canvas-snapshot/README.md).
+
 ## Runtime upgrades
 
 The stable `edge` service owns ports 3900/3901/3902. Runtime releases alternate

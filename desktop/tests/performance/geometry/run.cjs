@@ -60,7 +60,7 @@ app.whenReady().then(async()=>{
   const models={...read('model-resources.json'),...read('plume-resources.json')};
   const codes=new Map(Object.entries(read('code-resources.json')).map(([key,value])=>{const u=new URL(key);u.searchParams.sort();return [u.pathname+u.search,value];}));
   const backend=createProjectBackend({opening,startup,models,codes,plume:read('plume-opening.json'),report,phase:()=>phase,functional:true});
-  const assets=createAssetHandler({root:build,studioOrigin:origin,canvasOrigin,remoteFetch:backend,previewHostPath:path.resolve(__dirname,'../../../src/preview-host.html')});
+  const assets=createAssetHandler({root:build,studioOrigin:origin,canvasOrigin,remoteFetch:backend});
   ses.protocol.handle('https',assets);ses.protocol.handle('http',backend);
   win=new BrowserWindow({width:1512,height:887,show:true,webPreferences:{session:ses,contextIsolation:true,nodeIntegration:false,backgroundThrottling:false}});
   if(['memory','profile'].includes(phase)){

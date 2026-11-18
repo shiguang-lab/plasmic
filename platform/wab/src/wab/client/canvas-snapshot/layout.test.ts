@@ -1,4 +1,4 @@
-import { overviewLayout, previewBounds } from "@/wab/client/components/dashboard/preview/layout";
+import { overviewLayout, previewBounds } from "@/wab/client/canvas-snapshot/layout";
 import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 
 it("fits mixed device shells and desktop screens without changing saved viewport sizes or positions", () => {

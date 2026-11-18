@@ -23,8 +23,7 @@ export function renderHostScaffold() {
 
 if (
   location.pathname === "/static/host.html" ||
-  /^\/static\/host\.[a-f0-9]{64}\.html$/.test(location.pathname) ||
-  location.pathname === "/canvas-preview/index.html"
+  /^\/static\/host\.[a-f0-9]{64}\.html$/.test(location.pathname)
 ) {
   renderHostScaffold();
 }

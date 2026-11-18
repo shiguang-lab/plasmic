@@ -29,7 +29,6 @@ const { createDeviceCredentials } = require("./device-credentials.cjs");
 const { DesktopDraftStore, createDraftHandler } = require("./drafts.cjs");
 const { DesktopIdentity } = require("./identity.cjs");
 const { LibraryCache } = require("./library-cache.cjs");
-const { createDashboardPreviews } = require("./dashboard-preview.cjs");
 const { DesktopController } = require("./controller.cjs");
 const { startRpc } = require("./local-rpc.cjs");
 const { McpIntegrations } = require("./mcp-integrations.cjs");
@@ -64,7 +63,6 @@ let quitting = false;
 let mainWindow;
 let studioWindow;
 let drafts;
-let dashboardPreviews;
 let desktopSession;
 let unifiedAuth;
 let recoverSession;
@@ -228,7 +226,6 @@ async function startDesktop() {
     });
     desktopIdentity.on("changed", () => {
       workspace?.clearStartupData();
-      dashboardPreviews?.cancelFor(studioWindow?.dashboard?.webContents);
     });
     app.once("will-quit", () => desktopIdentity.dispose());
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
@@ -270,7 +267,6 @@ async function startDesktop() {
         updateUiPath: path.join(__dirname, "update-ui.js"),
         updateDialogPath: path.join(__dirname, "update-dialog.js"),
         rendererI18nPath: path.join(__dirname, "renderer-i18n.js"),
-        previewHostPath: path.join(__dirname, "preview-host.html"),
         bundledFontCss: fs
           .readdirSync(path.join(root, "static/desktop-fonts"))
           .filter((file) => file.endsWith(".css"))
@@ -326,10 +322,6 @@ async function startDesktop() {
       preload: path.join(__dirname, "preload.cjs"),
       additionalArguments: [
         `--shiguang-system-languages=${JSON.stringify(app.getPreferredSystemLanguages())}`,
-        // Development-only A/B switch: render Dashboard previews inside the page as before.
-        ...(!app.isPackaged && process.env.PLASMIC_DESKTOP_PREVIEW_IN_PAGE === "1"
-          ? ["--plasmic-dashboard-preview-in-page"]
-          : []),
       ],
       nodeIntegration: false,
       contextIsolation: true,
@@ -383,7 +375,6 @@ async function startDesktop() {
     controller?.cancelPending(contents, "Desktop view deactivated");
     controller?.browser?.hide();
     drafts?.reset();
-    dashboardPreviews?.cancelFor(contents);
     if (contents === studio.editor?.webContents) {
       setEditorViewState(DEFAULT_EDITOR_VIEW_MENU_STATE);
     }
@@ -395,7 +386,6 @@ async function startDesktop() {
   });
   studio.on("contents-released", contents => {
     controller?.cancelPending(contents, "Desktop view closed");
-    dashboardPreviews?.cancelFor(contents);
     if (contents === studio.editor?.webContents || !studio.editor) {
       setEditorViewState(DEFAULT_EDITOR_VIEW_MENU_STATE);
     }
@@ -556,13 +546,6 @@ async function startDesktop() {
     desktopIdentity.on("changed", () => componentReuse.reset());
     ipcMain.handle("desktop:component-reuse", (event, command, input) => componentReuse.command(event, command, input));
     app.once("will-quit", () => { void componentReuse.close(); });
-    dashboardPreviews = createDashboardPreviews({
-      session: desktopSession,
-      studioOrigin: config.studioOrigin,
-      trustedSender: (event) => trustedAuthSender(event) && event.sender === studioWindow.dashboard?.webContents,
-      waitForEditorExit: (signal) => studioWindow.waitForEditorExit(signal),
-    });
-    app.once("will-quit", () => dashboardPreviews.dispose());
     presentation = createIsland({ getWindow: () => mainWindow, getStudio: () => studioWindow, controller, identity: desktopIdentity, isQuitting: () => quitting,
       i18n: desktopI18n, appearance: desktopAppearance, config,
       signIn: () => unifiedAuth.begin(),
