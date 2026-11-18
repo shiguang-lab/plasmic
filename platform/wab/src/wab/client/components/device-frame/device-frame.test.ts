@@ -56,17 +56,26 @@ test("preset rotation and default preview devices use the same shell in the edit
 });
 
 test.each([
-  [393, 852, "island", 59, 34],
-  [390, 844, "notch", 47, 34],
-  [375, 667, "home-button", 20, 0],
-  [834, 1194, "tablet", 24, 20],
-  [1194, 834, "tablet", 24, 20],
-  [852, 393, "island", 0, 21],
-] as const)("reserves system areas outside %s × %s business content", (width, height, hardware, statusBarHeight, homeHeight) => {
+  [393, 852, "island"],
+  [390, 844, "notch"],
+  [834, 1194, "tablet"],
+  [1194, 834, "tablet"],
+  [852, 393, "island"],
+] as const)("fills the entire %s × %s display", (width, height, hardware) => {
   const frame = getDeviceFrame(width, height);
-  expect(frame).toMatchObject({ hardware, statusBarHeight, homeHeight });
+  expect(frame).toMatchObject({ hardware });
   if (!frame) { throw new Error("Expected device frame"); }
-  expect(frame.insetTop).toBeGreaterThanOrEqual(frame.bezel + statusBarHeight);
-  expect(frame.insetBottom).toBeGreaterThanOrEqual(frame.bezel + homeHeight);
-  expect(frame.insetX).toBeGreaterThanOrEqual(frame.bezel + frame.safeX);
+  expect(frame.insetTop).toBe(frame.bezel);
+  expect(frame.insetBottom).toBe(frame.bezel);
+  expect(frame.insetX).toBe(frame.bezel);
+  expect(frame.viewportRadius).toBe(frame.screenRadius);
+});
+
+test.each([[375, 667], [667, 375]])("keeps physical home-button end caps outside the %s × %s display", (width, height) => {
+  const frame = getDeviceFrame(width, height);
+  if (!frame) { throw new Error("Expected device frame"); }
+  expect(frame.insetX).toBe(frame.bezel + (frame.landscape ? 54 : 0));
+  expect(frame.insetTop).toBe(frame.bezel + (frame.landscape ? 0 : 54));
+  expect(frame.insetBottom).toBe(frame.insetTop);
+  expect(frame.viewportRadius).toBe(3);
 });

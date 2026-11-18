@@ -1,0 +1,7 @@
+{
+  "en": "- Fill the entire phone and tablet display with page content in the editor, Preview, and project thumbnails. The device shell no longer adds a second status bar or home indicator.\n- Use the standard Publish icon in template projects.",
+  "zh-CN": "- 编辑画布、预览和项目缩略图中的页面内容铺满手机和平板屏幕，设备外壳不再重复绘制状态栏和底部指示条。\n- 模板项目顶栏统一使用标准发布图标。",
+  "zh-TW": "- 編輯畫布、預覽和專案縮圖中的頁面內容填滿手機和平板螢幕，裝置外框不再重複繪製狀態列和底部指示條。\n- 範本專案頂端工具列統一使用標準發佈圖示。",
+  "ja": "- エディター、プレビュー、プロジェクトのサムネイルで、ページコンテンツがスマートフォンとタブレットの画面全体に表示されます。デバイスフレームによるステータスバーとホームインジケーターの重複表示を解消しました。\n- テンプレートプロジェクトで標準の公開アイコンを使用します。",
+  "ko": "- 편집기, 미리보기, 프로젝트 썸네일에서 페이지 콘텐츠가 휴대전화와 태블릿 화면 전체를 채웁니다. 기기 프레임에 상태 표시줄과 홈 표시기가 중복 표시되던 문제를 해결했습니다.\n- 템플릿 프로젝트에서 표준 게시 아이콘을 사용합니다."
+}

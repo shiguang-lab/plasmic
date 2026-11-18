@@ -1,5 +1,4 @@
 import { useI18n } from "@/wab/client/i18n";
-import { TemplatePublishButton } from "@/wab/client/components/top-bar/TemplatePublishButton";
 import { UiText } from "@/wab/client/i18n/UiText";
 /** @format */
 
@@ -14,7 +13,7 @@ import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-event
 import { MainBranchId } from "@/wab/shared/ApiSchema";
 import { spawnWrapper } from "@/wab/shared/common";
 import { DownOutlined } from "@ant-design/icons";
-import { Button, Menu, Tooltip } from "antd";
+import { Button, Menu, Tooltip, message } from "antd";
 import classNames from "classnames";
 import * as React from "react";
 import { useStore } from "zustand";
@@ -28,6 +27,8 @@ export function PublishButton(props: PublishButtonProps) {
   const studioCtx = useStudioCtx();
   const appCtx = useAppCtx();
   const topFrameApi = useTopFrameApi();
+  const isTemplate = studioCtx.siteInfo.isTemplate;
+  const [publishingTemplate, setPublishingTemplate] = React.useState(false);
 
   const latestPublishedRevNum = useLatestPublishedRevisionNumber(studioCtx);
   const hasReleases = useStore(
@@ -55,11 +56,8 @@ export function PublishButton(props: PublishButtonProps) {
     return null;
   }
 
-  if (studioCtx.siteInfo.isTemplate) {
-    return <TemplatePublishButton />;
-  }
-
   const isPlasmicLevels =
+    !isTemplate &&
     projectName.includes("Plasmic Levels") &&
     !projectName.endsWith("Primary Copy");
 
@@ -74,7 +72,7 @@ export function PublishButton(props: PublishButtonProps) {
     </>
   );
 
-  if (branchId !== null) {
+  if (branchId !== null && !isTemplate) {
     const branchMenu = () => (
       <Menu>
         {menuSection(
@@ -172,8 +170,33 @@ export function PublishButton(props: PublishButtonProps) {
           type="primary"
           className="editor-publish-action"
           aria-label={t("Publish")}
-          disabled={isPlasmicLevels}
-          onClick={spawnWrapper(() => {
+          disabled={isPlasmicLevels || (isTemplate && branchId !== null)}
+          loading={publishingTemplate}
+          onClick={spawnWrapper(async () => {
+            if (isTemplate) {
+              setPublishingTemplate(true);
+              try {
+                await studioCtx.save({ noErrorNotification: true });
+                if (studioCtx.hasUnsavedChanges()) {
+                  void message.error(
+                    t("Save the template draft before publishing"),
+                  );
+                } else {
+                  await studioCtx.appCtx.api.publishDesignTemplate(
+                    studioCtx.siteInfo.id,
+                  );
+                  void message.success(t("Template published"));
+                }
+              } catch (error) {
+                void message.error(
+                  error instanceof Error
+                    ? error.message
+                    : t("Template operation failed"),
+                );
+              }
+              setPublishingTemplate(false);
+              return;
+            }
             studioCtx.tourActionEvents.dispatch({
               type: TutorialEventsType.PublishButtonClicked,
             });
