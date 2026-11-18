@@ -459,7 +459,7 @@ More
         <>
           <CanvasTools />
           <div className="editor-rail-divider" role="separator" />
-          <LeftTabButton
+          {!studioCtx.isPublishedTemplate && <LeftTabButton
             dataTestId="add-button"
             expanded={showAddDrawer}
             isSelected={showAddDrawer}
@@ -477,13 +477,13 @@ More
                 ),
               );
             }}
-          />
+          />}
           <LeftTabButton
             isSelected={
               leftTabKey === "outline" && !showAddDrawer
             }
-            label={t("Layers")}
-            tooltip={t("Layers")}
+            label={studioCtx.isPublishedTemplate ? t("Pages") : t("Layers")}
+            tooltip={studioCtx.isPublishedTemplate ? t("Pages") : t("Layers")}
             icon={<EditorToolIcon tool="Layers" />}
             onClick={() => {
               studioCtx.showLayersPanel();
@@ -535,7 +535,7 @@ More
                 },
               });
             })()}
-          <LeftTabButton
+          {!studioCtx.isPublishedTemplate && <LeftTabButton
             label={t("AI")}
             tooltip={t("AI assistant")}
             icon={<EditorToolIcon tool="AI" />}
@@ -547,8 +547,8 @@ More
                 studioCtx.toggleCopilotChat();
               }
             }}
-          />
-          <div className="editor-rail-divider" role="separator" />
+          />}
+          {!studioCtx.isPublishedTemplate && <div className="editor-rail-divider" role="separator" />}
           {topMenu.lint.type === "item" &&
             renderButton("lint", topMenu.lint, false, undefined)}
         </>

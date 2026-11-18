@@ -1592,7 +1592,7 @@ export async function saveProjectRev(req: Request, res: Response) {
   });
 }
 
-async function getCurrentModelVersion(em: EntityManager) {
+export async function getCurrentModelVersion(em: EntityManager) {
   const conn = em.connection;
   const migrator = new MigrationExecutor(conn, em.queryRunner);
   const migrations = await migrator.getExecutedMigrations();

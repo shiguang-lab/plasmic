@@ -1641,8 +1641,8 @@ export class TreeDndManager {
 }
 
 function indentPadding(indent: number) {
-  // Reserve a gutter for the configuration indicator before the tree controls.
-  return 16 + indent * 12;
+  // Match the expander width so a child's expander aligns with its parent's icon.
+  return 16 + indent * 16;
 }
 
 export type OutlineTreeRow =

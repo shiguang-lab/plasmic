@@ -40,6 +40,7 @@ import { Component, Variant, isKnownComponent } from "@/wab/shared/model/classes
 import {
   APP_ROUTES,
   SEARCH_PARAM_BRANCH,
+  SEARCH_PARAM_PUBLISHED_TEMPLATE,
   mkProjectLocation,
 } from "@/wab/shared/route/app-routes";
 import { getPublicUrl } from "@/wab/shared/urls";
@@ -66,6 +67,7 @@ const DEFAULT_VIEWPORT_HEIGHT = 480;
 /** All the input data required to make a preview route. */
 interface PreviewInputData {
   full: boolean;
+  publishedTemplate?: boolean;
   presentationCode?: string;
   viewport: PreviewViewportMode;
   /**
@@ -480,7 +482,12 @@ export class PreviewCtx {
   private async _stopLiveMode() {
     await this.pushRouteToHistory(
       this.previousLocation ||
-        APP_ROUTES.project.fill({ projectId: this.studioCtx.siteInfo.id }),
+        APP_ROUTES.project.fill(
+          { projectId: this.studioCtx.siteInfo.id },
+          this.studioCtx.siteInfo.publishedTemplateVersion
+            ? { [SEARCH_PARAM_PUBLISHED_TEMPLATE]: "true" }
+            : undefined,
+        ),
     );
   }
 
@@ -562,6 +569,7 @@ export class PreviewCtx {
 
     this.previewData = {
       full,
+      publishedTemplate: !!this.studioCtx.siteInfo.publishedTemplateVersion,
       presentationCode: presentation?.code,
       viewport,
       previewPath,
@@ -682,6 +690,7 @@ export class PreviewCtx {
     const prev = ensure(this.previewData, "missing previous previewData");
     const location = mkPreviewRoute(this.studioCtx.siteInfo.id, {
       full: prev.full,
+      publishedTemplate: prev.publishedTemplate,
       presentationCode: prev.presentationCode,
       viewport: viewport ?? prev.viewport,
       componentPath: componentPath || prev.componentPath,
@@ -812,6 +821,9 @@ function mkPreviewRoute(
       })
     : APP_ROUTES.projectPreview.fill({ projectId });
   const settings = new URLSearchParams(mkPreviewSettings(previewData));
+  if (previewData.publishedTemplate) {
+    settings.set(SEARCH_PARAM_PUBLISHED_TEMPLATE, "true");
+  }
   if (typeof componentPath !== "string" && !componentPath.component.pageMeta) {
     settings.set("component", componentPath.component.uuid);
   }
@@ -931,6 +943,7 @@ export async function getUrlsForLiveMode(
   const deviceFrame = !full && isPageComponent(component) ? getDeviceFrame(arenaFrame.width, arenaFrame.height) : undefined;
   return mkPreviewRoute(studioCtx.siteInfo.id, {
     full,
+    publishedTemplate: !!studioCtx.siteInfo.publishedTemplateVersion,
     presentationCode,
     viewport: deviceFrame?.kind ?? "desktop",
     componentPath: {

@@ -252,7 +252,7 @@ function NavigationFrame({ view, frames, selected, onSelect }: { view: ViewCtx; 
         <button className={styles.labelText} title={`${trigger(item.link)} → ${title(item.link)}`} onClick={() => onSelect(active ? undefined : id)}>
           {trigger(item.link)} → {title(item.link)}{item.link.conditional ? ` · ${t("Conditional navigation")}` : ""}
         </button>
-        {active && <Button type="text" danger size="small" icon={<DeleteOutlined />} aria-label={t("Remove navigation")} title={t("Remove navigation")} disabled={!studio.canEditProject()} onClick={() => {
+        {active && !studio.isPublishedTemplate && <Button type="text" danger size="small" icon={<DeleteOutlined />} aria-label={t("Remove navigation")} title={t("Remove navigation")} disabled={!studio.canEditProject()} onClick={() => {
           void studio.change(() => { if (links && !view.disposeSignal.aborted && !view.modelLifetime.aborted) { item.link.remove(); } return ok(); }); onSelect(undefined);
         }} />}
       </div>;

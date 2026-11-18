@@ -141,12 +141,13 @@ function LoggedInContainer(props: LoggedInContainerProps) {
   const projectRoute = switchCase<{}>({
     route: [APP_ROUTES.project, APP_ROUTES.projectPresentation],
     render: () => {
+      const projectLocation = parseProjectLocation(appCtx.history.location);
       const projectId = ensure(
-        parseProjectLocation(appCtx.history.location)?.projectId ??
+        projectLocation?.projectId ??
           APP_ROUTES.projectDocs.parse(appCtx.history.location.pathname, false)?.projectId,
         "Project route not resolved",
       );
-      return <ProjectEntry appCtx={appCtx} onRefreshUi={onRefreshUi} projectId={projectId as import("@/wab/shared/ApiSchema").ProjectId} />;
+      return <ProjectEntry key={projectLocation?.publishedTemplate ? `${projectId}:published` : undefined} appCtx={appCtx} onRefreshUi={onRefreshUi} projectId={projectId as import("@/wab/shared/ApiSchema").ProjectId} />;
     },
   });
 
@@ -570,7 +571,7 @@ export function Root() {
       // retries and errors if this speculative import fails.
       void loadProjectEntry().catch(() => undefined);
     }
-    if (!hostFrameCtx && projectLocation) {
+    if (!hostFrameCtx && projectLocation && !projectLocation.publishedTemplate) {
       const desktop = (window as Window & { desktopEnvironment?: {
         consumeStartupData?: (projectId: string, branchName?: string) => Promise<import("@/wab/shared/ApiSchema").ProjectOpeningResponse | null>;
       } }).desktopEnvironment;

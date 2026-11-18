@@ -198,7 +198,7 @@ const ComponentArenaLayoutContent = React.memo(
           onFrameLoad={onFrameLoad}
           makeRowLabel={(row) => (
             <MaybeWrap
-              cond={!!row.rowKey}
+              cond={!studioCtx.isPublishedTemplate && !!row.rowKey}
               wrapper={(children) => (
                 <EditableLabel
                   ref={variantGroupsEditableLabelRefs(
@@ -219,10 +219,10 @@ const ComponentArenaLayoutContent = React.memo(
             >
               <div
                 className={cn(sty.groupLabel, {
-                  [sty.groupLabel__editable]: row.rowKey,
+                  [sty.groupLabel__editable]: !studioCtx.isPublishedTemplate && row.rowKey,
                 })}
                 onContextMenu={(e) => {
-                  if (isKnownVariantGroup(row.rowKey)) {
+                  if (!studioCtx.isPublishedTemplate && isKnownVariantGroup(row.rowKey)) {
                     maybeShowContextMenu(
                       e as any,
                       <Menu>

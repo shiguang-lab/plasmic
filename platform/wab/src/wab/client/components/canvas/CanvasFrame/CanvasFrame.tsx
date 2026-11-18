@@ -712,7 +712,7 @@ export const CanvasFrame = React.memo(function CanvasFrame({
           commentsOverlay && (
             <CanvasCommentMarkers arena={arena} arenaFrame={arenaFrame} />
           )}
-        <CanvasActions arena={arena} arenaFrame={arenaFrame} />
+        {!studioCtx.isPublishedTemplate && <CanvasActions arena={arena} arenaFrame={arenaFrame} />}
         </>}
         <CopilotActivityOverlay studioCtx={studioCtx} frame={arenaFrame} />
       </div>

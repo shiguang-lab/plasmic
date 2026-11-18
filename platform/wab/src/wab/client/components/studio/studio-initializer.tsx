@@ -142,19 +142,23 @@ init = async () => {
       return { studioCtx, previewCtx };
     }
 
-    spawn(studioCtx.startListeningForSocketEvents());
-
-    if (!appCtx.selfInfo && isUnownedProject(studioCtx.siteInfo)) {
-      studioCtx.alertBannerState.set(AlertSpec.WelcomeGuest);
-    } else if (!appCtx.selfInfo) {
-      studioCtx.alertBannerState.set(AlertSpec.Unlogged);
+    const publishedTemplate = !!studioCtx.siteInfo.publishedTemplateVersion;
+    if (publishedTemplate) {
       studioCtx.setBlockChanges(true);
-    } else if (!studioCtx.canEditProject()) {
-      studioCtx.alertBannerState.set(AlertSpec.ReadOnly);
-      studioCtx.setBlockChanges(true);
-    } else if (!studioCtx.canEditBranch()) {
-      studioCtx.alertBannerState.set(AlertSpec.ProtectedMainBranch);
-      studioCtx.setBlockChanges(true);
+    } else {
+      spawn(studioCtx.startListeningForSocketEvents());
+      if (!appCtx.selfInfo && isUnownedProject(studioCtx.siteInfo)) {
+        studioCtx.alertBannerState.set(AlertSpec.WelcomeGuest);
+      } else if (!appCtx.selfInfo) {
+        studioCtx.alertBannerState.set(AlertSpec.Unlogged);
+        studioCtx.setBlockChanges(true);
+      } else if (!studioCtx.canEditProject()) {
+        studioCtx.alertBannerState.set(AlertSpec.ReadOnly);
+        studioCtx.setBlockChanges(true);
+      } else if (!studioCtx.canEditBranch()) {
+        studioCtx.alertBannerState.set(AlertSpec.ProtectedMainBranch);
+        studioCtx.setBlockChanges(true);
+      }
     }
 
     initBuiltinActions({
@@ -190,7 +194,7 @@ init = async () => {
       this._cleanups.push(() => clearIdleCallback(request));
     });
 
-    if (!appCtx.appConfig.ccStubs && !isHostLessPackage(studioCtx.site)) {
+    if (!publishedTemplate && !appCtx.appConfig.ccStubs && !isHostLessPackage(studioCtx.site)) {
       // Version metadata and insertable templates are not needed to paint the
       // current page. Component sync awaits Plume only for missing defaults.
       studioCtx.runAfterInitialCanvasReady(() =>

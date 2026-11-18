@@ -273,6 +273,7 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
       const presentation = presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
       return presentation ? { ...output, presentation: { ...presentation, phase: "after" } } : output;
     }
+    assertCanEditPrototype(studio);
     const { context: reviewContext, operations: reviewOperations } = reviewInput(toolMeta.toolName, input);
     const { reviewContext: _reviewContext, ...nativeInput } = input;
     const targets = activityTargets(toolMeta.toolName, input).map((target) => {
@@ -517,6 +518,11 @@ function variantManager(studio: StudioCtx, component: Component) {
 
 /** All writes go through the same permission and recorder path as human edits. */
 export function assertCanEditPrototype(studio: StudioCtx) {
+  if (studio.isPublishedTemplate) {
+    throw Object.assign(new Error("Published templates are read-only. Open the template draft to edit."), {
+      operationExecuted: false,
+    });
+  }
   assert(
     studio.canEditProject() &&
       studio.editMode &&

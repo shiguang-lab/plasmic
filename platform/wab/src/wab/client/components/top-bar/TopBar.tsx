@@ -74,6 +74,7 @@ function TopBarContent({ preview }: TopBarProps) {
   const { token } = AntdTheme.useToken();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
+  const publishedTemplate = !!studioCtx.siteInfo.publishedTemplateVersion;
   useTopBarInputs(studioCtx, !!preview);
   const commentsPanel = useStudioOverlayState(
     studioCtx,
@@ -455,7 +456,7 @@ function TopBarContent({ preview }: TopBarProps) {
               ? { paddingLeft: 96 }
               : undefined,
           },
-          wrapChildren: (children) => (
+          wrapChildren: (children) => publishedTemplate ? children : (
             <>
               {children}
               <span className="editor-history-divider" aria-hidden="true" />
@@ -516,7 +517,7 @@ function TopBarContent({ preview }: TopBarProps) {
               children
             ) : (
               <div className="editor-primary-actions">
-                <Tooltip
+                {!publishedTemplate && <Tooltip
                   trigger={["hover", "focus"]}
                   title={
                     studioCtx.showComments()
@@ -536,7 +537,7 @@ function TopBarContent({ preview }: TopBarProps) {
                     data-test-id="top-comment-icon"
                     onClick={() => studioCtx.toggleCommentsPanel()}
                   />
-                </Tooltip>
+                </Tooltip>}
                 <Tooltip
                   trigger={["hover", "focus"]}
                   title={
@@ -561,9 +562,9 @@ function TopBarContent({ preview }: TopBarProps) {
                     }}
                   />
                 </Tooltip>
-                <LivePopOutButton iconOnly />
-                <span className="editor-action-divider" />
-                {navigator.userAgent.includes("PlasmicDesktop/") && (
+                {!publishedTemplate && <LivePopOutButton iconOnly />}
+                {!publishedTemplate && <span className="editor-action-divider" />}
+                {!publishedTemplate && navigator.userAgent.includes("PlasmicDesktop/") && (
                   <Tooltip
                     trigger={["hover", "focus"]}
                     title={t("Import from the web")}
@@ -575,11 +576,11 @@ function TopBarContent({ preview }: TopBarProps) {
                     />
                   </Tooltip>
                 )}
-                <PublishButton
+                {!publishedTemplate && <PublishButton
                   enable={
                     studioCtx.canEditProject() && canPublishProject(uiConfig)
                   }
-                />
+                />}
                 <span className="editor-action-divider" />
                 <OnlineCollaborators
                   studioCtx={studioCtx}

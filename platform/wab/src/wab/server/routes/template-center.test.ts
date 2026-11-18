@@ -22,6 +22,8 @@ vi.mock("@/wab/server/entities/CustomEntities", () => ({
   PreviewPublication: class {},
 }));
 vi.mock("@/wab/server/entities/Entities", () => ({ Project: class {} }));
+vi.mock("@/wab/server/routes/projects", () => ({}));
+vi.mock("@/wab/server/db/BundleMigrator", () => ({}));
 vi.mock("@/wab/server/db/DbBundleLoader", () => ({
   unbundleProjectFromData: async () => ({
     components: [{ pageMeta: { path: "/" } }],
@@ -58,7 +60,7 @@ vi.mock("@/wab/server/routes/util", async () => {
     superDbMgr: () => ({ getEntMgr: () => state.em }),
   };
 });
-const draft = {
+const metadata = {
   name: "登录页",
   description: "手机号登录",
   kind: "page",
@@ -66,7 +68,7 @@ const draft = {
   category: "登录",
   thumbnailUrl: "",
 };
-const req = (admin = true, body = draft) =>
+const req = (admin = true, body = metadata) =>
   ({
     user: { id: "user" },
     shiguangIdentity: { roles: admin ? ["system-admin"] : [] },
@@ -79,7 +81,7 @@ const res = () => ({ json: vi.fn(), setHeader: vi.fn() }) as any;
 beforeEach(() => {
   state.record = {
     projectId: "template",
-    draft: { ...draft },
+    metadata: { ...metadata },
     published: null,
     updatedAt: new Date(0),
   };
@@ -167,7 +169,7 @@ it("requires login even to list published references", async () => {
     listDesignTemplates({ ...req(false), user: undefined }, res()),
   ).rejects.toMatchObject({ name: "UnauthorizedError" });
 });
-it("hides drafts, publishes a snapshot, and keeps it unchanged when metadata is edited", async () => {
+it("hides unpublished canvases and exposes saved metadata without publishing a new version", async () => {
   const before = res();
   await listDesignTemplates(req(false), before);
   expect(before.json.mock.calls[0][0]).toEqual({
@@ -176,27 +178,55 @@ it("hides drafts, publishes a snapshot, and keeps it unchanged when metadata is 
   });
   await publishDesignTemplate(req(), res());
   const published = structuredClone(state.record.published);
-  await updateDesignTemplate(req(true, { ...draft, name: "新草稿" }), res());
+  const updated = {
+    name: "新模板名称",
+    description: "可编辑区块",
+    kind: "section",
+    device: "desktop",
+    category: "新分类",
+    thumbnailUrl: "https://images.test/cover.png",
+  };
+  const saved = res();
+  await updateDesignTemplate(req(true, updated), saved);
+  expect(saved.json.mock.calls[0][0].template).toMatchObject({
+    metadata: updated,
+    published,
+  });
   const reader = res();
   await listDesignTemplates(req(false), reader);
   expect(reader.json.mock.calls[0][0]).toEqual({
-    templates: [{ id: "template", published }],
+    templates: [{ id: "template", metadata: updated, published }],
     canManage: false,
   });
   expect(published).toMatchObject({
-    name: "登录页",
     version: "1.0.1",
     libraries: ["Material UI"],
   });
-  const admin = res();
-  await listDesignTemplates(req(), admin);
-  expect(admin.json.mock.calls[0][0].templates[0].draft.name).toBe("新草稿");
+  expect(state.version).toBe(1);
+  expect(state.snapshot).toHaveBeenCalledTimes(1);
   await publishDesignTemplate(req(), res());
   expect(state.record.published).toMatchObject({
-    name: "新草稿",
     version: "1.0.2",
   });
+  expect(state.record.metadata).toEqual(updated);
   expect(state.snapshot.mock.calls[1][4]).toBe("1.0.2");
+});
+
+it("keeps a metadata save between publication transactions", async () => {
+  const updated = { ...metadata, name: "发布时保存" };
+  const transaction = state.em.transaction;
+  vi.spyOn(state.em, "transaction").mockImplementationOnce(async (action) => {
+    const prepared = await transaction(action);
+    await updateDesignTemplate(req(true, updated), res());
+    return prepared;
+  });
+
+  const result = res();
+  await publishDesignTemplate(req(), result);
+  expect(result.json.mock.calls[0][0].template).toMatchObject({
+    metadata: updated,
+    published: { version: "1.0.1" },
+  });
 });
 it("keeps the previous reference available if code generation fails", async () => {
   await publishDesignTemplate(req(), res());
@@ -224,31 +254,31 @@ it("unpublishes the reference and requires unpublishing before deletion", async 
 });
 it("rejects invalid metadata instead of persisting arbitrary fields or URL schemes", async () => {
   for (const body of [
-    { ...draft, name: " " },
-    { ...draft, kind: "project" },
-    { ...draft, thumbnailUrl: "javascript:alert(1)" },
-    { ...draft, published: {} },
+    { ...metadata, name: " " },
+    { ...metadata, kind: "project" },
+    { ...metadata, thumbnailUrl: "javascript:alert(1)" },
+    { ...metadata, published: {} },
   ]) {
     await expect(
       updateDesignTemplate(req(true, body as any), res()),
     ).rejects.toMatchObject({ name: "BadRequestError" });
   }
-  expect(state.record.draft).toEqual(draft);
+  expect(state.record.metadata).toEqual(metadata);
 });
 
 it("keeps the uploaded cover fixed across publication and only changes it through metadata", async () => {
-  const first = { ...draft, thumbnailUrl: "https://images.test/cover.png" };
+  const first = { ...metadata, thumbnailUrl: "https://images.test/cover.png" };
   await updateDesignTemplate(req(true, first), res());
   await publishDesignTemplate(req(), res());
-  expect(state.record.published.thumbnailUrl).toBe(first.thumbnailUrl);
+  expect(state.record.metadata.thumbnailUrl).toBe(first.thumbnailUrl);
   await publishDesignTemplate(req(), res());
-  expect(state.record.published.thumbnailUrl).toBe(first.thumbnailUrl);
+  expect(state.record.metadata.thumbnailUrl).toBe(first.thumbnailUrl);
   const replacement = {
     ...first,
     thumbnailUrl: "https://images.test/replacement.webp",
   };
   await updateDesignTemplate(req(true, replacement), res());
-  expect(state.record.published.thumbnailUrl).toBe(first.thumbnailUrl);
+  expect(state.record.metadata.thumbnailUrl).toBe(replacement.thumbnailUrl);
   await publishDesignTemplate(req(), res());
-  expect(state.record.published.thumbnailUrl).toBe(replacement.thumbnailUrl);
+  expect(state.record.metadata.thumbnailUrl).toBe(replacement.thumbnailUrl);
 });

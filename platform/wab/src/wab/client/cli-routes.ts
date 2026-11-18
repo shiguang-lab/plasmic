@@ -11,6 +11,7 @@ import {
   SEARCH_PARAM_ARENA_TYPE,
   SEARCH_PARAM_BRANCH,
   SEARCH_PARAM_COMMENT,
+  SEARCH_PARAM_PUBLISHED_TEMPLATE,
   SEARCH_PARAM_REVISION,
   SEARCH_PARAM_VERSION,
 } from "@/wab/shared/route/app-routes";
@@ -28,14 +29,17 @@ export function parseProjectLocation(
   location: Location,
 ): ProjectLocationParams | undefined {
   const searchParams = new URLSearchParams(location.search);
-  const branchName = searchParams.get(SEARCH_PARAM_BRANCH) || MainBranchId;
-  const branchVersion = searchParams.get(SEARCH_PARAM_VERSION) || latestTag;
-  const branchRevision = searchParams.get(SEARCH_PARAM_REVISION) || undefined;
+  const presentation = APP_ROUTES.projectPresentation.parse(location.pathname);
+  const publishedTemplate = !presentation &&
+    searchParams.get(SEARCH_PARAM_PUBLISHED_TEMPLATE) === "true";
+  const branchName = (!publishedTemplate && searchParams.get(SEARCH_PARAM_BRANCH)) || MainBranchId;
+  const branchVersion = (!publishedTemplate && searchParams.get(SEARCH_PARAM_VERSION)) || latestTag;
+  const branchRevision = (!publishedTemplate && searchParams.get(SEARCH_PARAM_REVISION)) || undefined;
   const arenaTypeString = searchParams.get(SEARCH_PARAM_ARENA_TYPE);
   const arenaType = isArenaType(arenaTypeString) ? arenaTypeString : undefined;
   const arenaUuidOrNameOrPath =
     searchParams.get(SEARCH_PARAM_ARENA) || undefined;
-  const threadId = searchParams.get(SEARCH_PARAM_COMMENT) || undefined;
+  const threadId = (!publishedTemplate && searchParams.get(SEARCH_PARAM_COMMENT)) || undefined;
 
   const matchProject = APP_ROUTES.project.parse(location.pathname);
   if (matchProject) {
@@ -48,6 +52,7 @@ export function parseProjectLocation(
       arenaType,
       arenaUuidOrNameOrPath,
       threadId,
+      ...(publishedTemplate ? { publishedTemplate } : {}),
     };
   }
 
@@ -62,11 +67,11 @@ export function parseProjectLocation(
       arenaType,
       arenaUuidOrNameOrPath,
       threadId,
+      ...(publishedTemplate ? { publishedTemplate } : {}),
     };
   }
 
   const preview = APP_ROUTES.projectPreview.parse(location.pathname);
-  const presentation = APP_ROUTES.projectPresentation.parse(location.pathname);
   const projectId = preview?.projectId || (presentation && presentationProject(presentation.code));
   if (projectId) {
     return {
@@ -74,6 +79,7 @@ export function parseProjectLocation(
       branchName, branchVersion: latestTag,
       arenaUuidOrNameOrPath: readBusinessLocation(location.hash).pathname,
       isPreview: true,
+      ...(publishedTemplate ? { publishedTemplate } : {}),
     };
   }
 

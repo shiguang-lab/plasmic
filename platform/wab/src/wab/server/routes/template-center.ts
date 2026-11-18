@@ -1,4 +1,8 @@
-import { unbundleProjectFromData } from "@/wab/server/db/DbBundleLoader";
+import { getMigratedBundle } from "@/wab/server/db/BundleMigrator";
+import {
+  loadDepPackages,
+  unbundleProjectFromData,
+} from "@/wab/server/db/DbBundleLoader";
 import { DbMgr, SUPER_USER } from "@/wab/server/db/DbMgr";
 import {
   DesignTemplate,
@@ -9,6 +13,7 @@ import {
   publishWebsiteSnapshot,
   serializePreviewPublication,
 } from "@/wab/server/routes/preview-publications";
+import { getCurrentModelVersion } from "@/wab/server/routes/projects";
 import { getUser, superDbMgr } from "@/wab/server/routes/util";
 import {
   BadRequestError,
@@ -16,6 +21,7 @@ import {
   NotFoundError,
 } from "@/wab/shared/ApiErrors/errors";
 import { getArenaFrames } from "@/wab/shared/Arenas";
+import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { Bundler } from "@/wab/shared/bundler";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
@@ -75,10 +81,9 @@ function serialize(
 ): ApiDesignTemplate {
   return {
     id: record.projectId,
+    metadata: record.metadata,
     published: record.published,
-    ...(canManage
-      ? { draft: record.draft, updatedAt: record.updatedAt.toISOString() }
-      : {}),
+    ...(canManage ? { updatedAt: record.updatedAt.toISOString() } : {}),
   };
 }
 
@@ -118,9 +123,88 @@ export async function listDesignTemplates(req: Request, res: Response) {
   } satisfies TemplateCenterResponse);
 }
 
+export async function getPublishedDesignTemplateStudio(
+  req: Request,
+  res: Response,
+) {
+  getUser(req);
+  const mgr = superDbMgr(req);
+  const record = await findTemplate(mgr.getEntMgr(), req.params.templateId);
+  const published = record.published;
+  if (!published) {
+    throw new NotFoundError("Template is not published");
+  }
+
+  const projectId = record.projectId;
+  const pkg = await mgr.getPkgByProjectId(projectId);
+  const version = pkg && await mgr.tryGetPkgVersion(pkg.id, published.version);
+  if (!version || version.version !== published.version || version.branchId) {
+    throw new NotFoundError("Published template version not found");
+  }
+  const [bundle, modelVersion, hostlessVersion] = await Promise.all([
+    getMigratedBundle(version),
+    getCurrentModelVersion(mgr.getEntMgr()),
+    mgr.getHostlessVersion(),
+  ]);
+  const dependencies = await loadDepPackages(mgr, bundle);
+  const depPkgs = dependencies.map((dep) => ({
+    ...dep,
+    model: JSON.parse(dep.model),
+  }));
+
+  // Combine current catalog metadata with the published model and its host.
+  const response: GetProjectResponse = {
+    project: {
+      id: projectId,
+      isTemplate: true,
+      publishedTemplateVersion: published.version,
+      name: record.metadata.name,
+      createdAt: published.publishedAt,
+      updatedAt: record.updatedAt.toISOString(),
+      createdById: null,
+      updatedById: null,
+      deletedAt: null,
+      deletedById: null,
+      hostUrl: version.hostUrl,
+      inviteOnly: true,
+      defaultAccessLevel: "viewer",
+      readableByPublic: false,
+      clonedFromProjectId: null,
+      projectApiToken: null,
+      workspaceId: null,
+      workspaceName: null,
+      parentTeamId: null,
+      teamId: null,
+      teamName: null,
+      featureTier: null,
+      uiConfig: null,
+      contentCreatorConfig: null,
+      extraData: {},
+      revisions: [],
+      perms: [],
+      owner: undefined,
+      latestRevisionSynced: 0,
+      hasAppAuth: false,
+      isMainBranchProtected: true,
+    },
+    // A package snapshot has no live revision cursor for saves or updates.
+    rev: { projectId, data: JSON.stringify(bundle), revision: 0 },
+    depPkgs,
+    perms: [],
+    modelVersion,
+    hostlessDataVersion: hostlessVersion.versionCount,
+    owner: undefined,
+    latestRevisionSynced: 0,
+    hasAppAuth: false,
+    isMainBranchProtected: true,
+  };
+  res.setHeader("Cache-Control", "no-store");
+  res.json(response);
+}
+
 export async function createDesignTemplate(req: Request, res: Response) {
   requireAdmin(req);
-  const draft = readMetadata(req.body);
+  const metadata = readMetadata(req.body);
   const record = await superDbMgr(req)
     .getEntMgr()
     .transaction(async (em) => {
@@ -128,13 +212,13 @@ export async function createDesignTemplate(req: Request, res: Response) {
       const site = createSite();
       const page = new TplMgr({ site }).addComponent({
         type: ComponentType.Page,
-        name: draft.name,
+        name: metadata.name,
         pageMeta: { path: "/" },
       });
       if ("name" in page.tplTree) {
         page.tplTree.name = "Root";
       }
-      if (draft.device === "mobile") {
+      if (metadata.device === "mobile") {
         for (const arena of site.pageArenas) {
           for (const frame of getArenaFrames(arena)) {
             frame.width = 390;
@@ -145,7 +229,7 @@ export async function createDesignTemplate(req: Request, res: Response) {
       const { project } = await mgr.createProjectAndSaveRev({
         site,
         bundler: new Bundler(),
-        name: draft.name,
+        name: metadata.name,
       });
       await em.update(Project, project.id, {
         isTemplate: true,
@@ -154,7 +238,7 @@ export async function createDesignTemplate(req: Request, res: Response) {
       return em.save(
         em.create(DesignTemplate, {
           projectId: project.id,
-          draft,
+          metadata,
           published: null,
           updatedAt: new Date(),
         }),
@@ -183,10 +267,10 @@ async function maintain(
 
 export async function updateDesignTemplate(req: Request, res: Response) {
   requireAdmin(req);
-  const draft = readMetadata(req.body);
+  const metadata = readMetadata(req.body);
   const record = await maintain(req, async (em, template) => {
-    template.draft = draft;
-    await em.update(Project, template.projectId, { name: draft.name });
+    template.metadata = metadata;
+    await em.update(Project, template.projectId, { name: metadata.name });
   });
   res.json({ template: serialize(record, true) });
 }
@@ -194,7 +278,7 @@ export async function updateDesignTemplate(req: Request, res: Response) {
 export async function publishDesignTemplate(req: Request, res: Response) {
   requireAdmin(req);
   // Codegen workers use their own DB connections. Commit the private model
-  // version first; only the final transaction exposes metadata and preview.
+  // version first; only the final transaction switches the published canvas.
   const prepared = await req.noTxMgr.transaction(async (em) => {
     await em.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
       `template:${req.params.templateId}`,
@@ -222,8 +306,7 @@ export async function publishDesignTemplate(req: Request, res: Response) {
       revision.revision,
     );
     return {
-      draft: template.draft,
-      updatedAt: template.updatedAt.getTime(),
+      previousVersion: template.published?.version,
       version: pkgVersion.version,
       entryPath,
       libraries: [...new Set(site.projectDependencies.map((dep) => dep.name))],
@@ -235,7 +318,7 @@ export async function publishDesignTemplate(req: Request, res: Response) {
       const mgr = new DbMgr(em, SUPER_USER);
       const pkg = await mgr.getPkgByProjectId(template.projectId);
       if (
-        template.updatedAt.getTime() !== prepared.updatedAt ||
+        template.published?.version !== prepared.previousVersion ||
         !pkg ||
         (await mgr.getLatestPkgVersionNumber(pkg.id, undefined)) !==
           prepared.version
@@ -254,7 +337,6 @@ export async function publishDesignTemplate(req: Request, res: Response) {
         ),
       );
       template.published = {
-        ...prepared.draft,
         version: publication.version,
         publishedAt: publication.publishedAt,
         previewUrl: publication.url,

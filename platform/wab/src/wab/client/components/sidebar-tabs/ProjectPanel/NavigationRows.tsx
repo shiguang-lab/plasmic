@@ -96,6 +96,8 @@ export function NavigationHeaderRow({
 }: NavigationHeaderRowProps) {
   const { styles } = useStructurePanelStyles();
   const { t } = useI18n();
+  const studioCtx = useStudioCtx();
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   return (
     <div className={styles.category}>
       <button
@@ -115,7 +117,7 @@ export function NavigationHeaderRow({
         {props.children}
         <span className={styles.count}>{props.groupSize}</span>
       </button>
-      <Button
+      {canEditProject && <Button
         type="text"
         className={`${styles.categoryAdd} editor-category-add`}
         aria-label={t("New")}
@@ -127,7 +129,7 @@ export function NavigationHeaderRow({
             toggleExpand();
           }
         }}
-      />
+      />}
     </div>
   );
 }
@@ -147,14 +149,16 @@ export function NavigationFolderRow({
   toggleExpand,
 }: NavigationFolderRowProps) {
   const [renaming, setRenaming] = React.useState(false);
+  const studioCtx = useStudioCtx();
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   const labelClass = renaming ? "no-select fill-width" : "no-select";
   const { onAddArena, onDeleteFolder, onFolderRenamed } = folder.actions;
   return (
     <RowGroup
       style={{ height: ROW_HEIGHT, paddingLeft: indentMultiplier * 16 + 12 }}
-      showActions={true}
+      showActions={canEditProject}
       menu={
-        <FolderContextMenu
+        canEditProject ? <FolderContextMenu
           onAdd={async () => {
             if (!isOpen) {
               toggleExpand();
@@ -164,7 +168,7 @@ export function NavigationFolderRow({
           itemDisplay={getArenaDisplay(folder.sectionType)}
           onSelectRename={() => setRenaming(true)}
           onDelete={() => onDeleteFolder(folder)}
-        />
+        /> : undefined
       }
       actions={<div></div>}
       groupSize={folder.count}
@@ -216,6 +220,7 @@ export function NavigationArenaRow({
   const { t: uiT } = useI18n();
   const [renaming, setRenaming] = React.useState(false);
   const studioCtx = useStudioCtx();
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   const isCurrentArena = useStudioArena(
     studioCtx,
     (state) => state.current?.uid === arena.uid,
@@ -231,7 +236,7 @@ export function NavigationArenaRow({
   const { styles } = useStructurePanelStyles();
   const isPage = isPageArena(arena);
 
-  const pageRowProps = isPage
+  const pageRowProps = isPage && canEditProject
     ? {
         showActionsOnHover: true,
         actions: (
@@ -277,12 +282,12 @@ export function NavigationArenaRow({
       isSelected={isCurrentArena}
       menuSize="small"
       menu={
-        <ArenaContextMenu
+        canEditProject ? <ArenaContextMenu
           studioCtx={studioCtx}
           arena={arena}
           onSelectRename={() => setRenaming(true)}
           onClose={onClose}
-        />
+        /> : undefined
       }
       {...pageRowProps}
     >

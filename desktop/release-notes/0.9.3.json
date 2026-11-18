@@ -1,0 +1,7 @@
+{
+  "en": "- Open published templates in a read-only Studio canvas and edit catalog details independently of canvas publication.\n- Reorganize Page Settings for faster access to routing, metadata, and permissions.",
+  "zh-CN": "- 在只读 Studio 画布中查看已发布模板，模板资料可独立于画布发布进行编辑。\n- 调整页面设置布局，便于查找路由、页面元数据和权限。",
+  "zh-TW": "- 在唯讀 Studio 畫布中查看已發佈範本，範本資料可獨立於畫布發佈進行編輯。\n- 調整頁面設定版面，便於查找路由、頁面中繼資料和權限。",
+  "ja": "- 公開済みテンプレートを読み取り専用の Studio キャンバスで開き、キャンバスの公開とは別にカタログ情報を編集できます。\n- ページ設定の構成を見直し、ルーティング、メタデータ、権限の設定にアクセスしやすくしました。",
+  "ko": "- 게시된 템플릿을 읽기 전용 Studio 캔버스에서 열고, 캔버스 게시와 별도로 카탈로그 정보를 편집할 수 있습니다.\n- 페이지 설정을 재구성하여 라우팅, 메타데이터, 권한에 더 쉽게 접근할 수 있습니다."
+}

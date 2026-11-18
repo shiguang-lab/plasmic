@@ -281,6 +281,7 @@ function NavigationDropdown_(
 ) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   const navigationPanel = useStore(studioCtx.navigationPanelStore);
   const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
   const catalog = useNavigationCatalogInputs(studioCtx, contentEditorMode);
@@ -807,7 +808,7 @@ function NavigationDropdown_(
             }}
             icon={<FiSearch size={15} />}
           />
-          <DropdownTooltip
+          {canEditProject && <DropdownTooltip
             title={uiT(
               contentEditorMode
                 ? "New page"
@@ -849,7 +850,7 @@ function NavigationDropdown_(
               )}
               icon={<FiPlus size={16} />}
             />
-          </DropdownTooltip>
+          </DropdownTooltip>}
         </div>
       </div>
       <label

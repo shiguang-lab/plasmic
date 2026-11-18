@@ -49,6 +49,7 @@ function GridFramesLayoutContent(
   } = props;
 
   const studioCtx = useStudioCtx();
+  const publishedTemplate = studioCtx.isPublishedTemplate;
 
   return (
     <div className={sty.root}>
@@ -63,7 +64,7 @@ function GridFramesLayoutContent(
             key={`label-${key ?? rowIndex}`}
           >
             {makeRowLabel?.(row, rowIndex)}
-            {makeRowLabelControls?.(row, rowIndex)}
+            {!publishedTemplate && makeRowLabelControls?.(row, rowIndex)}
           </ArenaGridRowLabel>
           {frames.map((frame, index) => (
             // It is necessary to encode the `index` in the key CanvasFrame key here,
@@ -81,14 +82,14 @@ function GridFramesLayoutContent(
               isFree={false}
             />
           ))}
-          {rowEndControls && (
+          {!publishedTemplate && rowEndControls && (
             <div key={`controls-${key ?? rowIndex}`}>
               {rowEndControls(row, rowIndex)}
             </div>
           )}
         </div>
       ))}
-      {gridEndControls && (
+      {!publishedTemplate && gridEndControls && (
         <div key="end-row">
           <ArenaGridRowLabel
             arena={arena}

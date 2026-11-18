@@ -9,7 +9,7 @@ import type { LocalAiContext, LocalAiStatus } from "@/wab/shared/copilot/local-e
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { getHostUrl } from "@/wab/client/utils/app-hosting-utils";
 import { ForbiddenError } from "@/wab/shared/ApiErrors/errors";
-import { ApiProject, ApiTrustedHost, ProjectId } from "@/wab/shared/ApiSchema";
+import { ApiProject, ApiTrustedHost, GetProjectResponse, ProjectId } from "@/wab/shared/ApiSchema";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
@@ -87,6 +87,44 @@ it("sends an anonymous private-project visitor to sign in with the original prev
   } finally {
     window.history.replaceState(null, "", "/");
   }
+});
+
+it("opens a published template snapshot on the Studio host without reading draft metadata", async () => {
+  const { appCtx, api } = fakeAppCtx();
+  appCtx.appConfigOverrides = {};
+  const projectId = "template" as ProjectId;
+  appCtx.history.replace(`/projects/${projectId}?publishedTemplate=true`);
+  const project = mock<GetProjectResponse["project"]>({
+    id: projectId,
+    name: "Published template",
+    hostUrl: null,
+    defaultAccessLevel: "viewer",
+    isTemplate: true,
+    publishedTemplateVersion: "1.0.0",
+  });
+  api.getSiteInfo.mockResolvedValue(mock<GetProjectResponse>({
+    project,
+    perms: [],
+  }));
+  api.getTrustedHostsList.mockResolvedValue({ trustedHosts: [mock<ApiTrustedHost>({
+    hostUrl: getHostUrl(project, undefined, appCtx.appConfig),
+  })] });
+  const { container } = render(providesAppCtx(appCtx)(
+    <HistoryProvider history={appCtx.history}>
+      <AntdConfigProvider productUI>
+        <StudioStartupBoundary>
+          <StudioFrame projectId={projectId} refreshStudio={async () => undefined} />
+        </StudioStartupBoundary>
+      </AntdConfigProvider>
+    </HistoryProvider>,
+  ));
+  await waitFor(() => expect(container.querySelector("iframe.studio-frame")).toBeTruthy());
+  const iframe = container.querySelector("iframe.studio-frame");
+  act(() => appCtx.history.push(`/projects/${projectId}/preview?publishedTemplate=true#/calculator`));
+  expect(container.querySelector("iframe.studio-frame")).toBe(iframe);
+  expect(api.getSiteInfo).toHaveBeenCalledExactlyOnceWith(projectId, { publishedTemplate: true });
+  expect(api.getProjects).not.toHaveBeenCalled();
+  expect(api.listBranchesForProject).not.toHaveBeenCalled();
 });
 
 it("preserves the visible skeleton through metadata, host registration and dialogs until the canvas is ready", async () => {

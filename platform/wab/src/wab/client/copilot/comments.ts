@@ -10,6 +10,11 @@ import { allGlobalVariants } from "@/wab/shared/core/sites";
 import { flattenTpls, isTplNamable } from "@/wab/shared/core/tpls";
 
 function scope(studio: StudioCtx, signal?: AbortSignal) {
+  if (studio.isPublishedTemplate) {
+    throw Object.assign(new Error("Comments are unavailable in published templates."), {
+      operationExecuted: false,
+    });
+  }
   const api = studio.appCtx.api;
   const projectId = studio.commentsCtx.projectId();
   const branchId = studio.commentsCtx.branchId();

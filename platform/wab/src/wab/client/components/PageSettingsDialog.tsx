@@ -1,11 +1,13 @@
 import { useInspectorTitle } from "@/wab/client/components/studio/inspector-title-inputs";
 import PageSettings from "@/wab/client/components/PageSettings";
+import styles from "@/wab/client/components/PageSettings.module.css";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useViewEntryForComponent } from "@/wab/client/studio-ctx/arena-state";
 import { PageComponent } from "@/wab/shared/core/components";
+import { cx } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Typography } from "antd";
 import React from "react";
@@ -27,7 +29,7 @@ export const PageSettingsDialog = React.memo(function PageSettingsDialog({
     <Modal
       open={open}
       centered
-      width={640}
+      width={560}
       title={
         page
           ? t("Page settings: {name}", { name: pageName ?? "" })
@@ -36,18 +38,11 @@ export const PageSettingsDialog = React.memo(function PageSettingsDialog({
       onCancel={onClose}
       styles={{ body: { overflow: "hidden" } }}
       footer={
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-          }}
-        >
+        <div className={styles.dialogFooter}>
           <Typography.Text type="secondary">
             {t("Changes are saved automatically.")}
           </Typography.Text>
-          <Button type="primary" onClick={onClose}>
+          <Button className={styles.doneButton} type="primary" onClick={onClose}>
             {t("Done")}
           </Button>
         </div>
@@ -56,8 +51,7 @@ export const PageSettingsDialog = React.memo(function PageSettingsDialog({
       <PopoverFrameProvider containerSelector=".ant-modal-content">
         <Scrollbar
           scrollX={false}
-          className="studio-scrollbar"
-          style={{ maxHeight: "calc(100dvh - 200px)" }}
+          className={cx("studio-scrollbar", styles.dialogScroll)}
         >
           {page && (
             <PageSettings key={page.uuid} page={page} viewCtx={viewCtx} />

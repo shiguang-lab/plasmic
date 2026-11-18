@@ -1064,6 +1064,7 @@ export function addMainAppServerRoutes(
    * Primary app routes.
    */
   app.get("/api/v1/template-center", withNext(templateCenter.listDesignTemplates));
+  app.get("/api/v1/template-center/:templateId/studio", withNext(templateCenter.getPublishedDesignTemplateStudio));
   app.post("/api/v1/template-center", adminOnly, withNext(templateCenter.createDesignTemplate));
   app.put("/api/v1/template-center/:templateId", adminOnly, withNext(templateCenter.updateDesignTemplate));
   app.post("/api/v1/template-center/:templateId/publish", adminOnly, withNext(templateCenter.publishDesignTemplate));

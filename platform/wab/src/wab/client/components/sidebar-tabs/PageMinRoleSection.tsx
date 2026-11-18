@@ -41,7 +41,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
   const pageMeta = usePageMetadata(page);
   const roleId = useStore(studioCtx.modelSnapshots.field(pageMeta, "roleId"));
 
-  const { roles } = useAppRoles(appCtx, appId);
+  const { roles } = useAppRoles(appCtx, authProvider ? appId : undefined);
 
   if (!authProvider) {
     return null;

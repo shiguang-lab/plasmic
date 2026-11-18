@@ -1,6 +1,6 @@
 import type { StartupProjectModel } from "@/wab/client/frame-ctx/project-model-transfer";
 import { filteredApi } from "@/wab/client/api";
-import { ensureIsTopFrame } from "@/wab/client/cli-routes";
+import { ensureIsTopFrame, parseProjectLocation } from "@/wab/client/cli-routes";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
   FrameCtxProvider,
@@ -19,7 +19,10 @@ import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { bindMethods } from "@/wab/commons/proxies";
 import { BranchId, GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { assert, spawn } from "@/wab/shared/common";
+import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import * as Comlink from "comlink";
+import type { History } from "history";
+import { pick } from "lodash";
 import * as React from "react";
 
 export interface TopFrameCtx {
@@ -33,6 +36,50 @@ export interface TopFrameCtxProviderProps {
   projectId: string;
   topFrameApi: TopFrameApi;
   initialBranchId?: BranchId;
+  publishedSiteInfo?: GetProjectResponse;
+}
+
+type TopFrameWireApi = Omit<TopFrameFullApi, "getSiteInfo"> & {
+  getSiteInfo(...args: Parameters<TopFrameFullApi["getSiteInfo"]>): Promise<GetProjectResponse | StartupProjectModel>;
+};
+
+// An administrator's published host receives only capabilities needed to
+// display the pinned model, interact with the canvas and run local Preview.
+export function restrictPublishedTemplateFrameApi(
+  api: TopFrameWireApi,
+  history: History,
+  projectId: string,
+) {
+  const restrictNavigation = (navigate: TopFrameApi["pushLocation"]) =>
+    (path?: string, query?: string, hash?: string) => {
+      const target = {
+        ...history.location,
+        pathname: path ?? history.location.pathname,
+        search: query ?? "",
+        hash: hash ?? "",
+      };
+      const location = parseProjectLocation(target);
+      assert(
+        APP_ROUTES.templateCenter.parse(target.pathname) ||
+          (location?.publishedTemplate && location.projectId === projectId),
+        "Published template navigation must stay in the published view.",
+      );
+      return navigate(path, query, hash);
+    };
+  return {
+    ...pick(api, [
+      "exposeHostFrameApi", "registerLocationListener", "registerUiLocaleListener",
+      "registerUiAppearanceListener", "getStudioUrl", "setStudioReady", "setStudioError",
+      "setDocumentTitle", "setDesktopTitleBarDragRegions", "setEditorViewMenuState",
+      "setStudioModalOpen", "onFrameInteraction",
+      "getCurrentTeam", "canEditProjectUiConfig", "getAppConfig", "getSelfInfo",
+      "getLastBundleVersion", "getSiteInfo", "getHostlessLibraryRelease",
+      "getHostlessLibraryCanvas", "getStorageItem", "addStorageItem", "removeStorageItem",
+      "addStorageListener", "addEventListener", "removeEventListener",
+    ]),
+    pushLocation: restrictNavigation(api.pushLocation),
+    replaceLocation: restrictNavigation(api.replaceLocation),
+  };
 }
 
 /** Transfers ownership of the one-shot bootstrap request to the host session. */
@@ -56,6 +103,7 @@ export function TopFrameCtxProvider({
   projectId,
   topFrameApi,
   initialBranchId,
+  publishedSiteInfo,
 }: TopFrameCtxProviderProps) {
   ensureIsTopFrame();
 
@@ -65,7 +113,10 @@ export function TopFrameCtxProvider({
     hostConnected: false,
     hostFrameApiReady: false,
     hostFrameApi: new Proxy({} as Comlink.Remote<HostFrameApi>, {
-      get() {
+      get(_target, property) {
+        if (property === Symbol.toStringTag) {
+          return "HostFrameApi";
+        }
         throw new Error(`HostFrameApi not ready`);
       },
     }),
@@ -80,11 +131,13 @@ export function TopFrameCtxProvider({
     // Fetch the model while the trusted host boots, instead of starting this
     // request only after its scripts and frame bridge have initialized.
     const prefetched = takeInitialProjectModel(appCtx);
-    let initialSiteInfo: Promise<GetProjectResponse | StartupProjectModel> | undefined =
-      prefetched?.projectId === projectId && prefetched.branchId === initialBranchId
+    let initialSiteInfo: Promise<GetProjectResponse | StartupProjectModel> | undefined;
+    if (!publishedSiteInfo) {
+      initialSiteInfo = prefetched?.projectId === projectId && prefetched.branchId === initialBranchId
         ? prefetched.data
         : api.getSiteInfo(projectId, { branchId: initialBranchId });
-    void initialSiteInfo.catch(() => undefined);
+    }
+    void initialSiteInfo?.catch(() => undefined);
     let disposed = false;
     let remoteHostApi: Comlink.Remote<HostFrameApi> | undefined;
     const sessionDisposers = new Set<() => void>();
@@ -122,9 +175,6 @@ export function TopFrameCtxProvider({
       console.log(
         "[TopFrame] Received PLASMIC_HOST_REGISTER message, exposing API to HostFrame",
       );
-      type TopFrameWireApi = Omit<TopFrameFullApi, "getSiteInfo"> & {
-        getSiteInfo(...args: Parameters<TopFrameFullApi["getSiteInfo"]>): Promise<GetProjectResponse | StartupProjectModel>;
-      };
       const topFrameCtxApi = {
         exposeHostFrameApi: (hostFrameApi: Comlink.Remote<HostFrameApi>) => {
           if (disposed) {
@@ -149,10 +199,15 @@ export function TopFrameCtxProvider({
           disposed ? Promise.resolve() : api.closeSocket(),
 
         getSiteInfo: (siteId: string, opts: Parameters<TopFrameFullApi["getSiteInfo"]>[1]) => {
+          if (publishedSiteInfo) {
+            assert(siteId === projectId, "Published template access is limited to the current snapshot.");
+            return Promise.resolve(publishedSiteInfo);
+          }
           if (
             initialSiteInfo &&
             siteId === projectId &&
             opts?.branchId === initialBranchId &&
+            !opts?.publishedTemplate &&
             opts?.revisionId === undefined &&
             opts?.revisionNum === undefined &&
             opts?.dontMigrateProject === undefined
@@ -197,7 +252,10 @@ export function TopFrameCtxProvider({
             topFrameApi.registerLocationListener(locationListener)));
         },
       } as TopFrameWireApi;
-      Comlink.expose(topFrameCtxApi, {
+      const exposedApi = publishedSiteInfo
+        ? restrictPublishedTemplateFrameApi(topFrameCtxApi, appCtx.history, projectId)
+        : topFrameCtxApi;
+      Comlink.expose(exposedApi, {
         ...hostFrameEndpoint,
         addEventListener(
           type: string,

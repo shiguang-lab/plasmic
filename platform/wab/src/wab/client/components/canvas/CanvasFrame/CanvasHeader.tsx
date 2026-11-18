@@ -63,6 +63,7 @@ export const CanvasHeader = React.memo(function CanvasHeader(props: {
     studioCtx.focusedContentFrame() === frame;
   const isFocusedFrame = studioCtx.focusedViewCtx()?.arenaFrame() === frame;
   const shouldShowFrameConfigButton =
+    !studioCtx.isPublishedTemplate &&
     !focusedMode && (!isComponentArena(arena) || isFocusedFrame);
 
   const rootRef = useScaledElementRef<HTMLDivElement>();
@@ -273,7 +274,11 @@ export const CanvasVariantsDesc = React.memo(function CanvasVariantsDesc(props: 
 
   return (
     <div className="inline-flex flex-fill">
-      {header.displayVariants.map((displayVariant) => (
+      {studioCtx.isPublishedTemplate ? header.displayVariants.map(({ variant, displayName }) => (
+        <span key={variant.uuid} className="CanvasFrame__Label__variant">
+          {displayName}
+        </span>
+      )) : header.displayVariants.map((displayVariant) => (
         <VariantName
           key={displayVariant.variant.uuid}
           {...displayVariant}

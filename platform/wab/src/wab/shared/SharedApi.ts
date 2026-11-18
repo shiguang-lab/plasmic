@@ -196,6 +196,7 @@ import semver from "semver";
 
 export interface SiteInfo {
   isTemplate?: boolean;
+  publishedTemplateVersion?: string;
   createdAt: string | Date;
   createdById: string | null;
   updatedAt: string | Date;
@@ -447,8 +448,12 @@ export abstract class SharedApi {
       revisionId?: string;
       revisionNum?: number;
       dontMigrateProject?: boolean;
+      publishedTemplate?: boolean;
     },
   ): Promise<GetProjectResponse> {
+    if (opts?.publishedTemplate) {
+      return this.getModelResponse(`/template-center/${siteId}/studio`);
+    }
     return this.getModelResponse(
       `/projects/${showProjectBranchId(toOpaque(siteId), opts?.branchId)}`,
       {
@@ -1742,11 +1747,11 @@ export abstract class SharedApi {
   listDesignTemplates(): Promise<TemplateCenterResponse> {
     return this.get("/template-center");
   }
-  createDesignTemplate(draft: TemplateMetadata): Promise<{ template: ApiDesignTemplate }> {
-    return this.post("/template-center", draft);
+  createDesignTemplate(metadata: TemplateMetadata): Promise<{ template: ApiDesignTemplate }> {
+    return this.post("/template-center", metadata);
   }
-  updateDesignTemplate(id: ProjectId, draft: TemplateMetadata): Promise<{ template: ApiDesignTemplate }> {
-    return this.put(`/template-center/${id}`, draft);
+  updateDesignTemplate(id: ProjectId, metadata: TemplateMetadata): Promise<{ template: ApiDesignTemplate }> {
+    return this.put(`/template-center/${id}`, metadata);
   }
   publishDesignTemplate(id: ProjectId): Promise<{ template: ApiDesignTemplate }> {
     return this.post(`/template-center/${id}/publish`, {});

@@ -35,7 +35,9 @@ function createStudioCtx({
         loadTimings,
       }));
   contextDone();
-  studioCtx.runAfterInitialCanvasReady(() => checkDepPkgHosts(studioCtx.appCtx, studioCtx.siteInfo, depPkgVersions));
+  if (!studioCtx.siteInfo.publishedTemplateVersion) {
+    studioCtx.runAfterInitialCanvasReady(() => checkDepPkgHosts(studioCtx.appCtx, studioCtx.siteInfo, depPkgVersions));
+  }
 
   spawn(initRootCanvasPkgs());
 

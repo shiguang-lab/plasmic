@@ -538,14 +538,19 @@ export const TopFrameObserver = React.memo(function TopFrameObserverContent({
     [topFrameApi],
   );
 
-  React.useEffect(() => trackArtboardFileDrags(studioCtx), [studioCtx]);
-  React.useEffect(
-    () =>
-      fileDragMonitor.subscribeRemote((event) =>
-        spawn(topFrameApi.onFileDragEventInHost(event)),
-      ),
-    [topFrameApi],
-  );
+  React.useEffect(() => {
+    if (studioCtx.isPublishedTemplate) {
+      return;
+    }
+    const stopTracking = trackArtboardFileDrags(studioCtx);
+    const unsubscribe = fileDragMonitor.subscribeRemote((event) =>
+      spawn(topFrameApi.onFileDragEventInHost(event)),
+    );
+    return () => {
+      unsubscribe();
+      stopTracking();
+    };
+  }, [studioCtx, topFrameApi]);
 
   React.useEffect(() => {
     const dispose = subscribeModalOpen(open => {
@@ -558,6 +563,9 @@ export const TopFrameObserver = React.memo(function TopFrameObserverContent({
   }, [topFrameApi]);
 
   React.useEffect(() => {
+    if (studioCtx.isPublishedTemplate) {
+      return;
+    }
     const disposes = filterFalsy([
       (() => {
         let previous: boolean | undefined;

@@ -8,7 +8,7 @@ import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 @Entity("design_template")
 export class DesignTemplate {
   @PrimaryColumn("text") projectId: ProjectId;
-  @Column("jsonb") draft: TemplateMetadata;
+  @Column("jsonb") metadata: TemplateMetadata;
   @Column("jsonb", { nullable: true }) published: TemplatePublication | null;
   @Column("timestamptz") updatedAt: Date;
 }

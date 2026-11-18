@@ -7,7 +7,7 @@ import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { ensureBaseVariantSetting, getBaseVariant } from "@/wab/shared/Variants";
-import { getTplComponentArg } from "@/wab/shared/TplMgr";
+import { getTplComponentArg, TplMgr } from "@/wab/shared/TplMgr";
 import { fillVirtualSlotContents, isSlot, isDefaultSlotArg } from "@/wab/shared/SlotUtils";
 import { mkCodeComponent, propMetasToComponentParams } from "@/wab/shared/code-components/code-components";
 import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
@@ -44,6 +44,8 @@ import { vi } from "vitest";
 import { runInNewContext } from "node:vm";
 import { assertSiteInvariants } from "@/wab/shared/site-invariants";
 import { createStore } from "zustand/vanilla";
+import { toOpaque } from "@/wab/commons/types";
+import { mock } from "vitest-mock-extended";
 
 function bindNativePreviewState(preview: { isLive: boolean }) {
   const store = createStore(() => ({ isLive: preview.isLive }));
@@ -88,6 +90,44 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
+  it("rejects edits and comments from MCP in an administrator's published template session", async () => {
+    const site = createSite();
+    const page = new TplMgr({ site }).addComponent({
+      name: "Published page",
+      type: ComponentType.Page,
+      pageMeta: { path: "/" },
+    });
+    const { studioCtx, appCtx, api } = fakeStudioCtx({
+      site,
+      initialUrl: "/projects/template?publishedTemplate=true",
+      siteInfo: { id: toOpaque("template"), isTemplate: true, publishedTemplateVersion: "1.0.0" },
+    });
+    appCtx.selfInfo = mock<NonNullable<typeof appCtx.selfInfo>>({ isAdmin: true });
+    const edit = { name: "Draft page", type: "page", path: "/draft" };
+    const call = (name: string, input: Record<string, unknown> = {}) =>
+      COPILOT_TOOLS[name].execute(studioCtx, reviewedInput(name, input));
+    const reads = { componentUuids: [page.uuid], view: "full" };
+    const before = await call("read", reads);
+    const readOnly = { message: expect.stringContaining("Published templates are read-only"), operationExecuted: false };
+
+    await expect(call("createComponent", edit)).rejects.toMatchObject(readOnly);
+    await expect(call("executeBatch", {
+      operations: [{ name: "createComponent", input: edit }],
+    })).rejects.toMatchObject(readOnly);
+    await expect(call("save")).rejects.toMatchObject(readOnly);
+    await expect(call("undo")).rejects.toMatchObject(readOnly);
+    await expect(call("addComment", {
+      componentUuid: page.uuid,
+      body: "A comment on the published page",
+    })).rejects.toMatchObject({ message: "Comments are unavailable in published templates.", operationExecuted: false });
+    expect(api.getComments).not.toHaveBeenCalled();
+    expect(api.postRootComment).not.toHaveBeenCalled();
+    expect(api.saveProjectRevChanges).not.toHaveBeenCalled();
+    expect(studioCtx.hasUnsavedChanges()).toBe(false);
+    expect(site.components).toEqual([page]);
+    expect(await call("read", reads)).toBe(before);
+  });
+
   it("omits editor-only overlay props from MCP contracts, properties and full markup while preserving Modal open", async () => {
     const site = createSite();
     const registrations = ["Tooltip", "Dropdown", "Popover", "Popconfirm", "Select", "Modal", "Drawer"].map((name) => ({

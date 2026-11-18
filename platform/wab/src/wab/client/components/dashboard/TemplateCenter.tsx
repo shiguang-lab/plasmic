@@ -6,12 +6,8 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
-import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import type {
-  ApiDesignTemplate,
-  TemplateMetadata,
-  TemplatePublication,
-} from "@/wab/shared/template-center";
+import { APP_ROUTES, SEARCH_PARAM_PUBLISHED_TEMPLATE } from "@/wab/shared/route/app-routes";
+import type { ApiDesignTemplate, TemplateMetadata } from "@/wab/shared/template-center";
 import {
   EllipsisOutlined,
   PictureOutlined,
@@ -29,7 +25,6 @@ import {
   Input,
   Select,
   Tabs,
-  Typography,
   Upload,
   message,
 } from "antd";
@@ -130,15 +125,15 @@ const useStyles = createStyles(({ token }) => ({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 14,
-    padding: 20,
+    gap: 10,
+    padding: 16,
     borderRadius: 12,
     border: `1px dashed ${token.colorBorder}`,
     background: token.colorFillAlter,
   },
   uploadPreview: {
     width: "100%",
-    maxHeight: 180,
+    maxHeight: 120,
     objectFit: "contain",
     borderRadius: 8,
   },
@@ -148,19 +143,20 @@ const useStyles = createStyles(({ token }) => ({
     color: token.colorTextSecondary,
     textAlign: "center",
   },
-  formScroll: { maxHeight: "65vh", minHeight: 0 },
-  preview: {
-    height: "70vh",
-    width: "100%",
-    display: "flex",
-    justifyContent: "center",
-    overflow: "hidden",
-    background: token.colorFillAlter,
+  formScroll: { maxHeight: "min(65dvh, calc(100dvh - 144px))", minHeight: 0 },
+  form: {
+    "& .ant-form-item": { marginBottom: 16 },
+    "& > .ant-form-item:last-child": { marginBottom: 0 },
   },
-  frame: { height: "100%", border: 0, background: "white", maxWidth: "100%" },
+  fieldGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    columnGap: 16,
+    "@media (width < 576px)": { gridTemplateColumns: "minmax(0, 1fr)" },
+  },
 }));
 
-const emptyDraft: TemplateMetadata = {
+const emptyMetadata: TemplateMetadata = {
   name: "",
   description: "",
   kind: "page",
@@ -185,20 +181,17 @@ export default function TemplateCenter() {
   const [category, setCategory] = React.useState("all");
   const [library, setLibrary] = React.useState("all");
   const [editing, setEditing] = React.useState<ApiDesignTemplate | "new">();
-  const [preview, setPreview] = React.useState<TemplatePublication>();
   const [confirming, setConfirming] = React.useState<ApiDesignTemplate>();
   const [uploading, setUploading] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [form] = Form.useForm<TemplateMetadata>();
   const canManage = data?.canManage === true;
   const templates = data?.templates ?? [];
-  const metadata = (item: ApiDesignTemplate) =>
-    canManage ? (item.draft ?? item.published) : item.published;
   const categories = [
     ...new Set(
       templates
-        .map((item) => metadata(item)?.category)
-        .filter((value): value is string => !!value),
+        .map(({ metadata }) => metadata.category)
+        .filter(Boolean),
     ),
   ].sort();
   const libraries = [
@@ -213,19 +206,16 @@ export default function TemplateCenter() {
     { value: "desktop", label: t("Desktop") },
     { value: "responsive", label: t("Responsive") },
   ];
-  const filtered = templates.filter((item) => {
-    const meta = metadata(item);
-    return (
-      meta &&
-      (kind === "all" || meta.kind === kind) &&
-      (device === "all" || meta.device === device) &&
-      (category === "all" || meta.category === category) &&
-      (library === "all" || item.published?.libraries.includes(library)) &&
-      `${meta.name} ${meta.description}`
+  const filtered = templates.filter(
+    ({ metadata, published }) =>
+      (kind === "all" || metadata.kind === kind) &&
+      (device === "all" || metadata.device === device) &&
+      (category === "all" || metadata.category === category) &&
+      (library === "all" || published?.libraries.includes(library)) &&
+      `${metadata.name} ${metadata.description}`
         .toLocaleLowerCase()
-        .includes(search.trim().toLocaleLowerCase())
-    );
-  });
+        .includes(search.trim().toLocaleLowerCase()),
+  );
 
   const hasFilters =
     !!search.trim() ||
@@ -250,9 +240,7 @@ export default function TemplateCenter() {
     setBusy(false);
   }
   function edit(item: ApiDesignTemplate | "new") {
-    form.setFieldsValue(
-      item === "new" ? emptyDraft : (item.draft ?? emptyDraft),
-    );
+    form.setFieldsValue(item === "new" ? emptyMetadata : item.metadata);
     setEditing(item);
   }
   async function save(values: TemplateMetadata) {
@@ -268,24 +256,10 @@ export default function TemplateCenter() {
         await appCtx.api.updateDesignTemplate(editing.id, values);
         setEditing(undefined);
         await mutate();
-        void message.success(t("Template draft saved"));
+        void message.success(t("Saved"));
       }
     });
   }
-  async function openPreview(item: ApiDesignTemplate) {
-    await run(async () => {
-      // Resolve again at the point of use; do not open a stale/unpublished card.
-      const current = await mutate();
-      const publication = current?.templates.find(
-        (value) => value.id === item.id,
-      )?.published;
-      if (!publication) {
-        throw new Error(t("This template is no longer published"));
-      }
-      setPreview(publication);
-    });
-  }
-
   const catalog = (
     <div className={cx(layout.workspaceContent, styles.catalog)}>
       {error ? (
@@ -326,10 +300,7 @@ export default function TemplateCenter() {
       ) : (
         <div className={layout.grid}>
           {filtered.map((item) => {
-            const meta = metadata(item);
-            if (!meta) {
-              return null;
-            }
+            const meta = item.metadata;
             const details = [
               kindOptions.find((option) => option.value === meta.kind)?.label,
               deviceOptions.find((option) => option.value === meta.device)
@@ -338,9 +309,6 @@ export default function TemplateCenter() {
             ]
               .filter(Boolean)
               .join(" · ");
-            const openLabel = t(
-              item.published ? "View published template" : "Edit canvas",
-            );
             return (
               <article
                 key={item.id}
@@ -352,22 +320,20 @@ export default function TemplateCenter() {
                 <div className={dashboard.content}>
                   <div className={dashboard.header}>
                     <h2 className={dashboard.title}>
-                      <button
-                        type="button"
-                        className={styles.cardOpen}
-                        disabled={busy}
-                        aria-label={`${openLabel}: ${meta.name}`}
-                        title={`${openLabel}: ${meta.name}`}
-                        onClick={() =>
-                          item.published
-                            ? void openPreview(item)
-                            : history.push(
-                                APP_ROUTES.project.fill({ projectId: item.id }),
-                              )
-                        }
-                      >
-                        {meta.name}
-                      </button>
+                      {item.published ? (
+                        <button
+                          type="button"
+                          className={styles.cardOpen}
+                          disabled={busy}
+                          aria-label={`${t("View published template")}: ${meta.name}`}
+                          onClick={() => history.push(APP_ROUTES.project.fill(
+                            { projectId: item.id },
+                            { [SEARCH_PARAM_PUBLISHED_TEMPLATE]: "true" },
+                          ))}
+                        >
+                          {meta.name}
+                        </button>
+                      ) : meta.name}
                     </h2>
                     {canManage && (
                       <Dropdown
@@ -426,8 +392,13 @@ export default function TemplateCenter() {
                   <div className={dashboard.meta}>
                     <span title={details}>{details}</span>
                     {canManage && (
-                      <span className={dashboard.workspace}>
-                        {t(item.published ? "Published" : "Draft")}
+                      <span
+                        className={cx(
+                          dashboard.workspace,
+                          item.published && dashboard.published,
+                        )}
+                      >
+                        {t(item.published ? "Published" : "Not published")}
                       </span>
                     )}
                   </div>
@@ -555,15 +526,18 @@ export default function TemplateCenter() {
       <Modal
         open={!!editing}
         title={t(editing === "new" ? "New template" : "Edit template details")}
+        width={640}
+        centered
         onCancel={() => !busy && !uploading && setEditing(undefined)}
         onOk={() => form.submit()}
         confirmLoading={busy}
         okButtonProps={{ disabled: uploading }}
         cancelButtonProps={{ disabled: busy || uploading }}
-        okText={t(editing === "new" ? "Create and edit" : "Save draft")}
+        okText={t(editing === "new" ? "Create and edit" : "Save")}
       >
         <Scrollbar scrollX={false} className={styles.formScroll}>
           <Form
+            className={styles.form}
             form={form}
             layout="vertical"
             onSubmitCapture={(event) => {
@@ -573,7 +547,7 @@ export default function TemplateCenter() {
               }
             }}
             onFinish={save}
-            initialValues={emptyDraft}
+            initialValues={emptyMetadata}
           >
             <Form.Item name="thumbnailUrl" label={t("Template cover")}>
               <TemplateCoverUpload
@@ -582,49 +556,29 @@ export default function TemplateCenter() {
                 disabled={busy}
               />
             </Form.Item>
-            <Form.Item
-              name="name"
-              label={t("Name")}
-              rules={[{ required: true, whitespace: true }]}
-            >
-              <Input maxLength={120} />
-            </Form.Item>
-            <Form.Item name="kind" label={t("Template type")}>
-              <Select options={kindOptions} />
-            </Form.Item>
-            <Form.Item name="device" label={t("Device")}>
-              <Select options={deviceOptions} />
-            </Form.Item>
-            <Form.Item name="category" label={t("Category")}>
-              <Input maxLength={80} />
-            </Form.Item>
+            <div className={styles.fieldGrid}>
+              <Form.Item
+                name="name"
+                label={t("Name")}
+                rules={[{ required: true, whitespace: true }]}
+              >
+                <Input maxLength={120} />
+              </Form.Item>
+              <Form.Item name="kind" label={t("Template type")}>
+                <Select options={kindOptions} />
+              </Form.Item>
+              <Form.Item name="device" label={t("Device")}>
+                <Select options={deviceOptions} />
+              </Form.Item>
+              <Form.Item name="category" label={t("Category")}>
+                <Input maxLength={80} />
+              </Form.Item>
+            </div>
             <Form.Item name="description" label={t("Description")}>
               <Input.TextArea autoSize={{ minRows: 2 }} maxLength={4000} />
             </Form.Item>
           </Form>
         </Scrollbar>
-      </Modal>
-      <Modal
-        open={!!preview}
-        title={preview?.name}
-        width={1200}
-        footer={null}
-        onCancel={() => setPreview(undefined)}
-        destroyOnHidden
-      >
-        {preview && (
-          <>
-            <Typography.Paragraph>{preview.description}</Typography.Paragraph>
-            <div className={styles.preview}>
-              <iframe
-                className={styles.frame}
-                title={preview.name}
-                src={preview.previewUrl}
-                style={{ width: preview.device === "mobile" ? 390 : "100%" }}
-              />
-            </div>
-          </>
-        )}
       </Modal>
     </section>
   );

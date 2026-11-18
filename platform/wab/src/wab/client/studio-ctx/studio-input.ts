@@ -4,7 +4,7 @@ import { hasStudioCommandBarrier } from "@/wab/client/hooks/useStudioEscape";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 
 export function isStudioDesignInputEnabled(studio: StudioCtx) {
-  return studio.isDevMode && !studio.isInteractiveMode;
+  return studio.isDevMode && !studio.isInteractiveMode && !studio.isPublishedTemplate;
 }
 
 export function canHandleStudioModelInput(

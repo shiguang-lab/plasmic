@@ -923,17 +923,18 @@ export class StudioCtx extends WithDbCtx {
       clearTimeout(initialLoadTimer);
     });
 
-    this.runAfterInitialCanvasReady(() =>
-      this.versionHistory.refreshReleases(),
-    );
+    if (!this.isPublishedTemplate) {
+      this.runAfterInitialCanvasReady(() =>
+        this.versionHistory.refreshReleases(),
+      );
 
-    this.runAfterInitialCanvasReady(() =>
-      this.versionHistory.refreshRevisions(),
-    );
-
-    this.runAfterInitialCanvasReady(async () => {
-      this.disposals.push(startComponentReuse(this));
-    });
+      this.runAfterInitialCanvasReady(() =>
+        this.versionHistory.refreshRevisions(),
+      );
+      this.runAfterInitialCanvasReady(async () => {
+        this.disposals.push(startComponentReuse(this));
+      });
+    }
 
     this.disposals.push(
       this.appCtx.history.listen(({ location }) => {
@@ -1316,9 +1317,11 @@ export class StudioCtx extends WithDbCtx {
 
   /** Default arena to use (e.g. arena not specified in URL, current arena deleted). */
   private firstArena(): AnyArena | undefined {
-    // prefer custom/mixed arenas
-    if (this.site.arenas.length > 0) {
-      return this.site.arenas[0];
+    const overview = this.site.arenas.find(
+      (arena) => !this.siteInfo.publishedTemplateVersion || getArenaFrames(arena).length > 0,
+    );
+    if (overview) {
+      return overview;
     }
 
     const firstPageOrComponent =
@@ -1359,6 +1362,9 @@ export class StudioCtx extends WithDbCtx {
   }
 
   async refreshSiteInfo() {
+    if (this.siteInfo.publishedTemplateVersion) {
+      return;
+    }
     const {
       project,
       perms,
@@ -1765,13 +1771,16 @@ export class StudioCtx extends WithDbCtx {
         this.inspectorStore.setState((state) => state.pending ? state : Object.freeze({ ...state, pending: true }), true);
         const tpl = vc?.focusedTpl();
         if (
+          !this.isPublishedTemplate &&
           vc &&
           isTplVariantable(tpl) &&
           !vc.variantTplMgr().tryGetTargetVariantSetting(tpl)
         ) {
           this.changeSpawn(() => fixupChrome(this));
         }
-        this.createViewStateUndoRecord();
+        if (!this.isPublishedTemplate) {
+          this.createViewStateUndoRecord();
+        }
     }))();
     if (!selectionChanged) {
       return;
@@ -1945,15 +1954,23 @@ export class StudioCtx extends WithDbCtx {
         this._isChanging = true;
         this._changeOpts = [opts];
         try {
-          const maybeChanges = this.recorder.withRecording<E>(f);
+          const maybeChanges = this.recorder.withRecording<E>(() => {
+            const result = f();
+            // Reject inside the recorder, before undo history or model stores
+            // can observe the attempted edit.
+            if (this.isPublishedTemplate && !result.isErr() &&
+                this.recorder.getChangesSoFar().length > 0) {
+              throw new Error("Published templates are read-only.");
+            }
+            return result;
+          });
           if (maybeChanges.isErr()) {
             return err(maybeChanges.error);
           }
 
-          const [newChanges, summary] = fixupForChanges(
-            this,
-            maybeChanges.value,
-          );
+          const [newChanges, summary] = this.isPublishedTemplate
+            ? tuple(maybeChanges.value, summarizeChanges(this, maybeChanges.value))
+            : fixupForChanges(this, maybeChanges.value);
 
           if (newChanges.changes.length > 0) {
             if (!this.isUnlogged()) {
@@ -1967,6 +1984,9 @@ export class StudioCtx extends WithDbCtx {
           // That's because evaluators may invoke some postEval() handlers that
           // will create new undo records (for example, viewCtx.selectNewTpl),
           // and those new records may need to be merged with this record here.
+          if (this.isPublishedTemplate) {
+            return;
+          }
           if (this.isUnlogged()) {
             this._queuedUnloggedChanges = mergeRecordedChanges(
               this._queuedUnloggedChanges,
@@ -2671,6 +2691,9 @@ export class StudioCtx extends WithDbCtx {
     pkgVersionInfoMeta?: PkgVersionInfoMeta,
     opts?: { replace?: boolean },
   ) {
+    if (this.isPublishedTemplate) {
+      return;
+    }
     return this.switchRoute({
       branch,
       pkgVersionInfoMeta,
@@ -2692,6 +2715,9 @@ export class StudioCtx extends WithDbCtx {
   }
 
   switchToRevision(revisionId: string, opts?: { replace?: boolean }) {
+    if (this.isPublishedTemplate) {
+      return;
+    }
     this.switchRoute({
       branch: this.dbCtx().branchInfo,
       branchRevision: revisionId,
@@ -2869,6 +2895,7 @@ export class StudioCtx extends WithDbCtx {
 
     const location = mkProjectLocation({
       projectId: this.siteInfo.id,
+      publishedTemplate: !!this.siteInfo.publishedTemplateVersion,
       slug,
       branchName,
       branchVersion,
@@ -2902,7 +2929,7 @@ export class StudioCtx extends WithDbCtx {
       this.appCtx.api.getStorageItem(this.mkFocusPreferenceKey()),
       this.appCtx.api.getStorageItem(this.mkFullPageHeightKey()),
       (async () => {
-        if (desktop && this.appCtx.topFrameApi) {
+        if (desktop && this.appCtx.topFrameApi && !this.siteInfo.publishedTemplateVersion) {
           this.startupStore.setState({ viewportLoaded: false });
           try {
             const saved = await this.appCtx.topFrameApi.getSavedEditorView(
@@ -2928,6 +2955,9 @@ export class StudioCtx extends WithDbCtx {
       if (this.viewCtxs.length) { this.resyncFullPageHeightViews(); }
     });
 
+    if (this.siteInfo.publishedTemplateVersion) {
+      this.switchLeftTab("outline");
+    }
     const location = this.appCtx.history.location;
     await this.handleRouteChange(location);
     if (this.canvasLoadingDisposed) { return; }
@@ -3040,6 +3070,9 @@ export class StudioCtx extends WithDbCtx {
   private async handleRouteChange(location: Location) {
     if (this.canvasLoadingDisposed) { return; }
     const match = parseProjectLocation(location);
+    if (!!match?.publishedTemplate !== !!this.siteInfo.publishedTemplateVersion) {
+      return;
+    }
     const returningFromPreview = this.routeWasPreview && !match?.isPreview;
     this.routeWasPreview = !!match?.isPreview;
     if (match) {
@@ -3052,7 +3085,9 @@ export class StudioCtx extends WithDbCtx {
         threadId,
         branchRevision,
       } = match;
-      await this.handleBranchChange(branchName, branchVersion, branchRevision);
+      if (!this.siteInfo.publishedTemplateVersion) {
+        await this.handleBranchChange(branchName, branchVersion, branchRevision);
+      }
       if (this.canvasLoadingDisposed) { return; }
       if (!isPreview) {
         // We don't want to render the arenas in preview mode, for performance
@@ -3954,6 +3989,10 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private setLeftPanel(panel: LeftPanel | undefined) {
+    if (this.isPublishedTemplate && panel &&
+        !(panel.type === "tab" && panel.tab === "outline")) {
+      return;
+    }
     this.leftPanelState.deferPublication(() => {
       if (panel) {
         this.leftPanelState.clearLeftTabGroup();
@@ -4071,6 +4110,9 @@ export class StudioCtx extends WithDbCtx {
     tabKey: LeftTabKey | undefined,
     opts?: { highlight?: boolean },
   ) {
+    if (this.isPublishedTemplate && tabKey && tabKey !== "outline") {
+      return;
+    }
     this.leftPanelState.deferPublication(() => {
       if (tabKey) {
         this.leftPanelState.setLastLeftTab(tabKey);
@@ -4423,6 +4465,9 @@ export class StudioCtx extends WithDbCtx {
   }
 
   async paste(clipboard: ReadableClipboard, as?: "sibling") {
+    if (this.isPublishedTemplate) {
+      return;
+    }
     trackEvent("Paste");
     await paste({
       clipboard,
@@ -4490,6 +4535,9 @@ export class StudioCtx extends WithDbCtx {
   // Comments
   //
   showComments() {
+    if (this.siteInfo.publishedTemplateVersion) {
+      return false;
+    }
     const accessLevel = getAccessLevelToResource(
       { type: "project", resource: this.siteInfo },
       this.appCtx.selfInfo,
@@ -4564,7 +4612,7 @@ export class StudioCtx extends WithDbCtx {
 
   turnFocusedModeOn = () => {
     const currentArena = this.currentArena;
-    if (!isDedicatedArena(currentArena) || currentArena._focusedFrame) {
+    if (this.isPublishedTemplate || !isDedicatedArena(currentArena) || currentArena._focusedFrame) {
       return;
     }
 
@@ -4584,7 +4632,7 @@ export class StudioCtx extends WithDbCtx {
 
   turnFocusedModeOff = () => {
     const currentArena = this.currentArena;
-    if (!isDedicatedArena(currentArena) || !currentArena._focusedFrame) {
+    if (this.isPublishedTemplate || !isDedicatedArena(currentArena) || !currentArena._focusedFrame) {
       return;
     }
 
@@ -4709,12 +4757,18 @@ export class StudioCtx extends WithDbCtx {
   }
 
   getLeftTabPermission(tab: LeftTabUiKey) {
+    if (this.isPublishedTemplate) {
+      return tab === "outline" ? "readable" : "hidden";
+    }
     return getLeftTabPermission(this.getCurrentUiConfig(), tab, {
       isContentCreator: this.contentEditorMode,
     });
   }
 
   toggleContentEditorMode() {
+    if (this.isPublishedTemplate) {
+      return;
+    }
     if (!this.contentEditorMode) {
       // Turn it on
       setContentEditorMode(this, true);
@@ -5892,7 +5946,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   canUndo() {
-    return this.undoLog.canUndo();
+    return !this.isPublishedTemplate && this.undoLog.canUndo();
   }
 
   async undo() {
@@ -5902,14 +5956,14 @@ export class StudioCtx extends WithDbCtx {
       // some settings there and not in Studio.
       return;
     }
-    if (this.undoLog.canUndo()) {
+    if (this.canUndo()) {
       await this.modelChangeQueue.push({ type: "undo" });
       defer(() => this.framesChanged.dispatch());
     }
   }
 
   canRedo() {
-    return this.undoLog.canRedo();
+    return !this.isPublishedTemplate && this.undoLog.canRedo();
   }
 
   async redo() {
@@ -5917,7 +5971,7 @@ export class StudioCtx extends WithDbCtx {
     if (this.isBottomModalFocused()) {
       return;
     }
-    if (this.undoLog.canRedo()) {
+    if (this.canRedo()) {
       await this.modelChangeQueue.push({ type: "redo" });
       defer(() => this.framesChanged.dispatch());
     }
@@ -6870,6 +6924,10 @@ export class StudioCtx extends WithDbCtx {
     );
   }
 
+  get isPublishedTemplate() {
+    return !!this.siteInfo.publishedTemplateVersion;
+  }
+
   canEditBranch() {
     return !!(
       this.dbCtx().branchInfo?.id || !this.siteInfo.isMainBranchProtected
@@ -7035,7 +7093,7 @@ export class StudioCtx extends WithDbCtx {
 
   get saveStatus() { return this.saveState.saveStatus; }
 
-  get blockChanges() { return this.saveState.blockChanges; }
+  get blockChanges() { return this.isPublishedTemplate || this.saveState.blockChanges; }
   setBlockChanges(value: boolean) { this.saveState.blockChanges = value; }
 
   aiSaveReceipt?: {
@@ -7045,6 +7103,9 @@ export class StudioCtx extends WithDbCtx {
     result?: import("@/wab/shared/copilot/local-edit").LocalEditToolResult;
   };
   async save(opts?: { noErrorNotification?: boolean }) {
+    if (this.isPublishedTemplate) {
+      return SaveResult.StopSaving;
+    }
     let failure: unknown;
     const result = await this.asyncSaver(true, {
       ...opts,
@@ -7556,6 +7617,7 @@ export class StudioCtx extends WithDbCtx {
 
   /** Reverts the current branch to the given version or revision and switches to the latest. */
   async revertTo(versionOrRevision: PkgVersionInfoMeta | MinimalRevisionInfo) {
+    assert(!this.isPublishedTemplate, "Published templates are read-only.");
     this.setWatchPlayerId(null);
 
     const branch = this.branchInfo();
@@ -7623,6 +7685,7 @@ export class StudioCtx extends WithDbCtx {
     draft?: DesktopDraft,
     preserveCheckpoint = false,
   ) {
+    assert(!this.isPublishedTemplate, "Published template version is fixed for this session.");
     if (!draft) {
       await this.desktopDraft?.protect(preserveCheckpoint);
     }
@@ -8047,6 +8110,7 @@ export class StudioCtx extends WithDbCtx {
     branchId?: BranchId,
     opts?: { hostLessPackage?: boolean },
   ): Promise<PublishResult> {
+    assert(!this.isPublishedTemplate, "Published templates are read-only.");
     // Use empty list as default tags
     const tags = maybeTags || [];
     // Use date as default description
@@ -9415,6 +9479,7 @@ interface CanvasLoadRequest {
 }
 
 function canUserEditProject(user: (ApiUser & { isAdmin?: boolean }) | null, project: SiteInfo) {
+  if (project.publishedTemplateVersion) { return false; }
   if (project.isTemplate) { return user?.isAdmin === true; }
   if (isUnownedProject(project)) {
     // project with no owner and public can be edited

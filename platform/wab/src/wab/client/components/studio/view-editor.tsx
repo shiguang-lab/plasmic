@@ -1107,7 +1107,7 @@ async handleDrop(e: DragEvent | React.DragEvent<HTMLDivElement>) {
       return;
     }
     e.preventDefault();
-    if (e.dataTransfer) {
+    if (!this.props.studioCtx.isPublishedTemplate && e.dataTransfer) {
       await this.props.studioCtx.paste(
         ReadableClipboard.fromDataTransfer(e.dataTransfer),
       );
@@ -1196,6 +1196,13 @@ private async handleMouseDown(
           appendToMultiSelection: e.shiftKey,
         }),
       );
+      return;
+    }
+
+    if (sc.isPublishedTemplate) {
+      const frame = this.extractEventTarget(e, focusedVc)?.[1]?.arenaFrame();
+      sc.changeSelection(() => sc.setStudioFocusOnFrame({ frame, autoZoom: false }));
+      e.preventDefault();
       return;
     }
 
@@ -1980,7 +1987,7 @@ private cancelMarquee = () => {
   };
 private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
     const sc = this.props.studioCtx;
-    if (sc.isLiveMode || sc.isInteractiveMode) {
+    if (sc.isPublishedTemplate || sc.isLiveMode || sc.isInteractiveMode) {
       return;
     }
     const frame = this.getArtboardTitleFrame(e);
@@ -2204,6 +2211,7 @@ onFrameLoad = (frame: ArenaFrame, canvasCtx: CanvasCtx) => {
 
 export function ViewEditor_(props: ViewEditorProps) {
   const {studioCtx, viewCtx} = props;
+  const publishedTemplate = studioCtx.isPublishedTemplate;
   const [owner, setOwner] = React.useState(() => ({ studioCtx, controller: new ViewEditorController(props) }));
   let current = owner;
   if (current.studioCtx !== studioCtx) { current = {studioCtx, controller: new ViewEditorController(props)}; setOwner(current); }
@@ -2234,12 +2242,8 @@ export function ViewEditor_(props: ViewEditorProps) {
           "canvas-editor--panels-hidden": panelsHidden,
         })}
       >
-        {viewCtx && <CanvasOverlayToolbar viewCtx={viewCtx} fallback />}
-        {arenaInputs.current && (
-          <>
-            <ComponentPresetsModal />
-          </>
-        )}
+        {!publishedTemplate && viewCtx && <CanvasOverlayToolbar viewCtx={viewCtx} fallback />}
+        {!publishedTemplate && arenaInputs.current && <ComponentPresetsModal />}
         <GlobalCssVariables />
         <div className="canvas-editor__outer-main-area">
           <BrowserAlertBanner />
@@ -2314,7 +2318,7 @@ export function ViewEditor_(props: ViewEditorProps) {
                         )}
                         {!props.renderInteractive && <CloneBoxes />}
                         {!props.renderInteractive && <PreselectBoxes />}
-                        {!props.renderInteractive && (
+                        {!publishedTemplate && !props.renderInteractive && (
                           <HoverBoxes studioCtx={studioCtx} />
                         )}
                         <MeasureTool />
@@ -2351,19 +2355,19 @@ export function ViewEditor_(props: ViewEditorProps) {
                   </div>
                   <div className="canvas-editor__viewport-click-guard" />
                 </div>
-                {!arenaInputs.focusedMode && <VariantsBar />}
+                {!publishedTemplate && !arenaInputs.focusedMode && <VariantsBar />}
               </Scrollbar>
               {(canvasLoading || !startup.viewportLoaded) && (
                 <StudioLoading />
               )}
               <CanvasDndOverlay container={canvasContainer} />
-              <EditingTextToolbar viewCtx={viewCtx} />
+              {!publishedTemplate && <EditingTextToolbar viewCtx={viewCtx} />}
               {DEVFLAGS.codePreview && (
                 <CodePreviewPanel studioCtx={studioCtx} />
               )}
               <PlayerCursors />
-              <FocusedModeToolbar studioCtx={studioCtx} />
-              {props.renderDevMode && <CanvasContentEditorControls studioCtx={studioCtx} />}
+              {!publishedTemplate && <FocusedModeToolbar studioCtx={studioCtx} />}
+              {!publishedTemplate && props.renderDevMode && <CanvasContentEditorControls studioCtx={studioCtx} />}
               {props.renderDevMode && (
                 <CanvasViewControls studioCtx={studioCtx} />
               )}
@@ -2373,7 +2377,7 @@ export function ViewEditor_(props: ViewEditorProps) {
                 </>
               )}
             </div>
-            <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />
+            {!publishedTemplate && <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />}
           </div>
 
           <DevContainer
@@ -2388,7 +2392,7 @@ export function ViewEditor_(props: ViewEditorProps) {
         {draggingObject &&
           !hasDrag &&
           createPortal(<div className="drag-guard" />, document.body)}
-        <PageSettingsDialogHost studioCtx={studioCtx} />
+        {!publishedTemplate && <PageSettingsDialogHost studioCtx={studioCtx} />}
         <BottomModals
           onFocusedIndexChange={(newIndex) =>
             studioCtx.setFocusedBottomModalIndex(newIndex)
@@ -2434,7 +2438,7 @@ function CanvasInsertionAlert({studioCtx}: {studioCtx: StudioCtx}) {
         arena.kind !== "component",
         `Component arenas cannot be empty`,
       );
-      if (!arena.current || arena.kind === "mixed") {
+      if ((!arena.current || arena.kind === "mixed") && !studioCtx.isPublishedTemplate) {
         return (
           <EmptyCanvasPrompt
             studioCtx={studioCtx}

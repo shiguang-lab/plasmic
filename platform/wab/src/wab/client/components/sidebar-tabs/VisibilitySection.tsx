@@ -148,10 +148,10 @@ export function useVisibilityController(props: {
   const [isDataPickerVisible, setIsDataPickerVisible] =
     React.useState<boolean>(false);
 
+  const { siteInfo, appCtx } = viewCtx.studioCtx;
   const { roles } = useAppRoles(
-    viewCtx.studioCtx.appCtx,
-    viewCtx.studioCtx.siteInfo.id,
-    true,
+    appCtx,
+    siteInfo.publishedTemplateVersion ? undefined : siteInfo.id,
   );
 
   const { isDisabled, disabledTooltip } = shouldBeDisabled({

@@ -33,6 +33,7 @@ import {
   ApiBranch,
   ApiPermission,
   ApiProject,
+  GetProjectResponse,
   MainBranchId,
   ProjectId,
 } from "@/wab/shared/ApiSchema";
@@ -64,6 +65,8 @@ export function StudioFrame({
   const { t: uiT } = useI18n();
   const appCtx = useAppCtx();
   const currentLocation = useLocation();
+  const projectLocation = parseProjectLocation(currentLocation);
+  const publishedTemplate = projectLocation?.publishedTemplate;
   // Keep the startup snapshot stable; live theme changes use the frame bridge
   // and must not navigate/reload the host by changing its hash.
   const studioArgsHash = React.useMemo(
@@ -76,6 +79,8 @@ export function StudioFrame({
   const [editorPerm, setEditorPerm] = React.useState(false);
   const [untrustedHost, setUntrustedHost] = React.useState(false);
   const [perms, setPerms] = React.useState<ApiPermission[]>([]);
+  const [publishedSiteInfo, setPublishedSiteInfo] = React.useState<GetProjectResponse>();
+  const [publishedSiteError, setPublishedSiteError] = React.useState<string>();
   const [fetchProjectCount, setFetchProjectCount] = React.useState(0);
   const [isRefreshingProjectData, setIsRefreshingProjectData] =
     React.useState(false);
@@ -107,7 +112,7 @@ export function StudioFrame({
         previousLocation.current,
       )?.branchName;
       const newBranchName = parseProjectLocation(newLocation)?.branchName;
-      if (project && oldBranchName !== newBranchName) {
+      if (project && !publishedTemplate && oldBranchName !== newBranchName) {
         spawn(
           (async () => {
             const branches = await fetchBranches();
@@ -125,7 +130,7 @@ export function StudioFrame({
       previousLocation.current = newLocation;
     });
     return dispose;
-  }, [appCtx, refreshStudio, project]);
+  }, [appCtx, refreshStudio, project, publishedTemplate]);
 
   usePreventDefaultBrowserPinchToZoomBehavior();
 
@@ -133,21 +138,24 @@ export function StudioFrame({
     const fetchProject = async () => {
       return await (async () => {
         setIsRefreshingProjectData(true);
+        setPublishedSiteError(undefined);
+        const snapshotRequest = publishedTemplate
+          ? appCtx.api.getSiteInfo(projectId, { publishedTemplate: true })
+          : undefined;
         const branchName = parseProjectLocation(
           appCtx.history.location,
         )?.branchName;
         const initial = appCtx.takeInitialProjectInfo();
         const [{ projects, perms: permissions }, { trustedHosts }, branches] =
-          initial?.projectId === projectId && initial.branchName === branchName
-          ? [initial.projectData, initial.hosts, initial.branches]
-          : await Promise.all([
-            appCtx.api.getProjects({
-              query: "byIds",
-              projectIds: [projectId],
-            }),
-            appCtx.api.getTrustedHostsList(),
-            branchName && branchName !== MainBranchId ? fetchBranches() : [],
-          ]);
+          !publishedTemplate && initial?.projectId === projectId && initial.branchName === branchName
+            ? [initial.projectData, initial.hosts, initial.branches]
+            : await Promise.all([
+                snapshotRequest
+                  ? snapshotRequest.then(({ project, perms }) => ({ projects: [project], perms }))
+                  : appCtx.api.getProjects({ query: "byIds", projectIds: [projectId] }),
+                appCtx.api.getTrustedHostsList(),
+                branchName && branchName !== MainBranchId ? fetchBranches() : [],
+              ]);
         const proj = maybeOne(projects);
         if (!proj) {
           throw new ForbiddenError("Project not found");
@@ -190,9 +198,14 @@ export function StudioFrame({
             : proj.defaultAccessLevel;
         // An unowned project is editable by anyone, matching the server's permission check.
         setEditorPerm(
-          accessLevelRank(accessLevel) >= accessLevelRank("content") ||
-            isUnownedProject(proj),
+          !publishedTemplate && (
+            accessLevelRank(accessLevel) >= accessLevelRank("content") ||
+            isUnownedProject(proj)
+          ),
         );
+        if (snapshotRequest) {
+          setPublishedSiteInfo(await snapshotRequest);
+        }
         setProject(proj);
         if (appCtx.appConfig.defaultHostUrl !== DEVFLAGS.defaultHostUrl) {
           const message = `Mismatching host URLs! appConfig defaults to ${appCtx.appConfig.defaultHostUrl} while devflags points to ${DEVFLAGS.defaultHostUrl}`;
@@ -205,6 +218,14 @@ export function StudioFrame({
         if (!appCtx.selfInfo) {
           // User is not logged and project is not public.
           await appCtx.history.replace(getLoginRouteWithContinuation());
+          return;
+        }
+        if (publishedTemplate) {
+          setPublishedSiteError(
+            e.statusCode === 404
+              ? translate(getUiLocale(), "This template is no longer published")
+              : e.message,
+          );
           return;
         }
         if (e.statusCode === 403) {
@@ -221,7 +242,7 @@ export function StudioFrame({
       });
     };
     spawn(fetchProject());
-  }, [projectId, setProject, fetchProjectCount]);
+  }, [projectId, setProject, fetchProjectCount, publishedTemplate]);
 
   const { topFrameApi, studioReady, studioError, ...topFrameChromeProps } = useTopFrameState(
     {
@@ -231,10 +252,9 @@ export function StudioFrame({
     },
   );
 
-  const projectLocation = parseProjectLocation(currentLocation);
   const editorRoute = !projectLocation?.isPreview &&
     !APP_ROUTES.projectDocs.parse(currentLocation.pathname, false);
-  const showComposer = editorRoute && (!project || editorPerm) &&
+  const showComposer = editorRoute && !publishedTemplate && (!project || editorPerm) &&
     !topFrameChromeProps.aiPanelOpen;
   const openAiChat = React.useRef<(() => Promise<void>) | undefined>(undefined);
   const onOpenChatChange = React.useCallback((open: (() => Promise<void>) | undefined) => {
@@ -244,26 +264,27 @@ export function StudioFrame({
     projectId,
     userId: appCtx.selfInfo?.id,
     branchId: topFrameChromeProps.activatedBranch?.id ?? branch?.id ?? null,
-    enabled: !!project && appCtx.appConfig.enableLocalAiEditing,
+    enabled: !!project && !publishedTemplate && appCtx.appConfig.enableLocalAiEditing,
     panelOpen: topFrameChromeProps.aiPanelOpen,
   });
 
   const updateStartup = useStudioStartup();
+  const startupError = publishedSiteError ?? studioError;
   React.useLayoutEffect(() => {
-    if (studioError) {
+    if (startupError) {
       performance.mark("studio-load-error");
     } else if (studioReady) {
       performance.mark("studio-ready");
     }
-  }, [studioReady, studioError]);
+  }, [studioReady, startupError]);
   React.useLayoutEffect(() => () => {
     updateStartup({ composer: undefined, ready: false });
   }, [updateStartup]);
   React.useLayoutEffect(() => {
     updateStartup({
       projectName: project?.name,
-      ready: studioReady && !studioError,
-      failure: studioError ? <LoadingError detail={studioError} onRetry={() => location.reload()} /> : undefined,
+      ready: studioReady && !startupError,
+      failure: startupError ? <LoadingError detail={startupError} onRetry={() => location.reload()} /> : undefined,
       hidden: untrustedHost || topFrameChromeProps.studioModalOpen,
       composer: {
         appCtx,
@@ -280,6 +301,7 @@ export function StudioFrame({
     project?.name,
     studioReady,
     studioError,
+    startupError,
     untrustedHost,
     topFrameChromeProps.studioModalOpen,
     appCtx,
@@ -353,6 +375,7 @@ export function StudioFrame({
       projectId={projectId}
       topFrameApi={topFrameApi}
       initialBranchId={branch?.id}
+      publishedSiteInfo={publishedSiteInfo}
     >
       <>
         {!untrustedHost && (

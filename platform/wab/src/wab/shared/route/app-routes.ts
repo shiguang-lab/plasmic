@@ -135,6 +135,7 @@ export const SEARCH_PARAM_REVISION = "revision";
 export const SEARCH_PARAM_ARENA_TYPE = "arena_type";
 export const SEARCH_PARAM_ARENA = "arena";
 export const SEARCH_PARAM_COMMENT = "comment";
+export const SEARCH_PARAM_PUBLISHED_TEMPLATE = "publishedTemplate";
 export const SEARCH_PROMPT = "prompt";
 
 export interface ProjectLocationParams {
@@ -146,6 +147,7 @@ export interface ProjectLocationParams {
   arenaType: ArenaType | undefined;
   arenaUuidOrNameOrPath: string | undefined;
   isPreview?: boolean;
+  publishedTemplate?: boolean;
   threadId?: string;
 }
 
@@ -158,11 +160,15 @@ export function mkProjectLocation({
   arenaType,
   arenaUuidOrNameOrPath,
   threadId,
+  publishedTemplate,
 }: ProjectLocationParams): {
   pathname: string;
   search?: string;
 } {
   const searchParams: [string, string][] = [];
+  if (publishedTemplate) {
+    searchParams.push([SEARCH_PARAM_PUBLISHED_TEMPLATE, "true"]);
+  }
   if (branchName !== MainBranchId) {
     searchParams.push([SEARCH_PARAM_BRANCH, branchName]);
   }

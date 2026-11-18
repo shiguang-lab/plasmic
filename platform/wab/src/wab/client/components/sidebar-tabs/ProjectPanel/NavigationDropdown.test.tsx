@@ -2,8 +2,11 @@ import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/stud
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { NavigationDropdown } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
+import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import type { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import {
@@ -12,9 +15,12 @@ import {
 } from "@/wab/client/prompts";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ARENAS_DESCRIPTION } from "@/wab/shared/Labels";
+import { componentsReferencerToPageHref } from "@/wab/shared/cached-selectors";
+import { toOpaque } from "@/wab/commons/types";
 import { ensure } from "@/wab/shared/common";
-import { ComponentType } from "@/wab/shared/core/components";
+import { ComponentType, isPageComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
+import { Box, Pt } from "@/wab/shared/geom";
 import { Arena } from "@/wab/shared/model/classes";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -27,6 +33,7 @@ import {
 } from "@testing-library/react";
 import React from "react";
 import { createStore } from "zustand/vanilla";
+import { mock } from "vitest-mock-extended";
 
 const fixture = vi.hoisted(() => ({ ctx: undefined as any }));
 const studios = new Set<StudioCtx>();
@@ -44,7 +51,9 @@ vi.mock(
       <>{children}</>
     ),
     NavigationFolderRow: () => null,
-    NavigationArenaRow: () => null,
+    NavigationArenaRow: ({ arena, name, onClick }: import("./NavigationRows").NavigationArenaRowProps) => (
+      <button onClick={() => onClick(arena)}>{name}</button>
+    ),
   }),
 );
 vi.mock("@/wab/client/components/widgets/ListStack", async (importOriginal) => ({
@@ -302,6 +311,76 @@ async function actualStudio() {
   await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   return studioCtx;
 }
+
+it("opens a published page with no inbound links from the directory and previews that page", async () => {
+  const site = createSite();
+  const tplMgr = new TplMgr({ site });
+  const home = tplMgr.addComponent({ name: "Home", type: ComponentType.Page, pageMeta: { path: "/" } });
+  const standalone = tplMgr.addComponent({
+    name: "Standalone calculator",
+    type: ComponentType.Page,
+    pageMeta: { path: "/calculator" },
+  });
+  expect(isPageComponent(standalone) && componentsReferencerToPageHref(site, standalone).size).toBe(0);
+  const { studioCtx, history, api, appCtx } = fakeStudioCtx({
+    site,
+    initialUrl: "/projects/template?publishedTemplate=true",
+    siteInfo: { id: toOpaque("template"), isTemplate: true, publishedTemplateVersion: "1.0.0" },
+  });
+  appCtx.selfInfo = mock<NonNullable<typeof appCtx.selfInfo>>({ isAdmin: true });
+  fixture.ctx = studioCtx;
+  const viewport = new ViewportCtx({
+    dom: mock<DomActions>(),
+    initialArena: ensure(studioCtx.getDedicatedArena(home), "Home page arena"),
+    initialClipperBox: new Box(0, 0, 1000, 800),
+    initialClipperScroll: Pt.zero(),
+  });
+  studioCtx.viewportCtx = viewport;
+  const host = mock<HostFrameCtx>();
+  Object.defineProperty(host, "history", { value: history });
+  const preview = new PreviewCtx(host, studioCtx);
+  try {
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    expect(studioCtx.leftTabKey).toBe("outline");
+    expect(studioCtx.currentArena).toBe(studioCtx.getDedicatedArena(home));
+    render(<Directory />);
+    expect(studioCtx.canEditProject()).toBe(false);
+    expect(screen.queryByRole("button", { name: "Create a page, component or arena" })).toBeNull();
+    studioCtx.setBlockChanges(false);
+    expect(studioCtx.blockChanges).toBe(true);
+    studioCtx.switchLeftTab("versions");
+    expect(studioCtx.leftTabKey).toBe("outline");
+    const publishedLocation = history.location;
+    studioCtx.switchToRevision("draft-revision");
+    studioCtx.switchToBranchVersion(undefined);
+    expect(history.location).toBe(publishedLocation);
+    const publishedName = standalone.name;
+    await expect(studioCtx.changeUnsafe(() => {
+      standalone.name = "Unpublished rename";
+    }, { noUndoRecord: true })).rejects.toThrow("Published templates are read-only.");
+    expect(standalone.name).toBe(publishedName);
+    expect(studioCtx.hasUnsavedChanges()).toBe(false);
+    await expect(studioCtx.save()).resolves.toBe("StopSaving");
+    expect(api.saveProjectRevChanges).not.toHaveBeenCalled();
+    fireEvent.click(await screen.findByRole("button", { name: standalone.name }));
+    await waitFor(() => expect(studioCtx.currentArena).toBe(studioCtx.getDedicatedArena(standalone)));
+    const selectedUrl = history.location;
+    expect(new URLSearchParams(selectedUrl.search).get("publishedTemplate")).toBe("true");
+    await act(async () => { await preview.toggleLiveMode(); });
+    expect(history.location.pathname).toBe("/projects/template/preview");
+    expect(history.location.hash).toBe("#/calculator");
+    expect(new URLSearchParams(history.location.search).get("publishedTemplate")).toBe("true");
+    expect(preview.component).toBe(standalone);
+    await act(async () => { await preview.stopLiveMode(); });
+    expect(history.location.search).toBe(selectedUrl.search);
+    expect(studioCtx.site).toBe(site);
+    expect(api.getSiteInfo).not.toHaveBeenCalled();
+  } finally {
+    preview.dispose();
+    studioCtx.dispose();
+    viewport.dispose();
+  }
+});
 
 it("retains an actual focus command before DOM mount, focuses immediately after mount and clears on detach/dispose", async () => {
   const studio = await actualStudio();

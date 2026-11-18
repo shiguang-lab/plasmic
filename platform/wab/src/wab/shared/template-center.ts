@@ -9,7 +9,7 @@ export interface TemplateMetadata {
   thumbnailUrl: string;
 }
 
-export interface TemplatePublication extends TemplateMetadata {
+export interface TemplatePublication {
   version: string;
   publishedAt: string;
   previewUrl: string;
@@ -18,9 +18,8 @@ export interface TemplatePublication extends TemplateMetadata {
 
 export interface ApiDesignTemplate {
   id: ProjectId;
+  metadata: TemplateMetadata;
   published: TemplatePublication | null;
-  /** Drafts are only returned to system administrators. */
-  draft?: TemplateMetadata;
   updatedAt?: string;
 }
 

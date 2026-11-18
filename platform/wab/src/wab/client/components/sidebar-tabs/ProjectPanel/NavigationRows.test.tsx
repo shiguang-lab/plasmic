@@ -51,6 +51,9 @@ vi.mock("@/wab/client/components/widgets/VirtualListScrollbar", async () => {
   };
 });
 const disposals = new Set<() => void>();
+beforeEach(() => {
+  fixture.studioCtx = { uiEnvironment: { store: createStore(() => ({ canEditProject: true })) } };
+});
 afterEach(() => { cleanup(); for (const dispose of disposals) { dispose(); } disposals.clear(); });
 
 it("opens another page's settings without invoking row navigation or changing the current arena", () => {
@@ -78,6 +81,7 @@ it("opens another page's settings without invoking row navigation or changing th
   arenaState.setCurrent(currentArena);
   disposals.add(() => { arenaState.dispose(); modelSnapshots.dispose(); });
   fixture.studioCtx = {
+    ...fixture.studioCtx,
     arenaState,
     modelSnapshots,
     get currentArena() { return arenaState.currentArena(); },

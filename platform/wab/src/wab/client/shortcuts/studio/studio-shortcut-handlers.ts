@@ -19,6 +19,14 @@ const modelCommands = new Set<string>([
   "UNDO", "REDO", "DESELECT",
 ]);
 
+const publishedTemplateShortcuts = new Set([
+  "ZOOM_IN", "ZOOM_OUT", "ZOOM_RESET", "ZOOM_TO_FIT", "ZOOM_TO_SELECTION",
+  "FOCUS_FRAME", "FOCUS_NEXT_FRAME", "FOCUS_PREV_FRAME", "OUTLINE_MODE",
+  "TOGGLE_FULL_PAGE_HEIGHT", "SWITCH_TO_TREE_TAB", "SEARCH_PROJECT_ARENAS",
+  "CLOSE_LEFT_PANEL", "PREV_ARENA", "NEXT_ARENA", "TOGGLE_PREVIEW_MODE",
+  "TOGGLE_INTERACTIVE_MODE",
+]);
+
 /** Application commands remain available; model commands require real surface focus. */
 export function shouldHandleStudioShortcut(studioCtx: StudioCtx) {
   return (_event: KeyboardEvent, element: Element, action?: string): boolean => {
@@ -39,6 +47,9 @@ export function shouldHandleStudioShortcut(studioCtx: StudioCtx) {
       }
     }
 
+    if (studioCtx.isPublishedTemplate) {
+      return !!action && publishedTemplateShortcuts.has(action);
+    }
     return !action || !modelCommands.has(action) || canHandleStudioModelInput(studioCtx);
   };
 }

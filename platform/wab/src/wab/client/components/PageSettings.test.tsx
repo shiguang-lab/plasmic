@@ -48,22 +48,31 @@ vi.mock("@/wab/client/components/sidebar-tabs/PropEditorRow", async () => {
 });
 afterEach(() => { cleanup(); fixture.studio.close(); });
 
-it("opens the image chooser without a rendered canvas and keeps it open across form renders", async () => {
+it("shows the primary fields first and opens the sharing settings without a rendered canvas", async () => {
   const mgr = new TplMgr({ site: fixture.studio.site });
   const page = mgr.addComponent({
     name: "Page2",
     type: ComponentType.Page,
   }) as PageComponent;
   const { rerender } = render(<PageSettings page={page} />);
-  const trigger = screen.getByRole("button", { name: "Choose an image" });
+  expect(screen.getByLabelText("URL Path")).toBeTruthy();
+  expect(screen.getByLabelText("Title")).toBeTruthy();
+  expect(screen.getByLabelText("Description")).toBeTruthy();
+  expect(screen.queryByLabelText("Canonical URL")).toBeNull();
+  expect(screen.queryByTestId("image-chooser")).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Advanced settings" }).getAttribute("aria-expanded"),
+  ).toBe("false");
+  const trigger = screen.getByRole("button", { name: "Search and sharing" });
   expect(trigger.getAttribute("aria-expanded")).toBe("false");
   fireEvent.click(trigger);
   expect(await screen.findByTestId("image-chooser")).toBeTruthy();
+  expect(screen.getByLabelText("Canonical URL")).toBeTruthy();
   expect(trigger.getAttribute("aria-expanded")).toBe("true");
   rerender(<PageSettings page={page} className="updated-form" />);
   expect(
     screen
-      .getByRole("button", { name: "Choose an image" })
+      .getByRole("button", { name: "Search and sharing" })
       .getAttribute("aria-expanded"),
   ).toBe("true");
 });
@@ -79,7 +88,7 @@ it("refreshes committed title expressions while keeping an open image chooser mo
   render(<PageSettings page={page} />);
   const input = screen.getByLabelText("Title") as HTMLInputElement;
   expect(input.value).toContain("Before");
-  fireEvent.click(screen.getByRole("button", { name: "Choose an image" }));
+  fireEvent.click(screen.getByRole("button", { name: "Search and sharing" }));
   const chooser = await screen.findByTestId("image-chooser");
   try {
     act(() => {

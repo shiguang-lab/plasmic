@@ -127,18 +127,18 @@ export const APP_ROLES_KEY = (appId: string) => `/app-auth/${appId}/roles`;
 
 export const useAppRoles = (
   appCtx: AppCtx,
-  appId: string,
+  appId: string | undefined,
   hideAnonymous: boolean = true,
 ) => {
-  const key = APP_ROLES_KEY(appId);
-  const { data, error, mutate } = useSWR(key, async () => {
-    const roles = await appCtx.api.listAppRoles(appId);
-    return roles;
-  });
+  const key = appId ? APP_ROLES_KEY(appId) : null;
+  const { data, error, mutate } = useSWR(
+    key,
+    appId ? () => appCtx.api.listAppRoles(appId) : null,
+  );
   return {
     // anonymous always has order == 0
     roles: (data ?? []).filter((r) => !hideAnonymous || r.order > 0),
-    loading: !error && !data,
+    loading: !!key && !error && !data,
     mutate,
     error,
   };

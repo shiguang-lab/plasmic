@@ -25,6 +25,7 @@ export const StructurePanel = function StructurePanel() {
     selectLeftTabKey,
   );
   const { styles } = useStyles();
+  const publishedTemplate = studioCtx.isPublishedTemplate;
   const [directoryExpanded, setDirectoryExpanded] = React.useState(true);
   const [directorySize, setDirectorySize] = React.useState<number | string>(
     "42%",
@@ -52,10 +53,10 @@ export const StructurePanel = function StructurePanel() {
       }}
     >
       <Splitter.Panel
-        size={directoryExpanded ? directorySize : 84}
-        min={directoryExpanded ? "20%" : 84}
-        max={directoryExpanded ? "70%" : 84}
-        resizable={directoryExpanded}
+        size={publishedTemplate ? undefined : directoryExpanded ? directorySize : 84}
+        min={publishedTemplate ? undefined : directoryExpanded ? "20%" : 84}
+        max={publishedTemplate ? undefined : directoryExpanded ? "70%" : 84}
+        resizable={!publishedTemplate && directoryExpanded}
       >
         <div className="editor-page-navigation">
           <NavigationDropdown
@@ -65,9 +66,9 @@ export const StructurePanel = function StructurePanel() {
           />
         </div>
       </Splitter.Panel>
-      <Splitter.Panel min="30%">
+      {!publishedTemplate && <Splitter.Panel min="30%">
         <OutlineTab />
-      </Splitter.Panel>
+      </Splitter.Panel>}
     </Splitter>
   );
 };

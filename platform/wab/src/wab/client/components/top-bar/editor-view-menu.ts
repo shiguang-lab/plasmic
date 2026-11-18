@@ -38,13 +38,13 @@ export function readEditorViewMenuState(
     outlineMode: vc ? vc.canvasCtx.isOutlineMode() === true : false,
     fullPageHeight: renderPolicy.fullPageHeight,
     canToggleFocusedMode:
-      arena.focusedMode || arena.kind === "component" || arena.kind === "page",
+      !studioCtx.isPublishedTemplate && (arena.focusedMode || arena.kind === "component" || arena.kind === "page"),
     focusedMode: arena.focusedMode,
     autoOpenMode: renderPolicy.autoOpen,
     canShowComments: studioCtx.showComments(),
     showCommentsOverlay: overlay.commentsOverlay,
     canChangeContentEditorMode:
-      !studioCtx.isContentEditor() && !DEVFLAGS.contentEditorMode,
+      !studioCtx.isPublishedTemplate && !studioCtx.isContentEditor() && !DEVFLAGS.contentEditorMode,
     contentEditorMode: uiEnv.contentEditorMode,
   };
 }

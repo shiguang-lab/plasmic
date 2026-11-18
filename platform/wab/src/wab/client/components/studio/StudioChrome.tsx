@@ -44,7 +44,7 @@ export function StudioStartupBoundary({
   const projectId = projectLocation?.projectId;
   const presentation = APP_ROUTES.projectPresentation.parse(location.pathname);
   const isPreview = !!presentation || !!projectLocation?.isPreview;
-  const startupKey = presentation ? location.pathname : projectId;
+  const startupKey = presentation ? location.pathname : projectLocation?.publishedTemplate ? `${projectId}:published` : projectId;
   const [startupLoading] = React.useState(() =>
     document.getElementById("studio-startup-loading"),
   );
@@ -124,7 +124,7 @@ export function StudioStartupBoundary({
           </React.Suspense>
         </div>
       )}
-      {projectId && !isPreview &&
+      {projectId && !isPreview && !projectLocation?.publishedTemplate &&
         !APP_ROUTES.projectDocs.parse(location.pathname, false) &&
         state.composer?.visible !== false && (
           <CanvasAiComposer

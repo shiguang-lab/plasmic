@@ -33,13 +33,12 @@ const metadata = {
   thumbnailUrl: "",
 };
 const published = {
-  ...metadata,
   version: "1.0.0",
   publishedAt: "2026-11-17T00:00:00Z",
   previewUrl: "https://preview.test/s/reference",
   libraries: ["Material UI"],
 };
-const template = { id: "template", published };
+const template = { id: "template", metadata, published };
 function setup() {
   const history = createMemoryHistory({ initialEntries: ["/template-center"] });
   render(
@@ -79,32 +78,26 @@ it("shows only reference actions for readers and searches templates", async () =
   );
   expect(screen.getByText("移动端登录")).toBeTruthy();
 });
-it("resolves the latest publication when opening a reference", async () => {
-  setup();
-  await screen.findByText("移动端登录");
+it("opens the published Studio from the card and the draft from Edit canvas", async () => {
   api.listDesignTemplates.mockResolvedValue({
-    templates: [
-      {
-        ...template,
-        published: { ...published, name: "最新登录模板", version: "1.1.0" },
-      },
-    ],
-    canManage: false,
+    templates: [template],
+    canManage: true,
   });
+  const history = setup();
   fireEvent.click(
-    screen.getByRole("button", { name: "View published template: 移动端登录" }),
+    await screen.findByRole("button", { name: "View published template: 移动端登录" }),
   );
-  await waitFor(() => {
-    const frame = document.querySelector("iframe");
-    expect(frame?.getAttribute("title")).toBe("最新登录模板");
-    expect(frame?.getAttribute("src")).toBe(published.previewUrl);
-  });
-  expect(api.listDesignTemplates.mock.calls.length).toBeGreaterThanOrEqual(2);
+  expect(history.location.pathname).toBe("/projects/template");
+  expect(history.location.search).toBe("?publishedTemplate=true");
+  fireEvent.click(screen.getByRole("button", { name: "More actions" }));
+  fireEvent.click(await screen.findByRole("menuitem", { name: "Edit canvas" }));
+  expect(history.location.pathname).toBe("/projects/template");
+  expect(history.location.search).toBe("");
 });
 it("creates a standalone template and opens its draft canvas", async () => {
   api.listDesignTemplates.mockResolvedValue({ templates: [], canManage: true });
   api.createDesignTemplate.mockResolvedValue({
-    template: { id: "new-template", draft: metadata, published: null },
+    template: { id: "new-template", metadata, published: null },
   });
   const history = setup();
   fireEvent.click(await screen.findByRole("button", { name: "New template" }));
@@ -121,32 +114,38 @@ it("creates a standalone template and opens its draft canvas", async () => {
   );
   expect(history.location.pathname).toBe("/projects/new-template");
 });
-it("maintains draft details independently of the published reference", async () => {
+it("refreshes the card after saving details without publishing the canvas", async () => {
+  const updated = { ...metadata, name: "新模板名称" };
   api.listDesignTemplates.mockResolvedValue({
-    templates: [
-      { ...template, draft: { ...metadata, name: "未发布的新标题" } },
-    ],
+    templates: [template],
     canManage: true,
   });
-  api.updateDesignTemplate.mockResolvedValue({});
+  api.updateDesignTemplate.mockImplementation(async () => {
+    const updatedTemplate = { ...template, metadata: updated };
+    api.listDesignTemplates.mockResolvedValue({
+      templates: [updatedTemplate],
+      canManage: true,
+    });
+    return { template: updatedTemplate };
+  });
   setup();
-  await screen.findByText("未发布的新标题");
-  fireEvent.click(screen.getByRole("button", { name: "More actions" }));
+  fireEvent.click(await screen.findByRole("button", { name: "More actions" }));
   fireEvent.click(
     await screen.findByRole("menuitem", { name: "Edit details" }),
   );
   expect(
     (screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement).value,
-  ).toBe("未发布的新标题");
+  ).toBe(metadata.name);
   fireEvent.change(screen.getByRole("textbox", { name: "Name" }), {
-    target: { value: "修改草稿" },
+    target: { value: updated.name },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
-  await waitFor(() =>
-    expect(api.updateDesignTemplate).toHaveBeenCalledWith("template", {
-      ...metadata,
-      name: "修改草稿",
-    }),
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  await screen.findByRole("button", {
+    name: `View published template: ${updated.name}`,
+  });
+  expect(api.updateDesignTemplate).toHaveBeenCalledWith(
+    "template",
+    updated,
   );
   expect(api.publishDesignTemplate).not.toHaveBeenCalled();
 });
@@ -184,7 +183,7 @@ async function openDetailsWithCover() {
     templates: [
       {
         ...template,
-        draft: {
+        metadata: {
           ...metadata,
           thumbnailUrl: "https://images.test/original.png",
         },
@@ -224,7 +223,7 @@ it("uploads a fixed cover, blocks saving while uploading and saves the returned 
     expect(api.uploadImageFile).toHaveBeenCalledWith({ imageFile: file }),
   );
   expect(
-    screen.getByRole("button", { name: "Save draft" }).hasAttribute("disabled"),
+    screen.getByRole("button", { name: "Save" }).hasAttribute("disabled"),
   ).toBe(true);
   expect(screen.getByAltText("Template cover").getAttribute("src")).toBe(
     "https://images.test/original.png",
@@ -241,7 +240,7 @@ it("uploads a fixed cover, blocks saving while uploading and saves the returned 
       "https://images.test/uploaded.png",
     ),
   );
-  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
   await waitFor(() =>
     expect(api.updateDesignTemplate).toHaveBeenCalledWith("template", {
       ...metadata,
@@ -266,7 +265,7 @@ it("keeps the saved cover after upload failure, allows retry, and removes it exp
     "https://images.test/original.png",
   );
   expect(
-    screen.getByRole("button", { name: "Save draft" }).hasAttribute("disabled"),
+    screen.getByRole("button", { name: "Save" }).hasAttribute("disabled"),
   ).toBe(false);
   const retryInput = coverUploadInput();
   fireEvent.change(retryInput, {
@@ -281,7 +280,7 @@ it("keeps the saved cover after upload failure, allows retry, and removes it exp
   );
   fireEvent.click(screen.getByRole("button", { name: "Remove image" }));
   expect(screen.queryByAltText("Template cover")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
   await waitFor(() =>
     expect(api.updateDesignTemplate).toHaveBeenCalledWith("template", metadata),
   );
@@ -300,7 +299,7 @@ it.each([
     await waitFor(() =>
       expect(
         screen
-          .getByRole("button", { name: "Save draft" })
+          .getByRole("button", { name: "Save" })
           .hasAttribute("disabled"),
       ).toBe(false),
     );
