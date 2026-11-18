@@ -57,7 +57,7 @@ async function generate(request: PreviewRequest) {
           bitmap.close();
         }
       };
-      await draw(shot.svg, screen, (board.deviceFrame?.screenRadius ?? 0) * scale);
+      await draw(shot.svg, screen, (board.deviceFrame?.viewportRadius ?? 0) * scale);
       if (shot.frameSvg) {
         await draw(shot.frameSvg, rect);
       }

@@ -376,7 +376,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     visibleBox?.width || 0,
     viewportZoom,
     showFrameTag ? viewCtx : undefined,
-    state?.deviceFrame ? (state.deviceFrame.insetY + 3) * viewportZoom : 0,
+    state?.deviceFrame ? (state.deviceFrame.insetTop + 3) * viewportZoom : 0,
   );
   // The size badge sits centered below the box. When the name tag has to go
   // below the box too, stack the badge under the tag instead of over it.
@@ -491,7 +491,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 )}
                 {clipToScreen(<><div
                   style={state?.deviceFrame ? {
-                    borderRadius: state.deviceFrame.screenRadius * viewportZoom + 1,
+                    borderRadius: state.deviceFrame.viewportRadius * viewportZoom + 1,
                   } : screenClip ? { width: "100%", height: "100%" } : undefined}
                   className={cn({
                     HoverBox__Border: true,

@@ -25,10 +25,10 @@ it("shares phone/tablet geometry and removes clipping in content editing and des
     canvasCtx: { viewportContainerOffset: () => ({ left: 100, top: 200 }) },
   } as unknown as ViewCtx;
   const box = { left: 100, top: 200, width: 393, height: 852 };
-  expect(canvasScreenClipStyle(view, box, 1)?.clipPath).toBe("inset(0px 0px 0px 0px round 36px)");
+  expect(canvasScreenClipStyle(view, box, 1)?.clipPath).toBe("inset(0px 0px 0px 0px round 0px)");
   frame.width = 834; frame.height = 1194;
   updateAutoDerivedFrameHeight(frame, 1194);
-  expect(canvasScreenClipStyle(view, { ...box, width: 834, height: 1194 }, 1)?.clipPath).toBe("inset(0px 0px 0px 0px round 12px)");
+  expect(canvasScreenClipStyle(view, { ...box, width: 834, height: 1194 }, 1)?.clipPath).toBe("inset(0px 0px 0px 0px round 0px)");
   studio.canvasContentEditor = {};
   expect(canvasScreenClipStyle(view, box, 1)).toBeUndefined();
   studio.canvasContentEditor = undefined;

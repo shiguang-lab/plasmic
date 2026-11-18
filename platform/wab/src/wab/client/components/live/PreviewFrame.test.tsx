@@ -97,7 +97,7 @@ it("switches phone, tablet and absent shells without replacing or resizing page 
     expect(container?.style.width).toBe("393px");
     expect(container?.style.height).toBe("852px");
     expect(iframe?.style.borderRadius).toBe("inherit");
-    expect(container?.style.borderRadius).toBe("36px");
+    expect(container?.style.borderRadius).toBe("0");
     const shell = view.container.querySelector('[data-test-id="device-frame"]');
     expect(shell?.parentElement).toBe(container);
     expect(shell?.getAttribute("aria-hidden")).toBe("true");

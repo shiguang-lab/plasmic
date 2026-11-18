@@ -106,7 +106,7 @@ export async function prepare(request: PreviewRequest) {
     uuid: f.uuid,
     componentId: f.container.component.uuid,
     deviceFrame: f.container.component.pageMeta
-      ? getDeviceFrame(f.width, getFrameHeight(f))
+      ? getDeviceFrame(f.width, f.height)
       : undefined,
     page: f.container.component.pageMeta
       ? {

@@ -3,7 +3,7 @@
 
 .device {
   > :global(.CanvasFrame__Label) {
-    bottom: calc(100% + var(--device-inset-y));
+    bottom: calc(100% + var(--device-inset-top));
   }
   > :global(.CanvasFrame__Label--frame-selected) {
     visibility: hidden;

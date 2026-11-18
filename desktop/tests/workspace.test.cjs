@@ -422,6 +422,7 @@ test("startup resumes dashboard routes independently of recent projects", async 
   const { workspace, dir } = startupFixture(t);
   for (const route of [
     "/projects",
+    "/template-center",
     "/settings",
     "/workspaces/team-workspace",
     "/orgs/org",
@@ -441,6 +442,7 @@ test("startup resumes dashboard routes independently of recent projects", async 
   for (const url of [
     origin + "/desktop/unified-login",
     origin + "/login",
+    "https://other.example/template-center",
     "https://other.example/projects/secret",
   ]) {
     assert.equal(workspace.rememberUrl(url), false);

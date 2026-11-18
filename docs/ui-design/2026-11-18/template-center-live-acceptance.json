@@ -1,0 +1,85 @@
+{
+  "verifiedAt": "2026-11-17T23:26:53.702Z",
+  "timezone": "Asia/Shanghai",
+  "service": "https://plasmic-studio.shiguanglab.com",
+  "environment": "Local production Studio renderer in an isolated Electron profile, authenticated against the real NAS API, storage and publication service. No API mocks.",
+  "templateId": "vxhjetxYypAaQtzbmwkWGb",
+  "templateName": "封面上传联调验收 · 20261118",
+  "checks": [
+    {
+      "step": "Upload JPEG through the real TemplateCoverUpload file picker",
+      "httpStatus": 200,
+      "url": "https://plasmic-studio.shiguanglab.com/assets/38d3dbe5bc0210f43e3cc4a5395dea44.jpg"
+    },
+    {
+      "step": "Create template, leave editor and reopen details",
+      "httpStatus": 200,
+      "savedCoverMatchesUpload": true
+    },
+    {
+      "step": "Update draft details through Save draft",
+      "httpStatus": 200,
+      "coverUnchanged": true
+    },
+    {
+      "step": "Publish first version",
+      "httpStatus": 200,
+      "version": "0.0.1",
+      "publishedCoverMatchesDraft": true
+    },
+    {
+      "step": "Upload PNG replacement and save draft",
+      "httpStatus": 200,
+      "url": "https://plasmic-studio.shiguanglab.com/assets/941b02c36496d2d89a4e631ba4dcdde8.png",
+      "publishedCoverStillOriginal": true
+    },
+    {
+      "step": "Publish replacement",
+      "httpStatus": 200,
+      "version": "0.0.2",
+      "publishedCoverMatchesDraft": true
+    },
+    {
+      "step": "Quit and reopen isolated app",
+      "newCoverVisible": true,
+      "backendReadbackMatches": true
+    },
+    {
+      "step": "Enter canvas and return to template center",
+      "navigationFixVerifiedInNativeUI": true
+    },
+    {
+      "step": "Unpublish acceptance template",
+      "httpStatus": 200,
+      "published": null,
+      "draftRetained": true
+    }
+  ],
+  "imageResponses": [
+    {
+      "status": 200,
+      "contentType": "image/jpeg",
+      "width": 1000,
+      "height": 781,
+      "sourceWidth": 1000,
+      "sourceHeight": 781,
+      "meanPixelDifference": 0.9342808365343577,
+      "publiclyReadable": true
+    },
+    {
+      "status": 200,
+      "contentType": "image/png",
+      "width": 32,
+      "height": 32,
+      "pixelsMatch": true,
+      "publiclyReadable": true
+    }
+  ],
+  "jpegNote": "Existing upload service recompresses JPEG; returned dimensions match and average decoded channel difference is below 1/255. PNG decoded pixels match exactly.",
+  "originalWindow": "Original installed application and its unsaved template form were not modified.",
+  "navigationRegressionTests": {
+    "command": "node --test desktop/tests/workspace.test.cjs",
+    "passed": 32,
+    "failed": 0
+  }
+}

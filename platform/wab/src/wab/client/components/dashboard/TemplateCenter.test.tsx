@@ -19,6 +19,7 @@ const api = vi.hoisted(() => ({
   createDesignTemplate: vi.fn(),
   updateDesignTemplate: vi.fn(),
   publishDesignTemplate: vi.fn(),
+  uploadImageFile: vi.fn(),
 }));
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useAppCtx: () => ({ selfInfo: { id: "user" }, api }),
@@ -93,9 +94,11 @@ it("resolves the latest publication when opening a reference", async () => {
   fireEvent.click(
     screen.getByRole("button", { name: "View published template" }),
   );
-  expect((await screen.findByTitle("最新登录模板")).getAttribute("src")).toBe(
-    published.previewUrl,
-  );
+  await waitFor(() => {
+    const frame = document.querySelector("iframe");
+    expect(frame?.getAttribute("title")).toBe("最新登录模板");
+    expect(frame?.getAttribute("src")).toBe(published.previewUrl);
+  });
   expect(api.listDesignTemplates.mock.calls.length).toBeGreaterThanOrEqual(2);
 });
 it("creates a standalone template and opens its draft canvas", async () => {
@@ -128,7 +131,10 @@ it("maintains draft details independently of the published reference", async () 
   api.updateDesignTemplate.mockResolvedValue({});
   setup();
   await screen.findByText("未发布的新标题");
-  fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
+  fireEvent.click(screen.getByRole("button", { name: "More actions" }));
+  fireEvent.click(
+    await screen.findByRole("menuitem", { name: "Edit details" }),
+  );
   expect(
     (screen.getByRole("textbox", { name: "Name" }) as HTMLInputElement).value,
   ).toBe("未发布的新标题");
@@ -144,3 +150,162 @@ it("maintains draft details independently of the published reference", async () 
   );
   expect(api.publishDesignTemplate).not.toHaveBeenCalled();
 });
+
+it("distinguishes an empty collection from empty search results and resets filters", async () => {
+  api.listDesignTemplates.mockResolvedValue({
+    templates: [],
+    canManage: false,
+  });
+  setup();
+  await screen.findByText("A place for your next idea");
+  expect(
+    screen.queryByRole("button", { name: "Create your first template" }),
+  ).toBeNull();
+  cleanup();
+  api.listDesignTemplates.mockResolvedValue({
+    templates: [template],
+    canManage: false,
+  });
+  setup();
+  await screen.findByText("移动端登录");
+  fireEvent.click(screen.getByRole("tab", { name: "Section template" }));
+  expect(screen.getByText("No templates found")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Show all templates" }));
+  expect(screen.getByText("移动端登录")).toBeTruthy();
+  expect(
+    screen
+      .getByRole("tab", { name: "All templates" })
+      .getAttribute("aria-selected"),
+  ).toBe("true");
+});
+
+async function openDetailsWithCover() {
+  api.listDesignTemplates.mockResolvedValue({
+    templates: [
+      {
+        ...template,
+        draft: {
+          ...metadata,
+          thumbnailUrl: "https://images.test/original.png",
+        },
+      },
+    ],
+    canManage: true,
+  });
+  setup();
+  fireEvent.click(await screen.findByRole("button", { name: "More actions" }));
+  fireEvent.click(
+    await screen.findByRole("menuitem", { name: "Edit details" }),
+  );
+  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+  if (!input) {
+    throw new Error("Missing cover upload input");
+  }
+  return input;
+}
+
+it("uploads a fixed cover, blocks saving while uploading and saves the returned URL", async () => {
+  const input = await openDetailsWithCover();
+  let finishUpload: (value: { dataUri: string }) => void = () => {};
+  api.uploadImageFile.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finishUpload = resolve;
+      }),
+  );
+  const file = new File(["image bytes"], "cover.png", { type: "image/png" });
+  fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() =>
+    expect(api.uploadImageFile).toHaveBeenCalledWith({ imageFile: file }),
+  );
+  expect(
+    screen.getByRole("button", { name: "Save draft" }).hasAttribute("disabled"),
+  ).toBe(true);
+  expect(screen.getByAltText("Template cover").getAttribute("src")).toBe(
+    "https://images.test/original.png",
+  );
+  fireEvent.submit(
+    screen
+      .getByRole("textbox", { name: "Name" })
+      .closest("form") as HTMLFormElement,
+  );
+  expect(api.updateDesignTemplate).not.toHaveBeenCalled();
+  finishUpload({ dataUri: "https://images.test/uploaded.png" });
+  await waitFor(() =>
+    expect(screen.getByAltText("Template cover").getAttribute("src")).toBe(
+      "https://images.test/uploaded.png",
+    ),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await waitFor(() =>
+    expect(api.updateDesignTemplate).toHaveBeenCalledWith("template", {
+      ...metadata,
+      thumbnailUrl: "https://images.test/uploaded.png",
+    }),
+  );
+  expect(api.publishDesignTemplate).not.toHaveBeenCalled();
+});
+
+it("keeps the saved cover after upload failure, allows retry, and removes it explicitly", async () => {
+  const input = await openDetailsWithCover();
+  api.uploadImageFile
+    .mockRejectedValueOnce(new Error("Upload failed"))
+    .mockResolvedValueOnce({ dataUri: "https://images.test/retry.webp" });
+  fireEvent.change(input, {
+    target: {
+      files: [new File(["image"], "cover.webp", { type: "image/webp" })],
+    },
+  });
+  await screen.findByText("Cover upload failed. Please try again.");
+  expect(screen.getByAltText("Template cover").getAttribute("src")).toBe(
+    "https://images.test/original.png",
+  );
+  expect(
+    screen.getByRole("button", { name: "Save draft" }).hasAttribute("disabled"),
+  ).toBe(false);
+  const retryInput =
+    document.querySelector<HTMLInputElement>('input[type="file"]');
+  if (!retryInput) {
+    throw new Error("Missing cover upload input after retry");
+  }
+  fireEvent.change(retryInput, {
+    target: {
+      files: [new File(["image"], "retry.webp", { type: "image/webp" })],
+    },
+  });
+  await waitFor(() =>
+    expect(screen.getByAltText("Template cover").getAttribute("src")).toBe(
+      "https://images.test/retry.webp",
+    ),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Remove image" }));
+  expect(screen.queryByAltText("Template cover")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await waitFor(() =>
+    expect(api.updateDesignTemplate).toHaveBeenCalledWith("template", metadata),
+  );
+});
+
+it.each([
+  new File(["text"], "cover.txt", { type: "text/plain" }),
+  new File([new Uint8Array(5 * 1024 * 1024 + 1)], "large.png", {
+    type: "image/png",
+  }),
+])(
+  "rejects invalid cover files without changing the existing cover",
+  async (file) => {
+    const input = await openDetailsWithCover();
+    fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole("button", { name: "Save draft" })
+          .hasAttribute("disabled"),
+      ).toBe(false),
+    );
+    expect(api.uploadImageFile).not.toHaveBeenCalled();
+    expect(screen.getByAltText("Template cover").getAttribute("src")).toBe(
+      "https://images.test/original.png",
+    );
+  },
+);

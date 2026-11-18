@@ -492,7 +492,7 @@ export function PreviewFrame({
     : undefined;
   const presentationSize = {
     width: dimensions.width + 2 * (deviceFrame?.insetX ?? 0),
-    height: dimensions.height + 2 * (deviceFrame?.insetY ?? 0),
+    height: dimensions.height + (deviceFrame ? deviceFrame.insetTop + deviceFrame.insetBottom : 0),
   };
   const scale = fillsWindow
     ? 1
@@ -552,11 +552,11 @@ export function PreviewFrame({
             left: fillsWindow
               ? 0
               : (available.width - dimensions.width * scale) / 2,
-            top: fillsWindow ? 0 : 20 + (deviceFrame?.insetY ?? 0) * scale,
+            top: fillsWindow ? 0 : 20 + (deviceFrame?.insetTop ?? 0) * scale,
             transform: fillsWindow ? undefined : `scale(${scale})`,
             transformOrigin: "top left",
             boxShadow: fillsWindow ? "none" : undefined,
-            borderRadius: fillsWindow ? 0 : deviceFrame?.screenRadius ?? 8,
+            borderRadius: fillsWindow ? 0 : deviceFrame?.viewportRadius ?? 8,
             outline: fillsWindow || deviceFrame
               ? undefined
               : "1px solid var(--preview-border)",
@@ -608,7 +608,7 @@ export function PreviewFrame({
                 className={`${styles.resize} ${styles[edge]}`}
                 style={deviceFrame ? {
                   translate: edge === "bottom"
-                    ? `0 ${deviceFrame.insetY}px`
+                    ? `0 ${deviceFrame.insetBottom}px`
                     : `${edge === "left" ? -deviceFrame.insetX : deviceFrame.insetX}px 0`,
                 } : undefined}
                 onPointerDown={(event) => {

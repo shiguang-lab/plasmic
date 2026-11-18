@@ -26,7 +26,7 @@ export function renderSlot(
   return render(flatten(children));
 }
 
-/** MUI element props require an element, whereas a Studio slot returns a list. */
+/** MUI's single-node props inspect/clone the node; a Studio slot returns a list. */
 export function withSlots<T extends React.ElementType>(
   Native: T,
   singleSlots: string[],
@@ -52,9 +52,9 @@ export function withSlots<T extends React.ElementType>(
       if (props[key] == null) return resolve(index + 1, resolved);
       return renderSlot(props[key], (children) => {
         const items = React.Children.toArray(children);
-        const value = items.length ? React.Children.only(items[0]) : undefined;
+        const value = items[0];
         if (items.length > 1)
-          throw new Error(`${key} requires a single MUI element`);
+          throw new Error(`${key} requires a single MUI node`);
         return resolve(index + 1, { ...resolved, [key]: value });
       });
     };

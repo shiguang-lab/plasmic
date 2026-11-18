@@ -1,4 +1,5 @@
 import type { ButtonProps } from "@mui/material/Button";
+import type { GridProps } from "@mui/material/Grid";
 import type { PropType } from "@plasmicapp/host";
 import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import api from "./api.json";
@@ -28,7 +29,7 @@ function primitive(
   | { type: "string" }
   | { type: "number" }
   | { type: "boolean" }
-  | { type: "object" } {
+  | { type: "exprEditor" } {
   switch (type) {
     case "text":
       return { type: "string" };
@@ -37,7 +38,7 @@ function primitive(
     case "boolean":
       return { type: "boolean" };
     case "object":
-      return { type: "object" };
+      return { type: "exprEditor" };
   }
 }
 function property(name: string, prop: ApiProp): Props[string] {
@@ -56,12 +57,13 @@ function property(name: string, prop: ApiProp): Props[string] {
       ? { advanced: true }
       : {}),
   };
-  if (prop.type.name === "node" || prop.type.name === "element") {
+  // MUI also uses custom validators for React nodes/elements (e.g. Tooltip).
+  if (/^(node|element)(\s*\|\s*string)?$/.test(nativeType)) {
     return {
       type: "slot",
       description: common.description,
       hidePlaceholder:
-        name !== "children" || (prop.type.name === "element" && !prop.required),
+        !prop.required && (name !== "children" || nativeType === "element"),
     };
   }
   if (prop.type.name === "func") {
@@ -76,14 +78,13 @@ function property(name: string, prop: ApiProp): Props[string] {
               const type = typeParts.join(":").trim();
               return {
                 name: argName.trim().replace(/\?$/, "") || `arg${index}`,
-                type:
-                  type === "boolean"
-                    ? "boolean"
-                    : type === "number"
-                      ? "number"
-                      : type === "string"
-                        ? "string"
-                        : "object",
+                type: /^(boolean|boolean \| null)$/.test(type)
+                  ? "boolean"
+                  : /^(number|number \| null)$/.test(type)
+                    ? "number"
+                    : type === "string"
+                      ? "string"
+                      : "object",
               };
             })
           : [{ name: "event", type: "object" }],
@@ -96,7 +97,11 @@ function property(name: string, prop: ApiProp): Props[string] {
       exprHint: prop.signature?.type ?? "A JavaScript function.",
     };
   }
-  const parts = nativeType.split(/\s*\|\s*/);
+  const parts = nativeType
+    .split(/\s*\|\s*/)
+    .flatMap((part) =>
+      part === "bool" && nativeType.includes("|") ? ["true", "false"] : [part],
+    );
   const literals = parts.filter((part) =>
     /^'[^']*'$|^(true|false|-?\d+)$/.test(part),
   );
@@ -111,23 +116,32 @@ function property(name: string, prop: ApiProp): Props[string] {
         part.startsWith("'") ? part.slice(1, -1) : JSON.parse(part),
       ),
     };
-  } else if (prop.type.name === "bool") {
+  } else if (nativeType === "bool") {
     type = { type: "boolean" };
-  } else if (prop.type.name === "number") {
+  } else if (nativeType === "number" || nativeType === "integer") {
     type = { type: "number" };
-  } else if (
-    prop.type.name === "string" ||
-    nativeType === "string" ||
-    prop.type.name === "elementType"
-  ) {
+  } else if (prop.type.name === "string" || nativeType === "string") {
     type =
-      name === "src"
+      name === "src" || name === "image"
         ? { type: "imageUrl" }
         : name === "href"
           ? { type: "href" }
           : { type: "string" };
-  } else {
+  } else if (
+    prop.type.name === "object" ||
+    (prop.type.name === "shape" && name !== "slots")
+  ) {
     type = { type: "object" };
+  } else {
+    // Mixed values, arrays, component types, refs and functions need a control
+    // that can preserve their real JavaScript value, not coerce them to text/objects.
+    type = {
+      type: "exprEditor",
+      ...(["elementType", "element type", "ref"].includes(nativeType) ||
+      name === "slots"
+        ? { advanced: true }
+        : {}),
+    };
   }
   let defaultValueHint: any;
   if (
@@ -148,7 +162,7 @@ function property(name: string, prop: ApiProp): Props[string] {
 const children: Record<string, string[]> = {
   BottomNavigation: ["BottomNavigationAction"],
   Tabs: ["Tab"],
-  Select: ["MenuItem"],
+  Select: ["MenuItem", "NativeOption"],
   NativeSelect: ["NativeOption"],
   Accordion: ["AccordionSummary", "AccordionDetails", "AccordionActions"],
   Stepper: ["Step"],
@@ -159,13 +173,53 @@ const children: Record<string, string[]> = {
   Menu: ["MenuItem"],
   MenuList: ["MenuItem"],
   ImageList: ["ImageListItem"],
-  ImageListItem: ["ImageListItemBar"],
   Table: ["TableHead", "TableBody", "TableFooter"],
   TableHead: ["TableRow"],
   TableBody: ["TableRow"],
   TableFooter: ["TableRow"],
   TableRow: ["TableCell"],
 };
+
+// These children are optional decoration, fallback content or sizing input,
+// rather than an empty content area that needs a canvas drop target.
+const optionalChildren = new Set<keyof typeof api>([
+  "Avatar",
+  "Backdrop",
+  "Badge",
+  "Box",
+  "CardMedia",
+  "Container",
+  "Divider",
+  "Grid",
+  "ListItemText",
+  "Paper",
+  "Skeleton",
+  "Stack",
+  "StepButton",
+  "StepLabel",
+  "TableCell",
+  "TableSortLabel",
+  "TextField",
+  // These inspect native child types, or render inside SVG/HTML structures
+  // where a placeholder div is not a valid child.
+  "Accordion",
+  "AvatarGroup",
+  "Breadcrumbs",
+  "List",
+  "SvgIcon",
+]);
+
+// API inheritance includes children even when the implementation replaces it
+// with its own content. Keep the actual icon/message/page props instead.
+const ignoredChildren = new Set<keyof typeof api>([
+  "Checkbox",
+  "Radio",
+  "Switch",
+  "MobileStepper",
+  "PaginationItem",
+  "SnackbarContent",
+  "TablePagination",
+]);
 const childParents: Record<string, string> = {
   BottomNavigationAction: "BottomNavigation",
   Tab: "Tabs",
@@ -440,7 +494,9 @@ const htmlProps: {
   [K in keyof typeof api]?: Partial<
     Record<
       | keyof React.ComponentProps<(typeof components)[K]>
-      | (K extends "Button" ? keyof ButtonProps<"a"> : never),
+      | (K extends "Button" ? keyof ButtonProps<"a"> : never)
+      | (K extends "Grid" ? keyof GridProps : never)
+      | (K extends "CardMedia" ? keyof React.ComponentProps<"img"> : never),
       PropType<any>
     >
   >;
@@ -452,18 +508,28 @@ const htmlProps: {
   Radio: { name: "string", autoFocus: "boolean", readOnly: "boolean" },
   InputLabel: { htmlFor: "string" },
   FormLabel: { htmlFor: "string" },
+  CardMedia: {
+    alt: "string",
+    srcSet: "string",
+    sizes: "string",
+    loading: { type: "choice", options: ["eager", "lazy"] },
+  },
+  Grid: { sx: "object", component: "exprEditor" },
 };
 
 export function componentMeta(name: keyof typeof api): CodeComponentMeta<any> {
   const doc = api[name];
   const props: Props = Object.fromEntries(
-    Object.entries(doc.props).map(([key, value]) => [
-      key,
-      property(key, value as ApiProp),
-    ]),
+    Object.entries(doc.props)
+      .filter(
+        ([key, value]) =>
+          (value as ApiProp).type.description !== "unsupportedProp" &&
+          !(key === "children" && ignoredChildren.has(name)),
+      )
+      .map(([key, value]) => [key, property(key, value as ApiProp)]),
   );
   Object.assign(props, htmlProps[name]);
-  Object.assign(props, {
+  const domProps: Props = {
     id: { type: "string", advanced: true },
     tabIndex: { type: "number", advanced: true },
     "aria-describedby": { type: "string", advanced: true },
@@ -472,21 +538,38 @@ export function componentMeta(name: keyof typeof api): CodeComponentMeta<any> {
     role: { type: "string", advanced: true },
     title: props.title ?? { type: "string", advanced: true },
     style: { type: "object", advanced: true },
-  });
+  };
+  for (const [key, value] of Object.entries(domProps)) props[key] ??= value;
   for (const event of ["onClick", "onFocus", "onBlur", "onKeyDown"]) {
     props[event] ??= {
       type: "eventHandler",
       argTypes: [{ name: "event", type: "object" }],
     };
   }
-  // MUI component types and refs are expressions; element instances use slots.
-  for (const key of ["slots", "action", "inputRef", "container", "anchorEl"]) {
-    if (key in props)
-      props[key] = {
-        type: "exprEditor",
-        advanced: true,
-        description: `Native MUI ${key}. Bind an expression with the original MUI type.`,
-      };
+  // The API table omits the second checked argument implemented by SwitchBase.
+  if (["Checkbox", "Radio", "Switch", "FormControlLabel"].includes(name)) {
+    props.onChange = {
+      ...(typeof props.onChange === "object" ? props.onChange : {}),
+      type: "eventHandler",
+      argTypes: [
+        { name: "event", type: "object" },
+        { name: "checked", type: "boolean" },
+      ],
+    };
+  }
+  for (const key of ["onTransitionEnter", "onTransitionExited"]) {
+    if (key in props) props[key] = { type: "eventHandler", argTypes: [] };
+  }
+  if (name === "Autocomplete") {
+    props.onChange = {
+      type: "eventHandler",
+      argTypes: [
+        { name: "event", type: "object" },
+        { name: "value", type: "object" },
+        { name: "reason", type: "string" },
+        { name: "details", type: "object" },
+      ],
+    };
   }
   if (props.sx)
     props.sx = {
@@ -500,17 +583,44 @@ export function componentMeta(name: keyof typeof api): CodeComponentMeta<any> {
       description:
         "Props for the default TextField rendered by renderInput. MUI's input refs and input attributes are preserved.",
     };
-  // Box inherits children from @mui/system; Material UI's API JSON omits it.
-  if (name === "Box") props.children = { type: "slot" };
+  if (name === "Autocomplete" && typeof props.renderInput === "object") {
+    props.renderInput = {
+      ...props.renderInput,
+      required: false,
+    } as Props[string];
+  }
+  if (name === "SwipeableDrawer") {
+    for (const key of ["onOpen", "onClose"]) {
+      const prop = props[key];
+      if (typeof prop === "object" && prop.type === "eventHandler")
+        props[key] = { ...prop, required: false };
+    }
+  }
+  // These inherit children from @mui/system; Material UI's API JSON omits it.
+  if (name === "Box" || name === "Container") props.children = { type: "slot" };
+  const childProp = props.children;
   if (children[name])
     props.children = {
+      ...(typeof childProp === "object" && childProp.type === "slot"
+        ? childProp
+        : {}),
       type: "slot",
       allowedComponents: children[name].map(componentName),
+      hidePlaceholder: true,
+    };
+  if (optionalChildren.has(name))
+    props.children = {
+      ...(typeof props.children === "object" && props.children.type === "slot"
+        ? props.children
+        : {}),
+      type: "slot",
+      hidePlaceholder: true,
     };
   const states: NonNullable<CodeComponentMeta<any>["states"]> = {};
   for (const [key, variableType, initial, event = "onChange"] of bindings[
     name
   ] ?? []) {
+    const initialProp = initial ? props[initial] : undefined;
     if (initial) delete props[initial];
     if (!(event in props))
       props[event] = {
@@ -525,10 +635,21 @@ export function componentMeta(name: keyof typeof api): CodeComponentMeta<any> {
     const current = props[key];
     props[key] = {
       ...(typeof current === "object"
-        ? { description: current.description }
+        ? {
+            description: current.description,
+            ...("exprHint" in current ? { exprHint: current.exprHint } : {}),
+            ...("defaultValueHint" in current
+              ? { defaultValueHint: current.defaultValueHint }
+              : {}),
+            ...("required" in current ? { required: current.required } : {}),
+          }
         : {}),
       ...primitive(variableType),
       ...(initial ? { editOnly: true, uncontrolledProp: initial } : {}),
+      ...(initial ? { required: false } : {}),
+      ...(typeof initialProp === "object" && "defaultValueHint" in initialProp
+        ? { defaultValueHint: initialProp.defaultValueHint }
+        : {}),
     };
     states[key] = {
       type: "writable",

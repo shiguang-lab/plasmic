@@ -1,4 +1,3 @@
-import { PublicLink } from "@/wab/client/components/PublicLink";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -10,21 +9,28 @@ import type {
   TemplateMetadata,
   TemplatePublication,
 } from "@/wab/shared/template-center";
-import { LayoutOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  AppstoreOutlined,
+  ArrowRightOutlined,
+  EllipsisOutlined,
+  PictureOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import {
   Alert,
   Button,
-  Card,
-  Empty,
+  Dropdown,
   Flex,
   Form,
   Input,
-  Popconfirm,
   Select,
   Skeleton,
-  Tag,
+  Tabs,
   Typography,
+  Upload,
   message,
 } from "antd";
 import { createStyles } from "antd-style";
@@ -32,26 +38,214 @@ import * as React from "react";
 import useSWR from "swr";
 
 const useStyles = createStyles(({ token }) => ({
-  root: { padding: 24, display: "flex", flexDirection: "column", gap: 20 },
+  root: {
+    width: "100%",
+    maxWidth: 1440,
+    margin: "0 auto",
+    padding: "48px 48px 64px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 32,
+    "@media (max-width: 760px)": { padding: "28px 20px 40px", gap: 24 },
+  },
+  heading: {
+    margin: "0 !important",
+    fontSize: "32px !important",
+    fontWeight: "600 !important",
+    letterSpacing: "-0.8px",
+  },
+  subtitle: {
+    color: token.colorTextSecondary,
+    fontSize: 14,
+    margin: "10px 0 0",
+  },
+  toolbar: { display: "flex", flexDirection: "column", gap: 16 },
+  tabs: {
+    minWidth: 250,
+    "& .ant-tabs-nav": { margin: 0 },
+    "& .ant-tabs-nav::before": { border: 0 },
+  },
+  search: {
+    width: 280,
+    borderRadius: 10,
+    "@media (max-width: 600px)": { width: "100%" },
+  },
+  filters: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 16,
+    flexWrap: "wrap",
+  },
+  categories: { display: "flex", gap: 8, flexWrap: "wrap" },
+  category: { borderRadius: 20, color: token.colorTextSecondary },
+  activeCategory: {
+    borderRadius: 20,
+    background: token.colorText,
+    color: token.colorBgContainer,
+    "&:hover": {
+      background: `${token.colorText} !important`,
+      color: `${token.colorBgContainer} !important`,
+    },
+  },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-    gap: 20,
+    gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
+    gap: "32px 24px",
+  },
+  card: { minWidth: 0 },
+  coverButton: {
+    display: "block",
+    position: "relative",
+    width: "100%",
+    aspectRatio: "4 / 3",
+    padding: 0,
+    border: `1px solid ${token.colorBorderSecondary}`,
+    borderRadius: 16,
+    overflow: "hidden",
+    background: token.colorFillAlter,
+    cursor: "pointer",
+    color: token.colorText,
+    transition: "box-shadow 180ms ease, transform 180ms ease",
+    "&:hover": {
+      transform: "translateY(-3px)",
+      boxShadow: token.boxShadowSecondary,
+    },
+    "&:focus-visible": {
+      outline: `2px solid ${token.colorPrimary}`,
+      outlineOffset: 4,
+    },
+    "&:hover .template-cover-action, &:focus-visible .template-cover-action": {
+      opacity: 1,
+      transform: "translateY(0)",
+    },
+    "@media (prefers-reduced-motion: reduce)": { transition: "none" },
   },
   cover: {
-    height: 160,
+    display: "block",
+    height: "100%",
     width: "100%",
-    objectFit: "contain",
-    background: token.colorFillAlter,
-    borderRadius: token.borderRadiusLG,
+    objectFit: "cover",
   },
   placeholder: {
-    height: 160,
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    color: token.colorTextQuaternary,
+    fontSize: 13,
+    "& .anticon": { fontSize: 30 },
+  },
+  coverAction: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 14px",
+    borderRadius: 20,
+    background: token.colorBgElevated,
+    color: token.colorText,
+    boxShadow: token.boxShadowSecondary,
+    fontSize: 12,
+    opacity: 0,
+    transform: "translateY(4px)",
+    transition: "opacity 180ms ease, transform 180ms ease",
+    "@media (hover: none)": { opacity: 1, transform: "none" },
+  },
+  status: {
+    position: "absolute",
+    left: 14,
+    top: 14,
+    padding: "4px 9px",
+    borderRadius: 6,
+    background: token.colorBgElevated,
+    color: token.colorTextSecondary,
+    fontSize: 11,
+  },
+  cardBody: { padding: "14px 2px 0" },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: 600,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    margin: 0,
+  },
+  cardMeta: {
+    marginTop: 5,
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+    color: token.colorTextSecondary,
+    fontSize: 12,
+  },
+  description: {
+    margin: "8px 0 0",
+    color: token.colorTextTertiary,
+    fontSize: 13,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  empty: {
+    minHeight: 360,
+    padding: "48px 20px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    border: `1px solid ${token.colorBorderSecondary}`,
+    background: token.colorFillAlter,
     display: "grid",
     placeItems: "center",
-    fontSize: 40,
-    background: token.colorFillAlter,
     color: token.colorTextTertiary,
+    fontSize: 28,
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    margin: "0 0 8px",
+    fontSize: 20,
+    fontWeight: 600,
+    letterSpacing: "-0.4px",
+  },
+  emptyDescription: {
+    maxWidth: 360,
+    margin: "0 0 24px",
+    color: token.colorTextSecondary,
+    fontSize: 14,
+    lineHeight: 1.7,
+  },
+  upload: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 14,
+    padding: 20,
+    borderRadius: 12,
+    border: `1px dashed ${token.colorBorder}`,
+    background: token.colorFillAlter,
+  },
+  uploadPreview: {
+    width: "100%",
+    maxHeight: 180,
+    objectFit: "contain",
+    borderRadius: 8,
+  },
+  uploadHint: {
+    margin: 0,
+    fontSize: 12,
+    color: token.colorTextSecondary,
+    textAlign: "center",
   },
   formScroll: { maxHeight: "65vh", minHeight: 0 },
   preview: {
@@ -90,6 +284,8 @@ export default function TemplateCenter() {
   const [library, setLibrary] = React.useState("all");
   const [editing, setEditing] = React.useState<ApiDesignTemplate | "new">();
   const [preview, setPreview] = React.useState<TemplatePublication>();
+  const [confirming, setConfirming] = React.useState<ApiDesignTemplate>();
+  const [uploading, setUploading] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [form] = Form.useForm<TemplateMetadata>();
   const canManage = data?.canManage === true;
@@ -98,7 +294,9 @@ export default function TemplateCenter() {
     canManage ? (item.draft ?? item.published) : item.published;
   const categories = [
     ...new Set(
-      templates.map((item) => metadata(item)?.category).filter(Boolean),
+      templates
+        .map((item) => metadata(item)?.category)
+        .filter((value): value is string => !!value),
     ),
   ].sort();
   const libraries = [
@@ -127,6 +325,17 @@ export default function TemplateCenter() {
     );
   });
 
+  const hasFilters =
+    !!search.trim() ||
+    [kind, device, category, library].some((value) => value !== "all");
+  function clearFilters() {
+    setSearch("");
+    setKind("all");
+    setDevice("all");
+    setCategory("all");
+    setLibrary("all");
+  }
+
   async function run(action: () => Promise<void>) {
     setBusy(true);
     try {
@@ -145,6 +354,9 @@ export default function TemplateCenter() {
     setEditing(item);
   }
   async function save(values: TemplateMetadata) {
+    if (busy || uploading) {
+      return;
+    }
     await run(async () => {
       if (editing === "new") {
         const { template } = await appCtx.api.createDesignTemplate(values);
@@ -175,10 +387,15 @@ export default function TemplateCenter() {
   return (
     <section className={styles.root}>
       {documentTitle(t("Template center"))}
-      <Flex justify="space-between" align="center" wrap gap={12}>
-        <Typography.Title level={3} style={{ margin: 0 }}>
-          {t("Template center")}
-        </Typography.Title>
+      <Flex justify="space-between" align="center" wrap gap={20}>
+        <div>
+          <Typography.Title level={1} className={styles.heading}>
+            {t("Template center")}
+          </Typography.Title>
+          <p className={styles.subtitle}>
+            {t("Explore ideas for your next design.")}
+          </p>
+        </div>
         {canManage && (
           <Button
             type="primary"
@@ -190,53 +407,88 @@ export default function TemplateCenter() {
           </Button>
         )}
       </Flex>
-      <Flex gap={12} wrap>
-        <Input.Search
-          aria-label={t("Search templates")}
-          placeholder={t("Search templates")}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          style={{ width: 240 }}
-          allowClear
-        />
-        <Select
-          aria-label={t("Template type")}
-          value={kind}
-          onChange={setKind}
-          style={{ minWidth: 140 }}
-          options={[{ value: "all", label: t("All types") }, ...kindOptions]}
-        />
-        <Select
-          aria-label={t("Device")}
-          value={device}
-          onChange={setDevice}
-          style={{ minWidth: 140 }}
-          options={[
-            { value: "all", label: t("All devices") },
-            ...deviceOptions,
-          ]}
-        />
-        <Select
-          aria-label={t("Category")}
-          value={category}
-          onChange={setCategory}
-          style={{ minWidth: 160 }}
-          options={[
-            { value: "all", label: t("All categories") },
-            ...categories.map((value) => ({ value, label: value })),
-          ]}
-        />
-        <Select
-          aria-label={t("Component library")}
-          value={library}
-          onChange={setLibrary}
-          style={{ minWidth: 180 }}
-          options={[
-            { value: "all", label: t("All component libraries") },
-            ...libraries.map((value) => ({ value, label: value })),
-          ]}
-        />
-      </Flex>
+      <div className={styles.toolbar}>
+        <Flex justify="space-between" align="center" wrap gap={16}>
+          <Tabs
+            className={styles.tabs}
+            activeKey={kind}
+            onChange={setKind}
+            items={[
+              { key: "all", label: t("All templates") },
+              ...kindOptions.map((option) => ({
+                key: option.value,
+                label: option.label,
+              })),
+            ]}
+          />
+          <Input
+            type="search"
+            className={styles.search}
+            size="large"
+            prefix={<SearchOutlined aria-hidden />}
+            aria-label={t("Search templates")}
+            placeholder={t("Search templates")}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            allowClear
+          />
+        </Flex>
+        <div className={styles.filters}>
+          <div
+            className={styles.categories}
+            role="group"
+            aria-label={t("Category")}
+          >
+            {[
+              { value: "all", label: t("All categories") },
+              ...categories.map((value) => ({ value, label: value })),
+            ].map((option) => (
+              <Button
+                key={option.value}
+                type="text"
+                className={
+                  category === option.value
+                    ? styles.activeCategory
+                    : styles.category
+                }
+                aria-pressed={category === option.value}
+                onClick={() => setCategory(option.value)}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+          <Flex gap={8} wrap align="center">
+            <Select
+              aria-label={t("Device")}
+              value={device}
+              onChange={setDevice}
+              variant="borderless"
+              style={{ minWidth: 120 }}
+              options={[
+                { value: "all", label: t("All devices") },
+                ...deviceOptions,
+              ]}
+            />
+            <Select
+              aria-label={t("Component library")}
+              value={library}
+              onChange={setLibrary}
+              variant="borderless"
+              style={{ minWidth: 175 }}
+              options={[
+                { value: "all", label: t("All component libraries") },
+                ...libraries.map((value) => ({ value, label: value })),
+              ]}
+            />
+            {hasFilters && (
+              <Button type="text" onClick={clearFilters}>
+                {t("Clear filters")}
+              </Button>
+            )}
+          </Flex>
+        </div>
+      </div>
       {error ? (
         <Alert
           type="error"
@@ -251,9 +503,55 @@ export default function TemplateCenter() {
           }
         />
       ) : !data ? (
-        <Skeleton active />
+        <div className={styles.grid} aria-label={t("Loading templates")}>
+          {[0, 1, 2, 3].map((key) => (
+            <div key={key}>
+              <Skeleton.Node
+                active
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  aspectRatio: "4 / 3",
+                  borderRadius: 16,
+                }}
+              />
+              <Skeleton active title paragraph={{ rows: 1 }} />
+            </div>
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
-        <Empty description={t("No templates found")} />
+        <div className={styles.empty}>
+          <div className={styles.emptyIcon} aria-hidden>
+            {hasFilters ? <SearchOutlined /> : <AppstoreOutlined />}
+          </div>
+          <h2 className={styles.emptyTitle}>
+            {t(
+              hasFilters ? "No templates found" : "A place for your next idea",
+            )}
+          </h2>
+          <p className={styles.emptyDescription}>
+            {t(
+              hasFilters
+                ? "Try another keyword or clear your filters."
+                : canManage
+                  ? "Share your first template and give great ideas a place to start."
+                  : "New templates will appear here. Come back for a little inspiration.",
+            )}
+          </p>
+          {hasFilters ? (
+            <Button onClick={clearFilters}>{t("Show all templates")}</Button>
+          ) : (
+            canManage && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined aria-hidden />}
+                onClick={() => edit("new")}
+              >
+                {t("Create your first template")}
+              </Button>
+            )
+          )}
+        </div>
       ) : (
         <div className={styles.grid}>
           {filtered.map((item) => {
@@ -262,143 +560,172 @@ export default function TemplateCenter() {
               return null;
             }
             return (
-              <Card
-                key={item.id}
-                cover={
-                  meta.thumbnailUrl ? (
-                    <img
-                      className={styles.cover}
-                      src={meta.thumbnailUrl}
-                      alt={meta.name}
-                    />
-                  ) : (
-                    <div className={styles.placeholder}>
-                      <LayoutOutlined />
-                    </div>
-                  )
-                }
-              >
-                <Flex vertical gap={12}>
-                  <Typography.Text strong>{meta.name}</Typography.Text>
-                  <Flex gap={4} wrap>
-                    <Tag>
-                      {
-                        kindOptions.find((option) => option.value === meta.kind)
-                          ?.label
-                      }
-                    </Tag>
-                    <Tag>
+              <article key={item.id} className={styles.card}>
+                <button
+                  className={styles.coverButton}
+                  disabled={busy}
+                  aria-label={t(
+                    item.published ? "View published template" : "Edit canvas",
+                  )}
+                  onClick={() =>
+                    item.published
+                      ? void openPreview(item)
+                      : history.push(
+                          APP_ROUTES.project.fill({ projectId: item.id }),
+                        )
+                  }
+                >
+                  <TemplateCover url={meta.thumbnailUrl} name={meta.name} />
+                  {canManage && (
+                    <span className={styles.status}>
+                      {t(item.published ? "Published" : "Draft")}
+                    </span>
+                  )}
+                  <span
+                    className={`template-cover-action ${styles.coverAction}`}
+                  >
+                    {t(item.published ? "Preview" : "Edit canvas")}
+                    <ArrowRightOutlined aria-hidden />
+                  </span>
+                </button>
+                <div className={styles.cardBody}>
+                  <Flex justify="space-between" align="center" gap={12}>
+                    <h2 className={styles.cardTitle} title={meta.name}>
+                      {meta.name}
+                    </h2>
+                    {canManage && (
+                      <Dropdown
+                        trigger={["click"]}
+                        placement="bottomRight"
+                        menu={{
+                          items: [
+                            {
+                              key: "canvas",
+                              label: t("Edit canvas"),
+                              onClick: () =>
+                                history.push(
+                                  APP_ROUTES.project.fill({
+                                    projectId: item.id,
+                                  }),
+                                ),
+                            },
+                            {
+                              key: "details",
+                              label: t("Edit details"),
+                              onClick: () => edit(item),
+                            },
+                            {
+                              key: "publish",
+                              label: t("Publish template"),
+                              onClick: () =>
+                                void run(async () => {
+                                  await appCtx.api.publishDesignTemplate(
+                                    item.id,
+                                  );
+                                  await mutate();
+                                  void message.success(t("Template published"));
+                                }),
+                            },
+                            { type: "divider" },
+                            {
+                              key: "remove",
+                              label: t(item.published ? "Unpublish" : "Delete"),
+                              danger: true,
+                              onClick: () => setConfirming(item),
+                            },
+                          ],
+                        }}
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          disabled={busy}
+                          aria-label={t("More actions")}
+                          icon={<EllipsisOutlined />}
+                        />
+                      </Dropdown>
+                    )}
+                  </Flex>
+                  <div className={styles.cardMeta}>
+                    <span>
                       {
                         deviceOptions.find(
                           (option) => option.value === meta.device,
                         )?.label
                       }
-                    </Tag>
-                    {meta.category && <Tag>{meta.category}</Tag>}
-                    {canManage && (
-                      <Tag color={item.published ? "green" : "default"}>
-                        {t(item.published ? "Published" : "Draft")}
-                      </Tag>
-                    )}
-                  </Flex>
+                    </span>
+                    <span aria-hidden>·</span>
+                    <span>
+                      {meta.category ||
+                        kindOptions.find((option) => option.value === meta.kind)
+                          ?.label}
+                    </span>
+                  </div>
                   {meta.description && (
-                    <Typography.Paragraph
-                      ellipsis={{ rows: 3 }}
-                      style={{ margin: 0 }}
-                    >
+                    <p className={styles.description} title={meta.description}>
                       {meta.description}
-                    </Typography.Paragraph>
+                    </p>
                   )}
-                  {item.published && (
-                    <Typography.Text type="secondary">
-                      {t("Published version")}: {item.published.version}
-                    </Typography.Text>
-                  )}
-                  <Flex gap={8} wrap>
-                    {item.published && (
-                      <Button
-                        disabled={busy}
-                        onClick={() => void openPreview(item)}
-                      >
-                        {t("View published template")}
-                      </Button>
-                    )}
-                    {canManage && (
-                      <>
-                        <PublicLink
-                          href={APP_ROUTES.project.fill({ projectId: item.id })}
-                        >
-                          {t("Edit canvas")}
-                        </PublicLink>
-                        <Button disabled={busy} onClick={() => edit(item)}>
-                          {t("Edit details")}
-                        </Button>
-                        <Button
-                          type="primary"
-                          disabled={busy}
-                          onClick={() =>
-                            void run(async () => {
-                              await appCtx.api.publishDesignTemplate(item.id);
-                              await mutate();
-                              void message.success(t("Template published"));
-                            })
-                          }
-                        >
-                          {t("Publish template")}
-                        </Button>
-                        {item.published ? (
-                          <Popconfirm
-                            title={t("Unpublish this template?")}
-                            onConfirm={() =>
-                              run(async () => {
-                                await appCtx.api.unpublishDesignTemplate(
-                                  item.id,
-                                );
-                                await mutate();
-                              })
-                            }
-                          >
-                            <Button disabled={busy}>{t("Unpublish")}</Button>
-                          </Popconfirm>
-                        ) : (
-                          <Popconfirm
-                            title={t("Delete this template?")}
-                            onConfirm={() =>
-                              run(async () => {
-                                await appCtx.api.deleteDesignTemplate(item.id);
-                                await mutate();
-                              })
-                            }
-                          >
-                            <Button danger disabled={busy}>
-                              {t("Delete")}
-                            </Button>
-                          </Popconfirm>
-                        )}
-                      </>
-                    )}
-                  </Flex>
-                </Flex>
-              </Card>
+                </div>
+              </article>
             );
           })}
         </div>
       )}
       <Modal
+        open={!!confirming}
+        title={t(
+          confirming?.published
+            ? "Unpublish this template?"
+            : "Delete this template?",
+        )}
+        onCancel={() => !busy && setConfirming(undefined)}
+        confirmLoading={busy}
+        okButtonProps={{ danger: true }}
+        okText={t(confirming?.published ? "Unpublish" : "Delete")}
+        onOk={() =>
+          confirming &&
+          void run(async () => {
+            if (confirming.published) {
+              await appCtx.api.unpublishDesignTemplate(confirming.id);
+            } else {
+              await appCtx.api.deleteDesignTemplate(confirming.id);
+            }
+            setConfirming(undefined);
+            await mutate();
+          })
+        }
+      />
+      <Modal
         open={!!editing}
         title={t(editing === "new" ? "New template" : "Edit template details")}
-        onCancel={() => !busy && setEditing(undefined)}
+        onCancel={() => !busy && !uploading && setEditing(undefined)}
         onOk={() => form.submit()}
         confirmLoading={busy}
+        okButtonProps={{ disabled: uploading }}
+        cancelButtonProps={{ disabled: busy || uploading }}
         okText={t(editing === "new" ? "Create and edit" : "Save draft")}
       >
         <Scrollbar scrollX={false} className={styles.formScroll}>
           <Form
             form={form}
             layout="vertical"
+            onSubmitCapture={(event) => {
+              if (busy || uploading) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+            }}
             onFinish={save}
             initialValues={emptyDraft}
           >
+            <Form.Item name="thumbnailUrl" label={t("Template cover")}>
+              <TemplateCoverUpload
+                uploading={uploading}
+                setUploading={setUploading}
+                disabled={busy}
+              />
+            </Form.Item>
             <Form.Item
               name="name"
               label={t("Name")}
@@ -417,13 +744,6 @@ export default function TemplateCenter() {
             </Form.Item>
             <Form.Item name="description" label={t("Description")}>
               <Input.TextArea autoSize={{ minRows: 2 }} maxLength={4000} />
-            </Form.Item>
-            <Form.Item
-              name="thumbnailUrl"
-              label={t("Thumbnail URL")}
-              rules={[{ type: "url" }]}
-            >
-              <Input maxLength={2048} />
             </Form.Item>
           </Form>
         </Scrollbar>
@@ -451,5 +771,113 @@ export default function TemplateCenter() {
         )}
       </Modal>
     </section>
+  );
+}
+
+function TemplateCover({ url, name }: { url: string; name: string }) {
+  const { styles } = useStyles();
+  const { t } = useI18n();
+  const [failedUrl, setFailedUrl] = React.useState<string>();
+  return url && failedUrl !== url ? (
+    <img
+      className={styles.cover}
+      src={url}
+      alt={name}
+      loading="lazy"
+      onError={() => setFailedUrl(url)}
+    />
+  ) : (
+    <div className={styles.placeholder}>
+      <PictureOutlined aria-hidden />
+      <span>{t("No cover yet")}</span>
+    </div>
+  );
+}
+
+function TemplateCoverUpload({
+  value,
+  onChange,
+  uploading,
+  setUploading,
+  disabled,
+}: {
+  value?: string;
+  onChange?: (value: string) => void;
+  uploading: boolean;
+  setUploading: (value: boolean) => void;
+  disabled: boolean;
+}) {
+  const appCtx = useAppCtx();
+  const { t } = useI18n();
+  const { styles } = useStyles();
+  const [uploadMessage, contextHolder] = message.useMessage();
+  return (
+    <div className={styles.upload}>
+      {contextHolder}
+      {value ? (
+        <img
+          src={value}
+          className={styles.uploadPreview}
+          alt={t("Template cover")}
+        />
+      ) : (
+        <PictureOutlined style={{ fontSize: 28 }} aria-hidden />
+      )}
+      <Flex gap={8}>
+        <Upload
+          accept="image/png,image/jpeg,image/webp"
+          showUploadList={false}
+          disabled={disabled || uploading}
+          beforeUpload={async (file) => {
+            if (
+              !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
+              file.size > 5 * 1024 * 1024
+            ) {
+              void uploadMessage.error(
+                t("Choose a PNG, JPG or WebP image under 5 MB."),
+              );
+              return false;
+            }
+            setUploading(true);
+            let uploadedUrl: string | undefined;
+            try {
+              const result = await appCtx.api.uploadImageFile({
+                imageFile: file,
+              });
+              uploadedUrl = result.dataUri;
+            } catch {
+              void uploadMessage.error(
+                t("Cover upload failed. Please try again."),
+              );
+            }
+            setUploading(false);
+            if (uploadedUrl) {
+              onChange?.(uploadedUrl);
+            }
+            return false;
+          }}
+        >
+          <Button
+            icon={<UploadOutlined aria-hidden />}
+            loading={uploading}
+            disabled={disabled || uploading}
+          >
+            {t(value ? "Replace cover" : "Upload cover")}
+          </Button>
+        </Upload>
+        {value && (
+          <Button
+            type="text"
+            disabled={disabled || uploading}
+            onClick={() => onChange?.("")}
+          >
+            {t("Remove image")}
+          </Button>
+        )}
+      </Flex>
+      <p className={styles.uploadHint}>
+        {t("PNG, JPG or WebP · Up to 5 MB · Recommended 4:3")}
+      </p>
+    </div>
   );
 }

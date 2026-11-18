@@ -1,130 +1,146 @@
 .frame {
   position: absolute;
   box-sizing: border-box;
-  border: solid #111214;
-  box-shadow:
-    0 0 0 1px #090a0c,
-    0 0 0 2px #8b8d93,
-    0 0 0 3px #34363b,
-    0 12px 28px #00000038;
+  z-index: 1;
+  border: solid #151619;
+  box-shadow: 0 0 0 1px #060708, 0 0 0 2px #8c8d91, 0 0 0 3px #44464b,
+    0 2px 3px 3px #00000018, 0 16px 32px -4px #00000038;
   pointer-events: none;
   user-select: none;
+  color: #151619;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
 
-  span {
-    position: absolute;
-    display: block;
-    pointer-events: none;
-    border-radius: 999px;
-  }
+  *, *::before, *::after { box-sizing: border-box; }
 }
 
-.camera {
-  z-index: 1;
-  width: 100px;
-  height: 28px;
+.display { position: absolute; inset: 0; border-radius: var(--device-radius); overflow: hidden; }
+.statusBar {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--device-status-height);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+}
+.time {
+  width: 54px;
+  text-align: center;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -.4px;
+  font-variant-numeric: tabular-nums;
+}
+.symbols {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1;
+  svg { display: block; flex: none; }
+}
+.percentage { font-size: 12px; font-weight: 500; }
+.cutout {
+  position: absolute;
   top: 11px;
-  left: calc(50% - 50px);
-  background: #030405;
-  box-shadow: inset 0 0 0 1px #202226;
-
-  &::after {
-    content: "";
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    top: 11px;
-    right: 12px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #273c58, #080d17 65%);
-    box-shadow: 0 0 0 1px #171c24;
-  }
+  left: calc(50% - 63px);
+  width: 126px;
+  height: 37px;
+  border-radius: 24px;
+  background: #050506;
+  box-shadow: inset 0 0 0 1px #17181b;
 }
-
+.lens, .camera {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 38% 32%, #244368 0, #0c1726 32%, #06080c 65%);
+  box-shadow: 0 0 0 2px #111217, inset 0 0 1px #3a4456;
+}
+.lens { right: 13px; top: calc(50% - 4px); }
+.homeArea {
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--device-home-height);
+  background: #fff;
+}
 .home {
-  z-index: 1;
-  width: 120px;
-  height: 5px;
+  position: absolute;
   bottom: 8px;
-  left: calc(50% - 60px);
-  background: #111214;
-  box-shadow: 0 0 1px 1px #ffffff80;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 3px;
+  background: #111;
 }
-
-.buttons {
+.safeLeft, .safeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--device-safe-x);
+  background: #fff;
+}
+.safeLeft { left: 0; border-radius: var(--device-radius) 0 0 var(--device-radius); }
+.safeRight { right: 0; border-radius: 0 var(--device-radius) var(--device-radius) 0; }
+.powerButton, .volumeButtons, .silentButton {
+  position: absolute;
   width: 3px;
-  height: 48px;
-  top: 100px;
-  right: -13px;
-  background: linear-gradient(90deg, #35373d, #91939a, #45474e);
+  border-radius: 2px;
+  background: linear-gradient(90deg, #424449, #a4a5aa 50%, #4a4c51);
 }
+.powerButton { height: 64px; top: 172px; right: -13px; }
+.volumeButtons { height: 42px; top: 148px; left: -13px; box-shadow: 0 54px #74767c; }
+.silentButton { height: 20px; top: 98px; left: -13px; }
 
-.volumeButtons {
-  width: 3px;
-  height: 32px;
-  top: 88px;
-  left: -13px;
-  background: #777980;
-  box-shadow: 0 44px #777980;
+.frame[data-hardware="notch"] {
+  .statusBar { padding: 0 24px; }
+  .cutout { top: 0; width: 160px; height: 32px; left: calc(50% - 80px); border-radius: 0 0 21px 21px; }
+  .cutout::before { content: ""; position: absolute; top: 7px; left: 50px; width: 48px; height: 4px; background: #1d1e21; border-radius: 4px; }
 }
-
-.landscape {
-  .camera {
-    left: -25px;
-    top: calc(50% - 14px);
-    transform: rotate(-90deg);
-  }
-
-  .buttons {
-    width: 48px;
-    height: 3px;
-    top: -13px;
-    right: 100px;
-  }
-
-  .volumeButtons {
-    width: 32px;
-    height: 3px;
-    top: auto;
-    bottom: -13px;
-    left: 88px;
-    box-shadow: 44px 0 #777980;
+.frame[data-device="tablet"] {
+  .statusBar { padding: 0 16px; }
+  .time { width: auto; font-size: 12px; line-height: 16px; letter-spacing: 0; }
+  .symbols { gap: 5px; }
+  .symbols svg { height: 10px; width: auto; }
+  .home { width: 28%; max-width: 240px; bottom: 6px; }
+  .camera { top: -11px; left: calc(50% - 3px); width: 6px; height: 6px; }
+  .powerButton { top: -21px; right: 48px; width: 38px; height: 3px; }
+  .volumeButtons { top: 60px; left: auto; right: -21px; height: 28px; box-shadow: 0 38px #74767c; }
+}
+.frame[data-hardware="home-button"] {
+  // Only the hardware end caps are filled; the viewport remains transparent.
+  background: linear-gradient(#151619 54px, transparent 54px, transparent calc(100% - 54px), #151619 calc(100% - 54px));
+  .display { top: 54px; bottom: 54px; }
+  .statusBar { padding: 0 7px; }
+  .time { position: absolute; left: calc(50% - 27px); font-size: 12px; line-height: 16px; letter-spacing: 0; }
+  .symbols { width: 100%; gap: 4px; }
+  .symbols svg { height: 10px; width: auto; }
+  .symbols svg:last-child { margin-left: auto; }
+  .camera { top: 21px; left: calc(50% - 53px); }
+  .speaker { position: absolute; top: 23px; left: calc(50% - 24px); width: 48px; height: 5px; background: #08090a; border-radius: 4px; box-shadow: 0 1px #303136; }
+  .homeButton { position: absolute; bottom: 8px; left: calc(50% - 19px); width: 38px; height: 38px; border-radius: 50%; background: #111214; box-shadow: 0 0 0 2px #494b50, inset 0 1px 3px #000; }
+}
+.frame[data-orientation="landscape"][data-device="phone"] {
+  .cutout { top: calc(50% - 18.5px); left: -33.5px; transform: rotate(-90deg); }
+  .home { width: 134px; bottom: 5px; }
+  .powerButton { top: -13px; right: 172px; width: 64px; height: 3px; }
+  .volumeButtons { top: auto; bottom: -13px; left: 148px; width: 42px; height: 3px; box-shadow: 54px 0 #74767c; }
+  .silentButton { top: auto; bottom: -13px; left: 98px; width: 20px; height: 3px; }
+  &[data-hardware="notch"] .cutout { left: -64px; top: calc(50% - 16px); }
+  &[data-hardware="home-button"] {
+    background: linear-gradient(90deg, #151619 54px, transparent 54px, transparent calc(100% - 54px), #151619 calc(100% - 54px));
+    .display { inset: 0 54px; }
+    .homeButton { left: auto; right: 8px; bottom: calc(50% - 19px); }
+    .camera { left: 21px; top: calc(50% - 53px); }
+    .speaker { left: 23px; top: calc(50% - 24px); width: 5px; height: 48px; }
   }
 }
-
-.tablet {
-  border-color: #17181b;
-
-  .camera {
-    width: 6px;
-    height: 6px;
-    top: -11px;
-    left: calc(50% - 3px);
-    border-radius: 50%;
-    background: #111820;
-
-    &::after {
-      inset: 1px;
-      width: 4px;
-      height: 4px;
-    }
-  }
-
-  .buttons {
-    right: -21px;
-  }
-
-  .volumeButtons {
-    display: none;
-  }
-
-  &.landscape {
-    .camera {
-      top: calc(50% - 3px);
-      left: -11px;
-    }
-    .buttons {
-      top: -21px;
-      right: 100px;
-    }
-  }
+.frame[data-orientation="landscape"][data-device="tablet"] {
+  .camera { top: calc(50% - 3px); left: -11px; }
+  .powerButton { right: auto; left: -21px; top: 48px; width: 3px; height: 38px; }
+  .volumeButtons { top: -21px; left: 60px; width: 28px; height: 3px; box-shadow: 38px 0 #74767c; }
 }

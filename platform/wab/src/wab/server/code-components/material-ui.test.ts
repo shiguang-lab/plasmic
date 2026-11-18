@@ -1,6 +1,7 @@
 import { createSiteForHostlessProject } from "@/wab/server/code-components/code-components";
 import { Bundler } from "@/wab/shared/bundler";
 import { HostLessPackageInfo } from "@/wab/shared/model/classes";
+import { isRenderableType } from "@/wab/shared/model/model-util";
 import { expect, it } from "vitest";
 
 it("imports Material UI props, slots, states and defaults into a serializable Studio library", async () => {
@@ -76,4 +77,58 @@ it("imports Material UI props, slots, states and defaults into a serializable St
       .find((c) => c.name === field?.name)
       ?.params.map((p) => p.variable.name),
   ).toEqual(field?.params.map((p) => p.variable.name));
+  for (const [suffix, prop] of [
+    ["box", "children"],
+    ["container", "children"],
+    ["step-label", "children"],
+    ["icon-button", "children"],
+    ["tooltip", "children"],
+    ["card-media", "children"],
+    ["alert", "action"],
+    ["card-header", "action"],
+    ["tab", "icon"],
+  ]) {
+    const param = restored.components
+      .find((c) => c.name === `plasmic-material-ui-${suffix}`)
+      ?.params.find((p) => p.variable.name === prop);
+    expect(param, `${suffix}.${prop}`).toBeDefined();
+    expect(param && isRenderableType(param.type), `${suffix}.${prop}`).toBe(
+      true,
+    );
+  }
+  for (const suffix of [
+    "checkbox",
+    "radio",
+    "switch",
+    "mobile-stepper",
+    "pagination-item",
+    "snackbar-content",
+    "table-pagination",
+    "tab",
+    "chip",
+    "bottom-navigation-action",
+  ]) {
+    expect(
+      restored.components
+        .find((c) => c.name === `plasmic-material-ui-${suffix}`)
+        ?.params.some((p) => p.variable.name === "children"),
+      suffix,
+    ).toBe(false);
+  }
+  for (const [suffix, prop, typeName] of [
+    ["grid", "container", "bool"],
+    ["card", "raised", "bool"],
+    ["stepper", "activeStep", "num"],
+    ["mobile-stepper", "steps", "num"],
+    ["avatar-group", "max", "num"],
+    ["rating", "precision", "num"],
+    ["grid", "size", "any"],
+    ["select", "value", "any"],
+    ["button", "component", "any"],
+  ]) {
+    const param = restored.components
+      .find((c) => c.name === `plasmic-material-ui-${suffix}`)
+      ?.params.find((p) => p.variable.name === prop);
+    expect(param?.type.name, `${suffix}.${prop}`).toBe(typeName);
+  }
 }, 60000);

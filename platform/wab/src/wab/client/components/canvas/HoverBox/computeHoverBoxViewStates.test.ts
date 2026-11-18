@@ -25,9 +25,9 @@ vi.mock("@/wab/client/utils/tpl-client-utils", () => ({
 afterEach(() => { document.body.innerHTML = ""; });
 
 it.each([
-  [393, 852, ComponentType.Page, 36],
-  [834, 1194, ComponentType.Page, 12],
-  [1194, 834, ComponentType.Page, 12],
+  [393, 852, ComponentType.Page, 0],
+  [834, 1194, ComponentType.Page, 0],
+  [1194, 834, ComponentType.Page, 0],
   [1440, 900, ComponentType.Page, undefined],
   [393, 852, ComponentType.Plain, undefined],
 ])("matches device selection chrome without changing artboard bounds (%s × %s, %s)", (width, height, type, radius) => {
@@ -43,7 +43,7 @@ it.each([
     variantTplMgr: () => undefined,
   } as unknown as ViewCtx;
   const state = computeHoverBoxViewState(vc, frame, false, false, undefined).displayProps;
-  expect(state?.deviceFrame?.screenRadius).toBe(radius);
+  expect(state?.deviceFrame?.viewportRadius).toBe(radius);
   expect(state?.visibleBox).toEqual({ top: 20, left: 30, width, height });
 });
 

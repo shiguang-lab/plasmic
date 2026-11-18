@@ -45,7 +45,7 @@ class DesktopWorkspace {
       const parsed = new URL(url);
       return (
         parsed.origin === this.origin &&
-        /^\/(?:$|(?:projects|orgs|teams|workspaces|settings|playground|cms|content|copilot)(?:\/|$))/.test(
+        /^\/(?:$|(?:projects|orgs|teams|workspaces|settings|playground|template-center|cms|content|copilot)(?:\/|$))/.test(
           parsed.pathname,
         )
       );

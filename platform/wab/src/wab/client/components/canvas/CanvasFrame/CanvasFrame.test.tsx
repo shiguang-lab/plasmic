@@ -61,7 +61,7 @@ it("decorates mobile pages outside the viewport and reacts to resizing without c
     expect(frame.height).toBe(852);
     await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = 1440; frame.height = 1024; }); });
     expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
-    for (const [width, height, kind] of [[834, 1194, "tablet"], [800, 600, undefined], [1194, 834, undefined], [600, 900, undefined], [375, 812, undefined], [393, 852, "phone"]] as const) {
+    for (const [width, height, kind] of [[834, 1194, "tablet"], [800, 600, undefined], [1194, 834, "tablet"], [768, 1024, "tablet"], [1024, 768, "tablet"], [852, 393, "phone"], [600, 900, undefined], [375, 812, undefined], [393, 852, "phone"]] as const) {
       await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = width; frame.height = height; }); });
       expect(mounted.container.querySelector('[data-test-id="device-frame"]')?.getAttribute("data-device")).toBe(kind);
       expect(container.style.width).toBe(`${width}px`);

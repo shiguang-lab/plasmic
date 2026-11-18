@@ -35,11 +35,25 @@ it("registers the complete catalog, valid exports, native API props and state he
         ? [prop.uncontrolledProp]
         : [],
     );
-    for (const prop of Object.keys(api[name].props))
+    for (const [prop, definition] of Object.entries(api[name].props)) {
+      const unsupported =
+        (definition.type as { description?: string }).description ===
+          "unsupportedProp" ||
+        (prop === "children" &&
+          [
+            "Checkbox",
+            "Radio",
+            "Switch",
+            "MobileStepper",
+            "PaginationItem",
+            "SnackbarContent",
+            "TablePagination",
+          ].includes(name));
       expect(
         prop in meta.props || mappedInitials.includes(prop),
         `${name}.${prop}`,
-      ).toBe(true);
+      ).toBe(!unsupported);
+    }
     for (const prop of Object.values(meta.props)) {
       if (typeof prop === "object" && prop?.type === "slot") {
         for (const allowed of prop.allowedComponents ?? [])

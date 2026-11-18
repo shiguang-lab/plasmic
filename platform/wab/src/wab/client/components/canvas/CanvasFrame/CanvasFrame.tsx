@@ -609,8 +609,8 @@ export const CanvasFrame = React.memo(function CanvasFrame({
         style={{
           ...(deviceFrame ? {
             "--device-inset-x": `${deviceFrame.insetX}px`,
-            "--device-inset-y": `${deviceFrame.insetY}px`,
-            "--device-screen-radius": `${deviceFrame.screenRadius}px`,
+            "--device-inset-top": `${deviceFrame.insetTop}px`,
+            "--device-screen-radius": `${deviceFrame.viewportRadius}px`,
           } : {}),
           ...(isFree
             ? {
@@ -666,7 +666,7 @@ export const CanvasFrame = React.memo(function CanvasFrame({
         <iframe
           style={isContentEditing
             ? { background: "transparent", opacity: contentReady ? 1 : 0 }
-            : deviceFrame ? { borderRadius: deviceFrame.screenRadius } : undefined}
+            : deviceFrame ? { borderRadius: deviceFrame.viewportRadius } : undefined}
           data-plasmic-frame-uuid={arenaFrame.uuid}
           data-plasmic-component-uuid={arenaFrame.container.component.uuid}
           className={cx(

@@ -3,12 +3,13 @@ import type { ArtboardBounds } from "@/wab/client/components/dashboard/preview/t
 /** Include the shared shell's buttons, outline and shadow outside the viewport. */
 export function previewBounds(board: ArtboardBounds) {
   const x = board.deviceFrame ? board.deviceFrame.insetX + 32 : 0;
-  const y = board.deviceFrame ? board.deviceFrame.insetY + 32 : 0;
+  const top = board.deviceFrame ? board.deviceFrame.insetTop + 32 : 0;
+  const bottom = board.deviceFrame ? board.deviceFrame.insetBottom + 32 : 0;
   return {
     left: board.left - x,
-    top: board.top - y,
+    top: board.top - top,
     width: board.width + 2 * x,
-    height: board.height + 2 * y,
+    height: board.height + top + bottom,
   };
 }
 

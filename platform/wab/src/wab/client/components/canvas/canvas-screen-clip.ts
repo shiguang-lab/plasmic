@@ -15,7 +15,7 @@ export function canvasScreenClipStyle(
     ? getDeviceFrame(frame.width, frame.height) : undefined;
   if (!device) { return undefined; }
   return screenClipStyle(
-    { width: frame.width, height: getFrameHeight(frame), radius: device.screenRadius, ...viewCtx.canvasCtx.viewportContainerOffset() },
+    { width: frame.width, height: getFrameHeight(frame), radius: device.viewportRadius, ...viewCtx.canvasCtx.viewportContainerOffset() },
     target,
     zoom,
   );

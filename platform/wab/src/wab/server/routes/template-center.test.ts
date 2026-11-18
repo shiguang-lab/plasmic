@@ -235,3 +235,20 @@ it("rejects invalid metadata instead of persisting arbitrary fields or URL schem
   }
   expect(state.record.draft).toEqual(draft);
 });
+
+it("keeps the uploaded cover fixed across publication and only changes it through metadata", async () => {
+  const first = { ...draft, thumbnailUrl: "https://images.test/cover.png" };
+  await updateDesignTemplate(req(true, first), res());
+  await publishDesignTemplate(req(), res());
+  expect(state.record.published.thumbnailUrl).toBe(first.thumbnailUrl);
+  await publishDesignTemplate(req(), res());
+  expect(state.record.published.thumbnailUrl).toBe(first.thumbnailUrl);
+  const replacement = {
+    ...first,
+    thumbnailUrl: "https://images.test/replacement.webp",
+  };
+  await updateDesignTemplate(req(true, replacement), res());
+  expect(state.record.published.thumbnailUrl).toBe(first.thumbnailUrl);
+  await publishDesignTemplate(req(), res());
+  expect(state.record.published.thumbnailUrl).toBe(replacement.thumbnailUrl);
+});

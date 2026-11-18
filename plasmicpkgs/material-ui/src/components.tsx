@@ -7,11 +7,14 @@ import MuiMenu from "@mui/material/Menu";
 import NativeNativeSelect from "@mui/material/NativeSelect";
 import NativeSelectInput from "@mui/material/Select";
 import NativeSnackbar from "@mui/material/Snackbar";
+import MuiStepButton from "@mui/material/StepButton";
+import NativeStepper from "@mui/material/Stepper";
 import { createTheme, ThemeOptions, ThemeProvider } from "@mui/material/styles";
 import MuiSwipeableDrawer from "@mui/material/SwipeableDrawer";
 import MuiTabs from "@mui/material/Tabs";
 import MuiTextField, { TextFieldProps } from "@mui/material/TextField";
 import MuiTooltip from "@mui/material/Tooltip";
+import { mergeSlotProps } from "@mui/material/utils";
 import {
   PlasmicCanvasProps,
   usePlasmicCanvasComponentInfo,
@@ -26,6 +29,7 @@ import { renderSlot, withSlots } from "./slots";
 const MuiSelect = withSlots(NativeSelectInput, ["input"]);
 const MuiNativeSelect = withSlots(NativeNativeSelect, ["input"]);
 const MuiSnackbar = withSlots(NativeSnackbar, ["children"]);
+const MuiStepper = withSlots(NativeStepper, ["connector"]);
 
 type OverlayExtras = PlasmicCanvasProps & {
   defaultOpen?: boolean;
@@ -133,7 +137,10 @@ function overlay<P extends OverlayNativeProps>(Native: React.ComponentType<P>) {
           ? { autoHideDuration: null }
           : {})}
         onClose={(...args: any[]) => change(false, onClose, args)}
-        onOpen={(...args: any[]) => change(true, onOpen, args)}
+        {...(Native === (MuiTooltip as React.ComponentType<any>) ||
+        Native === MuiSwipeableDrawer
+          ? { onOpen: (...args: any[]) => change(true, onOpen, args) }
+          : {})}
       />
     );
   };
@@ -203,7 +210,7 @@ function navigation<
       <Native
         {...(rest as P)}
         ref={ref as any}
-        value={state?.value ?? value ?? localValue}
+        value={state ? state.value : value !== undefined ? value : localValue}
         onChange={(event, next) => {
           setLocalValue(next);
           state?.set(next);
@@ -218,22 +225,104 @@ function navigation<
 }
 export const Tabs = navigation(MuiTabs);
 export const BottomNavigation = navigation(MuiBottomNavigation);
-export const Select = React.forwardRef<
+export const Select = Object.assign(
+  React.forwardRef<HTMLDivElement, React.ComponentProps<typeof MuiSelect>>(
+    function Select(props, ref) {
+      return renderSlot(props.children, (children) => (
+        <MuiSelect {...props} ref={ref} children={children} />
+      ));
+    },
+  ),
+  { muiName: "Select" },
+);
+export const NativeSelect = Object.assign(
+  React.forwardRef<
+    HTMLDivElement,
+    React.ComponentProps<typeof MuiNativeSelect>
+  >(function NativeSelect(props, ref) {
+    return renderSlot(props.children, (children) => (
+      <MuiNativeSelect {...props} ref={ref} children={children} />
+    ));
+  }),
+  { muiName: "Select" },
+);
+
+function renderStepButton(
+  props: React.ComponentProps<typeof MuiStepButton>,
+  render: (button: React.ReactElement) => React.ReactElement,
+) {
+  return renderSlot(props.children, (children) => {
+    const items = React.Children.toArray(children);
+    return render(
+      <MuiStepButton
+        {...props}
+        children={items.length === 1 ? items[0] : items}
+      />,
+    );
+  });
+}
+export const StepButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof MuiStepButton>
+>((props, ref) => renderStepButton({ ...props, ref }, (button) => button));
+
+export const Stepper = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof MuiSelect>
->(function Select(props, ref) {
-  return renderSlot(props.children, (children) => (
-    <MuiSelect {...props} ref={ref} children={children} />
-  ));
-});
-export const NativeSelect = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<typeof MuiNativeSelect>
->(function NativeSelect(props, ref) {
-  return renderSlot(props.children, (children) => (
-    <MuiNativeSelect {...props} ref={ref} children={children} />
-  ));
-});
+  React.ComponentProps<typeof NativeStepper>
+>((props, ref) =>
+  renderSlot(props.children, (children) => {
+    const steps = React.Children.toArray(children);
+    // MUI checks StepButton's exact identity before establishing keyboard
+    // navigation. Resolve its editable slots before passing the Step tree in.
+    const resolveStep = (
+      index: number,
+      resolved: React.ReactNode[],
+    ): React.ReactElement => {
+      if (index === steps.length)
+        return <MuiStepper {...props} ref={ref} children={resolved} />;
+      const step = steps[index];
+      if (!React.isValidElement<{ children?: React.ReactNode }>(step))
+        return resolveStep(index + 1, [...resolved, step]);
+      if (step.type === StepButton)
+        return renderStepButton(step.props, (button) =>
+          resolveStep(index + 1, [
+            ...resolved,
+            React.cloneElement(button, { key: step.key }),
+          ]),
+        );
+      return renderSlot(step.props.children, (content) => {
+        const parts = React.Children.toArray(content);
+        const resolvePart = (
+          partIndex: number,
+          contents: React.ReactNode[],
+        ): React.ReactElement => {
+          if (partIndex === parts.length)
+            return resolveStep(index + 1, [
+              ...resolved,
+              React.cloneElement(step, { children: contents }),
+            ]);
+          const part = parts[partIndex];
+          if (
+            React.isValidElement<React.ComponentProps<typeof MuiStepButton>>(
+              part,
+            ) &&
+            part.type === StepButton
+          ) {
+            return renderStepButton(part.props, (button) =>
+              resolvePart(partIndex + 1, [
+                ...contents,
+                React.cloneElement(button, { key: part.key }),
+              ]),
+            );
+          }
+          return resolvePart(partIndex + 1, [...contents, part]);
+        };
+        return resolvePart(0, []);
+      });
+    };
+    return resolveStep(0, []);
+  }),
+);
 export const Accordion = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof MuiAccordion> & PlasmicCanvasProps
@@ -285,7 +374,29 @@ export const Autocomplete = React.forwardRef<
       ref={ref}
       renderInput={
         renderInput ??
-        ((params) => <MuiTextField {...textFieldProps} {...params} />)
+        ((params) => (
+          <MuiTextField
+            {...textFieldProps}
+            {...params}
+            slotProps={{
+              ...textFieldProps?.slotProps,
+              // Autocomplete owns refs, ARIA and adornments. Compose native handlers
+              // and classes with configured TextField slots instead of discarding them.
+              inputLabel: mergeSlotProps(
+                params.slotProps.inputLabel,
+                textFieldProps?.slotProps?.inputLabel ?? {},
+              ),
+              input: mergeSlotProps(
+                params.slotProps.input,
+                textFieldProps?.slotProps?.input ?? {},
+              ),
+              htmlInput: mergeSlotProps(
+                params.slotProps.htmlInput,
+                textFieldProps?.slotProps?.htmlInput ?? {},
+              ),
+            }}
+          />
+        ))
       }
     />
   );

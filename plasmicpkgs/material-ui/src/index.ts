@@ -26,7 +26,7 @@ export function registerAll(loader?: Registerable) {
       value: "string",
       label: "string",
       disabled: "boolean",
-      children: { type: "slot", defaultValue: "选项" },
+      children: { type: "slot", defaultValue: "选项", hidePlaceholder: true },
     },
   });
   (loader?.registerGlobalContext ?? registerGlobalContext)(

@@ -44,7 +44,7 @@ test("ordinary preview defaults to desktop without carrying artboard dimensions"
   expect(history.location.hash).toBe("#/groups");
 });
 
-test.each([[393, 852, "phone"], [852, 393, "desktop"], [834, 1194, "tablet"], [1194, 834, "desktop"]] as const)("opening a page follows native device preset classification (%i × %i, %s)", async (width, height, kind) => {
+test.each([[393, 852, "phone"], [852, 393, "phone"], [834, 1194, "tablet"], [1194, 834, "tablet"], [1440, 1024, "desktop"], [768, 1024, "tablet"]] as const)("opening a page follows native device preset classification (%i × %i, %s)", async (width, height, kind) => {
   const { ctx, history } = await setup();
   const studio = ctx.studioCtx;
   try {

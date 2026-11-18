@@ -1,5 +1,5 @@
 import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
-import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
+import { DEVICE_VIEWPORTS, getViewportScale } from "@/wab/client/components/live/preview-viewport";
 import { frameSizeGroups } from "@/wab/shared/responsiveness";
 
 test("all native Device presets select their corresponding shell", () => {
@@ -11,8 +11,8 @@ test("all native Device presets select their corresponding shell", () => {
   }
 });
 
-test("custom dimensions, including rotated presets, have no shell", () => {
-  for (const [width, height] of [[800, 600], [600, 800], [375, 812], [393, 2400], [852, 393], [1194, 834], [600, 900], [900, 600], [100, 100], [1440, 900], [1440, 390], [NaN, 852]]) {
+test("custom dimensions have no shell", () => {
+  for (const [width, height] of [[800, 600], [600, 800], [375, 812], [393, 2400], [600, 900], [900, 600], [100, 100], [1440, 900], [1440, 390], [NaN, 852]]) {
     expect(getDeviceFrame(width, height)).toBeUndefined();
   }
 });
@@ -21,7 +21,7 @@ test.each([[393, 852], [852, 393], [834, 1194], [1194, 834]])("the complete devi
   const frame = getDeviceFrame(width, height, Math.min(width, height) === 393 ? "phone" : "tablet");
   expect(frame).toBeDefined();
   if (!frame) { throw new Error("Expected phone frame"); }
-  const outer = { width: width + 2 * frame.insetX, height: height + 2 * frame.insetY };
+  const outer = { width: width + 2 * frame.insetX, height: height + frame.insetTop + frame.insetBottom };
   const available = { width: 500, height: 600 };
   const scale = getViewportScale(available, outer);
   // Multiplying a fractional scale can round a few ulps above the bound.
@@ -40,4 +40,33 @@ test("explicit Custom preview has no shell even at preset dimensions", () => {
   for (const [width, height] of [[800, 600], [393, 852], [834, 1194]]) {
     expect(getDeviceFrame(width, height, "custom")).toBeUndefined();
   }
+});
+
+
+test("preset rotation and default preview devices use the same shell in the editor", () => {
+  for (const group of frameSizeGroups) {
+    for (const { width, height } of group.sizes) {
+      expect(getDeviceFrame(height, width)?.kind).toBe(getDeviceFrame(width, height)?.kind);
+    }
+  }
+  for (const [kind, { width, height }] of Object.entries(DEVICE_VIEWPORTS)) {
+    expect(getDeviceFrame(width, height)?.kind).toBe(kind);
+    expect(getDeviceFrame(height, width)?.kind).toBe(kind);
+  }
+});
+
+test.each([
+  [393, 852, "island", 59, 34],
+  [390, 844, "notch", 47, 34],
+  [375, 667, "home-button", 20, 0],
+  [834, 1194, "tablet", 24, 20],
+  [1194, 834, "tablet", 24, 20],
+  [852, 393, "island", 0, 21],
+] as const)("reserves system areas outside %s × %s business content", (width, height, hardware, statusBarHeight, homeHeight) => {
+  const frame = getDeviceFrame(width, height);
+  expect(frame).toMatchObject({ hardware, statusBarHeight, homeHeight });
+  if (!frame) { throw new Error("Expected device frame"); }
+  expect(frame.insetTop).toBeGreaterThanOrEqual(frame.bezel + statusBarHeight);
+  expect(frame.insetBottom).toBeGreaterThanOrEqual(frame.bezel + homeHeight);
+  expect(frame.insetX).toBeGreaterThanOrEqual(frame.bezel + frame.safeX);
 });
