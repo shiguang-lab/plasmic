@@ -179,8 +179,7 @@ quit and reopen the app to load the updated frontend and desktop login code.
 That directory must be a complete self-hosted WAB production build, including
 canvas packages, generated CSS and valid `studio-build.json` provenance.
 `--desktop` queries the installed Electron binary in Node mode and checks its
-version against `desktop/package.json`. Only the WAB Studio and DashboardPreview
-compilation receives that binary's Chromium target; Web builds, SDKs, Sub and
+version against `desktop/package.json`. The WAB Studio compilation receives that binary's Chromium target; Web builds, SDKs, Sub and
 live-frame retain their existing targets. The actual Electron and Chromium
 versions are recorded as `browserTarget` in Studio and Desktop build metadata.
 Packaging checks the pinned Electron version for a Desktop-targeted renderer.
@@ -306,7 +305,7 @@ remains covered until its saved zoom and pan are applied after artboards and the
 inspector mount. Default initial fitting is skipped for a valid saved viewport;
 missing arenas or artboards fall back to the normal initial overview.
 
-The retained Dashboard cancels queued thumbnail jobs when opening an editor or minimizing, and cancels a card's queued job when it leaves the viewport. Its one running offscreen thumbnail can finish and write the existing PNG cache. Ownership does not depend on visibility and activation event order. Its temporary offscreen renderer can overlap that first editor open and is destroyed on completion or timeout. Hidden cards release image URLs and do not start further jobs. Closing or navigating the Dashboard, unmounting a card, or changing the sign-in session cancels all its owned jobs; hidden views can cancel only their own registered jobs. Browser hidden-tab previews still cancel immediately.
+Visible Dashboard cards fetch the last successful WebP cover from the Studio API. Studio checks project access on every request. The NAS renders saved canvases and retains the previous cover during refresh or failure. See [NAS project covers](../deploy/canvas-snapshot/README.md).
 
 ## Import from the web
 
