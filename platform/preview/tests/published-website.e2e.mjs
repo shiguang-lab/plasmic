@@ -33,13 +33,19 @@ const pages = ["/groups", "/detail/[id]"].map((path, index) => ({
 const componentCode = (label) => `
   if (typeof window === "undefined") throw new Error("Published code executed on server");
   const React = require("react"), NextLink = require("next/link"), Host = require("@plasmicapp/host");
+  const { c: useMemoCache } = require("react/compiler-runtime");
   const h = React.createElement;
   exports.default = function Page() {
     const router = require("next/router").useRouter();
+    const compatRouter = require("next/compat/router").useRouter();
     const BusinessLink = Host.usePlasmicLink();
     const [value, setValue] = React.useState(""), [tab, setTab] = React.useState("All"), [open, setOpen] = React.useState(false);
+    const cache = useMemoCache(1);
+    if (cache[0] === Symbol.for("react.memo_cache_sentinel")) {
+      cache[0] = h("h1", null, ${JSON.stringify(label)});
+    }
     const content = h("main", null,
-      h("h1", null, ${JSON.stringify(label)}),
+      cache[0],
       h("input", {"aria-label":"Filter",value,onChange:e=>setValue(e.target.value)}),
       h("output", {"aria-label":"Filter value"}, value),
       h("button", {onClick:()=>setTab("Mine")}, "My groups"), h("output", {"aria-label":"Current tab"}, tab),
@@ -47,7 +53,7 @@ const componentCode = (label) => `
       open && h("div", {role:"dialog"}, "New group"),
       h(NextLink, {href:"/detail/42?status=active"}, "Details"),
       h(BusinessLink, {href:"/groups?status=all"}, "Groups"),
-      h("button", {onClick:()=>router.push("/detail/99?status=mine")}, "Navigate action"),
+      h("button", {onClick:()=>compatRouter.push("/detail/99?status=mine")}, "Navigate action"),
       h(NextLink, {href:"?tag=a&tag=b#rules"}, "Query link"),
       h(NextLink, {href:"../groups"}, "Parent link"),
       h(NextLink, {href:{pathname:"/detail/[id]",query:{id:"encoded/value",tag:["a","b"]},hash:"rules"}}, "Object link"),
@@ -90,7 +96,9 @@ const bundle = (label, publicationProjectId = projectId) => ({
         fileName: "page.js",
         imports: [
           "react",
+          "react/compiler-runtime",
           "next/router",
+          "next/compat/router",
           "next/link",
           "@plasmicapp/host",
           ...(libraries ? ["libraries.js"] : []),

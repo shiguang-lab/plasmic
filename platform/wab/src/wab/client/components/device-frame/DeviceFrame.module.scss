@@ -15,12 +15,51 @@
 }
 
 .display { position: absolute; inset: 0; border-radius: var(--device-radius); overflow: hidden; }
+.statusBar {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--device-status-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: clamp(8px, calc((100% - 220px) / 3), 30px);
+  filter: drop-shadow(0 0 1px #ffffff99);
+}
+.time {
+  min-width: 42px;
+  text-align: center;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.4px;
+}
+.symbols {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1;
+  svg { display: block; flex: none; }
+}
+.percentage { font-size: 12px; font-weight: 500; }
+.homeIndicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 3px;
+  background: currentColor;
+  box-shadow: 0 0 1px 1px #ffffff66;
+}
 .cutout {
   position: absolute;
   top: 11px;
-  left: calc(50% - 63px);
-  width: 126px;
+  left: 50%;
+  width: min(126px, calc(100% - 158px));
   height: 37px;
+  transform: translateX(-50%);
   border-radius: 24px;
   background: #050506;
   box-shadow: inset 0 0 0 1px #17181b;
@@ -45,10 +84,14 @@
 .silentButton { height: 20px; top: 98px; left: -13px; }
 
 .frame[data-hardware="notch"] {
-  .cutout { top: 0; width: 160px; height: 32px; left: calc(50% - 80px); border-radius: 0 0 21px 21px; }
+  .statusBar { padding-inline: 24px; }
+  .cutout { top: 0; width: 160px; height: 32px; border-radius: 0 0 21px 21px; }
   .cutout::before { content: ""; position: absolute; top: 7px; left: 50px; width: 48px; height: 4px; background: #1d1e21; border-radius: 4px; }
 }
 .frame[data-device="tablet"] {
+  .statusBar { padding-inline: 16px; }
+  .time { min-width: 0; font-size: 13px; }
+  .homeIndicator { bottom: 6px; }
   .camera { top: -11px; left: calc(50% - 3px); width: 6px; height: 6px; }
   .powerButton { top: -21px; right: 48px; width: 38px; height: 3px; }
   .volumeButtons { top: 60px; left: auto; right: -21px; height: 28px; box-shadow: 0 38px #74767c; }
@@ -57,6 +100,8 @@
   // Only the hardware end caps are filled; the viewport remains transparent.
   background: linear-gradient(#151619 54px, transparent 54px, transparent calc(100% - 54px), #151619 calc(100% - 54px));
   .display { top: 54px; bottom: 54px; }
+  .statusBar { padding-inline: 8px; }
+  .time { min-width: 0; font-size: 12px; }
   .camera { top: 21px; left: calc(50% - 53px); }
   .speaker { position: absolute; top: 23px; left: calc(50% - 24px); width: 48px; height: 5px; background: #08090a; border-radius: 4px; box-shadow: 0 1px #303136; }
   .homeButton { position: absolute; bottom: 8px; left: calc(50% - 19px); width: 38px; height: 38px; border-radius: 50%; background: #111214; box-shadow: 0 0 0 2px #494b50, inset 0 1px 3px #000; }

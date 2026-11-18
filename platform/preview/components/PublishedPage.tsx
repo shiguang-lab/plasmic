@@ -21,6 +21,7 @@ import {
 import * as NextRouter from "next/router";
 import React from "react";
 import * as ReactDOMClient from "react-dom/client";
+import * as ReactCompilerRuntime from "react/compiler-runtime";
 
 export interface PublishedPageProps {
   code: string;
@@ -153,7 +154,9 @@ export default function PublishedPage({
     });
     loader.registerModules({
       "react-dom/client": ReactDOMClient,
+      "react/compiler-runtime": ReactCompilerRuntime,
       "next/router": { ...NextRouter, useRouter: usePublishedRouter },
+      "next/compat/router": { useRouter: usePublishedRouter },
       "next/link": PublishedLink,
     });
     return { loader, PublishedLink };

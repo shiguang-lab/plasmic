@@ -1,0 +1,7 @@
+{
+  "en": "- Restore device status bars and Home indicators in the editor, Preview, and project thumbnails. Page content still fills the screen.\n- Refresh the Template Center grid and show complete cover images in a consistent 4:3 frame.\n- Fix published previews that use the React Compiler runtime or the Next.js compatibility router.",
+  "zh-CN": "- 编辑画布、预览和项目缩略图恢复设备壳自带的状态栏与 Home 指示条，页面内容仍铺满屏幕。\n- 更新模板中心的卡片网格，封面在统一的 4:3 框内完整展示。\n- 修复使用 React Compiler 运行时或 Next.js 兼容路由的发布预览。",
+  "zh-TW": "- 編輯畫布、預覽和專案縮圖恢復裝置外框自帶的狀態列與 Home 指示條，頁面內容仍填滿螢幕。\n- 更新範本中心的卡片格線，封面在統一的 4:3 框內完整顯示。\n- 修正使用 React Compiler 執行環境或 Next.js 相容路由的發佈預覽。",
+  "ja": "- エディター、プレビュー、プロジェクトのサムネイルに、デバイスフレームのステータスバーとホームインジケーターを復元しました。ページは引き続き画面全体に表示されます。\n- テンプレートセンターのカード一覧を更新し、統一された 4:3 の枠内にカバー画像全体を表示します。\n- React Compiler ランタイムまたは Next.js の互換ルーターを使用する公開プレビューを修正しました。",
+  "ko": "- 편집기, 미리보기, 프로젝트 썸네일에 기기 프레임의 상태 표시줄과 홈 표시기를 복원했습니다. 페이지 콘텐츠는 화면 전체에 표시됩니다.\n- 템플릿 센터의 카드 그리드를 개선하고 4:3 프레임에 표지 이미지 전체를 표시합니다.\n- React Compiler 런타임 또는 Next.js 호환 라우터를 사용하는 게시 미리보기의 문제를 수정했습니다."
+}

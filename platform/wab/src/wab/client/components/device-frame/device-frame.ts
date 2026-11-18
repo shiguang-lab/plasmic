@@ -9,7 +9,7 @@ function matches(width: number, height: number, size: { width: number; height: n
     (size.height === width && size.width === height);
 }
 
-/** The authored viewport fills the display. Only hardware extends outside it. */
+/** The authored viewport fills the display beneath the shell's system chrome. */
 export function getDeviceFrame(width: number, height: number, device?: DeviceKind | "custom") {
   if (!Number.isFinite(width) || !Number.isFinite(height) || Math.min(width, height) < 240) {
     return undefined;
@@ -26,11 +26,14 @@ export function getDeviceFrame(width: number, height: number, device?: DeviceKin
     [[390, 844], [428, 926]].some(([w, h]) => w === shortSide && h === longSide) ? "notch" : "island";
   const bezel = kind === "tablet" ? 16 : 8;
   const hardwareEnd = hardware === "home-button" ? 54 : 0;
+  const statusBarHeight = kind === "tablet" ? 24 : landscape ? 0 :
+    hardware === "home-button" ? 20 : hardware === "notch" ? 47 : 59;
   return {
     kind,
     landscape,
     hardware,
     bezel,
+    statusBarHeight,
     insetX: bezel + (landscape ? hardwareEnd : 0),
     insetTop: bezel + (landscape ? 0 : hardwareEnd),
     insetBottom: bezel + (landscape ? 0 : hardwareEnd),

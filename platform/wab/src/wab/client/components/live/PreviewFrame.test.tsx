@@ -101,6 +101,8 @@ it("switches phone, tablet and absent shells without replacing or resizing page 
     const shell = view.container.querySelector('[data-test-id="device-frame"]');
     expect(shell?.parentElement).toBe(container);
     expect(shell?.getAttribute("aria-hidden")).toBe("true");
+    expect(shell?.querySelector('[data-test-id="device-status-bar"]')?.textContent).toBe("9:41");
+    expect(shell?.querySelector('[data-test-id="device-home-indicator"]')).not.toBeNull();
     expect(shell?.contains(iframe)).toBe(false);
     changeViewport("phone", 852, 393);
     expect(container?.style.width).toBe("852px");

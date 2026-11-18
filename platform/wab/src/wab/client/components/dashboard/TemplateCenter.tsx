@@ -1,4 +1,7 @@
+import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
+import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
+import { ProjectCardsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
@@ -10,12 +13,9 @@ import type {
   TemplatePublication,
 } from "@/wab/shared/template-center";
 import {
-  AppstoreOutlined,
-  ArrowRightOutlined,
   EllipsisOutlined,
   PictureOutlined,
   PlusOutlined,
-  SearchOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -23,11 +23,11 @@ import {
   Alert,
   Button,
   Dropdown,
+  Empty,
   Flex,
   Form,
   Input,
   Select,
-  Skeleton,
   Tabs,
   Typography,
   Upload,
@@ -38,192 +38,93 @@ import * as React from "react";
 import useSWR from "swr";
 
 const useStyles = createStyles(({ token }) => ({
-  root: {
-    width: "100%",
-    maxWidth: 1440,
-    margin: "0 auto",
-    padding: "48px 48px 64px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 32,
-    "@media (max-width: 760px)": { padding: "28px 20px 40px", gap: 24 },
-  },
-  heading: {
-    margin: "0 !important",
-    fontSize: "32px !important",
-    fontWeight: "600 !important",
-    letterSpacing: "-0.8px",
-  },
-  subtitle: {
-    color: token.colorTextSecondary,
-    fontSize: 14,
-    margin: "10px 0 0",
-  },
-  toolbar: { display: "flex", flexDirection: "column", gap: 16 },
-  tabs: {
-    minWidth: 250,
-    "& .ant-tabs-nav": { margin: 0 },
-    "& .ant-tabs-nav::before": { border: 0 },
+  navigation: {
+    "@container workspace-tabs (width > 1240px)": {
+      "&& > .ant-tabs-nav": { minWidth: "max-content" },
+    },
+    "@container workspace-tabs (max-width: 1240px)": {
+      flexDirection: "column",
+      alignItems: "stretch",
+      gap: 8,
+      paddingBottom: 12,
+      "& > div:last-child": { paddingBlock: 0 },
+    },
   },
   search: {
-    width: 280,
-    borderRadius: 10,
-    "@media (max-width: 600px)": { width: "100%" },
+    width: 240,
+    maxWidth: "100%",
+    "@container workspace-tabs (max-width: 480px)": { width: "100%" },
   },
-  filters: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 16,
-    flexWrap: "wrap",
-  },
-  categories: { display: "flex", gap: 8, flexWrap: "wrap" },
-  category: { borderRadius: 20, color: token.colorTextSecondary },
-  activeCategory: {
-    borderRadius: 20,
-    background: token.colorText,
-    color: token.colorBgContainer,
-    "&:hover": {
-      background: `${token.colorText} !important`,
-      color: `${token.colorBgContainer} !important`,
+  filter: {
+    width: 144,
+    "@container workspace-tabs (max-width: 480px)": {
+      maxWidth: "calc((100% - 8px) / 2)",
     },
   },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
-    gap: "32px 24px",
+  libraryFilter: { maxWidth: "100%", width: 184 },
+  catalog: {
+    [`&& .${dashboard.thumbnail}`]: {
+      height: "auto",
+      padding: 0,
+      aspectRatio: "4 / 3",
+      overflow: "hidden",
+      borderBottom: 0,
+    },
+    [`& .${dashboard.content}`]: { borderTop: "1px solid var(--ui-border)" },
   },
-  card: { minWidth: 0 },
-  coverButton: {
-    display: "block",
-    position: "relative",
-    width: "100%",
-    aspectRatio: "4 / 3",
-    padding: 0,
-    border: `1px solid ${token.colorBorderSecondary}`,
-    borderRadius: 16,
-    overflow: "hidden",
-    background: token.colorFillAlter,
-    cursor: "pointer",
-    color: token.colorText,
-    transition: "box-shadow 180ms ease, transform 180ms ease",
-    "&:hover": {
-      transform: "translateY(-3px)",
-      boxShadow: token.boxShadowSecondary,
-    },
-    "&:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: 4,
-    },
-    "&:hover .template-cover-action, &:focus-visible .template-cover-action": {
-      opacity: 1,
-      transform: "translateY(0)",
-    },
-    "@media (prefers-reduced-motion: reduce)": { transition: "none" },
-  },
+  card: { position: "relative" },
   cover: {
-    display: "block",
-    height: "100%",
+    position: "absolute",
+    inset: 0,
     width: "100%",
-    objectFit: "cover",
+    height: "100%",
+    objectFit: "contain",
+  },
+  coverBackdrop: {
+    "&&": { objectFit: "cover" },
+    filter: "blur(20px)",
+    transform: "scale(1.16)",
   },
   placeholder: {
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    color: token.colorTextQuaternary,
-    fontSize: 13,
-    "& .anticon": { fontSize: 30 },
+    margin: "auto",
+    color: token.colorTextTertiary,
+    fontSize: 24,
   },
-  coverAction: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "8px 14px",
-    borderRadius: 20,
-    background: token.colorBgElevated,
-    color: token.colorText,
-    boxShadow: token.boxShadowSecondary,
-    fontSize: 12,
-    opacity: 0,
-    transform: "translateY(4px)",
-    transition: "opacity 180ms ease, transform 180ms ease",
-    "@media (hover: none)": { opacity: 1, transform: "none" },
-  },
-  status: {
-    position: "absolute",
-    left: 14,
-    top: 14,
-    padding: "4px 9px",
-    borderRadius: 6,
-    background: token.colorBgElevated,
-    color: token.colorTextSecondary,
-    fontSize: 11,
-  },
-  cardBody: { padding: "14px 2px 0" },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: 600,
+  cardOpen: {
+    display: "block",
+    width: "100%",
+    padding: 0,
+    border: 0,
+    background: "transparent",
+    color: "inherit",
+    font: "inherit",
+    textAlign: "left",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    margin: 0,
+    "&:enabled::after": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      borderRadius: token.borderRadiusLG,
+    },
+    "&:enabled": { cursor: "pointer" },
+    "&:focus-visible": { outline: "none" },
+    "&:focus-visible::after": {
+      outline: `2px solid ${token.colorPrimary}`,
+      outlineOffset: -2,
+    },
   },
-  cardMeta: {
-    marginTop: 5,
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-    color: token.colorTextSecondary,
-    fontSize: 12,
-  },
+  cardMenu: { position: "relative", zIndex: 1, flexShrink: 0 },
   description: {
-    margin: "8px 0 0",
-    color: token.colorTextTertiary,
-    fontSize: 13,
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: 2,
     overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  empty: {
-    minHeight: 360,
-    padding: "48px 20px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-  },
-  emptyIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 22,
-    border: `1px solid ${token.colorBorderSecondary}`,
-    background: token.colorFillAlter,
-    display: "grid",
-    placeItems: "center",
-    color: token.colorTextTertiary,
-    fontSize: 28,
-    marginBottom: 24,
-  },
-  emptyTitle: {
-    margin: "0 0 8px",
-    fontSize: 20,
-    fontWeight: 600,
-    letterSpacing: "-0.4px",
-  },
-  emptyDescription: {
-    maxWidth: 360,
-    margin: "0 0 24px",
+    margin: 0,
     color: token.colorTextSecondary,
-    fontSize: 14,
-    lineHeight: 1.7,
+    fontSize: 13,
+    overflowWrap: "anywhere",
   },
   upload: {
     display: "flex",
@@ -272,7 +173,8 @@ export default function TemplateCenter() {
   const appCtx = useAppCtx();
   const history = useHistory();
   const { t } = useI18n();
-  const { styles } = useStyles();
+  const { styles, cx } = useStyles();
+  const { styles: layout } = useProjectBrowserStyles();
   const { data, error, mutate, isValidating } = useSWR(
     ["template-center", appCtx.selfInfo?.id],
     () => appCtx.api.listDesignTemplates(),
@@ -384,111 +286,8 @@ export default function TemplateCenter() {
     });
   }
 
-  return (
-    <section className={styles.root}>
-      {documentTitle(t("Template center"))}
-      <Flex justify="space-between" align="center" wrap gap={20}>
-        <div>
-          <Typography.Title level={1} className={styles.heading}>
-            {t("Template center")}
-          </Typography.Title>
-          <p className={styles.subtitle}>
-            {t("Explore ideas for your next design.")}
-          </p>
-        </div>
-        {canManage && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined aria-hidden />}
-            disabled={busy}
-            onClick={() => edit("new")}
-          >
-            {t("New template")}
-          </Button>
-        )}
-      </Flex>
-      <div className={styles.toolbar}>
-        <Flex justify="space-between" align="center" wrap gap={16}>
-          <Tabs
-            className={styles.tabs}
-            activeKey={kind}
-            onChange={setKind}
-            items={[
-              { key: "all", label: t("All templates") },
-              ...kindOptions.map((option) => ({
-                key: option.value,
-                label: option.label,
-              })),
-            ]}
-          />
-          <Input
-            type="search"
-            className={styles.search}
-            size="large"
-            prefix={<SearchOutlined aria-hidden />}
-            aria-label={t("Search templates")}
-            placeholder={t("Search templates")}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            allowClear
-          />
-        </Flex>
-        <div className={styles.filters}>
-          <div
-            className={styles.categories}
-            role="group"
-            aria-label={t("Category")}
-          >
-            {[
-              { value: "all", label: t("All categories") },
-              ...categories.map((value) => ({ value, label: value })),
-            ].map((option) => (
-              <Button
-                key={option.value}
-                type="text"
-                className={
-                  category === option.value
-                    ? styles.activeCategory
-                    : styles.category
-                }
-                aria-pressed={category === option.value}
-                onClick={() => setCategory(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-          <Flex gap={8} wrap align="center">
-            <Select
-              aria-label={t("Device")}
-              value={device}
-              onChange={setDevice}
-              variant="borderless"
-              style={{ minWidth: 120 }}
-              options={[
-                { value: "all", label: t("All devices") },
-                ...deviceOptions,
-              ]}
-            />
-            <Select
-              aria-label={t("Component library")}
-              value={library}
-              onChange={setLibrary}
-              variant="borderless"
-              style={{ minWidth: 175 }}
-              options={[
-                { value: "all", label: t("All component libraries") },
-                ...libraries.map((value) => ({ value, label: value })),
-              ]}
-            />
-            {hasFilters && (
-              <Button type="text" onClick={clearFilters}>
-                {t("Clear filters")}
-              </Button>
-            )}
-          </Flex>
-        </div>
-      </div>
+  const catalog = (
+    <div className={cx(layout.workspaceContent, styles.catalog)}>
       {error ? (
         <Alert
           type="error"
@@ -503,95 +302,72 @@ export default function TemplateCenter() {
           }
         />
       ) : !data ? (
-        <div className={styles.grid} aria-label={t("Loading templates")}>
-          {[0, 1, 2, 3].map((key) => (
-            <div key={key}>
-              <Skeleton.Node
-                active
-                style={{
-                  width: "100%",
-                  height: "auto",
-                  aspectRatio: "4 / 3",
-                  borderRadius: 16,
-                }}
-              />
-              <Skeleton active title paragraph={{ rows: 1 }} />
-            </div>
-          ))}
-        </div>
+        <ProjectCardsSkeleton label={t("Loading templates")} />
       ) : filtered.length === 0 ? (
-        <div className={styles.empty}>
-          <div className={styles.emptyIcon} aria-hidden>
-            {hasFilters ? <SearchOutlined /> : <AppstoreOutlined />}
-          </div>
-          <h2 className={styles.emptyTitle}>
-            {t(
-              hasFilters ? "No templates found" : "A place for your next idea",
-            )}
-          </h2>
-          <p className={styles.emptyDescription}>
-            {t(
-              hasFilters
-                ? "Try another keyword or clear your filters."
-                : canManage
-                  ? "Share your first template and give great ideas a place to start."
-                  : "New templates will appear here. Come back for a little inspiration.",
-            )}
-          </p>
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={t(
+            hasFilters ? "No templates found" : "No templates yet",
+          )}
+        >
           {hasFilters ? (
             <Button onClick={clearFilters}>{t("Show all templates")}</Button>
-          ) : (
-            canManage && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined aria-hidden />}
-                onClick={() => edit("new")}
-              >
-                {t("Create your first template")}
-              </Button>
-            )
-          )}
-        </div>
+          ) : canManage ? (
+            <Button
+              color="primary"
+              variant="text"
+              icon={<PlusOutlined aria-hidden />}
+              onClick={() => edit("new")}
+            >
+              {t("Create your first template")}
+            </Button>
+          ) : null}
+        </Empty>
       ) : (
-        <div className={styles.grid}>
+        <div className={layout.grid}>
           {filtered.map((item) => {
             const meta = metadata(item);
             if (!meta) {
               return null;
             }
+            const details = [
+              kindOptions.find((option) => option.value === meta.kind)?.label,
+              deviceOptions.find((option) => option.value === meta.device)
+                ?.label,
+              meta.category,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            const openLabel = t(
+              item.published ? "View published template" : "Edit canvas",
+            );
             return (
-              <article key={item.id} className={styles.card}>
-                <button
-                  className={styles.coverButton}
-                  disabled={busy}
-                  aria-label={t(
-                    item.published ? "View published template" : "Edit canvas",
-                  )}
-                  onClick={() =>
-                    item.published
-                      ? void openPreview(item)
-                      : history.push(
-                          APP_ROUTES.project.fill({ projectId: item.id }),
-                        )
-                  }
-                >
-                  <TemplateCover url={meta.thumbnailUrl} name={meta.name} />
-                  {canManage && (
-                    <span className={styles.status}>
-                      {t(item.published ? "Published" : "Draft")}
-                    </span>
-                  )}
-                  <span
-                    className={`template-cover-action ${styles.coverAction}`}
-                  >
-                    {t(item.published ? "Preview" : "Edit canvas")}
-                    <ArrowRightOutlined aria-hidden />
-                  </span>
-                </button>
-                <div className={styles.cardBody}>
-                  <Flex justify="space-between" align="center" gap={12}>
-                    <h2 className={styles.cardTitle} title={meta.name}>
-                      {meta.name}
+              <article
+                key={item.id}
+                className={cx(dashboard.projectCard, styles.card)}
+              >
+                <div className={dashboard.thumbnail} aria-hidden>
+                  <TemplateCover url={meta.thumbnailUrl} />
+                </div>
+                <div className={dashboard.content}>
+                  <div className={dashboard.header}>
+                    <h2 className={dashboard.title}>
+                      <button
+                        type="button"
+                        className={styles.cardOpen}
+                        disabled={busy}
+                        aria-label={`${openLabel}: ${meta.name}`}
+                        title={`${openLabel}: ${meta.name}`}
+                        onClick={() =>
+                          item.published
+                            ? void openPreview(item)
+                            : history.push(
+                                APP_ROUTES.project.fill({ projectId: item.id }),
+                              )
+                        }
+                      >
+                        {meta.name}
+                      </button>
                     </h2>
                     {canManage && (
                       <Dropdown
@@ -637,6 +413,7 @@ export default function TemplateCenter() {
                         }}
                       >
                         <Button
+                          className={styles.cardMenu}
                           type="text"
                           size="small"
                           disabled={busy}
@@ -645,21 +422,14 @@ export default function TemplateCenter() {
                         />
                       </Dropdown>
                     )}
-                  </Flex>
-                  <div className={styles.cardMeta}>
-                    <span>
-                      {
-                        deviceOptions.find(
-                          (option) => option.value === meta.device,
-                        )?.label
-                      }
-                    </span>
-                    <span aria-hidden>·</span>
-                    <span>
-                      {meta.category ||
-                        kindOptions.find((option) => option.value === meta.kind)
-                          ?.label}
-                    </span>
+                  </div>
+                  <div className={dashboard.meta}>
+                    <span title={details}>{details}</span>
+                    {canManage && (
+                      <span className={dashboard.workspace}>
+                        {t(item.published ? "Published" : "Draft")}
+                      </span>
+                    )}
                   </div>
                   {meta.description && (
                     <p className={styles.description} title={meta.description}>
@@ -672,6 +442,92 @@ export default function TemplateCenter() {
           })}
         </div>
       )}
+    </div>
+  );
+
+  return (
+    <section className={layout.root} aria-label={t("Template center")}>
+      {documentTitle(t("Template center"))}
+      <Tabs
+        className={layout.workspaceTabs}
+        activeKey={kind}
+        onChange={setKind}
+        renderTabBar={(props, DefaultTabBar) => (
+          <div className={cx(layout.workspaceNavigation, styles.navigation)}>
+            <DefaultTabBar {...props} />
+            <Flex
+              className={layout.workspaceToolbar}
+              align="center"
+              wrap
+              gap={8}
+            >
+              <Input.Search
+                type="search"
+                className={styles.search}
+                aria-label={t("Search templates")}
+                placeholder={t("Search templates")}
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                allowClear
+              />
+              <Select
+                className={styles.filter}
+                aria-label={t("Category")}
+                value={category}
+                onChange={setCategory}
+                options={[
+                  { value: "all", label: t("All categories") },
+                  ...categories.map((value) => ({ value, label: value })),
+                ]}
+              />
+              <Select
+                className={styles.filter}
+                aria-label={t("Device")}
+                value={device}
+                onChange={setDevice}
+                options={[
+                  { value: "all", label: t("All devices") },
+                  ...deviceOptions,
+                ]}
+              />
+              <Select
+                className={styles.libraryFilter}
+                aria-label={t("Component library")}
+                value={library}
+                onChange={setLibrary}
+                options={[
+                  { value: "all", label: t("All component libraries") },
+                  ...libraries.map((value) => ({ value, label: value })),
+                ]}
+              />
+              {hasFilters && (
+                <Button type="text" onClick={clearFilters}>
+                  {t("Clear filters")}
+                </Button>
+              )}
+              {canManage && (
+                <Button
+                  color="primary"
+                  variant="text"
+                  icon={<PlusOutlined aria-hidden />}
+                  disabled={busy}
+                  onClick={() => edit("new")}
+                >
+                  {t("New template")}
+                </Button>
+              )}
+            </Flex>
+          </div>
+        )}
+        items={[
+          { value: "all", label: t("All templates") },
+          ...kindOptions,
+        ].map(({ value, label }) => ({
+          key: value,
+          label,
+          children: kind === value ? catalog : undefined,
+        }))}
+      />
       <Modal
         open={!!confirming}
         title={t(
@@ -774,23 +630,34 @@ export default function TemplateCenter() {
   );
 }
 
-function TemplateCover({ url, name }: { url: string; name: string }) {
-  const { styles } = useStyles();
-  const { t } = useI18n();
+function TemplateCover({ url }: { url: string }) {
+  const { styles, cx } = useStyles();
   const [failedUrl, setFailedUrl] = React.useState<string>();
+  const [backdropUrl, setBackdropUrl] = React.useState<string>();
   return url && failedUrl !== url ? (
-    <img
-      className={styles.cover}
-      src={url}
-      alt={name}
-      loading="lazy"
-      onError={() => setFailedUrl(url)}
-    />
+    <>
+      {backdropUrl === url && (
+        <img
+          className={cx(styles.cover, styles.coverBackdrop)}
+          src={url}
+          alt=""
+        />
+      )}
+      <img
+        className={styles.cover}
+        src={url}
+        alt=""
+        loading="lazy"
+        onError={() => setFailedUrl(url)}
+        onLoad={({ currentTarget: { naturalWidth, naturalHeight } }) =>
+          setBackdropUrl(
+            naturalWidth * 3 === naturalHeight * 4 ? undefined : url,
+          )
+        }
+      />
+    </>
   ) : (
-    <div className={styles.placeholder}>
-      <PictureOutlined aria-hidden />
-      <span>{t("No cover yet")}</span>
-    </div>
+    <PictureOutlined className={styles.placeholder} />
   );
 }
 

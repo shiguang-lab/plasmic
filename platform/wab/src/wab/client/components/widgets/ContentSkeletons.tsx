@@ -61,7 +61,15 @@ export function PillSkeleton({
   );
 }
 
-export function ProjectCardsSkeleton({ view = "grid", showWorkspace = false }: { view?: string; showWorkspace?: boolean }) {
+export function ProjectCardsSkeleton({
+  view = "grid",
+  showWorkspace = false,
+  label,
+}: {
+  view?: string;
+  showWorkspace?: boolean;
+  label?: string;
+}) {
   const { t } = useI18n();
   const { styles: layout, cx } = useProjectBrowserStyles();
   const { styles } = useSkeletonStyles();
@@ -69,7 +77,7 @@ export function ProjectCardsSkeleton({ view = "grid", showWorkspace = false }: {
     <div
       className={cx(layout.grid, view === "list" && layout.list)}
       role="status"
-      aria-label={t("Loading projects…")}
+      aria-label={label ?? t("Loading projects…")}
     >
       {[0, 1, 2].map((key) => (
         <div

@@ -92,7 +92,7 @@ it("resolves the latest publication when opening a reference", async () => {
     canManage: false,
   });
   fireEvent.click(
-    screen.getByRole("button", { name: "View published template" }),
+    screen.getByRole("button", { name: "View published template: 移动端登录" }),
   );
   await waitFor(() => {
     const frame = document.querySelector("iframe");
@@ -157,7 +157,7 @@ it("distinguishes an empty collection from empty search results and resets filte
     canManage: false,
   });
   setup();
-  await screen.findByText("A place for your next idea");
+  await screen.findByText("No templates yet");
   expect(
     screen.queryByRole("button", { name: "Create your first template" }),
   ).toBeNull();
@@ -197,7 +197,12 @@ async function openDetailsWithCover() {
   fireEvent.click(
     await screen.findByRole("menuitem", { name: "Edit details" }),
   );
-  const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+  return coverUploadInput();
+}
+
+function coverUploadInput() {
+  const dialog = screen.getByAltText("Template cover").closest('[role="dialog"]');
+  const input = dialog?.querySelector<HTMLInputElement>('input[type="file"]');
   if (!input) {
     throw new Error("Missing cover upload input");
   }
@@ -263,11 +268,7 @@ it("keeps the saved cover after upload failure, allows retry, and removes it exp
   expect(
     screen.getByRole("button", { name: "Save draft" }).hasAttribute("disabled"),
   ).toBe(false);
-  const retryInput =
-    document.querySelector<HTMLInputElement>('input[type="file"]');
-  if (!retryInput) {
-    throw new Error("Missing cover upload input after retry");
-  }
+  const retryInput = coverUploadInput();
   fireEvent.change(retryInput, {
     target: {
       files: [new File(["image"], "retry.webp", { type: "image/webp" })],

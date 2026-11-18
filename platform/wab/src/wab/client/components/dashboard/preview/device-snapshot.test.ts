@@ -13,8 +13,8 @@ it.each([[390, 844, "phone"], [834, 1194, "tablet"]] as const)(
     expect(doc.querySelector("style")?.textContent).toBe(css);
     const shell = ensure(doc.querySelector('[data-test-id="device-frame"]'), "Shared shell");
     expect(shell.getAttribute("data-device")).toBe(kind);
-    expect(shell.querySelector('[data-test-id="device-status-bar"]')).toBeNull();
-    expect(shell.textContent).toBe("");
+    expect(shell.querySelector('[data-test-id="device-status-bar"]')?.textContent).toContain("9:41");
+    expect(shell.querySelector('[data-test-id="device-home-indicator"]')).not.toBeNull();
     expect(shell.parentElement?.getAttribute("style")).toContain(`width:${width}px;height:${height}px`);
     expect(Number(doc.documentElement.getAttribute("width"))).toBeGreaterThan(width + 2 * frame.insetX);
     expect(Number(doc.documentElement.getAttribute("height"))).toBeGreaterThan(height + frame.insetTop + frame.insetBottom);
