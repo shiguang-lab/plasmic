@@ -1,7 +1,12 @@
-import { createSiteForHostlessProject } from "@/wab/server/code-components/code-components";
+import { createSiteForHostlessProject, updateHostlessPackage } from "@/wab/server/code-components/code-components";
 import { Bundler } from "@/wab/shared/bundler";
+import { attachRenderableTplSlots } from "@/wab/shared/code-components/code-components";
+import { assert, ensure } from "@/wab/shared/common";
+import { isCodeComponent } from "@/wab/shared/core/components";
+import { mkParam } from "@/wab/shared/core/lang";
+import { createSite } from "@/wab/shared/core/sites";
 import { HostLessPackageInfo } from "@/wab/shared/model/classes";
-import { isRenderableType } from "@/wab/shared/model/model-util";
+import { isRenderableType, typeFactory } from "@/wab/shared/model/model-util";
 import { expect, it } from "vitest";
 
 it("imports Material UI props, slots, states and defaults into a serializable Studio library", async () => {
@@ -130,5 +135,26 @@ it("imports Material UI props, slots, states and defaults into a serializable St
       .find((c) => c.name === `plasmic-material-ui-${suffix}`)
       ?.params.find((p) => p.variable.name === prop);
     expect(param?.type.name, `${suffix}.${prop}`).toBe(typeName);
+  }
+}, 60000);
+
+it.each([false, true])("requires explicit breaking publication to remove obsolete Material UI slots: %s", async (breaking) => {
+  const site = await createSiteForHostlessProject(new HostLessPackageInfo({
+    name: "material-ui", npmPkg: ["@shiguang-lab/plasmic-material-ui"],
+    cssImport: [], deps: [], registerCalls: [], minimumReactVersion: "19.3.1",
+  }));
+  const checkbox = ensure(site.components.find(c => c.name === "plasmic-material-ui-checkbox"), "Missing Checkbox");
+  assert(isCodeComponent(checkbox));
+  const id = checkbox.uuid;
+  checkbox.params.push(mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() }));
+  attachRenderableTplSlots(checkbox);
+  const result = updateHostlessPackage(site, "material-ui", createSite(), { breaking });
+  if (!breaking) {
+    await expect(result).rejects.toThrow("Deleted slot children of component plasmic-material-ui-checkbox");
+  } else {
+    await expect(result).resolves.toEqual({ "plasmic-material-ui-checkbox": ["children"] });
+    expect(site.components.find(c => c.uuid === id)).toBe(checkbox);
+    expect(checkbox.params.some(p => p.variable.name === "children")).toBe(false);
+    expect(checkbox.params.some(p => p.variable.name === "checked")).toBe(true);
   }
 }, 60000);

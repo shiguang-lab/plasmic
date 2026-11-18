@@ -238,19 +238,20 @@ export async function createSiteForHostlessProject(
   return site;
 }
 
-/** Component name -> non-slot params that the new registrations no longer declare. */
+/** Component name -> params that the new registrations no longer declare. */
 export type HostlessParamRemovals = Record<string, string[]>;
 
 /**
  * Updates a hostless package from its current registrations. Published components
- * and slots are preserved. Non-slot params that are no longer registered are removed
- * and returned, so the publisher versions the release as breaking; consuming
- * projects drop their arguments when they upgrade.
+ * are preserved. Slot removal requires an explicit breaking release. Removed
+ * params are returned so the publisher versions the release as breaking;
+ * consuming projects drop their arguments when they upgrade.
  */
 export async function updateHostlessPackage(
   site: Site,
   projectName: string,
   plumeSite: Site,
+  opts?: { breaking?: boolean },
 ): Promise<HostlessParamRemovals> {
   const removedParams: HostlessParamRemovals = {};
   await withFreshRegistries(async () => {
@@ -357,16 +358,19 @@ export async function updateHostlessPackage(
       const component = site.components.find((c) => c.uuid === uuid);
       assert(component, () => `Component with uuid ${uuid} has been removed!`);
       const { slots, nonSlots } = existingParamsByComponent[uuid];
-      slots.forEach((slot) => {
+      const removedSlots = slots.filter(
+        (slot) => !component.params.some((p) => isSlot(p) && p.variable.name === slot),
+      );
+      removedSlots.forEach((slot) => {
         assert(
-          component.params.some((p) => isSlot(p) && p.variable.name === slot),
-          () => `Deleted slot ${slot} of component ${component.name}`,
+          opts?.breaking,
+          () => `Deleted slot ${slot} of component ${component.name}; publish an explicit breaking release`,
         );
       });
-      const removed = nonSlots.filter(
+      const removed = [...removedSlots, ...nonSlots.filter(
         (param) =>
           !component.params.some((p) => !isSlot(p) && p.variable.name === param),
-      );
+      )];
       if (removed.length > 0) {
         removedParams[component.name] = removed;
         logger().info(

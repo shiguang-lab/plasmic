@@ -7,10 +7,11 @@ const state = vi.hoisted(() => ({
   save: vi.fn(),
   publish: vi.fn(),
   externalize: vi.fn(),
+  update: vi.fn(),
 }));
 
 vi.mock("@/wab/server/code-components/code-components", () => ({
-  updateHostlessPackage: async () => state.removedParams,
+  updateHostlessPackage: (...args: unknown[]) => state.update(...args),
 }));
 vi.mock("@/wab/server/config", () => ({ DEFAULT_DATABASE_URI: "fixture" }));
 vi.mock("@/wab/server/db/BundleMigrator", () => ({
@@ -67,6 +68,7 @@ beforeEach(() => {
   state.save.mockReset();
   state.publish.mockReset();
   state.externalize.mockReset().mockResolvedValue(undefined);
+  state.update.mockReset().mockImplementation(async () => state.removedParams);
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -81,6 +83,7 @@ it.each([
     breaking,
   })).toBe(true);
   expect(state.publish).toHaveBeenCalledExactlyOnceWith("project", expected, [], "");
+  expect(state.update).toHaveBeenCalledWith(state.site, "React UI", state.site, { breaking });
 });
 
 it("does not republish an unchanged library when a breaking flag is repeated", async () => {

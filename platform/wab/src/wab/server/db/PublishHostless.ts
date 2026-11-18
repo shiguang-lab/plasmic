@@ -81,7 +81,7 @@ export async function publishHostlessProject(
   opts?: {
     plumeSite?: Site;
     hostLessPackageInfo?: HostLessPackageInfo;
-    /** Mark nested prop-schema or runtime behavior changes that remove no top-level param. */
+    /** Allow slot removal and mark nested prop-schema or runtime changes as breaking. */
     breaking?: boolean;
   },
 ) {
@@ -114,6 +114,7 @@ export async function publishHostlessProject(
     site,
     project.name,
     plumeSite,
+    { breaking: opts?.breaking },
   );
   const hasBreakingParamRemoval = Object.keys(removedParams).length > 0;
   if (process.env.PREVIEW_ORIGIN) { await externalizeSiteThumbnails(site); }
@@ -136,7 +137,7 @@ export async function publishHostlessProject(
   assertSiteInvariants(site);
   logger().info("Saving new version and publishing...");
   // Make sure we're able to identify whether the project changed or not
-  await updateHostlessPackage(site, project.name, plumeSite);
+  await updateHostlessPackage(site, project.name, plumeSite, { breaking: opts?.breaking });
   if (process.env.PREVIEW_ORIGIN) { await externalizeSiteThumbnails(site); }
   const newBundle2 = bundler.bundle(
     siteOrProjectDep,

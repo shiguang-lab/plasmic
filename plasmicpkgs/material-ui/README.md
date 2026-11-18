@@ -112,3 +112,9 @@ docker compose run --rm server src/wab/server/nas-material-ui.ts
 Restart the server to load its new catalog. The command creates or republishes the
 hostless library, preserves other libraries, and records whether versioned code
 artifacts exist. Designers can then install Material UI from the Component Store.
+
+The Component Store release version is independent of the application and source
+package versions. Removing a published slot requires `--breaking` and creates a
+major library release. Rehearse the release and inspect importing projects for
+removed settings before publication; existing platform-library consumers upgrade
+through the normal project load/publish/export flow.
