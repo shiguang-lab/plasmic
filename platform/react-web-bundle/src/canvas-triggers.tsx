@@ -25,7 +25,8 @@ interface TriggerChainProps {
   readonly render: (result: CanvasTriggerResult) => React.ReactNode;
 }
 export function CanvasTriggersRuntime<Policy extends { readonly interactive: boolean }>({ policy, steps, render }: CanvasTriggersProps<Policy>) {
-  const { interactive } = React.useSyncExternalStore(policy.subscribe, policy.getState, policy.getState);
+  const readInteractive = () => policy.getState().interactive;
+  const interactive = React.useSyncExternalStore(policy.subscribe, readInteractive, readInteractive);
   return <CanvasTriggerChain steps={steps} index={0} result={{ interactive, triggers: {}, triggerProps: {} }} render={render} />;
 }
 function CanvasTriggerChain(props: TriggerChainProps) {

@@ -1,0 +1,387 @@
+{
+  "approach": "Fixed wall clock only for visual tests. Each reference renders one real frame at its original position and scale, with the other three frames skipped before mount. Compare the complete decoded 640x360 final raster and each board to the independently assembled reference. DOM audits include per-frame visible element tree paths, text length, text hash, heading hashes and geometry. Normal timed runs use the real clock.",
+  "groups": {
+    "a": {
+      "fullImage": {
+        "pixels": 230400,
+        "unequal": 1173,
+        "deltaAbove20": 22,
+        "maxDelta": 25,
+        "rgbMAE": 0.00802,
+        "diffBoundsAbove20": [
+          [
+            433,
+            443
+          ],
+          [
+            149,
+            169
+          ]
+        ]
+      },
+      "boards": [
+        {
+          "visibleCount": 527,
+          "referenceCount": 527,
+          "visiblePathEqual": true,
+          "textLength": 1109,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16568,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 281,
+          "referenceCount": 281,
+          "visiblePathEqual": true,
+          "textLength": 327,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16677,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 340,
+          "referenceCount": 340,
+          "visiblePathEqual": true,
+          "textLength": 550,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16677,
+            "unequal": 930,
+            "deltaAbove20": 22,
+            "maxDelta": 25,
+            "rgbMAE": 0.09576,
+            "diffBoundsAbove20": [
+              [
+                111,
+                121
+              ],
+              [
+                23,
+                43
+              ]
+            ]
+          }
+        },
+        {
+          "visibleCount": 426,
+          "referenceCount": 426,
+          "visiblePathEqual": true,
+          "textLength": 1826,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16568,
+            "unequal": 243,
+            "deltaAbove20": 0,
+            "maxDelta": 3,
+            "rgbMAE": 0.01513,
+            "diffBoundsAbove20": []
+          }
+        }
+      ],
+      "unavailableImages": 0
+    },
+    "b": {
+      "fullImage": {
+        "pixels": 230400,
+        "unequal": 8,
+        "deltaAbove20": 0,
+        "maxDelta": 2,
+        "rgbMAE": 4e-05,
+        "diffBoundsAbove20": []
+      },
+      "boards": [
+        {
+          "visibleCount": 526,
+          "referenceCount": 526,
+          "visiblePathEqual": true,
+          "textLength": 1109,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16568,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 281,
+          "referenceCount": 281,
+          "visiblePathEqual": true,
+          "textLength": 327,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16677,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 340,
+          "referenceCount": 340,
+          "visiblePathEqual": true,
+          "textLength": 550,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16677,
+            "unequal": 8,
+            "deltaAbove20": 0,
+            "maxDelta": 2,
+            "rgbMAE": 0.0005,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 426,
+          "referenceCount": 426,
+          "visiblePathEqual": true,
+          "textLength": 1826,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16568,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        }
+      ],
+      "unavailableImages": 0
+    },
+    "c": {
+      "fullImage": {
+        "pixels": 230400,
+        "unequal": 0,
+        "deltaAbove20": 0,
+        "maxDelta": 0,
+        "rgbMAE": 0.0,
+        "diffBoundsAbove20": []
+      },
+      "boards": [
+        {
+          "visibleCount": 526,
+          "referenceCount": 526,
+          "visiblePathEqual": true,
+          "textLength": 1109,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16568,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 281,
+          "referenceCount": 281,
+          "visiblePathEqual": true,
+          "textLength": 327,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16677,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 340,
+          "referenceCount": 340,
+          "visiblePathEqual": true,
+          "textLength": 550,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16677,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        },
+        {
+          "visibleCount": 426,
+          "referenceCount": 426,
+          "visiblePathEqual": true,
+          "textLength": 1826,
+          "sameText": true,
+          "sameHeadings": true,
+          "sameGeometry": true,
+          "imageDiff": {
+            "pixels": 16568,
+            "unequal": 0,
+            "deltaAbove20": 0,
+            "maxDelta": 0,
+            "rgbMAE": 0.0,
+            "diffBoundsAbove20": []
+          }
+        }
+      ],
+      "unavailableImages": "0"
+    }
+  },
+  "a-to-b": {
+    "fullImage": {
+      "pixels": 230400,
+      "unequal": 11839,
+      "deltaAbove20": 1754,
+      "maxDelta": 155,
+      "rgbMAE": 0.44932,
+      "diffBoundsAbove20": [
+        [
+          12,
+          628
+        ],
+        [
+          128,
+          233
+        ]
+      ]
+    },
+    "boardDom": [
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [
+          "DIV:0/DIV:0/DIV:0/DIV:1/DIV:0/DIV:0/DIV:1/MAIN:1/DIV:0/DIV:0/DIV:1/DIV:1/DIV:1/DIV:0/DIV:0/DIV:0/DIV:0/DIV:0/TABLE:0/COLGROUP:0/COL:8"
+        ],
+        "addedPaths": [],
+        "visibilityDetails": [
+          {
+            "path": "DIV:0/DIV:0/DIV:0/DIV:1/DIV:0/DIV:0/DIV:1/MAIN:1/DIV:0/DIV:0/DIV:1/DIV:1/DIV:1/DIV:0/DIV:0/DIV:0/DIV:0/DIV:0/TABLE:0/COLGROUP:0/COL:8",
+            "before": [
+              "col",
+              "",
+              "",
+              [
+                276,
+                284,
+                208,
+                707
+              ],
+              0,
+              0
+            ],
+            "after": [
+              "col",
+              "",
+              "",
+              [
+                1470,
+                284,
+                208,
+                707
+              ],
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [],
+        "addedPaths": [],
+        "visibilityDetails": []
+      },
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [],
+        "addedPaths": [],
+        "visibilityDetails": []
+      },
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [],
+        "addedPaths": [],
+        "visibilityDetails": []
+      }
+    ]
+  },
+  "b-to-c": {
+    "fullImage": {
+      "pixels": 230400,
+      "unequal": 8,
+      "deltaAbove20": 0,
+      "maxDelta": 2,
+      "rgbMAE": 4e-05,
+      "diffBoundsAbove20": []
+    },
+    "boardDom": [
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [],
+        "addedPaths": [],
+        "visibilityDetails": []
+      },
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [],
+        "addedPaths": [],
+        "visibilityDetails": []
+      },
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [],
+        "addedPaths": [],
+        "visibilityDetails": []
+      },
+      {
+        "textEqual": true,
+        "headingsEqual": true,
+        "removedPaths": [],
+        "addedPaths": [],
+        "visibilityDetails": []
+      }
+    ]
+  }
+}

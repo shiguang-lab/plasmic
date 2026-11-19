@@ -2313,7 +2313,7 @@ export function ViewEditor_(props: ViewEditorProps) {
                           <Spotlight viewCtx={viewCtx} />
                         )}
                         <PlayerBoxes />
-                        {!props.renderInteractive && !isLive && (
+                        {!props.renderInteractive && (
                           <CanvasNavigationLinks studioCtx={studioCtx} />
                         )}
                         {!props.renderInteractive && <CloneBoxes />}
@@ -2500,12 +2500,12 @@ function CanvasInsertionAlert({studioCtx}: {studioCtx: StudioCtx}) {
 export function ViewEditor(props: Omit<ViewEditorProps, "renderInteractive" | "renderDocs" | "renderDevMode" | "panelsHidden">) {
   const renderInteractive = useStudioRenderPolicy(props.studioCtx, (policy) => policy.interactive);
   const renderDocs = useStudioRenderPolicy(props.studioCtx, (policy) => policy.docs);
-  const renderDevMode = useStudioRenderPolicy(props.studioCtx, (policy) => policy.devMode);
+  // Preview covers the mounted editor. Keep its controls ready beneath it.
   const panelsHidden = useStore(
     props.studioCtx.leftPanelState.store,
     selectPanelsHidden,
   );
-  return <ViewEditor_ {...props} panelsHidden={panelsHidden} renderInteractive={renderInteractive} renderDocs={renderDocs} renderDevMode={renderDevMode} />;
+  return <ViewEditor_ {...props} panelsHidden={panelsHidden} renderInteractive={renderInteractive} renderDocs={renderDocs} renderDevMode={!renderDocs} />;
 }
 
 function PageSettingsDialogHost({ studioCtx }: { studioCtx: StudioCtx }) {

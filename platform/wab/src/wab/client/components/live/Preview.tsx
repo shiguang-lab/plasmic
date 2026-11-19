@@ -36,7 +36,7 @@ function Preview(props: PreviewProps) {
     !full
       ? {
           EXIT_PREVIEW_MODE: () => {
-            spawn(previewCtx.toggleLiveMode());
+            spawn(previewCtx.stopLiveMode());
           },
         }
       : {},

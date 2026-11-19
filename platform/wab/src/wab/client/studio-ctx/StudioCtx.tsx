@@ -1575,7 +1575,7 @@ export class StudioCtx extends WithDbCtx {
     const views = this.viewCtxs.filter((view) => !view.isDisposed);
     const framePublications = views.map((view) => view.canvasCtx.prepareFrameInfo(view));
     const canvasPublications = views.map((view) => view.canvasRenderOwner.prepareRenderPolicy(policy));
-    if (!this.nativeArenaDepth || input.liveOverride === true) { this.prepareContentEditorOwnership(input); }
+    if (!this.nativeArenaDepth) { this.prepareContentEditorOwnership(input); }
     framePublications.forEach((publish) => this.renderPolicy.queuePublication(publish));
     canvasPublications.forEach((publish) => this.renderPolicy.queuePublication(publish));
   }
@@ -1613,9 +1613,12 @@ export class StudioCtx extends WithDbCtx {
    * before the actual native source publishes the synchronous live change. */
   withPreviewLivePolicy<Result>(live: boolean, command: () => Result): Result {
     return this.renderPolicy.deferPublication(() => {
-      this.prepareRenderPolicyInputs({ liveOverride: live });
+      // Preview owns a separate runtime. Only input ownership changes on
+      // the mounted editing canvas, so its frame and node caches stay valid.
+      this.renderPolicy.prepareInputs({ liveOverride: live });
+      this.prepareContentEditorOwnership({ liveOverride: live });
       try { return command(); }
-      finally { this.prepareRenderPolicyInputs(); }
+      finally { this.renderPolicy.prepareInputs(); }
     });
   }
 
@@ -3100,7 +3103,11 @@ export class StudioCtx extends WithDbCtx {
           (revealComment || !threadId) &&
           (await this.focusCommentThread(threadId));
         if (this.canvasLoadingDisposed) { return; }
-        if (!isHandled) {
+        const arena = this.currentArena;
+        const restoredCurrentArena = returningFromPreview && arena &&
+          !this.hasPendingModelChanges() && getArenaType(arena) === arenaType &&
+          getArenaUuidOrName(arena) === arenaUuidOrNameOrPath;
+        if (!isHandled && !restoredCurrentArena) {
           await this.handleArenaChange(
             arenaType,
             arenaUuidOrNameOrPath,

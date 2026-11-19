@@ -1,0 +1,486 @@
+{
+  "project": "REQ-018 权益管理",
+  "revision": 577,
+  "boardsPerRun": 4,
+  "reusedBoardsPerRun": 0,
+  "unavailableImagesPerRun": 0,
+  "method": "NAS, two published version-matched web and worker images with isolated static origins, same read-only model endpoint and NAS fonts. Separate output on same ext4 volume as production. Three independent worker starts per version, each cold request followed by a warm request. HTTP socket request to complete response, excluding worker service initialization. Shared NAS host and OS page cache; no induced disk-cache eviction. Separate timing-only build in official 0.9.8 image for the two profiled requests.",
+  "versions": {
+    "old": "0.9.7 Node + Chromium",
+    "new": "0.9.8 Go + chrome-headless-shell"
+  },
+  "summary": {
+    "old": {
+      "first": {
+        "wallMs": [
+          14479,
+          11974,
+          11165
+        ],
+        "medianMs": 11974
+      },
+      "warm": {
+        "wallMs": [
+          11044,
+          10923,
+          10893
+        ],
+        "medianMs": 10923
+      }
+    },
+    "new": {
+      "first": {
+        "wallMs": [
+          18650,
+          9885,
+          9697
+        ],
+        "medianMs": 9885
+      },
+      "warm": {
+        "wallMs": [
+          8502,
+          9155,
+          8564
+        ],
+        "medianMs": 8564
+      }
+    }
+  },
+  "pairedOfficialRuns": [
+    {
+      "kind": "old",
+      "wall": 14479,
+      "worker": 13182,
+      "model": 593,
+      "ready": 12673,
+      "bytes": 11284
+    },
+    {
+      "kind": "old",
+      "wall": 11044,
+      "worker": 10862,
+      "model": 651,
+      "ready": 10466,
+      "bytes": 11194
+    },
+    {
+      "kind": "new",
+      "wall": 18650,
+      "worker": 18543,
+      "model": null,
+      "ready": null,
+      "bytes": 8966
+    },
+    {
+      "kind": "new",
+      "wall": 8502,
+      "worker": 8251,
+      "model": null,
+      "ready": null,
+      "bytes": 8990
+    },
+    {
+      "kind": "new",
+      "wall": 9885,
+      "worker": 9742,
+      "model": null,
+      "ready": null,
+      "bytes": 9092
+    },
+    {
+      "kind": "new",
+      "wall": 9155,
+      "worker": 9132,
+      "model": null,
+      "ready": null,
+      "bytes": 9064
+    },
+    {
+      "kind": "old",
+      "wall": 11974,
+      "worker": 11027,
+      "model": 632,
+      "ready": 10570,
+      "bytes": 11274
+    },
+    {
+      "kind": "old",
+      "wall": 10923,
+      "worker": 10782,
+      "model": 576,
+      "ready": 10363,
+      "bytes": 11270
+    },
+    {
+      "kind": "old",
+      "wall": 11165,
+      "worker": 10730,
+      "model": 604,
+      "ready": 10359,
+      "bytes": 10750
+    },
+    {
+      "kind": "old",
+      "wall": 10893,
+      "worker": 10840,
+      "model": 558,
+      "ready": 10351,
+      "bytes": 11302
+    },
+    {
+      "kind": "new",
+      "wall": 9697,
+      "worker": 9695,
+      "model": null,
+      "ready": null,
+      "bytes": 9064
+    },
+    {
+      "kind": "new",
+      "wall": 8564,
+      "worker": 8562,
+      "model": null,
+      "ready": null,
+      "bytes": 8984
+    }
+  ],
+  "deploymentObservation": {
+    "workerElapsedMs": 19260,
+    "documentUtc": "2026-11-19T05:24:46.927824+00:00",
+    "modelHttpMs": 3078,
+    "firstStaticAfterDocumentMs": 9560
+  },
+  "slowRetestAndImmediateWarm": [
+    {
+      "documentUtc": "2026-11-19T05:54:00.048303+00:00",
+      "modelHttpMs": 601,
+      "firstStaticAfterDocumentMs": 10098
+    },
+    {
+      "documentUtc": "2026-11-19T05:54:19.157803+00:00",
+      "modelHttpMs": 606,
+      "firstStaticAfterDocumentMs": 906
+    }
+  ],
+  "twoAdditionalProfileRuns": [
+    {
+      "cumulativeMs": {
+        "document": 2,
+        "model": 607,
+        "fingerprint": 832,
+        "shell": 1194,
+        "new-context": 1231,
+        "navigated": 2436,
+        "plan-ready": 3433,
+        "board-keys": 3448,
+        "boards-painted": 8941,
+        "captured": 9002,
+        "encoded": 9043,
+        "published": 9045,
+        "context-closed": 9054
+      },
+      "pageMarksMs": [
+        [
+          "entry",
+          1195
+        ],
+        [
+          "model-headers",
+          1390
+        ],
+        [
+          "model-json",
+          1490
+        ],
+        [
+          "unbundled",
+          1922
+        ],
+        [
+          "contexts",
+          1965
+        ],
+        [
+          "root-packages",
+          1998
+        ],
+        [
+          "studio",
+          2049
+        ],
+        [
+          "board-1:start",
+          2218
+        ],
+        [
+          "board-1:host-loaded",
+          2381
+        ],
+        [
+          "board-1:user-body-wait",
+          2391
+        ],
+        [
+          "board-1:script-wait",
+          2400
+        ],
+        [
+          "board-1:hostless-wait",
+          2517
+        ],
+        [
+          "board-1:done",
+          2596
+        ],
+        [
+          "board-1:rendered",
+          3604
+        ],
+        [
+          "board-2:start",
+          3604
+        ],
+        [
+          "board-2:host-loaded",
+          3634
+        ],
+        [
+          "board-2:user-body-wait",
+          3636
+        ],
+        [
+          "board-2:script-wait",
+          3638
+        ],
+        [
+          "board-2:hostless-wait",
+          3747
+        ],
+        [
+          "board-2:done",
+          3845
+        ],
+        [
+          "board-2:rendered",
+          4660
+        ],
+        [
+          "board-3:start",
+          4660
+        ],
+        [
+          "board-3:host-loaded",
+          4685
+        ],
+        [
+          "board-3:user-body-wait",
+          4687
+        ],
+        [
+          "board-3:script-wait",
+          4692
+        ],
+        [
+          "board-3:hostless-wait",
+          4811
+        ],
+        [
+          "board-3:done",
+          4917
+        ],
+        [
+          "board-3:rendered",
+          6035
+        ],
+        [
+          "board-4:start",
+          6035
+        ],
+        [
+          "board-4:host-loaded",
+          6062
+        ],
+        [
+          "board-4:user-body-wait",
+          6065
+        ],
+        [
+          "board-4:script-wait",
+          6069
+        ],
+        [
+          "board-4:hostless-wait",
+          6157
+        ],
+        [
+          "board-4:done",
+          6263
+        ],
+        [
+          "board-4:rendered",
+          7429
+        ]
+      ]
+    },
+    {
+      "cumulativeMs": {
+        "document": 1,
+        "model": 534,
+        "fingerprint": 741,
+        "shell": 741,
+        "new-context": 771,
+        "navigated": 1837,
+        "plan-ready": 2630,
+        "board-keys": 2654,
+        "boards-painted": 8550,
+        "captured": 8606,
+        "encoded": 8640,
+        "published": 8642,
+        "context-closed": 8652
+      },
+      "pageMarksMs": [
+        [
+          "entry",
+          1055
+        ],
+        [
+          "model-headers",
+          1211
+        ],
+        [
+          "model-json",
+          1312
+        ],
+        [
+          "unbundled",
+          1565
+        ],
+        [
+          "contexts",
+          1591
+        ],
+        [
+          "root-packages",
+          1627
+        ],
+        [
+          "studio",
+          1672
+        ],
+        [
+          "board-1:start",
+          1883
+        ],
+        [
+          "board-1:host-loaded",
+          2049
+        ],
+        [
+          "board-1:user-body-wait",
+          2053
+        ],
+        [
+          "board-1:script-wait",
+          2058
+        ],
+        [
+          "board-1:hostless-wait",
+          2177
+        ],
+        [
+          "board-1:done",
+          2259
+        ],
+        [
+          "board-1:rendered",
+          3103
+        ],
+        [
+          "board-2:start",
+          3103
+        ],
+        [
+          "board-2:host-loaded",
+          3119
+        ],
+        [
+          "board-2:user-body-wait",
+          3121
+        ],
+        [
+          "board-2:script-wait",
+          3123
+        ],
+        [
+          "board-2:hostless-wait",
+          3234
+        ],
+        [
+          "board-2:done",
+          3346
+        ],
+        [
+          "board-2:rendered",
+          4007
+        ],
+        [
+          "board-3:start",
+          4007
+        ],
+        [
+          "board-3:host-loaded",
+          4033
+        ],
+        [
+          "board-3:user-body-wait",
+          4035
+        ],
+        [
+          "board-3:script-wait",
+          4037
+        ],
+        [
+          "board-3:hostless-wait",
+          4154
+        ],
+        [
+          "board-3:done",
+          4267
+        ],
+        [
+          "board-3:rendered",
+          5450
+        ],
+        [
+          "board-4:start",
+          5450
+        ],
+        [
+          "board-4:host-loaded",
+          5473
+        ],
+        [
+          "board-4:user-body-wait",
+          5475
+        ],
+        [
+          "board-4:script-wait",
+          5480
+        ],
+        [
+          "board-4:hostless-wait",
+          5563
+        ],
+        [
+          "board-4:done",
+          5671
+        ],
+        [
+          "board-4:rendered",
+          7553
+        ]
+      ]
+    }
+  ]
+}

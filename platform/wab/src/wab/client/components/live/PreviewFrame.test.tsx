@@ -539,6 +539,37 @@ it.each([null, undefined, "", "   "])(
   },
 );
 
+it("exits from a focused runtime input only for an unhandled Escape in embedded Preview", async () => {
+  const preview = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, isLive: true, full: false });
+  const hook = renderHook(() => useLivePreview(preview));
+  act(() => hook.result.current.attachFrame(window));
+  await act(async () => hook.result.current.onLoad());
+  const input = document.createElement("input");
+  document.body.append(input);
+  const press = (key = "Escape", options: KeyboardEventInit = {}) =>
+    fireEvent.keyDown(input, { key, bubbles: true, cancelable: true, ...options });
+  try {
+    input.focus();
+    document.addEventListener("keydown", event => event.preventDefault(), { once: true });
+    press();
+    press("Escape", { isComposing: true });
+    press("l");
+    expect(preview.stopLiveMode).not.toHaveBeenCalled();
+    press();
+    expect(preview.stopLiveMode).toHaveBeenCalledOnce();
+    act(() => preview.store.setState(({ previewData }) => ({
+      previewData: { ...ensure(previewData, "Preview route"), full: true },
+    })));
+    press();
+    expect(preview.stopLiveMode).toHaveBeenCalledOnce();
+    hook.unmount();
+    press();
+    expect(preview.stopLiveMode).toHaveBeenCalledOnce();
+  } finally {
+    input.remove();
+  }
+});
+
 it("routes Go back through Preview history instead of the editor browser history", async () => {
   const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: false, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));

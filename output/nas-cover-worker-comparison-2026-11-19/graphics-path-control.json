@@ -1,0 +1,81 @@
+{
+  "environment": "Mac M4 / Chromium 148.0.7778.96 and chrome-headless-shell of the same version / Playwright DPR 1, same local fonts and markup",
+  "graphicsStatusFromCDP": {
+    "full": [
+      "enabled",
+      "enabled"
+    ],
+    "shell": [
+      "disabled_software",
+      "disabled_software"
+    ],
+    "full-off": [
+      "disabled_software",
+      "disabled_software"
+    ],
+    "shell-off": [
+      "disabled_software",
+      "disabled_software"
+    ]
+  },
+  "statusOrder": [
+    "gpu_compositing",
+    "rasterization"
+  ],
+  "default": {
+    "Chinese": {
+      "above20": 0,
+      "maxDelta": 1
+    },
+    "sticky table": {
+      "above20": 0,
+      "maxDelta": 1
+    },
+    "gradient-blur-shadow": {
+      "above20": 35,
+      "maxDelta": 32
+    },
+    "SVG": {
+      "above20": 384,
+      "maxDelta": 107
+    },
+    "Canvas2D": {
+      "above20": 318,
+      "maxDelta": 231
+    },
+    "WebGL clear": {
+      "above20": 0,
+      "maxDelta": 1
+    }
+  },
+  "bothDisableGPU": {
+    "Chinese": {
+      "above20": 0,
+      "maxDelta": 0
+    },
+    "sticky table": {
+      "above20": 0,
+      "maxDelta": 0
+    },
+    "gradient-blur-shadow": {
+      "above20": 0,
+      "maxDelta": 0
+    },
+    "SVG": {
+      "above20": 0,
+      "maxDelta": 0
+    },
+    "Canvas2D": {
+      "above20": 317,
+      "maxDelta": 231
+    },
+    "WebGL clear": {
+      "above20": 0,
+      "maxDelta": 0
+    }
+  },
+  "bothDisableGPUAndOmitFillText": {
+    "above20": 0,
+    "maxDelta": 0
+  }
+}

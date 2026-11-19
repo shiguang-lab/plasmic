@@ -90,6 +90,7 @@ it("prepares source and owner live changes before their subscribers, ignores ina
   const host = mock<HostFrameCtx>();
   Object.defineProperty(host, "history", { value: studio.appCtx.history });
   const first = new PreviewCtx(host, studio);
+  const prepareNodes = vi.spyOn(f.view.canvasRenderOwner, "prepareRenderPolicy");
   const read = vi.fn(() => {
     expect(studio.renderPolicy.store.getState().devMode).toBe(!studio.isLiveMode && !studio.isDocs);
   });
@@ -97,6 +98,8 @@ it("prepares source and owner live changes before their subscribers, ignores ina
   let second: PreviewCtx | undefined;
   try {
     first.isLive = true;
+    first.isLive = false;
+    expect(prepareNodes).not.toHaveBeenCalled();
     expect(read).toHaveBeenCalled();
     second = new PreviewCtx(host, studio);
     expect(studio.previewCtx).toBe(second);

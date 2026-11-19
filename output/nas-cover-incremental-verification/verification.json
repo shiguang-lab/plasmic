@@ -1,0 +1,550 @@
+{
+  "environment": "UGREEN NAS (x86_64), production Go worker image + pinned chrome-headless-shell 148.0.7778.96 and NAS fonts. Private HTTP Studio endpoint in a separate container. No production cover or project revision was written.",
+  "method": "Natural full render fetched the saved project from the authenticated NAS endpoint. For visual checks fix JS wall time; keep native viewport, assets and fonts. An isolated copy of the native two-board saved model is edited between cases. A second worker always rebuilds every board in the reference; normally render each separately with the original geometry, and render overlapping boards as one batch. Compare decoded RGB and visible body/headings for each rendered frame. Timings include model loading and QA observation.",
+  "realNatural": {
+    "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+    "revision": 577,
+    "boards": 4,
+    "rendered": 4,
+    "reused": 0,
+    "unavailableImages": 0,
+    "name": "4yd87ATApmu8JkZHh6x7Ac-577.webp",
+    "elapsedMs": 33101,
+    "audit": []
+  },
+  "cases": {
+    "real-four": {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "rendered": 4,
+      "reused": 0,
+      "elapsedMs": 7997,
+      "unavailableImages": 0,
+      "fullReferenceMs": 19290,
+      "comparison": {
+        "unequal": 154,
+        "deltaOver20": 3,
+        "maxDelta": 35,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "o6RXcZUaD92N",
+          "textLength": 1109,
+          "fonts": "loaded",
+          "headings": 38,
+          "unequal": 95,
+          "deltaOver20": 1,
+          "maxDelta": 30,
+          "pixels": 16568
+        },
+        {
+          "id": "Di37uoQOVaXZ",
+          "textLength": 327,
+          "fonts": "loaded",
+          "headings": 8,
+          "unequal": 20,
+          "deltaOver20": 1,
+          "maxDelta": 30,
+          "pixels": 16677
+        },
+        {
+          "id": "nGSs9G9CbXvq",
+          "textLength": 550,
+          "fonts": "loaded",
+          "headings": 10,
+          "unequal": 20,
+          "deltaOver20": 1,
+          "maxDelta": 35,
+          "pixels": 16677
+        },
+        {
+          "id": "ClvuctH_7GES",
+          "textLength": 1826,
+          "fonts": "loaded",
+          "headings": 14,
+          "unequal": 19,
+          "deltaOver20": 0,
+          "maxDelta": 5,
+          "pixels": 16568
+        }
+      ]
+    },
+    "native-base": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 16,
+      "boards": 2,
+      "rendered": 2,
+      "reused": 0,
+      "elapsedMs": 2085,
+      "unavailableImages": 0,
+      "fullReferenceMs": 1944,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 765,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 19,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        }
+      ]
+    },
+    "unchanged": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 16,
+      "boards": 2,
+      "rendered": 0,
+      "reused": 2,
+      "elapsedMs": 25,
+      "unavailableImages": 0,
+      "fullReferenceMs": 2117,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 765,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 19,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        }
+      ]
+    },
+    "one-edit": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 17,
+      "boards": 2,
+      "rendered": 1,
+      "reused": 1,
+      "elapsedMs": 1764,
+      "unavailableImages": 0,
+      "fullReferenceMs": 1933,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 771,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 19,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        }
+      ]
+    },
+    "new-revision-identical": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 18,
+      "boards": 2,
+      "rendered": 0,
+      "reused": 2,
+      "elapsedMs": 19,
+      "unavailableImages": 0,
+      "fullReferenceMs": 2161,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 771,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 19,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        }
+      ]
+    },
+    "two-edits": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 19,
+      "boards": 2,
+      "rendered": 2,
+      "reused": 0,
+      "elapsedMs": 1908,
+      "unavailableImages": 0,
+      "fullReferenceMs": 1938,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 777,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 25,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        }
+      ]
+    },
+    "new-scale": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 20,
+      "boards": 2,
+      "rendered": 2,
+      "reused": 0,
+      "elapsedMs": 2029,
+      "unavailableImages": 0,
+      "fullReferenceMs": 1970,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 777,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 59328
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 25,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 59328
+        }
+      ]
+    },
+    "integer-swap": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 21,
+      "boards": 2,
+      "rendered": 0,
+      "reused": 2,
+      "elapsedMs": 1371,
+      "unavailableImages": 0,
+      "fullReferenceMs": 1974,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 777,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 59328
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 25,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 59328
+        }
+      ]
+    },
+    "fractional-reflow": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 22,
+      "boards": 2,
+      "rendered": 2,
+      "reused": 0,
+      "elapsedMs": 1978,
+      "unavailableImages": 0,
+      "fullReferenceMs": 2078,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 777,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 58344
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 25,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 58344
+        }
+      ]
+    },
+    "shared-style": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 23,
+      "boards": 2,
+      "rendered": 2,
+      "reused": 0,
+      "elapsedMs": 2350,
+      "unavailableImages": 0,
+      "fullReferenceMs": 2197,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 777,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 58344
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 25,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 58344
+        }
+      ]
+    },
+    "overlap": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 24,
+      "boards": 2,
+      "rendered": 2,
+      "reused": 0,
+      "elapsedMs": 1953,
+      "unavailableImages": 0,
+      "fullReferenceMs": 1950,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "afCBRrKtTtWh",
+          "textLength": 777,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 166840
+        },
+        {
+          "id": "RTVuWvhNcTKC",
+          "textLength": 25,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 166840
+        }
+      ]
+    },
+    "page-arenas": {
+      "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+      "revision": 25,
+      "boards": 2,
+      "rendered": 2,
+      "reused": 0,
+      "elapsedMs": 2037,
+      "unavailableImages": 0,
+      "fullReferenceMs": 2053,
+      "comparison": {
+        "unequal": 0,
+        "deltaOver20": 0,
+        "maxDelta": 0,
+        "pixels": 230400
+      },
+      "referenceBoards": [
+        {
+          "id": "DGkKSEuTK2vX",
+          "textLength": 777,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        },
+        {
+          "id": "nQHbb9HRrRnj",
+          "textLength": 25,
+          "fonts": "loaded",
+          "headings": 3,
+          "unequal": 0,
+          "deltaOver20": 0,
+          "maxDelta": 0,
+          "pixels": 65664
+        }
+      ]
+    }
+  },
+  "changedPixelsComparedToPrecedingEditByBoard": {
+    "one-edit": [
+      142,
+      0
+    ],
+    "two-edits": [
+      207,
+      112
+    ]
+  },
+  "previousIndependentShellReference": {
+    "unequal": 44,
+    "deltaOver20": 7,
+    "maxDelta": 31,
+    "pixels": 230400,
+    "file": "../nas-cover-worker-comparison-2026-11-19/fixed-reference-b.png"
+  },
+  "nasDockerImageConfig": "sha256:7568dc3adddb66ea372df96fbfa78817ad8fb8224cd3b9d448b1cd00167b51f3",
+  "naturalTimings": {
+    "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+    "revision": 577,
+    "boards": 4,
+    "conditions": "Independent worker, first request after process restart. Same real project, unmodified data, real clock, no DOM audit, private HTTP upstream and no concurrent captures. Three subsequent renders use warm shell.",
+    "coldMs": 9754,
+    "warmMs": [
+      8512,
+      8717,
+      8552
+    ]
+  },
+  "containerMemory": {
+    "samplePeriodMs": 250,
+    "scope": "Go worker and shell together, worker container cgroup. Working set is memory.current minus inactive_file. Idle sampled after automatic browser exit. File cache can remain charged to the cgroup.",
+    "idleProcesses": [
+      "docker-init",
+      "cover-worker"
+    ],
+    "idle": {
+      "currentMiB": 127.77,
+      "workingSetMiB": 121.1,
+      "anonMiB": 100.36,
+      "goRSSMiB": 110.92
+    },
+    "realFourPeakWorkingSetMiB": 713.8,
+    "realFourPeakAnonMiB": 683.06
+  },
+  "firstRequestAfterIdleExit": {
+    "projectId": "ibXLxeSk4UsYXLjCGF1bFJ",
+    "revision": 16,
+    "boards": 2,
+    "rendered": 2,
+    "reused": 0,
+    "unavailableImages": 0,
+    "name": "ibXLxeSk4UsYXLjCGF1bFJ-16.webp",
+    "elapsedMs": 5623,
+    "audit": []
+  }
+}

@@ -1,0 +1,5516 @@
+{
+  "scope": "Actual installed Plasmic.app on Apple M4, PID 79360, macOS 26.6.2",
+  "versions": {
+    "overseas": {
+      "version": "3.3.0",
+      "sha256": "3ac2d551b0e682d1a6ecaeac03d5f5b9e6c5d5da22097551d2dd4a40028ce394",
+      "bytes": 36090,
+      "fixPresent": true
+    },
+    "antd6": {
+      "version": "5.8.0",
+      "sha256": "f2d34eea5764658da72ed91e01cc19c6e81b8177f92b5e4a87fa04019508ad3f",
+      "bytes": 1117322,
+      "fixPresent": true
+    }
+  },
+  "sessionBefore": {
+    "template": {
+      "state": {
+        "ready": true,
+        "version": "0.9.7",
+        "orgId": null,
+        "workspaceId": null,
+        "projectId": "pDf4kvKBxRRLAHnjbGRwGu",
+        "context": {
+          "surface": "editor",
+          "ready": true,
+          "projectId": "pDf4kvKBxRRLAHnjbGRwGu",
+          "branchId": null,
+          "sessionId": "SBpI8r7tvZhz",
+          "mode": "edit",
+          "previewKind": null,
+          "canEdit": false,
+          "arenaId": "页面总览",
+          "componentUuid": null,
+          "frameUuid": null
+        },
+        "buildId": "1ae94f4cb70979875cd22b21258fdd14b6f17f20af93caa0aee4344d22a1edcf",
+        "editorContext": {
+          "projectName": "海外 O 端",
+          "publishedTemplateVersion": "4.0.1",
+          "branchId": null,
+          "sessionId": "SBpI8r7tvZhz",
+          "revision": 0,
+          "changeCounter": 0,
+          "componentUuid": null,
+          "frameUuid": null,
+          "selectedElementUuids": [],
+          "mode": "edit",
+          "canEdit": false,
+          "previewContext": null
+        },
+        "running": true,
+        "windowOpen": true
+      },
+      "view": {
+        "projectId": "pDf4kvKBxRRLAHnjbGRwGu",
+        "branchId": null,
+        "sessionId": "SBpI8r7tvZhz",
+        "view": {
+          "arenaId": "页面总览",
+          "arenaType": "custom",
+          "frameUuid": null,
+          "scale": 0.16713,
+          "scroll": {
+            "x": 1025.5,
+            "y": 1189.5
+          },
+          "canvasPadding": {
+            "x": 1436.3999999999999,
+            "y": 839.8
+          }
+        }
+      }
+    },
+    "installedBefore": [
+      {
+        "name": "Ant Design Icons",
+        "codeName": "antd-icons",
+        "category": "Icons",
+        "projectIds": [
+          "vuoraLeVbtw7rQTKJ6UKar"
+        ],
+        "installed": true,
+        "installedProjects": [
+          {
+            "projectId": "vuoraLeVbtw7rQTKJ6UKar",
+            "version": "0.4.0"
+          }
+        ]
+      },
+      {
+        "name": "React UI",
+        "codeName": "react-ui",
+        "category": "Business components",
+        "projectIds": [
+          "vJfWZAFzStvt61gEWotC7k"
+        ],
+        "installed": true,
+        "installedProjects": [
+          {
+            "projectId": "vJfWZAFzStvt61gEWotC7k",
+            "version": "1.1.0"
+          }
+        ]
+      },
+      {
+        "name": "Ant Design 6",
+        "codeName": "antd6",
+        "category": "Design systems",
+        "projectIds": [
+          "eYLujTHmWfX9qEoQaFDSi4"
+        ],
+        "installed": true,
+        "installedProjects": [
+          {
+            "projectId": "eYLujTHmWfX9qEoQaFDSi4",
+            "version": "5.7.0"
+          }
+        ]
+      },
+      {
+        "name": "Overseas",
+        "codeName": "overseas",
+        "category": "Business components",
+        "projectIds": [
+          "f3f4ju424PVNTAQPkwovrE"
+        ],
+        "installed": true,
+        "installedProjects": [
+          {
+            "projectId": "f3f4ju424PVNTAQPkwovrE",
+            "version": "3.2.0"
+          }
+        ]
+      }
+    ],
+    "clockBefore": [
+      {
+        "index": 70,
+        "tag": "time",
+        "text": "当地时间：2026-11-19 14:10:37"
+      },
+      {
+        "index": 70,
+        "tag": "time",
+        "text": "当地时间：2026-11-19 14:10:39"
+      }
+    ]
+  },
+  "sessionAfter": {
+    "view": {
+      "projectId": "pDf4kvKBxRRLAHnjbGRwGu",
+      "branchId": null,
+      "sessionId": "hbln6sEI-L3Z",
+      "view": {
+        "arenaId": "页面总览",
+        "arenaType": "custom",
+        "frameUuid": null,
+        "scale": 0.16713,
+        "scroll": {
+          "x": 1025.5,
+          "y": 1189.5
+        },
+        "canvasPadding": {
+          "x": 1436.3999999999999,
+          "y": 839.8
+        }
+      }
+    },
+    "state": {
+      "ready": true,
+      "version": "0.9.7",
+      "orgId": null,
+      "workspaceId": null,
+      "projectId": "pDf4kvKBxRRLAHnjbGRwGu",
+      "context": {
+        "surface": "editor",
+        "ready": true,
+        "projectId": "pDf4kvKBxRRLAHnjbGRwGu",
+        "branchId": null,
+        "sessionId": "hbln6sEI-L3Z",
+        "mode": "edit",
+        "previewKind": null,
+        "canEdit": false,
+        "arenaId": "页面总览",
+        "componentUuid": null,
+        "frameUuid": null
+      },
+      "buildId": "1ae94f4cb70979875cd22b21258fdd14b6f17f20af93caa0aee4344d22a1edcf",
+      "editorContext": {
+        "projectName": "海外 O 端",
+        "publishedTemplateVersion": "4.0.1",
+        "branchId": null,
+        "sessionId": "hbln6sEI-L3Z",
+        "revision": 0,
+        "changeCounter": 0,
+        "componentUuid": null,
+        "frameUuid": null,
+        "selectedElementUuids": [],
+        "mode": "edit",
+        "canEdit": false,
+        "previewContext": null
+      },
+      "running": true,
+      "windowOpen": true
+    },
+    "installed": {
+      "libraries": [
+        {
+          "name": "Ant Design Icons",
+          "codeName": "antd-icons",
+          "category": "Icons",
+          "projectIds": [
+            "vuoraLeVbtw7rQTKJ6UKar"
+          ],
+          "installed": true,
+          "installedProjects": [
+            {
+              "projectId": "vuoraLeVbtw7rQTKJ6UKar",
+              "version": "0.4.0"
+            }
+          ]
+        },
+        {
+          "name": "React UI",
+          "codeName": "react-ui",
+          "category": "Business components",
+          "projectIds": [
+            "vJfWZAFzStvt61gEWotC7k"
+          ],
+          "installed": true,
+          "installedProjects": [
+            {
+              "projectId": "vJfWZAFzStvt61gEWotC7k",
+              "version": "1.1.0"
+            }
+          ]
+        },
+        {
+          "name": "Ant Design 6",
+          "codeName": "antd6",
+          "category": "Design systems",
+          "projectIds": [
+            "eYLujTHmWfX9qEoQaFDSi4"
+          ],
+          "installed": true,
+          "installedProjects": [
+            {
+              "projectId": "eYLujTHmWfX9qEoQaFDSi4",
+              "version": "5.8.0"
+            }
+          ]
+        },
+        {
+          "name": "Overseas",
+          "codeName": "overseas",
+          "category": "Business components",
+          "projectIds": [
+            "f3f4ju424PVNTAQPkwovrE"
+          ],
+          "installed": true,
+          "installedProjects": [
+            {
+              "projectId": "f3f4ju424PVNTAQPkwovrE",
+              "version": "3.3.0"
+            }
+          ]
+        }
+      ],
+      "total": 4
+    },
+    "clock": [
+      {
+        "index": 70,
+        "tag": "time",
+        "text": "当地时间：2026-11-19 14:18:12"
+      },
+      {
+        "index": 70,
+        "tag": "time",
+        "text": "当地时间：2026-11-19 14:18:12"
+      }
+    ]
+  },
+  "windowBefore": "页面总览 - 海外 O 端 - Plasmic, 0, 33, 1512, 884",
+  "verifiedUpgrade": [
+    "status.log:Automatic upgrades: on",
+    "status.log:Scanned 12 revisions and versions; 8 import older platform library versions.",
+    "upgrade.log:upgraded 海外 O 端 (version 4.0.1)",
+    "upgrade.log:Upgraded 8; failed 0.",
+    "ai-worker Up About a minute",
+    "edge Up 2 weeks (healthy)",
+    "preview Up About a minute (healthy)",
+    "server Up About a minute (healthy)",
+    "web Up 54 minutes (healthy)"
+  ],
+  "method": "Total deltas of macOS proc_pid_rusage user+system time over elapsed wall time for the same Plasmic process tree. 100 percent is one logical CPU core. PID membership must be stable within retained intervals. The first series takes 60 approximately 1-second intervals. The second series also records the frontmost application and the window area uncovered by opaque layer-0 windows. Its matched comparison retains consecutive endpoints with the full 1512x884 Plasmic window uncovered and on screen while another application has focus. Only the template document was reloaded.",
+  "before60": {
+    "epochStart": 1795068394.99682,
+    "epochEnd": 1795068458.1615732,
+    "summary": {
+      "seconds": 63.165,
+      "intervals": 60,
+      "meanCpuPercent": 63.165,
+      "perRole": {
+        "renderer": 29.982,
+        "main": 0.944,
+        "gpu-process": 32.229,
+        "utility": 0.009
+      }
+    },
+    "blocks": [
+      {
+        "seconds": 15.879,
+        "intervals": 15,
+        "meanCpuPercent": 59.871,
+        "perRole": {
+          "renderer": 26.237,
+          "main": 1.28,
+          "gpu-process": 32.338,
+          "utility": 0.016
+        }
+      },
+      {
+        "seconds": 15.739,
+        "intervals": 15,
+        "meanCpuPercent": 65.632,
+        "perRole": {
+          "renderer": 32.968,
+          "main": 0.762,
+          "gpu-process": 31.897,
+          "utility": 0.004
+        }
+      },
+      {
+        "seconds": 15.767,
+        "intervals": 15,
+        "meanCpuPercent": 59.073,
+        "perRole": {
+          "renderer": 26.283,
+          "main": 0.779,
+          "gpu-process": 31.995,
+          "utility": 0.016
+        }
+      },
+      {
+        "seconds": 15.779,
+        "intervals": 15,
+        "meanCpuPercent": 68.108,
+        "perRole": {
+          "renderer": 34.469,
+          "main": 0.953,
+          "gpu-process": 32.684,
+          "utility": 0.001
+        }
+      }
+    ],
+    "intervals": [
+      {
+        "epochEnd": 1795068396.04939,
+        "seconds": 1.053,
+        "intervals": 1,
+        "meanCpuPercent": 53.724,
+        "perRole": {
+          "renderer": 22.783,
+          "main": 2.788,
+          "gpu-process": 28.147,
+          "utility": 0.006
+        }
+      },
+      {
+        "epochEnd": 1795068397.0999,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 60.983,
+        "perRole": {
+          "renderer": 27.123,
+          "main": 1.029,
+          "gpu-process": 32.832,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068398.151288,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 60.722,
+        "perRole": {
+          "renderer": 26.575,
+          "main": 0.689,
+          "gpu-process": 33.458,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068399.197788,
+        "seconds": 1.046,
+        "intervals": 1,
+        "meanCpuPercent": 60.742,
+        "perRole": {
+          "renderer": 27.175,
+          "main": 0.704,
+          "gpu-process": 32.862,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068400.249911,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 59.197,
+        "perRole": {
+          "renderer": 26.316,
+          "main": 0.78,
+          "gpu-process": 32.09,
+          "utility": 0.01
+        }
+      },
+      {
+        "epochEnd": 1795068401.30147,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 63.131,
+        "perRole": {
+          "renderer": 27.77,
+          "main": 0.762,
+          "gpu-process": 34.597,
+          "utility": 0.001
+        }
+      },
+      {
+        "epochEnd": 1795068402.3486989,
+        "seconds": 1.047,
+        "intervals": 1,
+        "meanCpuPercent": 55.286,
+        "perRole": {
+          "renderer": 24.817,
+          "main": 0.787,
+          "gpu-process": 29.681,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068403.386286,
+        "seconds": 1.038,
+        "intervals": 1,
+        "meanCpuPercent": 62.357,
+        "perRole": {
+          "renderer": 26.121,
+          "main": 4.618,
+          "gpu-process": 31.549,
+          "utility": 0.069
+        }
+      },
+      {
+        "epochEnd": 1795068404.438397,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 65.819,
+        "perRole": {
+          "renderer": 28.128,
+          "main": 2.201,
+          "gpu-process": 35.366,
+          "utility": 0.123
+        }
+      },
+      {
+        "epochEnd": 1795068405.484567,
+        "seconds": 1.046,
+        "intervals": 1,
+        "meanCpuPercent": 61.888,
+        "perRole": {
+          "renderer": 27.008,
+          "main": 0.937,
+          "gpu-process": 33.943,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068406.5353012,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 63.697,
+        "perRole": {
+          "renderer": 27.597,
+          "main": 0.784,
+          "gpu-process": 35.303,
+          "utility": 0.012
+        }
+      },
+      {
+        "epochEnd": 1795068407.5848022,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 62.731,
+        "perRole": {
+          "renderer": 27.581,
+          "main": 0.931,
+          "gpu-process": 34.22,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068408.6453571,
+        "seconds": 1.061,
+        "intervals": 1,
+        "meanCpuPercent": 58.271,
+        "perRole": {
+          "renderer": 25.193,
+          "main": 0.751,
+          "gpu-process": 32.301,
+          "utility": 0.026
+        }
+      },
+      {
+        "epochEnd": 1795068409.823683,
+        "seconds": 1.178,
+        "intervals": 1,
+        "meanCpuPercent": 54.23,
+        "perRole": {
+          "renderer": 24.195,
+          "main": 0.773,
+          "gpu-process": 29.262,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068410.876103,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 56.02,
+        "perRole": {
+          "renderer": 25.432,
+          "main": 0.764,
+          "gpu-process": 29.824,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068411.928819,
+        "seconds": 1.053,
+        "intervals": 1,
+        "meanCpuPercent": 61.151,
+        "perRole": {
+          "renderer": 26.736,
+          "main": 0.884,
+          "gpu-process": 33.497,
+          "utility": 0.034
+        }
+      },
+      {
+        "epochEnd": 1795068412.97588,
+        "seconds": 1.047,
+        "intervals": 1,
+        "meanCpuPercent": 55.535,
+        "perRole": {
+          "renderer": 24.49,
+          "main": 0.755,
+          "gpu-process": 30.29,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068414.028289,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 53.703,
+        "perRole": {
+          "renderer": 24.236,
+          "main": 0.671,
+          "gpu-process": 28.793,
+          "utility": 0.003
+        }
+      },
+      {
+        "epochEnd": 1795068415.078403,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 146.851,
+        "perRole": {
+          "renderer": 120.023,
+          "main": 0.621,
+          "gpu-process": 26.207,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068416.126118,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 59.346,
+        "perRole": {
+          "renderer": 26.851,
+          "main": 0.871,
+          "gpu-process": 31.619,
+          "utility": 0.006
+        }
+      },
+      {
+        "epochEnd": 1795068417.177419,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 61.711,
+        "perRole": {
+          "renderer": 27.373,
+          "main": 0.949,
+          "gpu-process": 33.389,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068418.228141,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 60.812,
+        "perRole": {
+          "renderer": 28.148,
+          "main": 0.742,
+          "gpu-process": 31.921,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068419.277123,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 62.589,
+        "perRole": {
+          "renderer": 28.633,
+          "main": 0.68,
+          "gpu-process": 33.277,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068420.328612,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 62.968,
+        "perRole": {
+          "renderer": 27.182,
+          "main": 0.669,
+          "gpu-process": 35.111,
+          "utility": 0.007
+        }
+      },
+      {
+        "epochEnd": 1795068421.382596,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 64.753,
+        "perRole": {
+          "renderer": 28.2,
+          "main": 0.779,
+          "gpu-process": 35.775,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068422.412759,
+        "seconds": 1.03,
+        "intervals": 1,
+        "meanCpuPercent": 62.812,
+        "perRole": {
+          "renderer": 27.804,
+          "main": 0.877,
+          "gpu-process": 34.131,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068423.4632409,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 60.526,
+        "perRole": {
+          "renderer": 26.993,
+          "main": 0.716,
+          "gpu-process": 32.817,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068424.5117671,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 56.36,
+        "perRole": {
+          "renderer": 25.339,
+          "main": 0.681,
+          "gpu-process": 30.334,
+          "utility": 0.006
+        }
+      },
+      {
+        "epochEnd": 1795068425.564063,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 58.005,
+        "perRole": {
+          "renderer": 25.828,
+          "main": 0.743,
+          "gpu-process": 31.435,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068426.6153111,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 57.313,
+        "perRole": {
+          "renderer": 26.629,
+          "main": 0.799,
+          "gpu-process": 29.885,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068427.666052,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 59.409,
+        "perRole": {
+          "renderer": 26.392,
+          "main": 0.764,
+          "gpu-process": 32.253,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068428.7168572,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 59.931,
+        "perRole": {
+          "renderer": 25.98,
+          "main": 0.82,
+          "gpu-process": 33.127,
+          "utility": 0.004
+        }
+      },
+      {
+        "epochEnd": 1795068429.7670379,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 61.997,
+        "perRole": {
+          "renderer": 27.5,
+          "main": 0.673,
+          "gpu-process": 33.824,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068430.819756,
+        "seconds": 1.053,
+        "intervals": 1,
+        "meanCpuPercent": 60.96,
+        "perRole": {
+          "renderer": 27.104,
+          "main": 0.801,
+          "gpu-process": 33.031,
+          "utility": 0.023
+        }
+      },
+      {
+        "epochEnd": 1795068431.870242,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 62.604,
+        "perRole": {
+          "renderer": 27.07,
+          "main": 0.759,
+          "gpu-process": 34.764,
+          "utility": 0.011
+        }
+      },
+      {
+        "epochEnd": 1795068432.917661,
+        "seconds": 1.047,
+        "intervals": 1,
+        "meanCpuPercent": 61.197,
+        "perRole": {
+          "renderer": 27.166,
+          "main": 0.936,
+          "gpu-process": 33.095,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068433.960959,
+        "seconds": 1.043,
+        "intervals": 1,
+        "meanCpuPercent": 57.82,
+        "perRole": {
+          "renderer": 25.766,
+          "main": 0.754,
+          "gpu-process": 31.138,
+          "utility": 0.162
+        }
+      },
+      {
+        "epochEnd": 1795068435.0124211,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 55.454,
+        "perRole": {
+          "renderer": 24.955,
+          "main": 0.687,
+          "gpu-process": 29.809,
+          "utility": 0.003
+        }
+      },
+      {
+        "epochEnd": 1795068436.062937,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 57.711,
+        "perRole": {
+          "renderer": 25.988,
+          "main": 0.685,
+          "gpu-process": 31.007,
+          "utility": 0.031
+        }
+      },
+      {
+        "epochEnd": 1795068437.1113799,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 60.176,
+        "perRole": {
+          "renderer": 27.319,
+          "main": 0.935,
+          "gpu-process": 31.917,
+          "utility": 0.004
+        }
+      },
+      {
+        "epochEnd": 1795068438.159827,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 60.447,
+        "perRole": {
+          "renderer": 26.937,
+          "main": 0.687,
+          "gpu-process": 32.823,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068439.2115011,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 63.349,
+        "perRole": {
+          "renderer": 29.177,
+          "main": 0.735,
+          "gpu-process": 33.436,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068440.2802482,
+        "seconds": 1.069,
+        "intervals": 1,
+        "meanCpuPercent": 58.955,
+        "perRole": {
+          "renderer": 25.68,
+          "main": 0.74,
+          "gpu-process": 32.531,
+          "utility": 0.004
+        }
+      },
+      {
+        "epochEnd": 1795068441.332736,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 49.479,
+        "perRole": {
+          "renderer": 21.808,
+          "main": 0.761,
+          "gpu-process": 26.91,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068442.382293,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 56.626,
+        "perRole": {
+          "renderer": 25.414,
+          "main": 0.949,
+          "gpu-process": 30.263,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068443.433985,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 67.912,
+        "perRole": {
+          "renderer": 30.11,
+          "main": 0.882,
+          "gpu-process": 36.92,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068444.487489,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 65.864,
+        "perRole": {
+          "renderer": 28.756,
+          "main": 0.974,
+          "gpu-process": 36.13,
+          "utility": 0.004
+        }
+      },
+      {
+        "epochEnd": 1795068445.531235,
+        "seconds": 1.044,
+        "intervals": 1,
+        "meanCpuPercent": 56.448,
+        "perRole": {
+          "renderer": 25.228,
+          "main": 0.854,
+          "gpu-process": 30.365,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068446.5839,
+        "seconds": 1.053,
+        "intervals": 1,
+        "meanCpuPercent": 54.684,
+        "perRole": {
+          "renderer": 25.487,
+          "main": 0.966,
+          "gpu-process": 28.231,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068447.637145,
+        "seconds": 1.053,
+        "intervals": 1,
+        "meanCpuPercent": 62.086,
+        "perRole": {
+          "renderer": 28.502,
+          "main": 1.06,
+          "gpu-process": 32.524,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068448.687624,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 63.595,
+        "perRole": {
+          "renderer": 29.517,
+          "main": 0.945,
+          "gpu-process": 33.129,
+          "utility": 0.004
+        }
+      },
+      {
+        "epochEnd": 1795068449.73811,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 64.919,
+        "perRole": {
+          "renderer": 29.922,
+          "main": 0.991,
+          "gpu-process": 34.007,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068450.792525,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 142.676,
+        "perRole": {
+          "renderer": 114.643,
+          "main": 0.841,
+          "gpu-process": 27.191,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068451.8472488,
+        "seconds": 1.055,
+        "intervals": 1,
+        "meanCpuPercent": 62.82,
+        "perRole": {
+          "renderer": 29.348,
+          "main": 0.878,
+          "gpu-process": 32.594,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068452.900766,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 64.78,
+        "perRole": {
+          "renderer": 30.216,
+          "main": 1.158,
+          "gpu-process": 33.401,
+          "utility": 0.004
+        }
+      },
+      {
+        "epochEnd": 1795068453.9558358,
+        "seconds": 1.055,
+        "intervals": 1,
+        "meanCpuPercent": 66.713,
+        "perRole": {
+          "renderer": 31.28,
+          "main": 0.924,
+          "gpu-process": 34.509,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068455.007701,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 65.85,
+        "perRole": {
+          "renderer": 30.131,
+          "main": 0.901,
+          "gpu-process": 34.817,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068456.051284,
+        "seconds": 1.044,
+        "intervals": 1,
+        "meanCpuPercent": 61.966,
+        "perRole": {
+          "renderer": 28.23,
+          "main": 0.937,
+          "gpu-process": 32.796,
+          "utility": 0.004
+        }
+      },
+      {
+        "epochEnd": 1795068457.1008892,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 59.646,
+        "perRole": {
+          "renderer": 27.444,
+          "main": 1.057,
+          "gpu-process": 31.145,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795068458.1615732,
+        "seconds": 1.061,
+        "intervals": 1,
+        "meanCpuPercent": 61.422,
+        "perRole": {
+          "renderer": 27.994,
+          "main": 0.932,
+          "gpu-process": 32.496,
+          "utility": 0.0
+        }
+      }
+    ]
+  },
+  "after60": {
+    "epochStart": 1795069178.804849,
+    "epochEnd": 1795069241.663402,
+    "summary": {
+      "seconds": 62.859,
+      "intervals": 60,
+      "meanCpuPercent": 0.241,
+      "perRole": {
+        "renderer": 0.098,
+        "main": 0.1,
+        "gpu-process": 0.031,
+        "utility": 0.012
+      }
+    },
+    "blocks": [
+      {
+        "seconds": 15.72,
+        "intervals": 15,
+        "meanCpuPercent": 0.559,
+        "perRole": {
+          "renderer": 0.257,
+          "main": 0.19,
+          "gpu-process": 0.09,
+          "utility": 0.023
+        }
+      },
+      {
+        "seconds": 15.737,
+        "intervals": 15,
+        "meanCpuPercent": 0.143,
+        "perRole": {
+          "renderer": 0.05,
+          "main": 0.074,
+          "gpu-process": 0.014,
+          "utility": 0.005
+        }
+      },
+      {
+        "seconds": 15.697,
+        "intervals": 15,
+        "meanCpuPercent": 0.138,
+        "perRole": {
+          "renderer": 0.046,
+          "main": 0.066,
+          "gpu-process": 0.011,
+          "utility": 0.015
+        }
+      },
+      {
+        "seconds": 15.704,
+        "intervals": 15,
+        "meanCpuPercent": 0.124,
+        "perRole": {
+          "renderer": 0.037,
+          "main": 0.072,
+          "gpu-process": 0.011,
+          "utility": 0.004
+        }
+      }
+    ],
+    "intervals": [
+      {
+        "epochEnd": 1795069179.854199,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 0.076,
+        "perRole": {
+          "renderer": 0.015,
+          "main": 0.039,
+          "gpu-process": 0.012,
+          "utility": 0.01
+        }
+      },
+      {
+        "epochEnd": 1795069180.888067,
+        "seconds": 1.034,
+        "intervals": 1,
+        "meanCpuPercent": 0.082,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.051,
+          "gpu-process": 0.023,
+          "utility": 0.008
+        }
+      },
+      {
+        "epochEnd": 1795069181.942125,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 0.045,
+        "perRole": {
+          "renderer": 0.015,
+          "main": 0.025,
+          "gpu-process": 0.004,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069182.990447,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 0.652,
+        "perRole": {
+          "renderer": 0.274,
+          "main": 0.378,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069184.045856,
+        "seconds": 1.055,
+        "intervals": 1,
+        "meanCpuPercent": 5.606,
+        "perRole": {
+          "renderer": 3.006,
+          "main": 1.551,
+          "gpu-process": 0.845,
+          "utility": 0.204
+        }
+      },
+      {
+        "epochEnd": 1795069185.0939362,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 0.496,
+        "perRole": {
+          "renderer": 0.022,
+          "main": 0.251,
+          "gpu-process": 0.193,
+          "utility": 0.031
+        }
+      },
+      {
+        "epochEnd": 1795069186.1426911,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 0.085,
+        "perRole": {
+          "renderer": 0.022,
+          "main": 0.045,
+          "gpu-process": 0.009,
+          "utility": 0.008
+        }
+      },
+      {
+        "epochEnd": 1795069187.196554,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 0.457,
+        "perRole": {
+          "renderer": 0.212,
+          "main": 0.223,
+          "gpu-process": 0.003,
+          "utility": 0.019
+        }
+      },
+      {
+        "epochEnd": 1795069188.2494311,
+        "seconds": 1.053,
+        "intervals": 1,
+        "meanCpuPercent": 0.054,
+        "perRole": {
+          "renderer": 0.014,
+          "main": 0.003,
+          "gpu-process": 0.0,
+          "utility": 0.038
+        }
+      },
+      {
+        "epochEnd": 1795069189.299445,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 0.223,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.024,
+          "gpu-process": 0.199,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069190.343814,
+        "seconds": 1.044,
+        "intervals": 1,
+        "meanCpuPercent": 0.111,
+        "perRole": {
+          "renderer": 0.043,
+          "main": 0.043,
+          "gpu-process": 0.016,
+          "utility": 0.009
+        }
+      },
+      {
+        "epochEnd": 1795069191.380508,
+        "seconds": 1.037,
+        "intervals": 1,
+        "meanCpuPercent": 0.058,
+        "perRole": {
+          "renderer": 0.012,
+          "main": 0.035,
+          "gpu-process": 0.0,
+          "utility": 0.011
+        }
+      },
+      {
+        "epochEnd": 1795069192.4308312,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 0.288,
+        "perRole": {
+          "renderer": 0.164,
+          "main": 0.121,
+          "gpu-process": 0.0,
+          "utility": 0.003
+        }
+      },
+      {
+        "epochEnd": 1795069193.478202,
+        "seconds": 1.047,
+        "intervals": 1,
+        "meanCpuPercent": 0.113,
+        "perRole": {
+          "renderer": 0.028,
+          "main": 0.047,
+          "gpu-process": 0.032,
+          "utility": 0.006
+        }
+      },
+      {
+        "epochEnd": 1795069194.525208,
+        "seconds": 1.047,
+        "intervals": 1,
+        "meanCpuPercent": 0.004,
+        "perRole": {
+          "renderer": 0.004,
+          "main": 0.0,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069195.5758111,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 0.085,
+        "perRole": {
+          "renderer": 0.022,
+          "main": 0.042,
+          "gpu-process": 0.012,
+          "utility": 0.009
+        }
+      },
+      {
+        "epochEnd": 1795069196.6211998,
+        "seconds": 1.045,
+        "intervals": 1,
+        "meanCpuPercent": 0.108,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.057,
+          "gpu-process": 0.045,
+          "utility": 0.006
+        }
+      },
+      {
+        "epochEnd": 1795069197.670589,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 0.628,
+        "perRole": {
+          "renderer": 0.325,
+          "main": 0.303,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069198.720182,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 0.034,
+        "perRole": {
+          "renderer": 0.004,
+          "main": 0.03,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069199.7738109,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 0.087,
+        "perRole": {
+          "renderer": 0.024,
+          "main": 0.033,
+          "gpu-process": 0.019,
+          "utility": 0.011
+        }
+      },
+      {
+        "epochEnd": 1795069200.819937,
+        "seconds": 1.046,
+        "intervals": 1,
+        "meanCpuPercent": 0.043,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.002,
+          "gpu-process": 0.034,
+          "utility": 0.007
+        }
+      },
+      {
+        "epochEnd": 1795069201.857633,
+        "seconds": 1.038,
+        "intervals": 1,
+        "meanCpuPercent": 0.086,
+        "perRole": {
+          "renderer": 0.015,
+          "main": 0.071,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069202.909405,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 0.352,
+        "perRole": {
+          "renderer": 0.147,
+          "main": 0.2,
+          "gpu-process": 0.004,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069203.961925,
+        "seconds": 1.053,
+        "intervals": 1,
+        "meanCpuPercent": 0.016,
+        "perRole": {
+          "renderer": 0.016,
+          "main": 0.0,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069205.013032,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 0.124,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.052,
+          "gpu-process": 0.051,
+          "utility": 0.02
+        }
+      },
+      {
+        "epochEnd": 1795069206.064045,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 0.041,
+        "perRole": {
+          "renderer": 0.016,
+          "main": 0.021,
+          "gpu-process": 0.004,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069207.113319,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 0.379,
+        "perRole": {
+          "renderer": 0.157,
+          "main": 0.223,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069208.1672032,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 0.028,
+        "perRole": {
+          "renderer": 0.014,
+          "main": 0.004,
+          "gpu-process": 0.003,
+          "utility": 0.008
+        }
+      },
+      {
+        "epochEnd": 1795069209.216196,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 0.047,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.029,
+          "gpu-process": 0.018,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069210.262381,
+        "seconds": 1.046,
+        "intervals": 1,
+        "meanCpuPercent": 0.08,
+        "perRole": {
+          "renderer": 0.015,
+          "main": 0.04,
+          "gpu-process": 0.013,
+          "utility": 0.011
+        }
+      },
+      {
+        "epochEnd": 1795069211.290878,
+        "seconds": 1.028,
+        "intervals": 1,
+        "meanCpuPercent": 0.038,
+        "perRole": {
+          "renderer": 0.005,
+          "main": 0.028,
+          "gpu-process": 0.005,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069212.329094,
+        "seconds": 1.038,
+        "intervals": 1,
+        "meanCpuPercent": 0.27,
+        "perRole": {
+          "renderer": 0.133,
+          "main": 0.131,
+          "gpu-process": 0.0,
+          "utility": 0.005
+        }
+      },
+      {
+        "epochEnd": 1795069213.374165,
+        "seconds": 1.045,
+        "intervals": 1,
+        "meanCpuPercent": 0.246,
+        "perRole": {
+          "renderer": 0.007,
+          "main": 0.066,
+          "gpu-process": 0.022,
+          "utility": 0.152
+        }
+      },
+      {
+        "epochEnd": 1795069214.424821,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 0.011,
+        "perRole": {
+          "renderer": 0.006,
+          "main": 0.0,
+          "gpu-process": 0.005,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069215.476566,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 0.087,
+        "perRole": {
+          "renderer": 0.02,
+          "main": 0.035,
+          "gpu-process": 0.015,
+          "utility": 0.017
+        }
+      },
+      {
+        "epochEnd": 1795069216.524905,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 0.102,
+        "perRole": {
+          "renderer": 0.012,
+          "main": 0.041,
+          "gpu-process": 0.023,
+          "utility": 0.026
+        }
+      },
+      {
+        "epochEnd": 1795069217.5723221,
+        "seconds": 1.047,
+        "intervals": 1,
+        "meanCpuPercent": 0.431,
+        "perRole": {
+          "renderer": 0.2,
+          "main": 0.226,
+          "gpu-process": 0.004,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069218.6203048,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 0.004,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.004,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069219.674531,
+        "seconds": 1.054,
+        "intervals": 1,
+        "meanCpuPercent": 0.02,
+        "perRole": {
+          "renderer": 0.02,
+          "main": 0.0,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069220.724719,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 0.091,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.042,
+          "gpu-process": 0.037,
+          "utility": 0.012
+        }
+      },
+      {
+        "epochEnd": 1795069221.775964,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 0.078,
+        "perRole": {
+          "renderer": 0.015,
+          "main": 0.063,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069222.812054,
+        "seconds": 1.036,
+        "intervals": 1,
+        "meanCpuPercent": 0.437,
+        "perRole": {
+          "renderer": 0.24,
+          "main": 0.197,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069223.860217,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 0.021,
+        "perRole": {
+          "renderer": 0.019,
+          "main": 0.0,
+          "gpu-process": 0.002,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069224.911723,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 0.204,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.144,
+          "gpu-process": 0.042,
+          "utility": 0.017
+        }
+      },
+      {
+        "epochEnd": 1795069225.9594722,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 0.038,
+        "perRole": {
+          "renderer": 0.015,
+          "main": 0.02,
+          "gpu-process": 0.003,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069227.0078568,
+        "seconds": 1.048,
+        "intervals": 1,
+        "meanCpuPercent": 0.054,
+        "perRole": {
+          "renderer": 0.004,
+          "main": 0.047,
+          "gpu-process": 0.003,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069228.057034,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 0.342,
+        "perRole": {
+          "renderer": 0.157,
+          "main": 0.186,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069229.104409,
+        "seconds": 1.047,
+        "intervals": 1,
+        "meanCpuPercent": 0.057,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.027,
+          "gpu-process": 0.024,
+          "utility": 0.006
+        }
+      },
+      {
+        "epochEnd": 1795069230.150777,
+        "seconds": 1.046,
+        "intervals": 1,
+        "meanCpuPercent": 0.089,
+        "perRole": {
+          "renderer": 0.014,
+          "main": 0.047,
+          "gpu-process": 0.017,
+          "utility": 0.01
+        }
+      },
+      {
+        "epochEnd": 1795069231.200748,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 0.033,
+        "perRole": {
+          "renderer": 0.004,
+          "main": 0.029,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069232.252182,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 0.284,
+        "perRole": {
+          "renderer": 0.112,
+          "main": 0.164,
+          "gpu-process": 0.002,
+          "utility": 0.005
+        }
+      },
+      {
+        "epochEnd": 1795069233.293028,
+        "seconds": 1.041,
+        "intervals": 1,
+        "meanCpuPercent": 0.066,
+        "perRole": {
+          "renderer": 0.009,
+          "main": 0.032,
+          "gpu-process": 0.025,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069234.333293,
+        "seconds": 1.04,
+        "intervals": 1,
+        "meanCpuPercent": 0.007,
+        "perRole": {
+          "renderer": 0.007,
+          "main": 0.0,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069235.381881,
+        "seconds": 1.049,
+        "intervals": 1,
+        "meanCpuPercent": 0.095,
+        "perRole": {
+          "renderer": 0.022,
+          "main": 0.046,
+          "gpu-process": 0.017,
+          "utility": 0.01
+        }
+      },
+      {
+        "epochEnd": 1795069236.418539,
+        "seconds": 1.037,
+        "intervals": 1,
+        "meanCpuPercent": 0.04,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.033,
+          "gpu-process": 0.0,
+          "utility": 0.007
+        }
+      },
+      {
+        "epochEnd": 1795069237.468939,
+        "seconds": 1.05,
+        "intervals": 1,
+        "meanCpuPercent": 0.48,
+        "perRole": {
+          "renderer": 0.162,
+          "main": 0.294,
+          "gpu-process": 0.024,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069238.508867,
+        "seconds": 1.04,
+        "intervals": 1,
+        "meanCpuPercent": 0.008,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.004,
+          "gpu-process": 0.004,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069239.559484,
+        "seconds": 1.051,
+        "intervals": 1,
+        "meanCpuPercent": 0.045,
+        "perRole": {
+          "renderer": 0.045,
+          "main": 0.0,
+          "gpu-process": 0.0,
+          "utility": 0.0
+        }
+      },
+      {
+        "epochEnd": 1795069240.6116202,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 0.134,
+        "perRole": {
+          "renderer": 0.0,
+          "main": 0.063,
+          "gpu-process": 0.046,
+          "utility": 0.025
+        }
+      },
+      {
+        "epochEnd": 1795069241.663402,
+        "seconds": 1.052,
+        "intervals": 1,
+        "meanCpuPercent": 0.129,
+        "perRole": {
+          "renderer": 0.016,
+          "main": 0.107,
+          "gpu-process": 0.005,
+          "utility": 0.0
+        }
+      }
+    ]
+  },
+  "visibilityControlledBefore": {
+    "start": "2026-11-19T14:11:16.481742+08:00",
+    "end": "2026-11-19T14:12:06.210087+08:00",
+    "all": {
+      "seconds": 49.728,
+      "intervals": 45,
+      "meanCpuPercent": 67.853,
+      "perRole": {
+        "renderer": 33.725,
+        "main": 1.031,
+        "gpu-process": 33.081,
+        "utility": 0.015
+      }
+    },
+    "matched": {
+      "seconds": 43.862,
+      "intervals": 40,
+      "meanCpuPercent": 68.871,
+      "perRole": {
+        "renderer": 34.66,
+        "main": 1.024,
+        "gpu-process": 33.171,
+        "utility": 0.017
+      }
+    },
+    "segments": [
+      {
+        "seconds": 16.796,
+        "intervals": 15,
+        "meanCpuPercent": 68.747,
+        "perRole": {
+          "renderer": 35.913,
+          "main": 1.159,
+          "gpu-process": 31.674,
+          "utility": 0.002
+        }
+      },
+      {
+        "seconds": 16.419,
+        "intervals": 15,
+        "meanCpuPercent": 64.406,
+        "perRole": {
+          "renderer": 29.447,
+          "main": 0.999,
+          "gpu-process": 33.923,
+          "utility": 0.037
+        }
+      },
+      {
+        "seconds": 16.514,
+        "intervals": 15,
+        "meanCpuPercent": 70.369,
+        "perRole": {
+          "renderer": 35.754,
+          "main": 0.933,
+          "gpu-process": 33.674,
+          "utility": 0.008
+        }
+      }
+    ],
+    "observations": [
+      {
+        "epoch": 1795068676.4817421,
+        "foreground": true,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1855.2159147916668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.014845125
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2181.4446676666666
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068383125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.11969966666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068677.9825559,
+        "foreground": true,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1855.643214
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.030342
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2181.976256125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068383125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.11969966666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068679.068894,
+        "foreground": true,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1855.9618035416668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.04112920833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2182.3658822083335
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068383125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119751333333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068680.178178,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1856.2440085
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.05805854166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2182.6987017083334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068428833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119751333333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068681.29139,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1856.5785317083332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.068526125
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2183.0601720833333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068428833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119751333333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068682.383203,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1856.94781825
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.102352125
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2183.29141
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068428833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119751333333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068683.460808,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1857.2909500833332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.11354104166668
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2183.597033125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068428833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.11980954166667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068684.565276,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1857.6174217083333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.126322625
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2183.937717208333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068554
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.11980954166667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068685.671207,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1857.9403372916668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.13773916666668
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2184.3191278333334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068554
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.11980954166667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068686.750289,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1858.265201875
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.14680695833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2184.6951421666668
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068554
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119858166666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068687.817715,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1858.5810266666667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.15945875
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2185.050566666667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068554
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119858166666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068688.903023,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1858.910069
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.16948258333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2185.427037916667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068612708333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119858166666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068689.992482,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1860.3801772083332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.17767016666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2185.7572235
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068612708333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.119858166666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068691.079854,
+        "foreground": false,
+        "uncovered": 0.35714285714285715,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1860.649477625
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.18710654166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2186.0808627083334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068612708333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.11989475
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068692.16207,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1860.9205764583332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.19811783333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2186.4042899166666
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068655916666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.11989475
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068693.277743,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1861.2471496666667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.209496875
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2186.764587541667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068655916666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.120433541666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068694.365503,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1861.5341628333333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.21769970833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2187.0959129166667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068655916666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.120433541666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068695.459113,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1861.8653918333332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.22856741666668
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2187.474774375
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068655916666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.120546625
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068696.560236,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1862.198370375
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.23792891666668
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2187.855779125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068694958333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.120546625
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068697.661349,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1862.5239125416667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.24981220833332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2188.234854875
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068694958333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.120546625
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068698.758327,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1862.8383559166668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.25881733333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2188.605499083333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068694958333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.120585916666666
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068699.855409,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1863.173148
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.2687815
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2188.98204275
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068694958333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121114916666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068700.959462,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1863.469682125
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.278435625
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2189.338893291667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068751708333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121114916666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068702.055233,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1863.798612875
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.290474875
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2189.710803791667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.068751708333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121114916666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068703.137065,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1864.1287805833333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.304116125
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2190.0694798333334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.071399583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121152375
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068704.2229178,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1864.4208817083334
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.320698375
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2190.4042446666667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.074100583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121152375
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068705.3193479,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1864.7647368333332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.33149125
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2190.793501166667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.074100583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121152375
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068706.415313,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1865.095244375
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.34124133333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2191.180746
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.074185333333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121152375
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068707.504443,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1865.4178645833333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.35328345833332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2191.559235
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.074288625
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121194208333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068708.601373,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1865.754512625
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.363465375
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2191.947837458333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.074726291666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121194208333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.206077
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.3162619583333333
+          }
+        }
+      },
+      {
+        "epoch": 1795068709.696456,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1866.0795020833332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.373546125
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2192.334327875
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.074726291666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121194208333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068710.796799,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1866.4053862083333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.38334608333332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2192.710583291667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.074726291666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121233125
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068711.924673,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1866.7086449166668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.39349566666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2193.0606424166667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.0751835
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121233125
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068713.0581918,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1867.0246840416667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.40559479166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2193.436394958333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075258083333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121233125
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068714.16876,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1867.368808125
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.41570170833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2193.8237981666666
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075320083333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121233125
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068715.266156,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1867.73382275
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.42550720833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2194.239985875
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075320083333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1212995
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068716.352382,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1868.053661125
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.43667320833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2194.6330895
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075401625
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1212995
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068717.45202,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1868.3611085833334
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.44907854166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2194.981726958333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075475583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1212995
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068718.550406,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1868.6533782916667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.458147
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2195.3268795416666
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075475583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1212995
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068719.653457,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1868.980480875
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.46880345833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2195.71242725
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075475583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121327833333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068720.7536929,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1869.3061345833332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.47920604166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2196.093779041667
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075911791666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121327833333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068721.8247612,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1869.6143340833332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.48802870833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2196.448415958333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075911791666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.121327833333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068722.936419,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1869.9484227916666
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.50012525
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2196.830092208333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.075911791666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1213815
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068724.035666,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1870.2783132083332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.50975679166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2197.22042875
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.07596725
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1213815
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068725.1117692,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1871.6504260833333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.51799725
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2197.5211932083334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.07596725
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1213815
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      },
+      {
+        "epoch": 1795068726.2100868,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 1871.9836305416668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 102.527618625
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2197.895185125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.07596725
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.1213815
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20675570833333334
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.317273125
+          }
+        }
+      }
+    ]
+  },
+  "visibilityControlledAfter": {
+    "start": "2026-11-19T14:18:49.764779+08:00",
+    "end": "2026-11-19T14:19:38.698349+08:00",
+    "all": {
+      "seconds": 48.934,
+      "intervals": 45,
+      "meanCpuPercent": 0.19,
+      "perRole": {
+        "renderer": 0.064,
+        "main": 0.102,
+        "gpu-process": 0.013,
+        "utility": 0.01
+      }
+    },
+    "matched": {
+      "seconds": 46.712,
+      "intervals": 43,
+      "meanCpuPercent": 0.171,
+      "perRole": {
+        "renderer": 0.058,
+        "main": 0.091,
+        "gpu-process": 0.012,
+        "utility": 0.01
+      }
+    },
+    "segments": [
+      {
+        "seconds": 16.35,
+        "intervals": 15,
+        "meanCpuPercent": 0.224,
+        "perRole": {
+          "renderer": 0.079,
+          "main": 0.122,
+          "gpu-process": 0.016,
+          "utility": 0.007
+        }
+      },
+      {
+        "seconds": 16.267,
+        "intervals": 15,
+        "meanCpuPercent": 0.2,
+        "perRole": {
+          "renderer": 0.066,
+          "main": 0.103,
+          "gpu-process": 0.011,
+          "utility": 0.019
+        }
+      },
+      {
+        "seconds": 16.316,
+        "intervals": 15,
+        "meanCpuPercent": 0.147,
+        "perRole": {
+          "renderer": 0.049,
+          "main": 0.082,
+          "gpu-process": 0.013,
+          "utility": 0.004
+        }
+      }
+    ],
+    "observations": [
+      {
+        "epoch": 1795069129.764779,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4268097916668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.172044125
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.74569425
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215115708333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139539375
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069130.855422,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4268097916668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.17205704166668
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7457282083333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215115708333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139587666666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069131.946799,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.42697325
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.17267425
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7457282083333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215332541666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139587666666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069133.04028,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4298279583334
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.17544533333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7459627916664
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215397833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139587666666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069134.132554,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.43005675
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.17544533333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7460194166665
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215444041666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139587666666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069135.2235599,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.43005675
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.175989375
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7462087083336
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215574416666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139638041666668
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069136.352447,
+        "foreground": false,
+        "uncovered": 0.3101851851851852,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4303474583332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.17668920833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7462404166663
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215633916666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139638041666668
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069137.445198,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4347044583333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.18352858333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.747036125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215633916666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139638041666668
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069138.5156538,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4347044583333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.18356370833332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.747036125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.215912333333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139638041666668
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069139.58817,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4358959166668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.185274
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.747150375
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216014583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13967183333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069140.6734788,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4358959166668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.18573695833332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.747663625
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216142625
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13967183333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069141.766103,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4360795833331
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.187597
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.747663625
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216142625
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13967183333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069142.8556879,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4389374583332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19117404166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7477163333333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216142625
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13973795833333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069143.940886,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.439276125
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19117404166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7477163333333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216142625
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13973795833333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069145.025685,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.43934575
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19179908333332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7482778333333
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216341125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13973795833333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069146.1148748,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4394538333333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19201708333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7483209583334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216341125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13973795833333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069147.189974,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4421015
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19449575
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7483209583334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216341125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139780708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069148.264832,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.442260875
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.1948175
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7483677916666
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216395416666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139780708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069149.338977,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.442368875
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.196148875
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.748549125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216395416666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139780708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069150.4264781,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4424447916667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19652054166667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7486387916665
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.21644525
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.139780708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069151.514966,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.442785
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19680658333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7488628333335
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.21644525
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13980820833333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069152.602772,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.444927125
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.19951425
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.749322125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.216506166666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13980820833333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069153.6771672,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4450709166667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.200569375
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.749322125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.218683541666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13980820833333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069154.7566762,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4450709166667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.20086220833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7494844583334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.218782916666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13987183333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069155.846821,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.44522975
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.20093845833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7494844583334
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.218815375
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13987183333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069156.9464629,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.44522975
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.20156970833332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7497819583336
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.2192245
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13987183333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069158.040406,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.447484125
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.203793875
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.749825
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.2192245
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13987183333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069159.130574,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4477432083333
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.203793875
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.749825
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.2192245
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13995475
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069160.210453,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4479192083334
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.204257375
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7500042916663
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219385833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13995475
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069161.289849,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4479192083334
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.20626491666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7501789166663
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219385833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13995475
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069162.382129,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.450022375
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.20878508333332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7501789166663
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219385833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.13995475
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069163.47123,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.45018425
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.20882666666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.750240625
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219385833333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140019791666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069164.5676448,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.45018425
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.2097915
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7504481666665
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219474333333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140019791666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069165.647804,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.450307375
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21034858333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7505309583335
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219531583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140019791666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069166.724787,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.450307375
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21063791666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7505631666663
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219531583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140122708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069167.809524,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.451752625
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21203741666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7505631666663
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219531583333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140122708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069168.897511,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.451752625
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21425766666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.75090325
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219581333333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140122708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069169.980223,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4518570416667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.2147025
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.751082125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219669125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140122708333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069171.0715961,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4518570416667
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21487770833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.751082125
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219669125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140174583333334
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069172.157011,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4551173333332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21725708333332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7511254583337
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219757791666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140174583333334
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069173.247242,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4551173333332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21759566666667
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.751449375
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219757791666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140318833333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069174.3426812,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4554236666668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.218906875
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.751449375
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219757791666667
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140318833333332
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069175.427459,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4556243333332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21936533333333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7516016666664
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219852083333333
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.14035941666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069176.516711,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4556243333332
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.21952820833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7521687916665
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219967125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.14035941666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069177.609387,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4574971666668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.22210720833333
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7521687916665
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219967125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.14035941666667
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      },
+      {
+        "epoch": 1795069178.698349,
+        "foreground": false,
+        "uncovered": 1.0,
+        "width": 1512,
+        "height": 884,
+        "cpuSecondsByPid": {
+          "26969": {
+            "role": "renderer",
+            "seconds": 2002.4574971666668
+          },
+          "79360": {
+            "role": "main",
+            "seconds": 107.22214270833332
+          },
+          "79366": {
+            "role": "gpu-process",
+            "seconds": 2322.7522355
+          },
+          "79367": {
+            "role": "utility",
+            "seconds": 5.219967125
+          },
+          "79371": {
+            "role": "renderer",
+            "seconds": 23.140406958333333
+          },
+          "79378": {
+            "role": "renderer",
+            "seconds": 0.20932629166666666
+          },
+          "79379": {
+            "role": "renderer",
+            "seconds": 0.32055275
+          }
+        }
+      }
+    ]
+  },
+  "framesAfter": [
+    {
+      "uuid": "bhwckw7-9VWl",
+      "index": 70,
+      "initial": "当地时间：2026-11-19 14:18:06",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:06"
+    },
+    {
+      "uuid": "g6iKNJJfK8J6",
+      "index": 72,
+      "initial": "当地时间：2026-11-19 14:18:07",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:07"
+    },
+    {
+      "uuid": "xuWAvf6U2de5",
+      "index": 70,
+      "initial": "当地时间：2026-11-19 14:18:09",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:09"
+    },
+    {
+      "uuid": "yqGY4RQZ5MAn",
+      "index": 71,
+      "initial": "当地时间：2026-11-19 14:18:08",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:08"
+    },
+    {
+      "uuid": "MyEeRKAQKGdg",
+      "index": 70,
+      "initial": "当地时间：2026-11-19 14:18:09",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:09"
+    },
+    {
+      "uuid": "44U1arRy8od3",
+      "index": 72,
+      "initial": "当地时间：2026-11-19 14:18:07",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:07"
+    },
+    {
+      "uuid": "lta05kaEaTfO",
+      "index": 72,
+      "initial": "当地时间：2026-11-19 14:18:09",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:09"
+    },
+    {
+      "uuid": "qsKs5oJaxQov",
+      "index": 70,
+      "initial": "当地时间：2026-11-19 14:18:09",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:09"
+    },
+    {
+      "uuid": "8gZCi0hALe7c",
+      "index": 55,
+      "initial": "当地时间：2026-11-19 14:18:10",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:10"
+    },
+    {
+      "uuid": "5hdOhZbIMFun",
+      "index": 57,
+      "initial": "当地时间：2026-11-19 14:18:08",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:08"
+    },
+    {
+      "uuid": "G15spFNCSRvZ",
+      "index": 55,
+      "initial": "当地时间：2026-11-19 14:18:10",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:10"
+    },
+    {
+      "uuid": "SEE-WYfyyhSK",
+      "index": 55,
+      "initial": "当地时间：2026-11-19 14:18:10",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:10"
+    },
+    {
+      "uuid": "iIDV8UCIdvLq",
+      "index": 55,
+      "initial": "当地时间：2026-11-19 14:18:11",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:11"
+    },
+    {
+      "uuid": "7tSIbRM6op14",
+      "index": 57,
+      "initial": "当地时间：2026-11-19 14:18:08",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:08"
+    },
+    {
+      "uuid": "Bkzd6veSM9dZ",
+      "index": 55,
+      "initial": "当地时间：2026-11-19 14:18:11",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:11"
+    },
+    {
+      "uuid": "VD1cbiopNlVp",
+      "index": 55,
+      "initial": "当地时间：2026-11-19 14:18:11",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:11"
+    },
+    {
+      "uuid": "w6aTTMO_uP8N",
+      "index": 70,
+      "initial": "当地时间：2026-11-19 14:18:12",
+      "ready": true,
+      "later": "当地时间：2026-11-19 14:18:12"
+    }
+  ]
+}

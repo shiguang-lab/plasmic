@@ -1,0 +1,47 @@
+{
+  "host": "macOS Apple M4",
+  "version": "148.0.7778.96 both",
+  "conditions": "Playwright, DPR 1, viewport 640x300, same local fonts, one synthetic screenshot per engine; six 320x100 regions. The WebGL sample only clears a solid color.",
+  "webglContext": [
+    true,
+    true
+  ],
+  "cases": {
+    "scaled Chinese": {
+      "pixels": 32000,
+      "unequal": 7,
+      "maxChannelDeltaAbove20": 0,
+      "maxChannelDelta": 1
+    },
+    "scrolled table with sticky column": {
+      "pixels": 32000,
+      "unequal": 428,
+      "maxChannelDeltaAbove20": 0,
+      "maxChannelDelta": 1
+    },
+    "gradient + blur + shadow": {
+      "pixels": 32000,
+      "unequal": 7922,
+      "maxChannelDeltaAbove20": 35,
+      "maxChannelDelta": 32
+    },
+    "SVG line and label": {
+      "pixels": 32000,
+      "unequal": 732,
+      "maxChannelDeltaAbove20": 384,
+      "maxChannelDelta": 107
+    },
+    "Canvas2D rectangle and text": {
+      "pixels": 32000,
+      "unequal": 993,
+      "maxChannelDeltaAbove20": 318,
+      "maxChannelDelta": 231
+    },
+    "WebGL solid color": {
+      "pixels": 32000,
+      "unequal": 24940,
+      "maxChannelDeltaAbove20": 0,
+      "maxChannelDelta": 1
+    }
+  }
+}

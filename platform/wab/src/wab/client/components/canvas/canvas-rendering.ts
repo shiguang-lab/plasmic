@@ -743,7 +743,7 @@ const createCanvasComponentInputs = canvasFactory((view: ViewCtx, component: Com
     globals: sources.globals.getState(),
     forceDefaultSlot: sources.forceDefaultSlot.getState(),
     tokens: sources.tokens.getState(),
-    policy: sources.policy.getState(),
+    interactive: sources.policy.getState().interactive,
     currentUser: sources.currentUser.getState(),
     registrations: sources.registrations.getState(),
   });
@@ -782,7 +782,7 @@ const createCanvasComponentController = canvasFactory((view: ViewCtx, component:
       return () => { lifetime.removeEventListener("abort", release); release(); };
     },
     commit(_ctx, commands) {
-      if (!view.isDisposed && !view.disposeSignal.aborted && input.getState().policy.interactive && view.component === component) {
+      if (!view.isDisposed && !view.disposeSignal.aborted && input.getState().interactive && view.component === component) {
         view.change(() => view.syncInteractiveVariants(commands));
       }
     },
@@ -953,7 +953,7 @@ function prepareCanvasComponent(
       : {}),
   }));
   return {
-    data: { renderingCtx, component, viewCtx, pinMap, globalPins, forceDefaultKeys, nodeNamer, env, overrides, stateSpecs, dataTokenDefinitions, interactive: input.policy.interactive },
+    data: { renderingCtx, component, viewCtx, pinMap, globalPins, forceDefaultKeys, nodeNamer, env, overrides, stateSpecs, dataTokenDefinitions, interactive: input.interactive },
     stateSpecs,
     stateEnv: { $props, $queries, $q, $ctx, getRefs },
   };
@@ -2796,7 +2796,6 @@ const mkRichText = canvasFactory((sub: SubDeps) =>
     const react = sub.React;
     return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(() =>
       withErrorDisplayFallback(ctx, node, () => react.createElement(ctx.sub.CanvasRichTextFrame, {
-        policy: ctx.viewCtx.studioCtx.renderPolicy.store,
         canEdit: isEditable(node, ctx),
         attributeRef: attrs.ref,
         outerRef,
@@ -2832,7 +2831,7 @@ const mkRichText = canvasFactory((sub: SubDeps) =>
 );
 
 function isEditable(node: TplNode, ctx: RenderingCtx) {
-  if (!ctx.viewCtx.studioCtx.renderPolicy.store.getState().devMode) {
+  if (ctx.viewCtx.studioCtx.renderPolicy.store.getState().docs) {
     return false;
   }
 

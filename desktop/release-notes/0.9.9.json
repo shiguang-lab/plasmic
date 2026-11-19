@@ -1,0 +1,7 @@
+{
+  "en": "- Press Escape to return from inline Preview, including when focus is inside the page. Returning to the same canvas reuses its mounted frames.\n- On the editing canvas, the AppShell clock pauses and processing badges show a steady dot. Both resume their usual behavior in interactive Preview.",
+  "zh-CN": "- 在内嵌预览中，即使焦点位于页面内，也可以按 Esc 返回编辑器。返回同一画布时会复用已加载的画板。\n- 编辑画布中的 AppShell 时钟暂停走时，处理中徽标显示为静止圆点。交互预览中会恢复走时与动画。",
+  "zh-TW": "- 在內嵌預覽中，即使焦點位於頁面內，也可以按 Esc 返回編輯器。返回同一畫布時會重用已載入的畫板。\n- 編輯畫布中的 AppShell 時鐘會暫停，處理中徽章會顯示為靜止圓點。互動預覽中會恢復計時與動畫。",
+  "ja": "- 埋め込みプレビューでは、ページ内にフォーカスがあるときも Esc キーでエディターに戻れます。同じキャンバスに戻ると、読み込み済みのアートボードが再利用されます。\n- 編集キャンバスでは AppShell の時計が一時停止し、処理中のバッジは静止したドットになります。インタラクティブプレビューでは時計とアニメーションが再開します。",
+  "ko": "- 내장 미리보기에서는 페이지 안에 포커스가 있어도 Esc 키로 편집기에 돌아갈 수 있습니다. 같은 캔버스로 돌아가면 이미 불러온 아트보드를 재사용합니다.\n- 편집 캔버스에서는 AppShell 시계가 멈추고 처리 중 배지는 고정된 점으로 표시됩니다. 대화형 미리보기에서는 시계와 애니메이션이 다시 작동합니다."
+}

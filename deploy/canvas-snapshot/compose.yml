@@ -27,8 +27,10 @@ services:
     security_opt: [no-new-privileges:true]
     tmpfs: [/tmp]
     environment:
-      STUDIO_ORIGIN: http://edge:8080
-      STUDIO_ASSET_ORIGINS: ${STUDIO_ORIGIN:?},${CANVAS_ORIGIN:?}
+      STUDIO_ORIGIN: ${STUDIO_ORIGIN:?}
+      CANVAS_ORIGIN: ${CANVAS_ORIGIN:?}
+      STUDIO_UPSTREAM: http://edge:8080
+      CANVAS_UPSTREAM: http://edge:8081
     volumes:
       - ./secrets/key:/run/secrets/snapshot-key:ro
       - ./covers:/covers

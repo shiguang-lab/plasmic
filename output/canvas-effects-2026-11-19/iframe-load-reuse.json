@@ -1,0 +1,1109 @@
+{
+  "incompleteRun": {
+    "run": "B3",
+    "details": "Reached studio-ready and all-frame-contexts-created; all-frames-rendered not observed by the polling deadline (~22 s). Reason not established. Not included in completed-run medians; a fresh B retry was attempted."
+  },
+  "method": "M4 macOS, Desktop 0.9.7 installed renderer, published Overseas O-end 4.0.1 locally replayed with pinned library sources. New Electron process/profile per run, 4 completed runs per variant, same fixture, fixed local protocol replies without network or the real persistent-store read/validation latency. A original behavior, B keeps the promise for wrapped library source within one test Studio session per library/package ID/version, and still executes registrations separately in each Document. Project model, selected packages, registry count and rendered body element count per board held equal. Times are medians per variant, not production server estimates. Canvas reveal and all frames rendered are recorded relative to the Studio timing origin. Per-frame stage durations can overlap; do not add to derive overall load time. Execution inventory is a separate single instrumented run measuring synchronous script insertion including initialization, not pure parser time. Read counts are local protocol requests for the full editor, not Internet downloads.",
+  "liveOpenLog": {
+    "海外 O 端": {
+      "timestamp": "2026-11-19T04:37:47.349Z",
+      "openToReadyMs": 3676,
+      "initialFrameStagesMs": {
+        "frame-host-document": 88,
+        "frame-runtime": 7,
+        "frame-component-packages": 96,
+        "frame-first-render": 216
+      }
+    },
+    "Admin Templates": {
+      "timestamp": "2026-11-19T04:31:09.380Z",
+      "openToReadyMs": 3510,
+      "initialFrameStagesMs": {
+        "frame-host-document": 95,
+        "frame-runtime": 8,
+        "frame-component-packages": 65,
+        "frame-first-render": 234
+      },
+      "projectGetMs": 1919
+    }
+  },
+  "inventory": {
+    "boardCount": 17,
+    "hostExternalScriptBytes": 1692252,
+    "baseResourceReads": 1,
+    "reactWebResourceReads": 1,
+    "inlineExecution": {
+      "antd-icons": {
+        "instances": 4,
+        "medianScriptChars": 1077414,
+        "medianSyncExecutionMs": 18.1,
+        "totalSyncExecutionMs": 72.4
+      },
+      "antd6": {
+        "instances": 17,
+        "medianScriptChars": 1117893,
+        "medianSyncExecutionMs": 24.8,
+        "totalSyncExecutionMs": 417.2
+      },
+      "canvas": {
+        "instances": 17,
+        "medianScriptChars": 250293,
+        "medianSyncExecutionMs": 4.5,
+        "totalSyncExecutionMs": 75.6
+      },
+      "overseas": {
+        "instances": 17,
+        "medianScriptChars": 37053,
+        "medianSyncExecutionMs": 0.8,
+        "totalSyncExecutionMs": 13.5
+      },
+      "react-ui": {
+        "instances": 8,
+        "medianScriptChars": 256873,
+        "medianSyncExecutionMs": 7.7,
+        "totalSyncExecutionMs": 61.8
+      },
+      "react-web": {
+        "instances": 17,
+        "medianScriptChars": 269613,
+        "medianSyncExecutionMs": 3.5,
+        "totalSyncExecutionMs": 59.6
+      }
+    },
+    "boards": [
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "react-ui"
+        ],
+        "registrations": 135,
+        "elements": 694,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "antd-icons",
+          "react-ui"
+        ],
+        "registrations": 983,
+        "elements": 758,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "antd-icons",
+          "react-ui"
+        ],
+        "registrations": 983,
+        "elements": 817,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 178,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "react-ui"
+        ],
+        "registrations": 135,
+        "elements": 329,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "antd-icons",
+          "react-ui"
+        ],
+        "registrations": 983,
+        "elements": 692,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "antd-icons",
+          "react-ui"
+        ],
+        "registrations": 983,
+        "elements": 763,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 306,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "react-ui"
+        ],
+        "registrations": 135,
+        "elements": 711,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas",
+          "react-ui"
+        ],
+        "registrations": 135,
+        "elements": 707,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 234,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 270,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 212,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 464,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 512,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 430,
+        "nativeAntdFromHost": true
+      },
+      {
+        "packages": [
+          "antd6",
+          "overseas"
+        ],
+        "registrations": 126,
+        "elements": 324,
+        "nativeAntdFromHost": true
+      }
+    ]
+  },
+  "medians": {
+    "A": {
+      "canvas-revealed": 976.2,
+      "all-frames-rendered": 6148.6,
+      "frame-host-document": 705.7,
+      "frame-runtime": 136.4,
+      "frame-component-packages": 938.6,
+      "frame-first-render": 2323.2
+    },
+    "B": {
+      "canvas-revealed": 1009.1,
+      "all-frames-rendered": 5768.2,
+      "frame-host-document": 748.4,
+      "frame-runtime": 135.7,
+      "frame-component-packages": 560.2,
+      "frame-first-render": 2314.4
+    }
+  },
+  "runs": [
+    {
+      "variant": "A",
+      "run": "A0",
+      "libraryReads": {
+        "antd6": 18,
+        "overseas": 18,
+        "antd-icons": 5,
+        "react-ui": 9
+      },
+      "canvas-revealed": 972.7,
+      "all-frames-rendered": 6136.8,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 36.6,
+          "sum17BoardDurationsMs": 670.3,
+          "perBoardMs": [
+            91.1,
+            28,
+            29.7,
+            37.6,
+            28.7,
+            29.7,
+            36.6,
+            29.2,
+            30,
+            28.7,
+            38,
+            43.6,
+            47.3,
+            51.2,
+            37.2,
+            30.9,
+            52.8
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 8,
+          "sum17BoardDurationsMs": 136.5,
+          "perBoardMs": [
+            7.7,
+            7.5,
+            7.7,
+            7.9,
+            7.8,
+            7.9,
+            7.9,
+            8,
+            7.9,
+            8,
+            8.2,
+            8.2,
+            8.2,
+            8.3,
+            8.6,
+            8.4,
+            8.3
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 51.6,
+          "sum17BoardDurationsMs": 926.8,
+          "perBoardMs": [
+            102.8,
+            65.9,
+            68.5,
+            36.8,
+            45.9,
+            63.2,
+            68.3,
+            40.3,
+            50.4,
+            57.8,
+            52.8,
+            48.4,
+            51.6,
+            38,
+            38.2,
+            34.5,
+            63.4
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 130.2,
+          "sum17BoardDurationsMs": 2294.5,
+          "perBoardMs": [
+            193.9,
+            150.9,
+            192.9,
+            79.4,
+            82.9,
+            145.5,
+            167.2,
+            79.4,
+            171.9,
+            166.3,
+            110,
+            124.4,
+            105.2,
+            128.1,
+            161.4,
+            130.2,
+            104.9
+          ]
+        }
+      }
+    },
+    {
+      "variant": "B",
+      "run": "B0",
+      "libraryReads": {
+        "antd6": 1,
+        "overseas": 1,
+        "antd-icons": 1,
+        "react-ui": 1
+      },
+      "canvas-revealed": 1015.6,
+      "all-frames-rendered": 5771.2,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 30.6,
+          "sum17BoardDurationsMs": 747.9,
+          "perBoardMs": [
+            93,
+            119.7,
+            29.1,
+            29.6,
+            30,
+            35.8,
+            29.4,
+            29.5,
+            30.6,
+            28.9,
+            29.7,
+            48.5,
+            47,
+            31.3,
+            54.6,
+            29.2,
+            52
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 8,
+          "sum17BoardDurationsMs": 135.5,
+          "perBoardMs": [
+            8,
+            7.6,
+            7.6,
+            8,
+            7.8,
+            7.6,
+            7.8,
+            7.9,
+            7.9,
+            8.1,
+            8,
+            8.1,
+            8.2,
+            8.2,
+            8.1,
+            8.3,
+            8.3
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 25.2,
+          "sum17BoardDurationsMs": 562.4,
+          "perBoardMs": [
+            43.3,
+            51,
+            48.6,
+            23.7,
+            32.1,
+            48.5,
+            51.2,
+            23.6,
+            32.8,
+            32.5,
+            24.8,
+            25,
+            24.9,
+            25.2,
+            24.9,
+            25.1,
+            25.2
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 135.7,
+          "sum17BoardDurationsMs": 2306.3,
+          "perBoardMs": [
+            198.2,
+            155.8,
+            196.4,
+            79.9,
+            82.4,
+            146,
+            176.6,
+            79.7,
+            173.9,
+            167.3,
+            104.4,
+            132.1,
+            104,
+            122.5,
+            135.7,
+            140.2,
+            111.2
+          ]
+        }
+      }
+    },
+    {
+      "variant": "A",
+      "run": "A1",
+      "libraryReads": {
+        "antd6": 18,
+        "overseas": 18,
+        "antd-icons": 5,
+        "react-ui": 9
+      },
+      "canvas-revealed": 979.8,
+      "all-frames-rendered": 6067.2,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 32.3,
+          "sum17BoardDurationsMs": 714.7,
+          "perBoardMs": [
+            90.3,
+            134.2,
+            31.3,
+            32,
+            29.5,
+            30.2,
+            28.3,
+            33,
+            30.5,
+            28.9,
+            32.5,
+            28.8,
+            32.3,
+            50.2,
+            33.5,
+            34.8,
+            34.4
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 8.1,
+          "sum17BoardDurationsMs": 136.4,
+          "perBoardMs": [
+            7.9,
+            7.9,
+            8.1,
+            7.6,
+            7.6,
+            7.6,
+            8.1,
+            7.9,
+            8,
+            7.9,
+            8.4,
+            8.3,
+            8.1,
+            8.2,
+            8.1,
+            8.4,
+            8.3
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 51.3,
+          "sum17BoardDurationsMs": 889.8,
+          "perBoardMs": [
+            108.3,
+            62,
+            60.1,
+            36,
+            42.7,
+            65.4,
+            64.5,
+            39.4,
+            49.4,
+            51.3,
+            47.7,
+            34.3,
+            52.8,
+            34.2,
+            52.5,
+            53.8,
+            35.4
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 133.9,
+          "sum17BoardDurationsMs": 2310.4,
+          "perBoardMs": [
+            199.5,
+            158.2,
+            193.2,
+            81.7,
+            83.9,
+            145.7,
+            174.2,
+            79.2,
+            171.2,
+            165.4,
+            102.7,
+            126.9,
+            106,
+            119.7,
+            156.4,
+            133.9,
+            112.6
+          ]
+        }
+      }
+    },
+    {
+      "variant": "B",
+      "run": "B1",
+      "libraryReads": {
+        "antd6": 1,
+        "overseas": 1,
+        "antd-icons": 1,
+        "react-ui": 1
+      },
+      "canvas-revealed": 1013.4,
+      "all-frames-rendered": 5999.4,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 31.4,
+          "sum17BoardDurationsMs": 707.9,
+          "perBoardMs": [
+            88.2,
+            116.7,
+            31.4,
+            31.4,
+            33.7,
+            31.1,
+            29.8,
+            30,
+            41.2,
+            28.8,
+            28.4,
+            30.2,
+            31.3,
+            31.8,
+            52.4,
+            33.9,
+            37.6
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 7.9,
+          "sum17BoardDurationsMs": 136.6,
+          "perBoardMs": [
+            7.4,
+            7.6,
+            7.6,
+            8.2,
+            7.8,
+            7.9,
+            7.9,
+            7.7,
+            7.9,
+            7.9,
+            8,
+            8.2,
+            8.3,
+            8.1,
+            8.9,
+            8.8,
+            8.4
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 27.6,
+          "sum17BoardDurationsMs": 563.2,
+          "perBoardMs": [
+            39.5,
+            50.6,
+            48.7,
+            23.6,
+            31.9,
+            49.8,
+            49.8,
+            25.5,
+            31.9,
+            32,
+            24.5,
+            25.1,
+            25.4,
+            26.1,
+            27.6,
+            26.3,
+            24.9
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 145,
+          "sum17BoardDurationsMs": 2368.0,
+          "perBoardMs": [
+            192.7,
+            153.3,
+            192.6,
+            82.4,
+            83.6,
+            145,
+            179.8,
+            81.1,
+            169.5,
+            168.8,
+            103.4,
+            128.8,
+            118.9,
+            149.4,
+            170,
+            144.4,
+            104.3
+          ]
+        }
+      }
+    },
+    {
+      "variant": "B",
+      "run": "B2",
+      "libraryReads": {
+        "antd6": 1,
+        "overseas": 1,
+        "antd-icons": 1,
+        "react-ui": 1
+      },
+      "canvas-revealed": 968.8,
+      "all-frames-rendered": 5765.3,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 31.6,
+          "sum17BoardDurationsMs": 764.8,
+          "perBoardMs": [
+            90.8,
+            162.3,
+            30.1,
+            32.8,
+            29.7,
+            30.3,
+            30.2,
+            29.7,
+            40.8,
+            29.1,
+            31.6,
+            46.9,
+            29.7,
+            34.5,
+            36.1,
+            50.5,
+            29.7
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 7.9,
+          "sum17BoardDurationsMs": 134.9,
+          "perBoardMs": [
+            7.4,
+            7.6,
+            7.6,
+            8,
+            7.8,
+            7.6,
+            7.8,
+            7.9,
+            7.9,
+            7.9,
+            8.4,
+            8.1,
+            7.9,
+            8.2,
+            8.5,
+            8.2,
+            8.1
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 25.4,
+          "sum17BoardDurationsMs": 558.0,
+          "perBoardMs": [
+            38.7,
+            50.9,
+            49.5,
+            23.5,
+            31.8,
+            49.8,
+            50.7,
+            23.8,
+            32.4,
+            32.2,
+            24.6,
+            24.4,
+            24.9,
+            25.2,
+            25.2,
+            25,
+            25.4
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 140.2,
+          "sum17BoardDurationsMs": 2322.5,
+          "perBoardMs": [
+            197.6,
+            151.2,
+            190.3,
+            81.9,
+            82.3,
+            144.8,
+            176.8,
+            90.1,
+            172.9,
+            163.7,
+            101.7,
+            125.4,
+            102.3,
+            120.1,
+            162.2,
+            140.2,
+            119
+          ]
+        }
+      }
+    },
+    {
+      "variant": "A",
+      "run": "A2",
+      "libraryReads": {
+        "antd6": 18,
+        "overseas": 18,
+        "antd-icons": 5,
+        "react-ui": 9
+      },
+      "canvas-revealed": 969.5,
+      "all-frames-rendered": 6160.5,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 31.2,
+          "sum17BoardDurationsMs": 696.6,
+          "perBoardMs": [
+            85.7,
+            107.8,
+            31.2,
+            33.8,
+            28.9,
+            30.2,
+            28.1,
+            30.2,
+            30.8,
+            29.3,
+            45.8,
+            30.5,
+            50.9,
+            32.4,
+            34.1,
+            37.2,
+            29.7
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 8,
+          "sum17BoardDurationsMs": 137.8,
+          "perBoardMs": [
+            7.5,
+            8,
+            7.9,
+            8.2,
+            7.7,
+            7.8,
+            7.9,
+            8.3,
+            8,
+            8,
+            8,
+            8.2,
+            8.9,
+            8.4,
+            8.5,
+            8.3,
+            8.2
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 55.2,
+          "sum17BoardDurationsMs": 964.6,
+          "perBoardMs": [
+            100.7,
+            62.9,
+            64.9,
+            36.9,
+            43,
+            64.6,
+            66.3,
+            38.3,
+            41.7,
+            50.9,
+            45.9,
+            48.9,
+            52.8,
+            55.2,
+            56,
+            76.1,
+            59.5
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 145.6,
+          "sum17BoardDurationsMs": 2396.3,
+          "perBoardMs": [
+            191.8,
+            156.4,
+            201.7,
+            79.8,
+            83.4,
+            145.6,
+            172.5,
+            79.4,
+            172.7,
+            167.4,
+            102.9,
+            160.7,
+            108.5,
+            121.5,
+            210.1,
+            135.6,
+            106.3
+          ]
+        }
+      }
+    },
+    {
+      "variant": "A",
+      "run": "A3",
+      "libraryReads": {
+        "antd6": 18,
+        "overseas": 18,
+        "antd-icons": 5,
+        "react-ui": 9
+      },
+      "canvas-revealed": 1018.8,
+      "all-frames-rendered": 6169.1,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 35.8,
+          "sum17BoardDurationsMs": 747.0,
+          "perBoardMs": [
+            87.4,
+            118,
+            28.1,
+            35.8,
+            35.8,
+            35.8,
+            30,
+            30.1,
+            40.1,
+            29,
+            33.1,
+            44.7,
+            30.1,
+            49.6,
+            32,
+            34.4,
+            53
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 8,
+          "sum17BoardDurationsMs": 136.2,
+          "perBoardMs": [
+            7.4,
+            7.7,
+            7.9,
+            8.2,
+            8,
+            8,
+            7.9,
+            7.9,
+            8,
+            7.8,
+            8.4,
+            8.1,
+            8.1,
+            8.1,
+            8.3,
+            8.2,
+            8.2
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 53.9,
+          "sum17BoardDurationsMs": 950.4,
+          "perBoardMs": [
+            104.2,
+            66.4,
+            61.6,
+            40.1,
+            50.1,
+            70.2,
+            66.9,
+            39.7,
+            49.7,
+            54.3,
+            45.5,
+            47.8,
+            50.9,
+            33.5,
+            53.9,
+            53.9,
+            61.7
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 135.5,
+          "sum17BoardDurationsMs": 2336.1,
+          "perBoardMs": [
+            202,
+            155.8,
+            205.2,
+            88.3,
+            88.4,
+            156.5,
+            169.9,
+            79.6,
+            172.9,
+            165.4,
+            100.3,
+            110.2,
+            117.9,
+            119.3,
+            161.2,
+            135.5,
+            107.7
+          ]
+        }
+      }
+    },
+    {
+      "variant": "B",
+      "run": "Brepeat",
+      "libraryReads": {
+        "antd6": 1,
+        "overseas": 1,
+        "antd-icons": 1,
+        "react-ui": 1
+      },
+      "canvas-revealed": 1004.9,
+      "all-frames-rendered": 5747,
+      "stages": {
+        "frame-host-document": {
+          "medianPerBoardMs": 32.5,
+          "sum17BoardDurationsMs": 748.9,
+          "perBoardMs": [
+            86.3,
+            132,
+            29.5,
+            32.5,
+            30.1,
+            29.6,
+            36.2,
+            40.1,
+            30.1,
+            28.6,
+            43.6,
+            30.3,
+            30.1,
+            49.5,
+            58.3,
+            33.5,
+            28.6
+          ]
+        },
+        "frame-runtime": {
+          "medianPerBoardMs": 7.9,
+          "sum17BoardDurationsMs": 135.9,
+          "perBoardMs": [
+            7.5,
+            7.8,
+            7.6,
+            7.9,
+            7.9,
+            7.7,
+            7.8,
+            7.9,
+            7.8,
+            7.9,
+            8.2,
+            8,
+            8.1,
+            8.5,
+            8.3,
+            8.6,
+            8.4
+          ]
+        },
+        "frame-component-packages": {
+          "medianPerBoardMs": 26.6,
+          "sum17BoardDurationsMs": 554.8,
+          "perBoardMs": [
+            37.9,
+            50.5,
+            49.2,
+            23.9,
+            31.1,
+            48.2,
+            47.8,
+            23.8,
+            31.7,
+            32.2,
+            24.7,
+            25.1,
+            24.4,
+            25.9,
+            26.3,
+            26.6,
+            25.5
+          ]
+        },
+        "frame-first-render": {
+          "medianPerBoardMs": 140.7,
+          "sum17BoardDurationsMs": 2278.0,
+          "perBoardMs": [
+            188.5,
+            147.9,
+            187.6,
+            80.7,
+            82.9,
+            142,
+            170.9,
+            81.4,
+            172.6,
+            165.2,
+            106.1,
+            109.6,
+            119.9,
+            125.5,
+            140.7,
+            148.3,
+            108.2
+          ]
+        }
+      }
+    }
+  ]
+}

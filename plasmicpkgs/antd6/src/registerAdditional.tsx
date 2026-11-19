@@ -529,6 +529,15 @@ export function registerAdditional(loader?: Registerable) {
     },
     { states: valueState("text") },
   );
+  // The outer ring is a pseudo-element. Keep the status dot itself visible.
+  const badgeStyleId = "plasmic-antd6-canvas-badge-style";
+  if (typeof document !== "undefined" && !document.getElementById(badgeStyleId)) {
+    const style = document.createElement("style");
+    style.id = badgeStyleId;
+    style.setAttribute("data-plasmic-editor-style", "");
+    style.textContent = ".__non_interactive_canvas .ant-badge-status-dot.ant-badge-status-processing::after { content: none !important; }";
+    document.head.appendChild(style);
+  }
   register(loader, AntdBadge, "badge", "AntdBadge", {
     children: { type: "slot", hidePlaceholder: true },
     count: { type: "number" },

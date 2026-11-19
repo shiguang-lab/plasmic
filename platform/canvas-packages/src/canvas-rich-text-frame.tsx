@@ -1,14 +1,12 @@
 import * as React from "react";
 import ResizeObserver from "resize-observer-polyfill";
-import type { CanvasSnapshotStore } from "./canvas-frame";
 
 interface CanvasRichTextHandle {
   enterEdit(): string | undefined;
   exitEdit(): void;
 }
 
-export function CanvasRichTextFrame({ policy, canEdit, attributeRef, outerRef, render }: {
-  readonly policy: CanvasSnapshotStore<{ readonly devMode: boolean }>;
+export function CanvasRichTextFrame({ canEdit, attributeRef, outerRef, render }: {
   readonly canEdit: boolean;
   readonly attributeRef?: React.Ref<HTMLElement>;
   readonly outerRef?: React.Ref<HTMLElement>;
@@ -16,10 +14,6 @@ export function CanvasRichTextFrame({ policy, canEdit, attributeRef, outerRef, r
 }) {
   const [element, setElement] = React.useState<HTMLElement | null>(null);
   const [isEditing, setEditing] = React.useState(false);
-  const subscribe = React.useCallback((listener: () => void) => policy.subscribe(listener), [policy]);
-  const currentMode = React.useCallback(() => policy.getState().devMode, [policy]);
-  const initialMode = React.useCallback(() => policy.getInitialState().devMode, [policy]);
-  const devMode = React.useSyncExternalStore(subscribe, currentMode, initialMode);
   const ref = React.useCallback((node: HTMLElement | null) => {
     setElement(node);
     const refs = [attributeRef, outerRef];
@@ -44,7 +38,7 @@ export function CanvasRichTextFrame({ policy, canEdit, attributeRef, outerRef, r
     },
     exitEdit() { setEditing(false); },
   };
-  return render({ isEditing, isTextEditable: devMode && canEdit, ref, handle });
+  return render({ isEditing, isTextEditable: canEdit, ref, handle });
 }
 
 export function CanvasPlaceholder({ summary, resize }: {

@@ -1,0 +1,1579 @@
+[
+ {
+  "epoch": 1795050855.8166971,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.23636627197266,
+    "rssMiB": 270.75,
+    "cpuSeconds": 9.334573791666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 105.90739440917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.91788066666667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.6670910416666667
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.76720428466797,
+    "rssMiB": 209.140625,
+    "cpuSeconds": 3.4617863333333334
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050856.869743,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.23636627197266,
+    "rssMiB": 270.75,
+    "cpuSeconds": 9.33498075
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 105.01676940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.918201375
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.6670910416666667
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.76720428466797,
+    "rssMiB": 209.140625,
+    "cpuSeconds": 3.462032
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050857.9245791,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.14261627197266,
+    "rssMiB": 270.65625,
+    "cpuSeconds": 9.335890166666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 105.01676940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.918244458333334
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.6671175
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.76720428466797,
+    "rssMiB": 209.140625,
+    "cpuSeconds": 3.462084
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050858.984343,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.15824127197266,
+    "rssMiB": 270.671875,
+    "cpuSeconds": 9.338622208333334
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 105.01676940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.91853379166667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.667155375
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.76720428466797,
+    "rssMiB": 209.140625,
+    "cpuSeconds": 3.4629687083333334
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050860.03568,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.15824127197266,
+    "rssMiB": 270.671875,
+    "cpuSeconds": 9.338622208333334
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 104.89176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.91853379166667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.667155375
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4633453333333333
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050861.085946,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.15824127197266,
+    "rssMiB": 270.671875,
+    "cpuSeconds": 9.338777291666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 104.76676940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.918579875
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.6672107916666666
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4633755
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050862.1394482,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.17386627197266,
+    "rssMiB": 270.6875,
+    "cpuSeconds": 9.339156208333334
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 104.76676940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.918579875
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.6672107916666666
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4633755
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050863.1961331,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.18949127197266,
+    "rssMiB": 270.703125,
+    "cpuSeconds": 9.342573166666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.39176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.91875058333333
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.667287625
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4642094583333334
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050864.247755,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.18949127197266,
+    "rssMiB": 270.703125,
+    "cpuSeconds": 9.342596666666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.39176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.91875058333333
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.667287625
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4642569583333334
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050865.2888162,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.18949127197266,
+    "rssMiB": 270.703125,
+    "cpuSeconds": 9.342596666666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.39176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.91875058333333
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.844642639160156,
+    "rssMiB": 53.578125,
+    "cpuSeconds": 0.667287625
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4643815416666666
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   },
+   "83678": {
+    "role": "utility",
+    "footprintMiB": 19.079315185546875,
+    "rssMiB": 74.671875,
+    "cpuSeconds": 0.06652345833333334
+   }
+  }
+ },
+ {
+  "epoch": 1795050866.343225,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.04886627197266,
+    "rssMiB": 270.5625,
+    "cpuSeconds": 9.344142458333334
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.39176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.918779416666666
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.797767639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.667437875
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4643815416666666
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050867.393696,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.00199127197266,
+    "rssMiB": 270.515625,
+    "cpuSeconds": 9.34625575
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.39176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.919013916666668
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6679502083333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4646213333333336
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050868.449002,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.00199127197266,
+    "rssMiB": 270.515625,
+    "cpuSeconds": 9.347548
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.39176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.919013916666668
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6679502083333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4650800416666665
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050869.495917,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.00199127197266,
+    "rssMiB": 270.515625,
+    "cpuSeconds": 9.34763475
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.39176940917969,
+    "rssMiB": 107.578125,
+    "cpuSeconds": 27.919049291666667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6679502083333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 134.01720428466797,
+    "rssMiB": 208.390625,
+    "cpuSeconds": 3.4650800416666665
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050870.5378199,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.97074127197266,
+    "rssMiB": 270.484375,
+    "cpuSeconds": 9.34934675
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919345916666668
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6680489166666667
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4659825416666665
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050871.58687,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.97074127197266,
+    "rssMiB": 270.484375,
+    "cpuSeconds": 9.350189125
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919517791666667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.907142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6698359583333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4660399166666664
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050872.627133,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.97074127197266,
+    "rssMiB": 270.484375,
+    "cpuSeconds": 9.350189125
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919575166666668
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.907142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6698359583333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4660399166666664
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050873.676607,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.98636627197266,
+    "rssMiB": 270.5,
+    "cpuSeconds": 9.352374166666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919627625
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.907142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6698597916666666
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4669272916666665
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050874.729245,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.98636627197266,
+    "rssMiB": 270.5,
+    "cpuSeconds": 9.352395458333334
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919627625
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.907142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6698597916666666
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4669272916666665
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050875.776801,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.98636627197266,
+    "rssMiB": 270.5,
+    "cpuSeconds": 9.352866
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919790125
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6700580416666666
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4671417083333336
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050876.8248372,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.98636627197266,
+    "rssMiB": 270.5,
+    "cpuSeconds": 9.353131291666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919790125
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.67010675
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4671417083333336
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050877.870742,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.98636627197266,
+    "rssMiB": 270.5,
+    "cpuSeconds": 9.353392708333335
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 103.40739440917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.919790125
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.67010675
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4671417083333336
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050878.905416,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.00199127197266,
+    "rssMiB": 270.515625,
+    "cpuSeconds": 9.354878541666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.92049575
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6701518333333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.467753625
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050879.9602041,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.00199127197266,
+    "rssMiB": 270.515625,
+    "cpuSeconds": 9.354878541666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.92049575
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6701518333333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4678007083333333
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050881.011654,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.00199127197266,
+    "rssMiB": 270.515625,
+    "cpuSeconds": 9.355038333333335
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.92049575
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6701518333333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4679681666666666
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050882.060432,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.00199127197266,
+    "rssMiB": 270.515625,
+    "cpuSeconds": 9.355038333333335
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.920544375
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6701518333333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 126.87657928466797,
+    "rssMiB": 201.25,
+    "cpuSeconds": 3.4679681666666666
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050883.101284,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 89.01761627197266,
+    "rssMiB": 270.53125,
+    "cpuSeconds": 9.359087041666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.924969708333332
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6709468333333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.25157928466797,
+    "rssMiB": 201.265625,
+    "cpuSeconds": 3.472624875
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050884.143541,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.78324127197266,
+    "rssMiB": 271.21875,
+    "cpuSeconds": 9.366412541666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.92937991666667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.829017639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.67169225
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.25157928466797,
+    "rssMiB": 201.265625,
+    "cpuSeconds": 3.4757909583333335
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050885.196917,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.78324127197266,
+    "rssMiB": 271.21875,
+    "cpuSeconds": 9.366602333333335
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.92937991666667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.829017639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6717749166666667
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.25157928466797,
+    "rssMiB": 201.265625,
+    "cpuSeconds": 3.4759232083333336
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050886.24275,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 88.78324127197266,
+    "rssMiB": 271.21875,
+    "cpuSeconds": 9.36675225
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.929705875
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.829017639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6718213333333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.25157928466797,
+    "rssMiB": 201.265625,
+    "cpuSeconds": 3.4759232083333336
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050887.2847638,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 87.62699127197266,
+    "rssMiB": 271.21875,
+    "cpuSeconds": 9.367467666666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.931352291666666
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6719939583333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.25157928466797,
+    "rssMiB": 201.265625,
+    "cpuSeconds": 3.4759718333333334
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050888.329677,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 87.64261627197266,
+    "rssMiB": 271.234375,
+    "cpuSeconds": 9.370036458333335
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.931352291666666
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6719939583333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.26720428466797,
+    "rssMiB": 201.28125,
+    "cpuSeconds": 3.4771765416666667
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08948641666666667
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13030041666666667
+   }
+  }
+ },
+ {
+  "epoch": 1795050889.374655,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 87.64261627197266,
+    "rssMiB": 271.234375,
+    "cpuSeconds": 9.370054041666666
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.931352291666666
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.6719939583333334
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.26720428466797,
+    "rssMiB": 201.28125,
+    "cpuSeconds": 3.4771765416666667
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08957179166666668
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13045525
+   }
+  }
+ },
+ {
+  "epoch": 1795050890.4237828,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 87.64261627197266,
+    "rssMiB": 271.234375,
+    "cpuSeconds": 9.370278125
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.931400458333332
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.672424625
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.26720428466797,
+    "rssMiB": 201.28125,
+    "cpuSeconds": 3.4773432916666667
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08957179166666668
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13045525
+   }
+  }
+ },
+ {
+  "epoch": 1795050891.4679391,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 87.64261627197266,
+    "rssMiB": 271.234375,
+    "cpuSeconds": 9.371116041666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.93154
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.673053
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.26720428466797,
+    "rssMiB": 201.28125,
+    "cpuSeconds": 3.4774972916666664
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08957179166666668
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13045525
+   }
+  }
+ },
+ {
+  "epoch": 1795050892.5166762,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 87.64261627197266,
+    "rssMiB": 271.234375,
+    "cpuSeconds": 9.371116041666665
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.93154
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.673053
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.26720428466797,
+    "rssMiB": 201.28125,
+    "cpuSeconds": 3.4774972916666664
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08957179166666668
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13045525
+   }
+  }
+ },
+ {
+  "epoch": 1795050893.568234,
+  "processes": {
+   "79360": {
+    "role": "main",
+    "footprintMiB": 87.64261627197266,
+    "rssMiB": 271.234375,
+    "cpuSeconds": 9.373705125
+   },
+   "79366": {
+    "role": "gpu-process",
+    "footprintMiB": 102.82926940917969,
+    "rssMiB": 107.59375,
+    "cpuSeconds": 27.931581291666667
+   },
+   "79367": {
+    "role": "utility",
+    "footprintMiB": 8.782142639160156,
+    "rssMiB": 53.53125,
+    "cpuSeconds": 0.673053
+   },
+   "79371": {
+    "role": "renderer",
+    "footprintMiB": 125.26720428466797,
+    "rssMiB": 201.28125,
+    "cpuSeconds": 3.478545375
+   },
+   "79378": {
+    "role": "renderer",
+    "footprintMiB": 15.73565673828125,
+    "rssMiB": 78.6875,
+    "cpuSeconds": 0.08957179166666668
+   },
+   "79379": {
+    "role": "renderer",
+    "footprintMiB": 27.626419067382812,
+    "rssMiB": 98.3125,
+    "cpuSeconds": 0.13045525
+   }
+  }
+ }
+]

@@ -1,0 +1,22 @@
+{
+  "project": "REQ-018 权益管理",
+  "savedRevision": 577,
+  "isolatedEdit": "券模板详情 / 基本信息 → 券模板基础资料",
+  "rendered": 1,
+  "reused": 3,
+  "changedPixelsByBoard": [
+    0,
+    97,
+    0,
+    0
+  ],
+  "inFrameDateAdvanceMsAcross60msProbe": [
+    61,
+    61,
+    61,
+    61,
+    61
+  ],
+  "recapturedFrameTimeAdvanceMs": 4517,
+  "unavailableImages": 0
+}

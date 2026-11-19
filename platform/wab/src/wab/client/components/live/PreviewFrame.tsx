@@ -19,6 +19,7 @@ import {
 } from "@/wab/client/components/studio/studio-bundles";
 import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { installPreviewAgentCursor } from "@/wab/client/copilot/agent-cursor";
+import { isComposingKeyEvent } from "@/wab/commons/components/ReactUtil";
 import { scriptExec } from "@/wab/client/script-exec";
 import { useI18n } from "@/wab/client/i18n";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
@@ -143,6 +144,22 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const [loadedFrame, setLoadedFrame] = React.useState<ReturnType<PreviewFrameBinding["read"]> | null>(null);
   const [settledFrame, setSettledFrame] = React.useState<ReturnType<PreviewFrameBinding["read"]> | null>(null);
   const frameLoaded = loadedFrame === frame;
+
+  const frameReadyForInput = frameLoaded || settledFrame === frame;
+  React.useEffect(() => {
+    const win = frame.window;
+    if (full || !isLive || !frameReadyForInput || !win) { return; }
+    // Let controls and dialogs in the business document consume Escape first.
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented && !event.repeat &&
+        !isComposingKeyEvent(event) && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        event.preventDefault();
+        spawn(previewCtx.stopLiveMode());
+      }
+    };
+    win.addEventListener("keydown", onKeyDown);
+    return () => win.removeEventListener("keydown", onKeyDown);
+  }, [full, isLive, frameReadyForInput, frame, previewCtx]);
 
   React.useEffect(() => {
     if (!isLive || !route) { return; }

@@ -77,16 +77,22 @@ export const DEFAULT_MENU_ITEMS = [
 // state in the current window, scoped to the navigation tree, outside the canvas.
 const menuOpenKeysByWindow = new WeakMap<Window, Map<string, string[]>>();
 
-function LocalClock({ language, timeZone, color }: {
+function LocalClock({ language, timeZone, color, running }: {
   language: string;
   timeZone: string;
   color: string;
+  running: boolean;
 }) {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
+    if (!running) {
+      return undefined;
+    }
+    const tick = () => setNow(Date.now());
+    tick();
+    const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [running]);
   const formatter = useMemo(() => new Intl.DateTimeFormat(language, {
     timeZone,
     year: "numeric",
@@ -398,6 +404,7 @@ export function AppShell({
                 }}
               >
                 <LocalClock
+                  running={!canvas || !!canvas.interactive}
                   language={currentLanguage}
                   timeZone={timeZone}
                   color={token.colorTextSecondary}

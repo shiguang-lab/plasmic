@@ -127,6 +127,34 @@ func TestWholeCoverReuse(t *testing.T) {
 	}
 }
 
+func TestStaticAssetRouting(t *testing.T) {
+	w := worker{assetUpstreams: map[string]string{
+		"https://studio.test": "http://edge:8080",
+		"https://canvas.test": "http://edge:8081",
+	}}
+	for _, tc := range []struct{ address, internal string }{
+		{"https://studio.test/assets/logo.svg?v=3", "http://edge:8080/assets/logo.svg?v=3"},
+		{"https://canvas.test/static/fonts/name%20with%20spaces.woff2?x=a%2Fb", "http://edge:8081/static/fonts/name%20with%20spaces.woff2?x=a%2Fb"},
+		{"https://studio.test/canvas-snapshot-assets/static/js/app.js", "http://edge:8080/canvas-snapshot-assets/static/js/app.js"},
+		{"https://studio.test/api/v1/projects", ""},
+		{"https://studio.test/canvas-snapshot/demo/model", ""},
+		{"https://cdn.test/static/fonts/font.woff2", ""},
+		{"https://studio.test:8443/static/app.js", ""},
+	} {
+		u, err := url.Parse(tc.address)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := tc.internal
+		if want == "" {
+			want = tc.address
+		}
+		if target, routed := w.assetURL(u); target != want || routed != (tc.internal != "") || u.String() != tc.address {
+			t.Errorf("%s: target=%q routed=%v original=%q", tc.address, target, routed, u)
+		}
+	}
+}
+
 func TestLoopbackServesOnlyStaticResources(t *testing.T) {
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/static/test.css" || r.Header.Get("Cookie") != "" || r.Header.Get("Authorization") != "" {

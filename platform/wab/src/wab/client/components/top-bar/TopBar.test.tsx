@@ -87,6 +87,36 @@ it("omits top-right undo/redo and view controls while keeping remaining dividers
   }
 });
 
+it.each([undefined, "1.0.0"])(
+  "shows the save indicator only in the template draft (published version %s)",
+  (publishedTemplateVersion) => {
+    const { appCtx, studioCtx } = fakeStudioCtx({
+      siteInfo: { isTemplate: true, publishedTemplateVersion },
+    });
+    appCtx.topFrameApi = createTopFrameApi();
+    const previewCtx = new PreviewCtx(
+      { history: appCtx.history } as unknown as HostFrameCtx,
+      studioCtx,
+    );
+    const { container, unmount } = render(
+      <HistoryProvider history={appCtx.history}>
+        {providesAppCtx(appCtx)(
+          providesStudioCtx(studioCtx)(providesPreviewCtx(previewCtx)(<TopBar />)),
+        )}
+      </HistoryProvider>,
+    );
+    try {
+      expect(container.querySelectorAll("[data-save-state]")).toHaveLength(
+        publishedTemplateVersion ? 0 : 1,
+      );
+    } finally {
+      unmount();
+      previewCtx.dispose();
+      studioCtx.dispose();
+    }
+  },
+);
+
 it("places Desktop web import immediately before Publish and triggers openDesktopBrowser", async () => {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
     "PlasmicDesktop/darwin",

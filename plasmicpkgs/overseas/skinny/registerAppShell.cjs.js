@@ -108,12 +108,17 @@ const DEFAULT_MENU_ITEMS = [
   { key: "settings", label: "\u4E2D\u53F0\u914D\u7F6E\u7BA1\u7406" }
 ];
 const menuOpenKeysByWindow = /* @__PURE__ */ new WeakMap();
-function LocalClock({ language, timeZone, color }) {
+function LocalClock({ language, timeZone, color, running }) {
   const [now, setNow] = React.useState(Date.now);
   React.useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1e3);
+    if (!running) {
+      return void 0;
+    }
+    const tick = () => setNow(Date.now());
+    tick();
+    const timer = setInterval(tick, 1e3);
     return () => clearInterval(timer);
-  }, []);
+  }, [running]);
   const formatter = React.useMemo(() => new Intl.DateTimeFormat(language, {
     timeZone,
     year: "numeric",
@@ -424,6 +429,7 @@ function AppShell({
                           /* @__PURE__ */ jsxRuntime.jsx(
                             LocalClock,
                             {
+                              running: !canvas || !!canvas.interactive,
                               language: currentLanguage,
                               timeZone,
                               color: token.colorTextSecondary

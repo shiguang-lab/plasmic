@@ -682,7 +682,7 @@ function TopBarContent({ preview }: TopBarProps) {
               {showBranching && (
                 <BranchSwitcher className={styles.branchSwitcher} />
               )}
-              {indicator}
+              {!publishedTemplate && indicator}
             </>
           ),
         }}

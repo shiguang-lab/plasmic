@@ -26,7 +26,7 @@ import (
 type worker struct {
 	dir, upstream, local string
 	secret               []byte
-	origins              map[string]bool
+	assetUpstreams       map[string]string
 	cache                map[string]manifest
 	busy                 sync.Mutex
 	browser              context.Context
@@ -106,6 +106,20 @@ func (w *worker) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(res).Encode(result)
 }
+func configuredOrigin(name string) (*url.URL, error) {
+	u, err := url.Parse(os.Getenv(name))
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" || u.User != nil ||
+		(u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
+		return nil, fmt.Errorf("%s must be an HTTP(S) origin", name)
+	}
+	u.Path = ""
+	u.Host = strings.ToLower(u.Host)
+	if u.Scheme == "http" && u.Port() == "80" || u.Scheme == "https" && u.Port() == "443" {
+		u.Host = strings.TrimSuffix(u.Host, ":"+u.Port())
+	}
+	return u, nil
+}
+
 func service() error {
 	secret, err := os.ReadFile("/run/secrets/snapshot-key")
 	if err != nil {
@@ -116,9 +130,21 @@ func service() error {
 	if err != nil || len(decoded) != 32 {
 		return errors.New("invalid snapshot credential")
 	}
-	upstream, err := url.Parse(os.Getenv("STUDIO_ORIGIN"))
-	if err != nil || upstream.Host == "" || (upstream.Scheme != "http" && upstream.Scheme != "https") || upstream.User != nil || upstream.Path != "" {
-		return errors.New("invalid Studio origin")
+	upstream, err := configuredOrigin("STUDIO_UPSTREAM")
+	if err != nil {
+		return err
+	}
+	canvasUpstream, err := configuredOrigin("CANVAS_UPSTREAM")
+	if err != nil {
+		return err
+	}
+	studio, err := configuredOrigin("STUDIO_ORIGIN")
+	if err != nil {
+		return err
+	}
+	canvas, err := configuredOrigin("CANVAS_ORIGIN")
+	if err != nil {
+		return err
 	}
 	if err = loadCodec(); err != nil {
 		return err
@@ -127,9 +153,13 @@ func service() error {
 	if err != nil {
 		return err
 	}
-	w := &worker{dir: "/covers", local: local, upstream: upstream.String(), secret: secret, origins: map[string]bool{upstream.String(): true}, cache: map[string]manifest{}}
-	for _, o := range strings.Split(os.Getenv("STUDIO_ASSET_ORIGINS"), ",") {
-		w.origins[strings.TrimSpace(o)] = true
+	w := &worker{
+		dir: "/covers", local: local, upstream: upstream.String(), secret: secret, cache: map[string]manifest{},
+		assetUpstreams: map[string]string{
+			canvas.String():   canvasUpstream.String(),
+			studio.String():   upstream.String(),
+			upstream.String(): upstream.String(),
+		},
 	}
 	sock := "/jobs/screenshot.sock"
 	if err = os.Remove(sock); err != nil && !os.IsNotExist(err) {

@@ -34,3 +34,17 @@ test("per-row status is expressed with the official status and text props", () =
   expect(container.querySelector(".ant-badge-status-success")).toBeTruthy();
   expect(container.textContent).toBe("启用");
 });
+
+test("re-registering Badge shares one editor stylesheet for the processing ring", () => {
+  metadata(registerAdditional);
+  metadata(registerAdditional);
+  const styles = document.head.querySelectorAll<HTMLStyleElement>(
+    "#plasmic-antd6-canvas-badge-style[data-plasmic-editor-style]",
+  );
+  expect(styles).toHaveLength(1);
+  const rule = styles[0].sheet!.cssRules[0] as CSSStyleRule;
+  expect(rule.selectorText).toBe(
+    ".__non_interactive_canvas .ant-badge-status-dot.ant-badge-status-processing::after",
+  );
+  expect(rule.style.getPropertyValue("content")).toBe("none");
+});

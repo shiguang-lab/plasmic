@@ -1,0 +1,118 @@
+{
+  "date": "2026-11-19",
+  "project": "海外 O 端",
+  "page": "资源查询列表",
+  "mountedArtboards": 17,
+  "platform": "macOS, Electron 45.2.1",
+  "renderer": "baseline and optimized production-mode builds from the same checkout",
+  "setup": "Isolated Electron window, 1400 × 860. Replayed the published template and its libraries from local fixtures. Waited for the artboards and the Preview resource list before input.",
+  "inputs": {
+    "click": "Native mouse events on ×",
+    "esc": "Native Escape with toolbar focus",
+    "inner": "Native Escape with focus in a Preview form input"
+  },
+  "timing": {
+    "inputToCanvasHitTestMs": "Renderer event capture to the first animation frame in which the canvas receives a hit test and the editor is no longer inert.",
+    "inputDispatchToCapturedCanvasFrameMs": "Main process native input dispatch to the first Electron compositor-frame callback matching the original canvas. Compared 96 × 64 pixel samples against the original editor and Preview. Accepted a frame within 25% of their mean absolute pixel distance from the original editor. Includes frame delivery to Electron."
+  },
+  "before": {
+    "click": {
+      "inputToCanvasHitTestMs": [
+        432.9,
+        477.2,
+        465,
+        467.3,
+        465.6
+      ],
+      "inputDispatchToCapturedCanvasFrameMs": [
+        490,
+        543.4,
+        526.2,
+        532.4,
+        529.1
+      ]
+    },
+    "esc": {
+      "inputToCanvasHitTestMs": [
+        489.3,
+        476.2,
+        459.7,
+        457.3,
+        692.6
+      ],
+      "inputDispatchToCapturedCanvasFrameMs": [
+        572.2,
+        539.2,
+        525.5,
+        555.9,
+        765.4
+      ]
+    }
+  },
+  "after": {
+    "click": {
+      "inputToCanvasHitTestMs": [
+        67.6,
+        46.3,
+        41.3,
+        57.4,
+        42.4
+      ],
+      "inputDispatchToCapturedCanvasFrameMs": [
+        125.8,
+        106.4,
+        99.3,
+        139.5,
+        107.8
+      ]
+    },
+    "esc": {
+      "inputToCanvasHitTestMs": [
+        39,
+        54.7,
+        48.4,
+        63.4,
+        44.4
+      ],
+      "inputDispatchToCapturedCanvasFrameMs": [
+        95,
+        115.6,
+        109.3,
+        129.6,
+        105.2
+      ]
+    },
+    "inner": {
+      "inputToCanvasHitTestMs": [
+        74.6,
+        71.2,
+        50.3,
+        29.9,
+        31.5
+      ],
+      "inputDispatchToCapturedCanvasFrameMs": [
+        140.6,
+        136.3,
+        121.6,
+        83.8,
+        88.1
+      ]
+    }
+  },
+  "beforeRuntimeEscape": "Focused runtime input received the native Escape but Preview stayed open throughout the 3-second observation window.",
+  "checks": [
+    "Same editor pathname, query and hash",
+    "Same arena, focused artboard and zoom",
+    "Same artboard iframe documents",
+    "Canvas reports ready after every measured exit",
+    "First Escape closes the open form select, second Escape exits Preview."
+  ],
+  "verification": {
+    "vitest": {
+      "files": 13,
+      "passed": 186
+    },
+    "typecheck": "WAB passed",
+    "build": "canvas-packages, react-web-bundle and WAB renderer passed"
+  }
+}

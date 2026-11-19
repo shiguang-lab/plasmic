@@ -23,7 +23,7 @@ export function canvasNodePolicy(node: TplNode, ctx: RenderingCtx, policy: Studi
   return {
     interactive: policy.interactive,
     autoOpen: selection.isSelected && policy.autoOpen && !ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting,
-    editable: isTplTextBlock(node) ? policy.devMode : undefined,
+    editable: isTplTextBlock(node) ? !policy.docs : undefined,
     slotPlaceholder: component || slot ? policy.showSlotPlaceholder : undefined,
     containerPlaceholder: emptyContainer || slot ? policy.showContainerPlaceholder : undefined,
     fullContentView: component ? ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().fullPageHeight : undefined,

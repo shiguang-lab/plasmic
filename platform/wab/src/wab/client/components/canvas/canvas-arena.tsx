@@ -23,7 +23,7 @@ export function CanvasArenaShell(props: {
   onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
 }) {
   const { studioCtx, arena, onFrameLoad } = props;
-  const isDevMode = useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
+  const docs = useStudioRenderPolicy(studioCtx, (policy) => policy.docs);
   const status = useArenaStatus(studioCtx, arena);
 
   return (
@@ -35,7 +35,7 @@ export function CanvasArenaShell(props: {
           : status === "background"
             ? "canvas-editor__frames canvas-editor__frames--background"
             : "display-none",
-        isDevMode ? undefined : "invisible",
+        docs && "invisible",
       )}
     >
       {status !== "dead" && (

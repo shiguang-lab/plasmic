@@ -1,0 +1,369 @@
+{
+  "scope": "Apple M4, local isolated Electron editor with Desktop 0.9.7 renderer. Published Overseas O-end v4.0.1 template and its four pinned component libraries replayed from local copies. 17 artboards in the overview. No project writes.",
+  "studio": {
+    "method": "Enumerated body DOM in each frame once settled. Computed non-none filters and shadows on elements with a layout box and generated pseudo-elements, excluding display:none and visibility:hidden. Includes offscreen elements and can include transparent effects. Counts refer to this state only.",
+    "businessFrames": {
+      "bodyElementsIncludesHidden": 8418,
+      "nonNoneStyles": {
+        "boxShadow": 59
+      },
+      "browserAnimations": {
+        "css-i19pbt-antStatusProcessing": 6
+      }
+    },
+    "studioDocument": {
+      "bodyElementsIncludesHidden": 918,
+      "nonNoneStyles": {
+        "boxShadow": 23
+      },
+      "browserAnimations": {
+        "Animation": 6
+      }
+    },
+    "outerShadow": "CanvasFrame__Container rgba(0, 0, 0, 0.1) 5px 5px 120px 0px",
+    "businessShadowOccurrences": {
+      "ant-btn css-i19pbt css-var-_r_0_ ant-btn-default ant-btn-color-default ant-btn-variant-out rgba(0, 0, 0, 0.02) 0px 2px 0px 0px": 13,
+      "ant-btn css-i19pbt css-var-_r_0_ ant-btn-primary ant-btn-color-primary ant-btn-variant-sol rgba(5, 145, 255, 0.1) 0px 2px 0px 0px": 17,
+      "ant-table-cell __wab_instance uid-3025915 ant-table-cell-fix ant-table-cell-fix-end ant-ta::after rgba(5, 5, 5, 0.06) -10px 0px 8px -8px inset": 21,
+      "ant-tabs-nav-wrap::after rgba(0, 0, 0, 0.08) -10px 0px 8px -8px inset": 4,
+      "ant-tabs-nav-wrap::before rgba(0, 0, 0, 0.08) 10px 0px 8px -8px inset": 4
+    }
+  },
+  "idle": {
+    "method": "Same open isolated Electron window, no gestures. Ordered targeted overrides alternate with restores. Each observation waits 1.3 s then differences cumulative process CPU over 4.3 s. 100% = one core. GPU-process CPU is distinct from GPU hardware utilization. base = original styles, badge = pause only processing badge ::after animations, shadow = remove only .CanvasFrame__Container outer box-shadow.",
+    "samples": [
+      {
+        "mode": "base",
+        "gpuProcessCpuPercent": 28.6,
+        "rendererProcessCpuPercent": 27.8,
+        "appCpuPercent": 57.5,
+        "badgeAnimationStates": [
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running"
+        ]
+      },
+      {
+        "mode": "badge",
+        "gpuProcessCpuPercent": 7,
+        "rendererProcessCpuPercent": 16.7,
+        "appCpuPercent": 23.8,
+        "badgeAnimationStates": [
+          "paused",
+          "paused",
+          "paused",
+          "paused",
+          "paused",
+          "paused"
+        ]
+      },
+      {
+        "mode": "shadow",
+        "gpuProcessCpuPercent": 23.7,
+        "rendererProcessCpuPercent": 24.7,
+        "appCpuPercent": 50.0,
+        "badgeAnimationStates": [
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running"
+        ]
+      },
+      {
+        "mode": "base",
+        "gpuProcessCpuPercent": 32.5,
+        "rendererProcessCpuPercent": 26.1,
+        "appCpuPercent": 58.6,
+        "badgeAnimationStates": [
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running"
+        ]
+      },
+      {
+        "mode": "shadow",
+        "gpuProcessCpuPercent": 31.4,
+        "rendererProcessCpuPercent": 25.2,
+        "appCpuPercent": 56.6,
+        "badgeAnimationStates": [
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running"
+        ]
+      },
+      {
+        "mode": "badge",
+        "gpuProcessCpuPercent": 5.7,
+        "rendererProcessCpuPercent": 35.5,
+        "appCpuPercent": 41.2,
+        "badgeAnimationStates": [
+          "paused",
+          "paused",
+          "paused",
+          "paused",
+          "paused",
+          "paused"
+        ]
+      },
+      {
+        "mode": "base",
+        "gpuProcessCpuPercent": 23.4,
+        "rendererProcessCpuPercent": 20.5,
+        "appCpuPercent": 43.9,
+        "badgeAnimationStates": [
+          "running",
+          "running",
+          "running",
+          "running",
+          "running",
+          "running"
+        ]
+      }
+    ]
+  },
+  "zoom": {
+    "method": "Same 17-board template in another isolated Electron process. Each sequence calls the real viewport scaleAtMidPt once per requestAnimationFrame for 100 steps from initial overview scale up by 55% and back. First sequence excluded as warmup. Intervals measure animation callbacks, not presentation timestamps or human wheel events.",
+    "samples": [
+      {
+        "warmup": true,
+        "shadowDisabled": false,
+        "boards": 17,
+        "initialScale": 0.09640522875816994,
+        "ms": 3308.1,
+        "medianIntervalMs": 33.3,
+        "p95IntervalMs": 41.7,
+        "intervalsOver25Ms": 85
+      },
+      {
+        "warmup": false,
+        "shadowDisabled": false,
+        "boards": 17,
+        "initialScale": 0.09640522875816994,
+        "ms": 3529.1,
+        "medianIntervalMs": 33.4,
+        "p95IntervalMs": 50.5,
+        "intervalsOver25Ms": 85
+      },
+      {
+        "warmup": false,
+        "shadowDisabled": true,
+        "boards": 17,
+        "initialScale": 0.09640522875816994,
+        "ms": 3483.4,
+        "medianIntervalMs": 33.4,
+        "p95IntervalMs": 41.7,
+        "intervalsOver25Ms": 92
+      },
+      {
+        "warmup": false,
+        "shadowDisabled": true,
+        "boards": 17,
+        "initialScale": 0.09640522875816994,
+        "ms": 3582.3,
+        "medianIntervalMs": 33.8,
+        "p95IntervalMs": 42.2,
+        "intervalsOver25Ms": 96
+      },
+      {
+        "warmup": false,
+        "shadowDisabled": false,
+        "boards": 17,
+        "initialScale": 0.09640522875816994,
+        "ms": 3416.6,
+        "medianIntervalMs": 33.4,
+        "p95IntervalMs": 41.9,
+        "intervalsOver25Ms": 93
+      }
+    ]
+  },
+  "cover": {
+    "method": "Mac local Chrome headless, production 0.9.7 full-render snapshot JS, locally replayed template, resident browser, fresh context per run. 640x360 DPR1. External font CSS blocked in both groups. Navigation commit request through lossless WebP buffer, no queue, process launch, durable write or cold network. Warmup is row 0. Disabled group overrides backdrop-filter, filter and box-shadow in all iframe documents and main document before render. offCount confirms all 17. Three runs each, not sufficient to resolve small differences.",
+    "computedBusinessStyles": {
+      "authored": {
+        "bodyElementsIncludesHidden": 8418,
+        "nonNoneStyles": {
+          "boxShadow": 59
+        },
+        "browserAnimations": {
+          "css-i19pbt-antStatusProcessing": 6,
+          "CSSTransition": 3
+        }
+      },
+      "disabled": {
+        "bodyElementsIncludesHidden": 8418,
+        "nonNoneStyles": {},
+        "browserAnimations": {
+          "css-i19pbt-antStatusProcessing": 6,
+          "CSSTransition": 3
+        }
+      }
+    },
+    "samples": [
+      {
+        "i": 0,
+        "off": false,
+        "state": {
+          "unavailableImages": "0",
+          "boards": "17",
+          "revision": "1",
+          "state": "ready"
+        },
+        "data": {
+          "ready": 3942,
+          "boards": 17,
+          "offCount": 0
+        },
+        "readyMs": 3961,
+        "capture": 93,
+        "encode": 14,
+        "total": 4068,
+        "blocked": [
+          "https://fonts.googleapis.com/css"
+        ]
+      },
+      {
+        "i": 1,
+        "off": false,
+        "state": {
+          "unavailableImages": "0",
+          "boards": "17",
+          "revision": "1",
+          "state": "ready"
+        },
+        "data": {
+          "ready": 4194,
+          "boards": 17,
+          "offCount": 0
+        },
+        "readyMs": 4211,
+        "capture": 92,
+        "encode": 12,
+        "total": 4316,
+        "blocked": [
+          "https://fonts.googleapis.com/css"
+        ]
+      },
+      {
+        "i": 2,
+        "off": true,
+        "state": {
+          "unavailableImages": "0",
+          "boards": "17",
+          "revision": "1",
+          "state": "ready"
+        },
+        "data": {
+          "ready": 3896,
+          "boards": 17,
+          "offCount": 17
+        },
+        "readyMs": 3910,
+        "capture": 92,
+        "encode": 14,
+        "total": 4016,
+        "blocked": [
+          "https://fonts.googleapis.com/css"
+        ]
+      },
+      {
+        "i": 3,
+        "off": true,
+        "state": {
+          "unavailableImages": "0",
+          "boards": "17",
+          "revision": "1",
+          "state": "ready"
+        },
+        "data": {
+          "ready": 3976,
+          "boards": 17,
+          "offCount": 17
+        },
+        "readyMs": 3994,
+        "capture": 94,
+        "encode": 15,
+        "total": 4103,
+        "blocked": [
+          "https://fonts.googleapis.com/css"
+        ]
+      },
+      {
+        "i": 4,
+        "off": false,
+        "state": {
+          "unavailableImages": "0",
+          "boards": "17",
+          "revision": "1",
+          "state": "ready"
+        },
+        "data": {
+          "ready": 3877,
+          "boards": 17,
+          "offCount": 0
+        },
+        "readyMs": 3894,
+        "capture": 108,
+        "encode": 12,
+        "total": 4014,
+        "blocked": [
+          "https://fonts.googleapis.com/css"
+        ]
+      },
+      {
+        "i": 5,
+        "off": false,
+        "state": {
+          "unavailableImages": "0",
+          "boards": "17",
+          "revision": "1",
+          "state": "ready"
+        },
+        "data": {
+          "ready": 4222,
+          "boards": 17,
+          "offCount": 0
+        },
+        "readyMs": 4238,
+        "capture": 91,
+        "encode": 11,
+        "total": 4340,
+        "blocked": [
+          "https://fonts.googleapis.com/css"
+        ]
+      },
+      {
+        "i": 6,
+        "off": true,
+        "state": {
+          "unavailableImages": "0",
+          "boards": "17",
+          "revision": "1",
+          "state": "ready"
+        },
+        "data": {
+          "ready": 3873,
+          "boards": 17,
+          "offCount": 17
+        },
+        "readyMs": 3889,
+        "capture": 91,
+        "encode": 12,
+        "total": 3993,
+        "blocked": [
+          "https://fonts.googleapis.com/css"
+        ]
+      }
+    ]
+  }
+}

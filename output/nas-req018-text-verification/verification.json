@@ -1,0 +1,135 @@
+{
+  "project": "REQ-018 权益管理",
+  "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+  "sourceRevision": 577,
+  "boardNames": [
+    "券模板管理",
+    "券模板详情",
+    "配置券模板",
+    "券模板复核"
+  ],
+  "boardIds": [
+    "o6RXcZUaD92N",
+    "Di37uoQOVaXZ",
+    "nGSs9G9CbXvq",
+    "ClvuctH_7GES"
+  ],
+  "method": "Isolated NAS copy of the saved project. A separate worker always renders all four boards. The full reference uses the production capture instant observed in the incremental iframe. The baseline and incremental worker use their own capture clock. Decode 640x360 lossless WebP to RGB. Compare each incremental cover to its independent full reference and to the previous cover. The timing series uses no audit scripts, alternating one local edit with a full same-revision render on the same warm worker.",
+  "edit": {
+    "board": "券模板详情",
+    "node": "BaseTabLabel",
+    "from": "基本信息",
+    "to": "券模板基础资料"
+  },
+  "comparisons": {
+    "detail-text": {
+      "revision": 578,
+      "rendered": 1,
+      "reused": 3,
+      "renderedIds": [
+        "Di37uoQOVaXZ"
+      ],
+      "unavailableImages": 0,
+      "incrementalMs": 3740,
+      "fullReferenceMs": 11480,
+      "differentPixelsVersusFull": 0,
+      "totalPixels": 230400,
+      "changedPixelsPerBoard": [
+        0,
+        96,
+        0,
+        0
+      ],
+      "fullReferenceBoardTextHashes": [
+        "8d195356",
+        "1251119a",
+        "2123b9dd",
+        "72ec2d55"
+      ],
+      "clockReadings": [
+        "当地时间：2026-11-18 22:31:14",
+        "当地时间：2026-11-18 22:31:14",
+        "当地时间：2026-11-18 22:31:14",
+        "当地时间：2026-11-18 22:31:14"
+      ]
+    },
+    "two-boards": {
+      "revision": 579,
+      "rendered": 2,
+      "reused": 2,
+      "renderedIds": [
+        "o6RXcZUaD92N",
+        "ClvuctH_7GES"
+      ],
+      "unavailableImages": 0,
+      "incrementalMs": 5006,
+      "fullReferenceMs": 7258,
+      "differentPixelsVersusFull": 0,
+      "totalPixels": 230400,
+      "changedPixelsPerBoard": [
+        12,
+        0,
+        0,
+        39
+      ],
+      "fullReferenceBoardTextHashes": [
+        "37968b4d",
+        "1251119a",
+        "2123b9dd",
+        "93d7298e"
+      ],
+      "clockReadings": [
+        "当地时间：2026-11-18 22:31:14",
+        "当地时间：2026-11-18 22:31:14",
+        "当地时间：2026-11-18 22:31:14",
+        "当地时间：2026-11-18 22:31:14"
+      ]
+    },
+    "shared-theme": {
+      "revision": 580,
+      "rendered": 4,
+      "reused": 0,
+      "renderedIds": [
+        "o6RXcZUaD92N",
+        "Di37uoQOVaXZ",
+        "nGSs9G9CbXvq",
+        "ClvuctH_7GES"
+      ],
+      "unavailableImages": 0,
+      "incrementalMs": 7611,
+      "fullReferenceMs": 7590,
+      "differentPixelsVersusFull": 0,
+      "totalPixels": 230400,
+      "changedPixelsPerBoard": [
+        2083,
+        886,
+        1113,
+        1041
+      ],
+      "fullReferenceBoardTextHashes": [
+        "f6479b88",
+        "572ce9fd",
+        "d107b72",
+        "d37248cb"
+      ],
+      "clockReadings": [
+        "当地时间：2026-11-18 22:31:51",
+        "当地时间：2026-11-18 22:31:51",
+        "当地时间：2026-11-18 22:31:51",
+        "当地时间：2026-11-18 22:31:51"
+      ]
+    }
+  },
+  "oneBoardTimingsMs": [
+    3477,
+    4276,
+    3793
+  ],
+  "oneMedianMs": 3793,
+  "fullBoardTimingsMs": [
+    7781,
+    7609,
+    7433
+  ],
+  "fullMedianMs": 7609
+}

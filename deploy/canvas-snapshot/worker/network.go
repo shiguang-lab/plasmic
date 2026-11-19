@@ -37,6 +37,14 @@ func assetPath(u *url.URL) bool {
 	return path.Clean(u.Path) == u.Path && u.RawPath == "" && !strings.Contains(u.Path, "\\") && (strings.HasPrefix(u.Path, "/static/") || strings.HasPrefix(u.Path, "/assets/") || strings.HasPrefix(u.Path, "/canvas-snapshot-assets/static/"))
 }
 
+// Map only the worker's outbound request. Chrome keeps the document's original resource URL.
+func (w *worker) assetURL(u *url.URL) (string, bool) {
+	if upstream, ok := w.assetUpstreams[u.Scheme+"://"+u.Host]; ok && assetPath(u) {
+		return upstream + u.RequestURI(), true
+	}
+	return u.String(), false
+}
+
 // Only static files are exposed on loopback. Private HTML and the saved model
 // are fulfilled exclusively for the job's main frame, never by this server.
 func loopback(upstream *url.URL) (string, error) {
@@ -155,7 +163,7 @@ func (w *worker) route(ctx context.Context, e *fetch.EventRequestPaused, main cd
 		_, _ = chromedp.Call(ctx, fetch.ContinueRequest, fetch.ContinueRequestParams{RequestID: e.RequestID})
 		return
 	default:
-		trusted := w.origins[origin] && assetPath(u)
+		target, trusted := w.assetURL(u)
 		if !trusted {
 			switch e.ResourceType {
 			case network.ResourceTypeImage, network.ResourceTypeMedia, network.ResourceTypeFont, network.ResourceTypeStylesheet, network.ResourceTypeTextTrack:
@@ -168,7 +176,7 @@ func (w *worker) route(ctx context.Context, e *fetch.EventRequestPaused, main cd
 				return
 			}
 		}
-		r, err := http.NewRequestWithContext(ctx, e.Request.Method, u.String(), nil)
+		r, err := http.NewRequestWithContext(ctx, e.Request.Method, target, nil)
 		if err != nil {
 			fail()
 			return
