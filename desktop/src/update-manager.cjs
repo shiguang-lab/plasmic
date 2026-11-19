@@ -1,5 +1,7 @@
 const { EventEmitter } = require("node:events");
 
+const semver = require("semver");
+
 class UpdateManager extends EventEmitter {
   constructor({ updater, version, enabled, beforeInstall }) {
     super();
@@ -14,42 +16,43 @@ class UpdateManager extends EventEmitter {
     updater.autoDownload = false;
     updater.allowDowngrade = false;
     updater.allowPrerelease = false;
-    updater.on("checking-for-update", () => this.set({ phase: "checking" }));
-    updater.on("update-available", (info) =>
+    updater.on("checking-for-update", () => {
+      if (!this.ready) this.set({ phase: "checking" });
+    });
+    updater.on("update-available", (info) => {
+      if (this.installQueued || (this.ready && !semver.gt(info.version, this.ready.version))) return;
       this.set({
         phase: "available",
         version: info.version,
         releaseNotes: info.localizedReleaseNotes || info.releaseNotes,
-      }),
-    );
-    updater.on("update-not-available", () =>
-      this.set({
-        phase: "current",
-        version: undefined,
-        releaseNotes: undefined,
-      }),
-    );
+        percent: undefined,
+      });
+    });
+    updater.on("update-not-available", () => {
+      if (!this.ready) this.set({ phase: "current", version: undefined, releaseNotes: undefined });
+    });
     updater.on("download-progress", (progress) =>
       this.set({ phase: "downloading", percent: Math.floor(progress.percent) }),
     );
-    updater.on("update-downloaded", (info) =>
-      this.set({
-        phase: "downloaded",
-        version: info.version,
-        percent: 100,
-      }),
-    );
+    updater.on("update-downloaded", (info) => {
+      this.ready = {
+        phase: "downloaded", version: info.version, percent: 100,
+        releaseNotes: info.localizedReleaseNotes || info.releaseNotes || this.state.releaseNotes,
+      };
+      this.set(this.ready);
+    });
     updater.on("error", (error) => this.fail(error));
   }
   set(value) {
-    if (!this.enabled) return;
+    if (!this.enabled || this.quitPreparation) return;
     this.state = { ...this.state, ...value };
     this.emit("status", this.state);
   }
   fail(error) {
-    if (!this.enabled) return;
+    if (!this.enabled || this.quitPreparation) return;
     console.warn("Desktop update failed:", error.message);
-    this.set({
+    if (this.state.phase === "installing") this.ready = undefined;
+    this.set(this.ready || {
       phase: "error",
       version: undefined,
       releaseNotes: undefined,
@@ -58,23 +61,30 @@ class UpdateManager extends EventEmitter {
   }
   prepareQuit() {
     if (!this.updater.prepareInstallOnQuit) return;
-    if (this.state.phase === "installing") return this.running;
-    if (this.state.phase === "downloaded") return this.command("install", false);
+    if (this.state.phase === "installing") return this.quitPreparation || this.running;
+    if (!this.ready) return;
+    // A normal quit installs the last verified Mac archive even if a newer
+    // download is offline or still in progress.
+    this.set({ ...this.ready, phase: "installing" });
+    this.quitPreparation = this.updater.prepareInstallOnQuit().catch(error => {
+      this.quitPreparation = undefined;
+      this.fail(error);
+    });
+    return this.quitPreparation;
   }
-  async command(command, restart = true) {
+  async command(command) {
     if (command === "status") return this.state;
     if (!this.enabled) return this.state;
     if (!["check", "download", "install"].includes(command))
       throw new Error("Invalid update command");
     if (this.running) {
       if (command !== "install" || this.state.phase !== "downloaded") return this.running;
+      this.installQueued = true;
       await this.running;
+      this.installQueued = false;
       if (this.running) return this.running;
     }
-    if (
-      command === "check" &&
-      ["downloaded", "installing"].includes(this.state.phase)
-    )
+    if (this.state.phase === "installing")
       return this.state;
     if (
       command !== "check" &&
@@ -93,12 +103,8 @@ class UpdateManager extends EventEmitter {
         }
         if (command === "install") {
           this.set({ phase: "installing" });
-          if (restart) {
-            await this.beforeInstall();
-            await this.updater.quitAndInstall(false, true);
-          } else {
-            await this.updater.prepareInstallOnQuit();
-          }
+          await this.beforeInstall();
+          await this.updater.quitAndInstall(false, true);
         }
       } catch (error) {
         this.fail(error);
@@ -116,7 +122,7 @@ class UpdateManager extends EventEmitter {
     void this.command("check");
     this.interval = setInterval(
       () => {
-        if (["idle", "current", "available", "error"].includes(this.state.phase))
+        if (["idle", "current", "available", "error", "downloaded"].includes(this.state.phase))
           void this.command("check");
       },
       60 * 1000,

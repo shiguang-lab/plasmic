@@ -68,8 +68,8 @@ test("explicit requests open the dialog after its page loads without reopening o
   assert.deepEqual(ui.sent[1], ["desktop:update-open", ui.manager.state]);
   assert.deepEqual(
     ui.commands,
-    ["check"],
-    "Opening a ready dialog must never install or redownload",
+    ["check", "check"],
+    "Reopening a ready dialog checks for newer releases",
   );
   const webContents = ui.window.webContents;
   Object.defineProperty(ui.window, "webContents", {
@@ -91,7 +91,7 @@ test("a preexisting completed download stays silent until explicitly opened", ()
   assert.equal(ui.sent.length, 0);
   ui.open();
   assert.deepEqual(ui.sent, [["desktop:update-open", { phase: "downloaded" }]]);
-  assert.equal(ui.commands.length, 0);
+  assert.deepEqual(ui.commands, ["check"]);
 });
 
 test("background downloads stay silent across page loads and deliver the latest status on click", () => {
@@ -101,7 +101,7 @@ test("background downloads stay silent across page loads and deliver the latest 
   assert.equal(ui.sent.length, 0);
   ui.open();
   assert.deepEqual(ui.sent, [["desktop:update-open", ui.manager.state]]);
-  assert.equal(ui.commands.length, 0);
+  assert.deepEqual(ui.commands, ["check"]);
 });
 
 test("closing updates restores the exact nested frame and retains it across repeated opens", async () => {

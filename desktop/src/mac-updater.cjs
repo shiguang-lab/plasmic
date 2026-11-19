@@ -12,7 +12,7 @@ const { promisify } = require("node:util");
 const semver = require("semver");
 const YAML = require("yaml");
 const { macUpdateArch } = require("./update-architecture.cjs");
-const { downloadArchive, seedArchive } = require("./update-download.cjs");
+const { downloadArchive, seedArchive, pruneArchives } = require("./update-download.cjs");
 const run = promisify(execFile);
 
 function installHelperArgs(cache, { id, target }, mode) {
@@ -111,17 +111,19 @@ class MacUpdater extends EventEmitter {
   async downloadUpdate() {
     if (!this.info) throw uiError("Check for an update first");
     await fs.mkdir(this.cache, { recursive: true, mode: 0o700 });
-    this.archive = path.join(this.cache, `Plasmic-${this.info.version}.zip`);
+    const info = this.info;
+    const archive = path.join(this.cache, `Plasmic-${info.version}.zip`);
+    if (this.downloaded) await pruneArchives(archive, this.app.getVersion(), this.downloaded.archive)
+      .catch(error => console.info("Cannot prune cached updates:", error.message));
     await downloadArchive({
       fetch: this.fetch,
-      info: this.info,
-      archive: this.archive,
-      currentVersion: this.app.getVersion(),
+      info, archive,
       arch: this.arch,
       onProgress: (progress) => this.emit("download-progress", progress),
     });
-    this.emit("update-downloaded", this.info);
-    return [this.archive];
+    this.downloaded = { info, archive };
+    this.emit("update-downloaded", info);
+    return [archive];
   }
   async quitAndInstall() {
     await this.#prepareInstall(true);
@@ -133,7 +135,8 @@ class MacUpdater extends EventEmitter {
   }
 
   async #prepareInstall(restart) {
-    if (!this.archive || !this.info) throw uiError("Download an update first");
+    if (!this.downloaded) throw uiError("Download an update first");
+    const { info, archive } = this.downloaded;
     const target = path.resolve(this.app.getAppPath(), "../../..");
     if (path.basename(target) !== "Plasmic.app" || !this.app.isPackaged)
       throw uiError("Run the installed Plasmic.app to update");
@@ -144,12 +147,12 @@ class MacUpdater extends EventEmitter {
     const extract = await fs.mkdtemp(path.join(this.cache, "extract-"));
     const staged = path.join(path.dirname(target), `.Plasmic-update-${id}.app`);
     try {
-      await run("/usr/bin/ditto", ["-x", "-k", this.archive, extract]);
+      await run("/usr/bin/ditto", ["-x", "-k", archive, extract]);
       const source = path.join(extract, "Plasmic.app");
       const plist = path.join(source, "Contents/Info.plist");
       for (const [key, expected] of [
         ["CFBundleIdentifier", "cn.publib.plasmic.desktop"],
-        ["CFBundleShortVersionString", this.info.version],
+        ["CFBundleShortVersionString", info.version],
       ]) {
         const { stdout } = await run("/usr/bin/plutil", [
           "-extract",
@@ -176,7 +179,7 @@ class MacUpdater extends EventEmitter {
       await run("/usr/bin/ditto", [source, staged]);
       // Finish extraction cleanup before Electron exits the current process.
       await physicalFs.rm(extract, { recursive: true, force: true });
-      const transaction = { id, target, version: this.info.version, installOnQuit: !restart };
+      const transaction = { id, target, version: info.version, installOnQuit: !restart };
       const args = installHelperArgs(this.cache, transaction, restart ? "restart" : "apply");
       await fs.copyFile(path.join(__dirname, "mac-update-install.sh"), args[0]);
       await fs.writeFile(

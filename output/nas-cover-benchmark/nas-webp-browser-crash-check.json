@@ -1,0 +1,10 @@
+{
+  "httpAfterCrash": 500,
+  "lastGoodSha256Verified": "4aa2a0d6407f0468da117cec6af4dca7e046c296928bfa41ba0af673f8816bbb",
+  "nextJob": {
+    "revision": 577,
+    "boards": 4,
+    "bytes": 10742,
+    "elapsedMs": 10560
+  }
+}

@@ -110,6 +110,14 @@ const outputs = await build({
       }
       installMacLauncher(path.dirname(bundle), arch);
     },
+    // electron-builder emits the sidecar before it constructs the ZIP feed
+    // entry. Both events share updateInfo, including its size and SHA-512.
+    artifactBuildCompleted: async ({ file, updateInfo }) => {
+      if (platform !== "darwin" || !file.endsWith(".zip.blockmap")) return;
+      const zip = file.slice(0, -".blockmap".length);
+      execFileSync("go", ["run", path.join(root, "scripts/mac-update-zip.go"), zip], { stdio: "inherit" });
+      Object.assign(updateInfo, await buildBlockMap(zip, "gzip", file));
+    },
     afterSign: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
       verifyMacSignature(path.join(context.appOutDir, "Plasmic.app"), signingCertificate);
@@ -119,6 +127,8 @@ const outputs = await build({
     publish: { provider: "generic", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
     releaseInfo: releaseNotes ? { releaseNotes } : undefined,
     mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: signingCertificate ? signingCertificate.fingerprint.replaceAll(":", "") : "-", type: "development", hardenedRuntime: false, notarize: false,
+      // Match the released signature layout on both macOS ARM build runners.
+      additionalArguments: ["--pagesize", "4096"],
       // Start without a Dock identity before JavaScript can distinguish --mcp.
       extendInfo: { LSUIElement: true } },
     win: { target: ["nsis"], icon: "assets/icon.ico" },

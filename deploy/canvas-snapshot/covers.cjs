@@ -37,6 +37,7 @@ class CoverQueue {
         throw Error("Unexpected captured revision");
       this.published.set(id, result.revision);
       if (this.pending.get(id)?.rev <= result.revision) this.pending.delete(id);
+      return { projectId: id, publishedRevision: result.revision };
     } catch (error) {
       if (this.pending.get(id) === job) {
         job.due =
@@ -81,6 +82,38 @@ function capture(id) {
   });
 }
 
+function serveCoverEvents(app, published) {
+  const streams = new Map();
+  app.get("/_cover-events", (req, res) => {
+    const { stream, account } = req.query;
+    const projects = new Set();
+    res.type("application/x-ndjson");
+    streams.set(stream, { res, account, projects });
+    const heartbeat = setInterval(() => {
+      if (!res.write("\n")) res.destroy();
+    }, 15_000);
+    res.on("close", () => {
+      clearInterval(heartbeat);
+      streams.delete(stream);
+    });
+    res.flushHeaders();
+  });
+  app.get("/_cover-revisions", (req, res) => {
+    const subscription = streams.get(req.query.stream);
+    if (!subscription || subscription.account !== req.query.account) return res.sendStatus(409);
+    const ids = String(req.query.ids).split(",");
+    // Subscribe and read in the same turn so a publication cannot fall between them.
+    for (const id of ids) subscription.projects.add(id);
+    res.json(Object.fromEntries(ids.map(id => [id, published.get(id) || 0])));
+  });
+  return (event) => {
+    const line = JSON.stringify(event) + "\n";
+    for (const { res, projects } of streams.values()) {
+      if (projects.has(event.projectId) && !res.write(line)) res.destroy();
+    }
+  };
+}
+
 async function startCovers(app, pool) {
   const queue = new CoverQueue();
   const dir = "/covers";
@@ -117,10 +150,13 @@ async function startCovers(app, pool) {
       scanning = false;
     }
   }
+  const publish = serveCoverEvents(app, queue.published);
+
   await scan();
   setInterval(scan, 15_000);
-  setInterval(() => {
-    void queue.run(capture);
+  setInterval(async () => {
+    const event = await queue.run(capture);
+    if (event) publish(event);
   }, 1000);
 
   // Only the Studio backend calls this Docker-network route, after viewer authorization.
@@ -147,11 +183,11 @@ async function startCovers(app, pool) {
       const job = queue.pending.get(id);
       if (job && Number.isFinite(job.due)) res.set("Retry-After", "10");
       if (!bytes) return res.status(job?.due === Infinity ? 503 : 202).end();
-      res.type("image/webp").send(bytes);
+      res.set("X-Cover-Revision", String(rev)).type("image/webp").send(bytes);
     } catch (error) {
       console.error("Read cover:", error.message);
       res.sendStatus(503);
     }
   });
 }
-module.exports = { CoverQueue, startCovers };
+module.exports = { CoverQueue, startCovers, serveCoverEvents };

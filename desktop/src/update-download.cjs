@@ -5,6 +5,7 @@ const { gunzipSync } = require("node:zlib");
 const { pipeline } = require("node:stream/promises");
 const { Readable, Transform } = require("node:stream");
 const path = require("node:path");
+const semver = require("semver");
 // Use the planner from our pinned electron-updater, with the same session.fetch
 // transport as full downloads so cookies, proxy settings and redirects agree.
 const { computeOperations, OperationKind } = require("electron-updater/out/differentialDownloader/downloadPlanBuilder");
@@ -104,6 +105,44 @@ async function append(source, partial, size, progress, signal) {
   if (received !== size) throw new IntegrityError("Update checksum verification failed: incomplete response");
 }
 
+async function appendDifferential({ base, operations, fetch, file, partial, offset, progress, signal }) {
+  const remaining = [];
+  for (const { kind, start, end } of operations) {
+    const skip = Math.min(offset, end - start);
+    offset -= skip;
+    if (start + skip < end) remaining.push({ kind, start: start + skip, end });
+  }
+
+  // Overlap range round trips, but write in target order so every durable
+  // prefix can be resumed. Keep at most four response streams open.
+  const downloads = remaining.filter(op => op.kind === OperationKind.DOWNLOAD);
+  const controller = new AbortController();
+  const rangeSignal = AbortSignal.any([signal, controller.signal]);
+  const pending = new Map();
+  let next = 0;
+  function prefetch() {
+    while (next < downloads.length && pending.size < 4) {
+      const op = downloads[next++];
+      const response = request(fetch, file, op.start, op.end - 1, true, rangeSignal);
+      response.catch(() => {}); // The ordered writer awaits and propagates this error.
+      pending.set(op, response);
+    }
+  }
+  try {
+    prefetch();
+    for (const op of remaining) {
+      signal.throwIfAborted();
+      const source = op.kind === OperationKind.COPY
+        ? createReadStream(base, { start: op.start, end: op.end - 1 })
+        : Readable.fromWeb((await pending.get(op)).body);
+      await append(source, partial, op.end - op.start, progress, signal);
+      if (pending.delete(op)) prefetch();
+    }
+  } finally {
+    controller.abort();
+  }
+}
+
 async function readJson(file) {
   try { return JSON.parse(await fs.readFile(file, "utf8")); }
   catch (error) {
@@ -140,7 +179,42 @@ async function seedArchive({ fetch, info, archive, arch, source }) {
   }
 }
 
-async function downloadArchive({ fetch, info, archive, currentVersion, arch, onProgress, signal: cancellationSignal }) {
+async function differentialBase(archive, info, arch, blockmap) {
+  const directory = path.dirname(archive), extension = path.extname(archive);
+  const versions = [];
+  for (const name of await fs.readdir(directory)) {
+    const match = /^Plasmic-(\d+\.\d+\.\d+)(\.zip|\.exe|\.AppImage)\.json$/.exec(name);
+    if (match && match[2] === extension && semver.valid(match[1]) &&
+        semver.lt(match[1], info.version)) versions.push(match[1]);
+  }
+  for (const version of versions.sort(semver.rcompare)) {
+    const base = path.join(directory, `Plasmic-${version}${extension}`);
+    try {
+      const metadata = await readJson(base + ".json");
+      if (metadata?.version !== version || metadata.arch !== arch || !metadata.file) continue;
+      const oldMap = parseBlockmap(await fs.readFile(base + ".blockmap"), metadata.file.size);
+      const operations = computeOperations(oldMap, blockmap.map, { info: console.info, warn: console.warn });
+      if (operations.some(op => op.kind === OperationKind.COPY) && await matches(base, metadata.file))
+        return { base, operations };
+    } catch (error) {
+      console.info("Cannot reuse cached update:", error.message);
+    }
+  }
+}
+
+// Keep the running version, target and any installer still available on quit.
+async function pruneArchives(archive, currentVersion, readyArchive) {
+  const directory = path.dirname(archive);
+  const keep = [path.basename(archive), `Plasmic-${currentVersion}${path.extname(archive)}`];
+  if (readyArchive) keep.push(path.basename(readyArchive));
+  for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+    const match = /^(Plasmic-\d+\.\d+\.\d+(\.zip|\.exe|\.AppImage))(?:\.(?:json|blockmap|partial(?:\.json)?))?$/.exec(entry.name);
+    if (entry.isFile() && match && match[2] === path.extname(archive) && !keep.includes(match[1]))
+      await fs.rm(path.join(directory, entry.name), { force: true });
+  }
+}
+
+async function downloadArchive({ fetch, info, archive, arch, onProgress, signal: cancellationSignal }) {
   cancellationSignal?.throwIfAborted();
   const file = info.file;
   if (await matches(archive, file)) {
@@ -181,22 +255,7 @@ async function downloadArchive({ fetch, info, archive, currentVersion, arch, onP
   } catch (error) {
     console.info("Update uses full download:", error.message);
   }
-  let operations, base;
-  if (blockmap) {
-    try {
-      base = path.join(path.dirname(archive), `Plasmic-${currentVersion}${path.extname(archive)}`);
-      const previous = await readJson(base + ".json");
-      if (previous?.version === currentVersion && previous.arch === arch &&
-          Number.isSafeInteger(previous.file?.size) && previous.file.size > 0 &&
-          /^[A-Za-z0-9+/]{86}==$/.test(previous.file.sha512) && await matches(base, previous.file)) {
-        const oldMap = parseBlockmap(await fs.readFile(base + ".blockmap"), previous.file.size);
-        operations = computeOperations(oldMap, blockmap.map, { info: console.info, warn: console.warn });
-        if (!operations.some((op) => op.kind === OperationKind.COPY)) operations = null;
-      }
-    } catch (error) {
-      console.info("Update uses full download:", error.message);
-    }
-  }
+  const plan = blockmap && await differentialBase(archive, info, arch, blockmap);
 
   const fullDownload = async () => {
     if (offset === file.size) return;
@@ -213,22 +272,12 @@ async function downloadArchive({ fetch, info, archive, currentVersion, arch, onP
     await append(Readable.fromWeb(response.body), partial, file.size - offset, progress, signal);
   };
   try {
-    if (operations && offset < file.size) {
+    let verified = false;
+    if (plan && offset < file.size) {
       try {
-        let position = 0;
-        for (const op of operations) {
-          signal.throwIfAborted();
-          const length = op.end - op.start;
-          const skip = Math.max(0, Math.min(length, offset - position));
-          position += length;
-          if (skip === length) continue;
-          const start = op.start + skip;
-          const source = op.kind === OperationKind.COPY
-            ? createReadStream(base, { start, end: op.end - 1 })
-            : Readable.fromWeb((await request(fetch, file, start, op.end - 1, true, signal)).body);
-          await append(source, partial, length - skip, progress, signal);
-        }
-        if (!await matches(partial, file)) throw new IntegrityError("Differential update checksum verification failed");
+        await appendDifferential({ ...plan, fetch, file, partial, offset, progress, signal });
+        verified = await matches(partial, file);
+        if (!verified) throw new IntegrityError("Differential update checksum verification failed");
       } catch (error) {
         if (!(error instanceof RangeError || error instanceof IntegrityError)) throw error;
         console.info("Differential update falling back to full download:", error.message);
@@ -241,7 +290,7 @@ async function downloadArchive({ fetch, info, archive, currentVersion, arch, onP
     } else {
       await fullDownload();
     }
-    if (!await matches(partial, file)) throw new IntegrityError("Update checksum verification failed");
+    if (!verified && !await matches(partial, file)) throw new IntegrityError("Update checksum verification failed");
     // Keep a matching ZIP and blockmap for the next version; never cache a pair
     // based only on the version number or a successful HTTP response.
     await fs.rename(partial, archive);
@@ -261,4 +310,4 @@ async function downloadArchive({ fetch, info, archive, currentVersion, arch, onP
   }
 }
 
-module.exports = { downloadArchive, parseBlockmap, seedArchive };
+module.exports = { downloadArchive, parseBlockmap, seedArchive, pruneArchives };

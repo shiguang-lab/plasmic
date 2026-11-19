@@ -22,6 +22,7 @@
       pending.get(id)?.abort();
       return;
     }
+    const trace = (stage) => console.info("[Desktop metadata] " + id + " " + stage);
     const controller = new AbortController();
     pending.set(id, controller);
     let result;
@@ -40,9 +41,12 @@
         }
         result = { success: true, ...(await window.desktopEditorFileAction(input)) };
       } else if (method === "metadata") {
+        trace("page-received");
         let editorContext = null;
         if (tools) {
+          trace("context-requested");
           const context = await tools.getEditorContext({});
+          trace("context-returned");
           if (!context.success) {
             throw new Error(context.error.message);
           }
@@ -79,6 +83,7 @@
     } finally {
       pending.delete(id);
     }
+    if (method === "metadata") trace("page-replied");
     window.postMessage(
       { channel: "plasmic-desktop-response", id, result },
       location.origin,

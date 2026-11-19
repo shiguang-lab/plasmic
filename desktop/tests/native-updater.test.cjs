@@ -153,11 +153,30 @@ for (const platform of ["win32", "linux"]) {
     await assert.rejects(f.run(f.make("1.0.0")));
     const prefix = await fs.readFile(f.archive("10.0.0") + ".partial");
     assert.deepEqual(prefix, bytes.subarray(0, prefix.length));
+    const retryStart = f.state.requests.length;
     const [pending] = await f.run(f.make("1.0.0"));
     assert(f.state.requests.every((range) => range));
-    assert.equal(Number(/^bytes=(\d+)/.exec(f.state.requests[1])[1]), prefix.length);
+    assert(f.state.requests.slice(retryStart).some(range => range.startsWith(`bytes=${prefix.length}-`)), "retry requests the missing suffix");
     assert(f.state.sent < bytes.length / 3);
     assert.deepEqual(await fs.readFile(pending), bytes);
+  });
+
+  test(`${platform}: superseding a ready installer preserves the verified native install target on failure`, async (t) => {
+    const f = await fixture(t, platform);
+    const updater = f.make("0.9.0");
+    const old = await f.release("1.0.0", baseline);
+    const [first] = await f.run(updater);
+    const bytes = await f.release("1.0.2", Buffer.concat([baseline, randomBytes(8192)]));
+    f.state.interrupt = true;
+    await assert.rejects(f.run(updater));
+    assert.equal(updater.installerPath, first);
+    assert.deepEqual(await fs.readFile(first), old);
+    const [next] = await f.run(updater);
+    assert.equal(updater.installerPath, next);
+    assert.deepEqual(await fs.readFile(next), bytes);
+    assert(f.state.requests.every(range => range));
+    assert(f.state.sent < bytes.length / 3);
+    await assert.rejects(fs.stat(first), { code: "ENOENT" });
   });
 
   test(`${platform}: ignored Range responses fall back to one complete verified artifact`, async (t) => {

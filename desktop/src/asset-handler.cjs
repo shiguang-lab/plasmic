@@ -202,14 +202,15 @@ function createAssetHandler({
       });
     }
     try {
-      if (path.dirname(target) === canvasPackages && /-v2\.[^.]+\.js$/.test(target)) {
+      if (path.dirname(target) === canvasPackages && /\.(js|txt)$/.test(target)) {
         canvasAliases ??= fs.readFile(path.join(canvasPackages, "aliases.json"), "utf8")
           .then(JSON.parse, (error) => {
             if (error.code === "ENOENT") return {};
             throw error;
           });
-        const canonical = (await canvasAliases)[path.basename(target)];
-        if (canonical) return await fileResponse(path.join(canvasPackages, canonical));
+        const aliases = await canvasAliases;
+        const name = path.basename(target);
+        if (Object.hasOwn(aliases, name)) return await fileResponse(path.join(canvasPackages, aliases[name]));
       }
       return await fileResponse(target);
     } catch (error) {

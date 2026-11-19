@@ -6,14 +6,16 @@ const { createHmac, randomUUID } = require("node:crypto");
 const { chromium } = require(
   process.env.PLAYWRIGHT_CORE || "/runtime/playwright-core",
 );
-const sharp = require("node:module").createRequire(
+const wabRequire = require("node:module").createRequire(
   "/plasmic/platform/wab/package.json",
-)("sharp");
+);
+const sharp = wabRequire("sharp");
+const { fetchUntrusted } = wabRequire("./src/wab/server/util/url.ts");
 const origin = new URL(process.env.STUDIO_ORIGIN).origin;
 const key = fs.readFileSync("/run/secrets/snapshot-key", "utf8").trim();
 const socket = "/jobs/screenshot.sock",
   out = "/covers";
-const trustedAssets = new Set([
+const studioOrigins = new Set([
   origin,
   ...(process.env.STUDIO_ASSET_ORIGINS || "").split(",").filter(Boolean),
 ]);
@@ -37,6 +39,7 @@ async function capture(id) {
     serviceWorkers: origin.startsWith("https:") ? "block" : "allow",
     acceptDownloads: false,
   });
+  const assets = new AbortController();
   const temp = path.join(out, "." + randomUUID() + ".tmp");
   const deadline = setTimeout(() => {
     void context.close().catch(() => {});
@@ -96,19 +99,56 @@ async function capture(id) {
         return route.abort();
       }
       if (
-        trustedAssets.has(u.origin) &&
+        studioOrigins.has(u.origin) &&
         ["/static/", "/assets/", "/canvas-snapshot-assets/"].some((prefix) =>
           u.pathname.startsWith(prefix),
         )
       )
         return route.continue();
+      // Project media and styles can live on any public HTTP(S) host.
       if (
-        ["https://fonts.googleapis.com", "https://fonts.gstatic.com"].includes(
-          u.origin,
-        )
-      )
-        return route.continue();
-      return route.abort();
+        !["image", "media", "font", "stylesheet", "texttrack"].includes(
+          request.resourceType(),
+        ) ||
+        !["https:", "http:"].includes(u.protocol) ||
+        u.username ||
+        u.password
+      ) {
+        return route.abort();
+      }
+      try {
+        const headers = request.headers();
+        const response = await fetchUntrusted({
+          url: u.href,
+          method: request.method(),
+          responseType: "arraybuffer",
+          headers: Object.fromEntries(
+            ["accept", "user-agent", "origin", "range"]
+              .filter((name) => headers[name])
+              .map((name) => [name, headers[name]]),
+          ),
+          signal: AbortSignal.any([assets.signal, AbortSignal.timeout(10_000)]),
+          maxContentLength: 32 * 1024 * 1024,
+        });
+        // Axios has decoded the body. Chromium calculates its new content length.
+        await route.fulfill({
+          status: response.status,
+          headers: Object.fromEntries(
+            [
+              "content-type",
+              "content-range",
+              "accept-ranges",
+              "access-control-allow-origin",
+              "cross-origin-resource-policy",
+            ]
+              .filter((name) => response.headers[name])
+              .map((name) => [name, response.headers[name]]),
+          ),
+          body: response.data,
+        });
+      } catch {
+        await route.abort().catch(() => {});
+      }
     });
     const startEpochMs = Date.now(),
       start = performance.now();
@@ -132,6 +172,18 @@ async function capture(id) {
       boards = Number(await cover.getAttribute("data-boards"));
     if (!Number.isSafeInteger(revision) || revision < 1 || !boards)
       throw Error("Invalid cover metadata");
+    const unavailableImages = Number(
+      await cover.getAttribute("data-unavailable-images"),
+    );
+    if (unavailableImages) {
+      console.warn(
+        "Cover",
+        id,
+        revision,
+        "unavailable images:",
+        unavailableImages,
+      );
+    }
     const readyMs = performance.now() - start;
     const png = await cover.screenshot({ type: "png", timeout: 30000 });
     const bytes = await sharp(png).webp({ lossless: true }).toBuffer();
@@ -190,6 +242,7 @@ async function capture(id) {
       boards,
       name,
       bytes: bytes.length,
+      unavailableImages,
       startEpochMs,
       endEpochMs,
       readyMs: Math.round(readyMs),
@@ -199,6 +252,7 @@ async function capture(id) {
       marks,
     };
   } finally {
+    assets.abort();
     clearTimeout(deadline);
     await context.close();
     await fsp.rm(temp, { force: true });

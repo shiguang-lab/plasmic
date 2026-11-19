@@ -1,0 +1,333 @@
+{
+  "date": "2026-11-19",
+  "project": {
+    "revision": 577,
+    "modelObjects": 10819,
+    "boards": 4,
+    "dependencyPackages": 4
+  },
+  "machine": "Shanghai Xeon Gold 6148 KVM, 4 vCPU, 3723 MiB RAM, 2677 MiB available before setup",
+  "testConfiguration": "One persistent container, Node worker, and Chromium process, with 4 available vCPUs, no Docker CPU or memory quota and the isolated 90 s render-ready deadline. Each of four sequential requests reads revision 577 afresh from NAS, opens a new BrowserContext and page, renders an actual 640x360 PNG, closes that context and returns the PNG to NAS with fsync and readback hash verification. No same-revision PNG cache. The idle sample is taken 5 s after the context is closed without forcing GC. Container memory.peak for this variant is cumulative across runs. Cold control on the same project is shanghai-full-report.json.",
+  "boot": {
+    "at": 1795023933891,
+    "browserPid": "18",
+    "container": "0246189fb52f",
+    "limits": {
+      "cpuMax": "max 100000",
+      "cpuset": "0-3",
+      "memoryMax": "max",
+      "affinity": "0-3"
+    },
+    "initialMemMiB": 72.5,
+    "contexts": 0,
+    "bootMs": 875
+  },
+  "summary": {
+    "elapsedMs": {
+      "min": 42660,
+      "median": 43020.0,
+      "max": 43354
+    },
+    "subsequentElapsedMs": {
+      "min": 42660,
+      "median": 43000,
+      "max": 43354
+    },
+    "renderCpuSeconds": {
+      "min": 68.87,
+      "median": 69.75,
+      "max": 70.41
+    },
+    "workerJobMs": {
+      "min": 39616,
+      "median": 39903.0,
+      "max": 40436
+    },
+    "subsequentWorkerJobMs": {
+      "min": 39785,
+      "median": 40021,
+      "max": 40436
+    },
+    "afterFiveSecondsIdleMiB": {
+      "min": 165,
+      "median": 174.5,
+      "max": 176
+    }
+  },
+  "coldControl": {
+    "elapsedMs": {
+      "min": 44271,
+      "median": 44510,
+      "max": 45652
+    },
+    "workerLifecycleMs": {
+      "min": 40857,
+      "median": 40981,
+      "max": 41390
+    },
+    "fetchAndUnpackMs": {
+      "min": 3248,
+      "median": 3591,
+      "max": 4007
+    },
+    "uploadAndAckMs": {
+      "min": 42,
+      "median": 62,
+      "max": 255
+    },
+    "shMinMemAvailableMiB": {
+      "min": 2026,
+      "median": 2040,
+      "max": 2043
+    },
+    "ms": {
+      "min": 39973,
+      "median": 40078,
+      "max": 40386
+    },
+    "cpuSec": {
+      "min": 68.71,
+      "median": 69.41,
+      "max": 70.73
+    },
+    "memPeakMiB": {
+      "min": 577,
+      "median": 581,
+      "max": 584
+    },
+    "chromePssPeakMiB": {
+      "min": 600,
+      "median": 618,
+      "max": 638
+    },
+    "meanCores": {
+      "min": 1.714,
+      "median": 1.736,
+      "max": 1.751
+    }
+  },
+  "attempts": [
+    {
+      "label": "resident1",
+      "status": 0,
+      "epoch": 1795023933.8975403,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1184,
+      "fetchAndUnpackMs": 3400,
+      "workerJobMs": 39616,
+      "uploadAndAckMs": 24,
+      "elapsedMs": 43040,
+      "nasReceipt": {
+        "bytes": 25223,
+        "sha256": "3ddc1e88026b90b93fa00e9fefbbb4fbca54a0f929628a9241f5cfba52660fdf"
+      },
+      "render": {
+        "limits": {
+          "cpuMax": "max 100000",
+          "cpuset": "0-3",
+          "memoryMax": "max",
+          "affinity": "0-3"
+        },
+        "startAt": 1795023937509,
+        "endAt": 1795023976880,
+        "ms": 39371,
+        "renderMs": 39264,
+        "cpuSec": 69.65,
+        "chromePssPeakMiB": 680,
+        "peakMiB": 691,
+        "memPeakMiB": 697,
+        "width": 640,
+        "height": 360,
+        "colored": 65664,
+        "bytes": 25223,
+        "ok": true,
+        "browserPid": "18",
+        "sampledPeakCores": 2.93,
+        "container": "0246189fb52f",
+        "checkedAfterClose": {
+          "remaining": 0,
+          "pid": "18",
+          "connected": true
+        }
+      },
+      "after5sIdle": {
+        "memoryMiB": 165,
+        "chromePssMiB": 163,
+        "contexts": 0,
+        "browserPid": "18",
+        "at": 1795023981919
+      }
+    },
+    {
+      "label": "resident2",
+      "status": 0,
+      "epoch": 1795023981.9371119,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1051,
+      "fetchAndUnpackMs": 2592,
+      "workerJobMs": 40021,
+      "uploadAndAckMs": 47,
+      "elapsedMs": 42660,
+      "nasReceipt": {
+        "bytes": 25220,
+        "sha256": "8e705e281214a06f4b747742ec6647eca21feee3c2048915d459f0596c7d16b9"
+      },
+      "render": {
+        "limits": {
+          "cpuMax": "max 100000",
+          "cpuset": "0-3",
+          "memoryMax": "max",
+          "affinity": "0-3"
+        },
+        "startAt": 1795023984714,
+        "endAt": 1795024024527,
+        "ms": 39813,
+        "renderMs": 39760,
+        "cpuSec": 69.85,
+        "chromePssPeakMiB": 623,
+        "peakMiB": 623,
+        "memPeakMiB": 697,
+        "width": 640,
+        "height": 360,
+        "colored": 65664,
+        "bytes": 25220,
+        "ok": true,
+        "browserPid": "18",
+        "sampledPeakCores": 2.96,
+        "container": "0246189fb52f",
+        "checkedAfterClose": {
+          "remaining": 0,
+          "pid": "18",
+          "connected": true
+        }
+      },
+      "after5sIdle": {
+        "memoryMiB": 175,
+        "chromePssMiB": 162,
+        "contexts": 0,
+        "browserPid": "18",
+        "at": 1795024029559
+      }
+    },
+    {
+      "label": "resident3",
+      "status": 0,
+      "epoch": 1795024029.5754592,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1297,
+      "fetchAndUnpackMs": 3189,
+      "workerJobMs": 39785,
+      "uploadAndAckMs": 27,
+      "elapsedMs": 43000,
+      "nasReceipt": {
+        "bytes": 25215,
+        "sha256": "da96ea7ee1edf00f5169717596e90a9b880c1716347aa92d256b29c8aa186fb4"
+      },
+      "render": {
+        "limits": {
+          "cpuMax": "max 100000",
+          "cpuset": "0-3",
+          "memoryMax": "max",
+          "affinity": "0-3"
+        },
+        "startAt": 1795024032944,
+        "endAt": 1795024072507,
+        "ms": 39562,
+        "renderMs": 39509,
+        "cpuSec": 68.87,
+        "chromePssPeakMiB": 605,
+        "peakMiB": 590,
+        "memPeakMiB": 697,
+        "width": 640,
+        "height": 360,
+        "colored": 65664,
+        "bytes": 25215,
+        "ok": true,
+        "browserPid": "18",
+        "sampledPeakCores": 3.06,
+        "container": "0246189fb52f",
+        "checkedAfterClose": {
+          "remaining": 0,
+          "pid": "18",
+          "connected": true
+        }
+      },
+      "after5sIdle": {
+        "memoryMiB": 176,
+        "chromePssMiB": 163,
+        "contexts": 0,
+        "browserPid": "18",
+        "at": 1795024077540
+      }
+    },
+    {
+      "label": "resident4",
+      "status": 0,
+      "epoch": 1795024077.5527039,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1053,
+      "fetchAndUnpackMs": 2891,
+      "workerJobMs": 40436,
+      "uploadAndAckMs": 26,
+      "elapsedMs": 43354,
+      "nasReceipt": {
+        "bytes": 25229,
+        "sha256": "c8f6ccedc70e719fb06fde4244b7acf87b5f431e3a281f583a7cc029dfe269ba"
+      },
+      "render": {
+        "limits": {
+          "cpuMax": "max 100000",
+          "cpuset": "0-3",
+          "memoryMax": "max",
+          "affinity": "0-3"
+        },
+        "startAt": 1795024080618,
+        "endAt": 1795024120852,
+        "ms": 40234,
+        "renderMs": 40176,
+        "cpuSec": 70.41,
+        "chromePssPeakMiB": 603,
+        "peakMiB": 611,
+        "memPeakMiB": 697,
+        "width": 640,
+        "height": 360,
+        "colored": 65664,
+        "bytes": 25229,
+        "ok": true,
+        "browserPid": "18",
+        "sampledPeakCores": 3.21,
+        "container": "0246189fb52f",
+        "checkedAfterClose": {
+          "remaining": 0,
+          "pid": "18",
+          "connected": true
+        }
+      },
+      "after5sIdle": {
+        "memoryMiB": 174,
+        "chromePssMiB": 163,
+        "contexts": 0,
+        "browserPid": "18",
+        "at": 1795024125886
+      }
+    }
+  ],
+  "preliminaryAttempt": {
+    "successfulEndToEndMs": [
+      44218,
+      43942,
+      42763
+    ],
+    "fourth": "PNG generated, rejected by the initial process/context assertion before upload. The initial PID finder did not require a live command line or direct parent. No initial fourth upload credited. Re-ran the entire four-job series with direct-parent/Chromium command verification, connection and zero active contexts checked separately."
+  },
+  "medianWarmDifferenceMs": 1510,
+  "medianWarmWorkerDifferenceMs": 960
+}

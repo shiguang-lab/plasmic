@@ -1,3 +1,4 @@
+import { waitForCoverMedia } from "@/wab/client/canvas-snapshot/media";
 import { Api, BundlingSiteApi, SiteApi } from "@/wab/client/api";
 import { AppCtx, loadStarters } from "@/wab/client/app-ctx";
 import {
@@ -270,20 +271,7 @@ async function render() {
     docs.push(doc);
   }
   performance.mark("snapshot:boards-rendered");
-  for (const doc of docs) {
-    await doc.fonts.ready;
-    // An optional empty image field has no resource to decode.
-    await Promise.all(
-      Array.from(doc.images)
-        .filter(
-          (image) =>
-            image.currentSrc ||
-            image.getAttribute("src") ||
-            image.getAttribute("srcset"),
-        )
-        .map((image) => image.decode()),
-    );
-  }
+  overview.dataset.unavailableImages = String(await waitForCoverMedia(docs));
   performance.mark("snapshot:media-ready");
   await new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve())),

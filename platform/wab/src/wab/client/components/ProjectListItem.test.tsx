@@ -69,12 +69,14 @@ it("keeps the skeleton inside the thumbnail while project metadata remains visib
   const previewEnabled = DEVFLAGS.dashboardCanvasPreview;
   DEVFLAGS.dashboardCanvasPreview = true;
   mocks.userId = "user";
+  vi.stubGlobal("EventSource", class extends EventTarget { close() {} });
   vi.stubGlobal(
     "IntersectionObserver",
     class {
       observe() {
         /* Preview stays queued in this test. */
       }
+      unobserve() {}
       disconnect() {
         /* No native observer resources. */
       }

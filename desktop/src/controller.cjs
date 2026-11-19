@@ -13,6 +13,8 @@ const { IslandActivity } = require("./island-activity.cjs");
 const { AsyncLocalStorage } = require("node:async_hooks");
 const { BackgroundWorker } = require("./background-worker.cjs");
 const { uiError } = require("./ui-error.cjs");
+const { performance } = require("node:perf_hooks");
+const metadataStage = /^\[Desktop metadata\] ([a-f0-9-]{36}) (preload-received|page-received|context-requested|context-returned|page-replied|preload-replied)$/;
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
 function validateResourceId(value, label) {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
@@ -31,11 +33,13 @@ class DesktopController {
     config,
     waitForStartup = async () => {},
     prepareSession = async () => {},
+    logMetadata,
   ) {
     this.getStudio = getStudio;
     this.config = config;
     this.waitForStartup = waitForStartup;
     this.prepareSession = prepareSession;
+    this.logMetadata = logMetadata;
     this.activity = new IslandActivity();
     this.callerContext = new AsyncLocalStorage();
     this.signalContext = new AsyncLocalStorage();
@@ -54,6 +58,7 @@ class DesktopController {
         return;
       }
       clearTimeout(pending.timer);
+      pending.finishTrace(result?.success === false ? "error" : "received");
       pending.cleanup();
       this.pending.delete(id);
       if (result?.success === false) {
@@ -65,6 +70,17 @@ class DesktopController {
       }
     };
     ipcMain.on("desktop:result", this.receive);
+  }
+  recordMetadataStage(contents, event) {
+    if (!event.message.startsWith("[Desktop metadata] ") || event.frame !== contents.mainFrame) {
+      return;
+    }
+    const match = metadataStage.exec(event.message);
+    if (!match) return;
+    const request = this.pending.get(match[1]);
+    if (request?.contents === contents && request.trace) {
+      request.trace.stages[match[2]] ??= Math.round(performance.now() - request.trace.start);
+    }
   }
   clearCallerActivity(callerId) {
     const window = this.getStudio();
@@ -85,8 +101,21 @@ class DesktopController {
       const cancel = () => {
         if (!contents.isDestroyed()) contents.send("desktop:cancel", { id });
       };
+      const trace = method === "metadata" && this.logMetadata
+        ? { start: performance.now(), visible: window.window.isVisible(), stages: {} }
+        : undefined;
+      const finishTrace = (outcome) => {
+        if (trace) {
+          this.logMetadata("editor.metadata", {
+            id, visible: trace.visible, outcome,
+            durationMs: Math.round(performance.now() - trace.start),
+            stages: trace.stages,
+          });
+        }
+      };
       const cleanup = () => signal?.removeEventListener("abort", cancel);
       const timer = setTimeout(() => {
+        finishTrace("timeout");
         cancel();
         cleanup();
         this.pending.delete(id);
@@ -100,7 +129,7 @@ class DesktopController {
           ),
         );
       }, timeout);
-      this.pending.set(id, { contents, timer, resolve, reject, cleanup, cancel });
+      this.pending.set(id, { contents, timer, resolve, reject, cleanup, cancel, trace, finishTrace });
       contents.send("desktop:invoke", { id, method, input, caller: this.callerContext.getStore() });
       if (this.pending.has(id)) {
         signal?.addEventListener("abort", cancel, { once: true });
@@ -1232,6 +1261,7 @@ class DesktopController {
         continue;
       }
       clearTimeout(request.timer);
+      request.finishTrace("cancelled");
       request.cancel();
       request.cleanup();
       request.reject(new Error(message));

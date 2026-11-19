@@ -273,7 +273,7 @@ function createIsland({ getWindow, getStudio, controller, identity, i18n, appear
     updateOpen = true;
     publish();
     window?.showInactive();
-    if (["idle", "current"].includes(updates.state.phase)) {void updates.command("check");}
+    if (["idle", "current", "downloaded"].includes(updates.state.phase)) {void updates.command("check");}
   }
   function menu(parent) {
     Menu.buildFromTemplate([

@@ -1,0 +1,13 @@
+{
+  "file": "4yd87ATApmu8JkZHh6x7Ac-577.webp",
+  "bytes": 10742,
+  "sha256": "6907f7d6e2a11c6f30287f546d8c7f5a75a82f28944af9394fe3ec4b7ab5b0cb",
+  "fromRequestSeconds": 20.05,
+  "fourRepeatedReadsKeptFile": true,
+  "/healthcheck": 200,
+  "/api/v1/projects/4yd87ATApmu8JkZHh6x7Ac/cover": 401,
+  "/canvas-snapshot/4yd87ATApmu8JkZHh6x7Ac": 403,
+  "/canvas-snapshot/4yd87ATApmu8JkZHh6x7Ac/model": 403,
+  "initialStatus": 202,
+  "cachedRequestSeconds": 0.02
+}

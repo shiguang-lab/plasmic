@@ -9,6 +9,7 @@ const { gzipSync, gunzipSync } = require("node:zlib");
 const YAML = require("yaml");
 const { buildBlockMap } = require("app-builder-lib/out/targets/blockmap/blockmap");
 const { MacUpdater, acknowledgeMacUpdate } = require("../src/mac-updater.cjs");
+const { UpdateManager } = require("../src/update-manager.cjs");
 const baseline = createHash("shake256", { outputLength: 2 * 1024 * 1024 }).update("update-download-baseline").digest();
 
 async function fixture(t) {
@@ -144,6 +145,64 @@ test("standard electron-builder blockmaps reconstruct an update while transferri
   assert.equal(f.state.requests.length, before, "a complete, verified archive is reused");
 });
 
+test("a running client keeps the ready installer and uses it to catch up across releases", async (t) => {
+  const f = await fixture(t);
+  await f.release("1.0.0", baseline);
+  const updater = f.make("0.9.0");
+  const manager = new UpdateManager({ updater, version: "0.9.0", enabled: true });
+  await manager.command("check");
+  const first = updater.downloaded;
+  f.state.requests = [];
+  const seen = [];
+  manager.on("status", state => seen.push(state.phase));
+  await manager.command("check");
+  f.state.manifest = { version: "0.9.0" };
+  await manager.command("check");
+  assert.deepEqual(seen, []);
+  assert.deepEqual(f.state.requests, []);
+  assert.equal(updater.downloaded, first);
+
+  const bytes = Buffer.concat([baseline.subarray(0, 512 * 1024), randomBytes(8192), baseline.subarray(512 * 1024)]);
+  await f.release("1.0.2", bytes);
+  f.state.interrupt = true;
+  assert.equal((await manager.command("check")).version, "1.0.0");
+  assert.equal(manager.state.phase, "downloaded");
+  assert.equal(updater.downloaded, first);
+  assert.deepEqual(await fs.readFile(first.archive), baseline);
+  await manager.command("check");
+  assert.equal(manager.state.version, "1.0.2");
+  assert.equal(updater.downloaded.info.version, "1.0.2");
+  assert.deepEqual(await fs.readFile(updater.downloaded.archive), bytes);
+  assert(f.state.requests.every(r => r.range));
+  assert(f.state.sent < bytes.length / 3);
+});
+
+test("scattered changes overlap range requests and still assemble the archive in order", async t => {
+  const f = await fixture(t);
+  const client = f.make("0.9.0");
+  await f.release("1.0.0", baseline);
+  await client.checkForUpdates();
+  await client.downloadUpdate();
+  const bytes = Buffer.from(baseline);
+  for (let offset = 128 * 1024; offset < bytes.length; offset += 192 * 1024)
+    bytes[offset] ^= 0xff;
+  await f.release("1.0.1", bytes);
+  let active = 0, peak = 0;
+  const transport = client.fetch;
+  client.fetch = async (url, options) => {
+    if (!options.headers?.Range) return transport(url, options);
+    peak = Math.max(peak, ++active);
+    try { return await transport(url, options); }
+    finally { active--; }
+  };
+  await client.checkForUpdates();
+  await client.downloadUpdate();
+  assert.equal(peak, 4);
+  assert(f.state.requests.length > peak);
+  assert(f.state.requests.every(r => r.range));
+  assert.deepEqual(await fs.readFile(client.downloaded.archive), bytes);
+});
+
 test("interrupted differential downloads resume an assembled prefix across application restarts", async (t) => {
   const f = await differentialFixture(t);
   f.state.interrupt = true;
@@ -152,10 +211,11 @@ test("interrupted differential downloads resume an assembled prefix across appli
   const partial = await fs.readFile(f.archive("1.0.1") + ".partial");
   assert(partial.length > 0);
   assert.deepEqual(partial, f.bytes.subarray(0, partial.length));
+  const retryStart = f.state.requests.length;
   updater = f.make("1.0.0");
   await updater.checkForUpdates(); await updater.downloadUpdate();
   assert(f.state.requests.every((r) => r.range));
-  assert.equal(Number(/^bytes=(\d+)/.exec(f.state.requests[1].range)[1]), partial.length);
+  assert(f.state.requests.slice(retryStart).some(r => r.range.startsWith(`bytes=${partial.length}-`)), "retry requests the missing suffix");
   assert(f.state.sent < f.bytes.length / 3);
   assert.deepEqual(await fs.readFile(f.archive("1.0.1")), f.bytes);
 });

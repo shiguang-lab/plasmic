@@ -1,0 +1,352 @@
+{
+  "method": "One first job plus three runs on one resident unrestricted Shanghai Chromium 117. Each opens a fresh context. The NAS calls Shanghai via restricted SSH and Shanghai reads the protected Studio page/model and assets via Tailscale. Times use local monotonic intervals. CPU and working set are sampled approximately every 130ms from cgroup v2; NAS figures include existing shared Studio services, host figures include other workloads. Nginx counts HTTP 200 bodies for HeadlessChrome/117 from the NAS Studio edge within the job, excluding headers and SSH. No PNG cache.",
+  "hosts": {
+    "nas": {
+      "version": 1,
+      "groups": [
+        "studioPage",
+        "db",
+        "web",
+        "edge",
+        "dispatch"
+      ],
+      "logicalCpu": 6,
+      "totalMiB": 15763.71875
+    },
+    "shanghai": {
+      "version": 1,
+      "groups": [
+        "renderer"
+      ],
+      "logicalCpu": 4,
+      "totalMiB": 3723.20703125
+    }
+  },
+  "runs": [
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "sha256": "5274b316639afb1bc401c2469b00ee992fad0ba7124fbe68efb67192e860b9e2",
+      "bytes": 22752,
+      "startEpochMs": 1795026932925,
+      "endEpochMs": 1795026954053,
+      "readyMs": 20863,
+      "elapsedMs": 21947,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.png",
+      "renderMs": 21128,
+      "nasWriteMs": 3.77,
+      "nasStart": 1795026932154,
+      "nasEnd": 1795026954102,
+      "callerMs": 21948,
+      "type": "cold",
+      "nas": {
+        "samples": 167,
+        "hostBusyPct": 26.15,
+        "minHostAvailableMiB": 3835.6,
+        "total": {
+          "cpuSeconds": 2.591,
+          "avgCores": 0.118,
+          "peakWorkingSetMiB": 273.7
+        },
+        "studioPage": {
+          "cpuSeconds": 0.378,
+          "avgCores": 0.017,
+          "peakWorkingSetMiB": 103.9
+        },
+        "db": {
+          "cpuSeconds": 0.752,
+          "avgCores": 0.034,
+          "peakWorkingSetMiB": 138.0
+        },
+        "web": {
+          "cpuSeconds": 1.156,
+          "avgCores": 0.053,
+          "peakWorkingSetMiB": 23.1
+        },
+        "edge": {
+          "cpuSeconds": 0.202,
+          "avgCores": 0.009,
+          "peakWorkingSetMiB": 8.8
+        },
+        "dispatch": {
+          "cpuSeconds": 0.103,
+          "avgCores": 0.005,
+          "peakWorkingSetMiB": 17.9
+        }
+      },
+      "shanghai": {
+        "samples": 162,
+        "hostBusyPct": 29.35,
+        "minHostAvailableMiB": 2054.2,
+        "total": {
+          "cpuSeconds": 22.2,
+          "avgCores": 1.054,
+          "peakWorkingSetMiB": 607.0
+        },
+        "renderer": {
+          "cpuSeconds": 22.2,
+          "avgCores": 1.054,
+          "peakWorkingSetMiB": 607.0
+        }
+      },
+      "captureMs": 265,
+      "studioEdgeResponses": {
+        "count": {
+          "document": 1,
+          "static": 26,
+          "model": 1
+        },
+        "bodyBytes": {
+          "document": 675,
+          "static": 6570624,
+          "model": 1492030
+        }
+      }
+    },
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "sha256": "1b98a8d990c1f4b5ce81de04324f9173ac15214d43257580b50aefa8c79b4b4d",
+      "bytes": 22726,
+      "startEpochMs": 1795026956142,
+      "endEpochMs": 1795026977916,
+      "readyMs": 21509,
+      "elapsedMs": 22856,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.png",
+      "renderMs": 21774,
+      "nasWriteMs": 2.98,
+      "nasStart": 1795026955103,
+      "nasEnd": 1795026977960,
+      "callerMs": 22857,
+      "type": "resident",
+      "nas": {
+        "samples": 174,
+        "hostBusyPct": 23.56,
+        "minHostAvailableMiB": 3825.4,
+        "total": {
+          "cpuSeconds": 2.469,
+          "avgCores": 0.108,
+          "peakWorkingSetMiB": 326.7
+        },
+        "studioPage": {
+          "cpuSeconds": 0.28,
+          "avgCores": 0.012,
+          "peakWorkingSetMiB": 129.3
+        },
+        "db": {
+          "cpuSeconds": 0.756,
+          "avgCores": 0.033,
+          "peakWorkingSetMiB": 175.9
+        },
+        "web": {
+          "cpuSeconds": 1.072,
+          "avgCores": 0.047,
+          "peakWorkingSetMiB": 24.1
+        },
+        "edge": {
+          "cpuSeconds": 0.235,
+          "avgCores": 0.01,
+          "peakWorkingSetMiB": 9.1
+        },
+        "dispatch": {
+          "cpuSeconds": 0.126,
+          "avgCores": 0.006,
+          "peakWorkingSetMiB": 17.9
+        }
+      },
+      "shanghai": {
+        "samples": 168,
+        "hostBusyPct": 29.12,
+        "minHostAvailableMiB": 2084.7,
+        "total": {
+          "cpuSeconds": 23.065,
+          "avgCores": 1.056,
+          "peakWorkingSetMiB": 589.5
+        },
+        "renderer": {
+          "cpuSeconds": 23.065,
+          "avgCores": 1.056,
+          "peakWorkingSetMiB": 589.5
+        }
+      },
+      "captureMs": 265,
+      "studioEdgeResponses": {
+        "count": {
+          "document": 1,
+          "static": 26,
+          "model": 1
+        },
+        "bodyBytes": {
+          "document": 675,
+          "static": 6570569,
+          "model": 1492040
+        }
+      }
+    },
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "sha256": "505e22bd788608ecf8151aab722ac89966a75fa39122023120db868c22e0ca8b",
+      "bytes": 22798,
+      "startEpochMs": 1795026979403,
+      "endEpochMs": 1795027000780,
+      "readyMs": 21114,
+      "elapsedMs": 21888,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.png",
+      "renderMs": 21377,
+      "nasWriteMs": 28.99,
+      "nasStart": 1795026978960,
+      "nasEnd": 1795027000850,
+      "callerMs": 21890,
+      "type": "resident",
+      "nas": {
+        "samples": 167,
+        "hostBusyPct": 25.72,
+        "minHostAvailableMiB": 3803.3,
+        "total": {
+          "cpuSeconds": 2.511,
+          "avgCores": 0.115,
+          "peakWorkingSetMiB": 320.9
+        },
+        "studioPage": {
+          "cpuSeconds": 0.287,
+          "avgCores": 0.013,
+          "peakWorkingSetMiB": 148.0
+        },
+        "db": {
+          "cpuSeconds": 0.724,
+          "avgCores": 0.033,
+          "peakWorkingSetMiB": 139.9
+        },
+        "web": {
+          "cpuSeconds": 1.149,
+          "avgCores": 0.052,
+          "peakWorkingSetMiB": 22.5
+        },
+        "edge": {
+          "cpuSeconds": 0.221,
+          "avgCores": 0.01,
+          "peakWorkingSetMiB": 7.6
+        },
+        "dispatch": {
+          "cpuSeconds": 0.129,
+          "avgCores": 0.006,
+          "peakWorkingSetMiB": 18.4
+        }
+      },
+      "shanghai": {
+        "samples": 165,
+        "hostBusyPct": 28.81,
+        "minHostAvailableMiB": 2060.3,
+        "total": {
+          "cpuSeconds": 22.531,
+          "avgCores": 1.05,
+          "peakWorkingSetMiB": 590.8
+        },
+        "renderer": {
+          "cpuSeconds": 22.531,
+          "avgCores": 1.05,
+          "peakWorkingSetMiB": 590.8
+        }
+      },
+      "captureMs": 263,
+      "studioEdgeResponses": {
+        "count": {
+          "document": 1,
+          "static": 26,
+          "model": 1
+        },
+        "bodyBytes": {
+          "document": 675,
+          "static": 6570792,
+          "model": 1491934
+        }
+      }
+    },
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "sha256": "62531d2c04105e6b7a26675e5902ba6e0c03e5baacc8b3d6d403c8c604aec2b0",
+      "bytes": 22746,
+      "startEpochMs": 1795027002308,
+      "endEpochMs": 1795027023614,
+      "readyMs": 21039,
+      "elapsedMs": 21816,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.png",
+      "renderMs": 21305,
+      "nasWriteMs": 2.65,
+      "nasStart": 1795027001851,
+      "nasEnd": 1795027023669,
+      "callerMs": 21818,
+      "type": "resident",
+      "nas": {
+        "samples": 166,
+        "hostBusyPct": 28.06,
+        "minHostAvailableMiB": 3750.5,
+        "total": {
+          "cpuSeconds": 2.598,
+          "avgCores": 0.119,
+          "peakWorkingSetMiB": 322.5
+        },
+        "studioPage": {
+          "cpuSeconds": 0.253,
+          "avgCores": 0.012,
+          "peakWorkingSetMiB": 150.3
+        },
+        "db": {
+          "cpuSeconds": 0.688,
+          "avgCores": 0.032,
+          "peakWorkingSetMiB": 137.5
+        },
+        "web": {
+          "cpuSeconds": 1.274,
+          "avgCores": 0.058,
+          "peakWorkingSetMiB": 23.2
+        },
+        "edge": {
+          "cpuSeconds": 0.239,
+          "avgCores": 0.011,
+          "peakWorkingSetMiB": 9.1
+        },
+        "dispatch": {
+          "cpuSeconds": 0.144,
+          "avgCores": 0.007,
+          "peakWorkingSetMiB": 18.5
+        }
+      },
+      "shanghai": {
+        "samples": 164,
+        "hostBusyPct": 30.29,
+        "minHostAvailableMiB": 2034.4,
+        "total": {
+          "cpuSeconds": 22.711,
+          "avgCores": 1.065,
+          "peakWorkingSetMiB": 595.9
+        },
+        "renderer": {
+          "cpuSeconds": 22.711,
+          "avgCores": 1.065,
+          "peakWorkingSetMiB": 595.9
+        }
+      },
+      "captureMs": 266,
+      "studioEdgeResponses": {
+        "count": {
+          "document": 1,
+          "static": 26,
+          "model": 1
+        },
+        "bodyBytes": {
+          "document": 675,
+          "static": 6570906,
+          "model": 1491979
+        }
+      }
+    }
+  ],
+  "nasLocalMedianPageToDiskMs": 11048
+}

@@ -42,6 +42,28 @@ describe("prototype browser bridge", () => {
     rendered.unmount();
     expect(onOpenChatChange).toHaveBeenLastCalledWith(undefined);
   });
+  it("returns context while the active canvas is loading and keeps saves behind readiness", async () => {
+    let renderCanvas = () => {};
+    frame.hostFrameApi.waitForStudioReady.mockImplementationOnce(
+      () => new Promise<void>((resolve) => { renderCanvas = resolve; }),
+    );
+    const view = render(<TopFrameCopilotToolsBridge />);
+    const tools = window.PLASMIC_AI_TOOLS;
+    if (!tools) {throw new Error("Bridge missing");}
+    const save = tools.save({});
+    await waitFor(() => expect(frame.hostFrameApi.waitForStudioReady).toHaveBeenCalledOnce());
+    try {
+      expect(await tools.getEditorContext({})).toMatchObject({ success: true });
+      expect(frame.hostFrameApi.waitForStudioReady).toHaveBeenCalledOnce();
+      expect(frame.hostFrameApi.executeCopilotToolCall.mock.calls.map(([name]) => name)).toEqual(["getEditorContext"]);
+    } finally {
+      renderCanvas();
+      await save;
+      view.unmount();
+    }
+    expect(frame.hostFrameApi.executeCopilotToolCall.mock.calls.map(([name]) => name)).toEqual(["getEditorContext", "save"]);
+  });
+
   it("forwards active cancellation by request id without releasing the edit queue", async () => {
     let release = () => {};
     frame.hostFrameApi.executeCopilotToolCall.mockImplementationOnce(async () => {

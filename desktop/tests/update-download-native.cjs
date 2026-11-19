@@ -69,10 +69,11 @@ app.whenReady().then(async () => {
   const archive = path.join(root, "updates/Plasmic-1.0.1.zip");
   const prefix = await fs.readFile(archive + ".partial");
   assert(prefix.length > 0); assert.deepEqual(prefix, bytes.subarray(0, prefix.length));
+  const retryStart = requests.length;
   updater = make("1.0.0");
   await updater.checkForUpdates(); await updater.downloadUpdate();
   assert(requests.every((range) => range));
-  assert.equal(Number(/^bytes=(\d+)/.exec(requests[1])[1]), prefix.length);
+  assert(requests.slice(retryStart).some(range => range.startsWith(`bytes=${prefix.length}-`)), "retry requests the missing suffix");
   assert.deepEqual(await fs.readFile(archive), bytes);
   assert(sent < bytes.length / 3);
   console.log(`PASS: Electron session.fetch reconstructed ${bytes.length} bytes, transferred ${sent} bytes (${(sent / bytes.length * 100).toFixed(1)}%), and resumed an interrupted differential download`);
@@ -97,14 +98,16 @@ app.whenReady().then(async () => {
     try {
       if (platform === "linux") process.env.APPIMAGE = path.join(root, "installed.AppImage");
       await release(app.getVersion(), old, extension, platform); await run(create());
-      await release("10.0.0", bytes, extension, platform); interrupt = true;
+      const version = require("semver").inc(app.getVersion(), "major");
+      await release(version, bytes, extension, platform); interrupt = true;
       await assert.rejects(run(create()));
-      const partial = path.join(root, "updates", platform, process.arch, `Plasmic-10.0.0${extension}.partial`);
+      const partial = path.join(root, "updates", platform, process.arch, `Plasmic-${version}${extension}.partial`);
       const saved = await fs.readFile(partial);
       assert(saved.length > 0); assert.deepEqual(saved, bytes.subarray(0, saved.length));
+      const retryStart = requests.length;
       const [pending] = await run(create());
       assert(requests.every((range) => range));
-      assert.equal(Number(/^bytes=(\d+)/.exec(requests[1])[1]), saved.length);
+      assert(requests.slice(retryStart).some(range => range.startsWith(`bytes=${saved.length}-`)), "retry requests the missing suffix");
       assert.deepEqual(await fs.readFile(pending), bytes);
       assert(sent < bytes.length / 3);
       console.log(`PASS: ${platform} SDK + Electron session.fetch resumed differential download and verified all ${bytes.length} installer bytes`);

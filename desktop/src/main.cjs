@@ -526,6 +526,7 @@ async function startDesktop() {
       config,
       () => startingDesktop,
       () => desktopLogin.noteActivity(),
+      createLifecycleLog(app.getPath("userData"), undefined, "metadata.log"),
     );
     drafts = createDraftHandler({
       store: new DesktopDraftStore(path.join(app.getPath("userData"), "drafts")),
@@ -621,6 +622,7 @@ async function startDesktop() {
   const attachContents = (contents) => {
     require("./error-log.cjs").attachErrorLog(contents, app.getPath("userData"));
     projectOpenLog.attachContents(contents, url => workspace.projectId(url));
+    contents.on("console-message", event => controller.recordMetadataStage(contents, event));
     contents.on("before-input-event", userActivity);
     contents.on("before-mouse-event", (_event, mouse) => {
       if (["mouseDown", "mouseWheel"].includes(mouse.type)) userActivity();

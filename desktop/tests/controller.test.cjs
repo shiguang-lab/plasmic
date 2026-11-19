@@ -421,12 +421,18 @@ test("state and independent media remain responsive while editor operations seri
 });
 test("a lost metadata response expires, releases the queue and ignores a late IPC reply", async () => {
   const sent = [];
+  const dispatched = deferred();
   const webContents = {
     mainFrame: {},
-    send: (_channel, request) => sent.push(request),
+    send: (_channel, request) => {
+      sent.push(request);
+      dispatched.resolve();
+    },
   };
-  const win = { isDestroyed: () => false, webContents };
-  const controller = new DesktopController(() => studioFixture(win), {});
+  const logs = [];
+  const win = { isDestroyed: () => false, isVisible: () => false, webContents };
+  const controller = new DesktopController(() => studioFixture(win), {}, undefined, undefined,
+    (_event, trace) => logs.push(trace));
   controller.checkContext = async () => {};
   controller.execute = (method) =>
     method === "snapshot_layout"
@@ -437,7 +443,16 @@ test("a lost metadata response expires, releases the queue and ignores a late IP
     /Editor command timed out: metadata/,
   );
   const next = controller.dispatch("execute", {});
+  await dispatched.promise;
+  const mark = (stage, frame) => controller.recordMetadataStage(webContents, {
+    frame, message: "[Desktop metadata] " + sent[0].id + " " + stage,
+  });
+  mark("page-received", {});
+  mark("context-requested", webContents.mainFrame);
   await failed;
+  assert.equal(logs[0].outcome, "timeout");
+  assert.equal(logs[0].visible, false);
+  assert.deepEqual(Object.keys(logs[0].stages), ["context-requested"]);
   assert.deepEqual(await next, { resumed: true });
   assert.equal(controller.pending.size, 0);
   assert.equal(controller.operations.size, 0);
@@ -455,6 +470,7 @@ test("a lost metadata response expires, releases the queue and ignores a late IP
     { ready: true },
   );
   assert.deepEqual(await healthy, { ready: true });
+  assert.deepEqual(logs.map(trace => trace.outcome), ["timeout", "received"]);
   controller.close();
 });
 test("opening a project waits for initial loadURL to finish", async () => {

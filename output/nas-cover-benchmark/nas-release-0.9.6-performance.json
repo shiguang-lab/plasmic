@@ -1,0 +1,621 @@
+{
+  "environment": "UGREEN NAS, Intel Pentium Gold 8505, 6 logical CPUs, Chromium 117, persistent worker with a fresh context for each task. Real saved main revision; no session cookies.",
+  "method": "Three sequential full direct renders with lossless WebP encoding. Elapsed covers page.goto through file and directory fsync; readiness precedes PNG capture. Sampled cgroup v2 at ~100ms. 1 core = 100% of one logical CPU. Working set subtracts inactive_file. Host CPU includes unrelated NAS services.",
+  "runs": [
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.webp",
+      "bytes": 10746,
+      "startEpochMs": 1795036031410,
+      "endEpochMs": 1795036043077,
+      "readyMs": 11166,
+      "elapsedMs": 11667,
+      "capturedMs": 11649,
+      "modelHttpMs": 654,
+      "marks": [
+        [
+          "entry",
+          1092
+        ],
+        [
+          "model-headers",
+          1985
+        ],
+        [
+          "model-json",
+          2119
+        ],
+        [
+          "unbundled",
+          2439
+        ],
+        [
+          "contexts",
+          2474
+        ],
+        [
+          "root-packages",
+          2982
+        ],
+        [
+          "studio",
+          3069
+        ],
+        [
+          "board-1:start",
+          3069
+        ],
+        [
+          "board-1:host-loaded",
+          3547
+        ],
+        [
+          "board-1:user-body-wait",
+          3554
+        ],
+        [
+          "board-1:script-wait",
+          3561
+        ],
+        [
+          "board-1:hostless-wait",
+          3879
+        ],
+        [
+          "board-1:done",
+          3975
+        ],
+        [
+          "board-1:rendered",
+          5082
+        ],
+        [
+          "board-2:start",
+          5082
+        ],
+        [
+          "board-2:host-loaded",
+          5231
+        ],
+        [
+          "board-2:user-body-wait",
+          5237
+        ],
+        [
+          "board-2:script-wait",
+          5240
+        ],
+        [
+          "board-2:hostless-wait",
+          5421
+        ],
+        [
+          "board-2:done",
+          5554
+        ],
+        [
+          "board-2:rendered",
+          6602
+        ],
+        [
+          "board-3:start",
+          6602
+        ],
+        [
+          "board-3:host-loaded",
+          6715
+        ],
+        [
+          "board-3:user-body-wait",
+          6718
+        ],
+        [
+          "board-3:script-wait",
+          6719
+        ],
+        [
+          "board-3:hostless-wait",
+          6902
+        ],
+        [
+          "board-3:done",
+          7023
+        ],
+        [
+          "board-3:rendered",
+          8679
+        ],
+        [
+          "board-4:start",
+          8679
+        ],
+        [
+          "board-4:host-loaded",
+          8814
+        ],
+        [
+          "board-4:user-body-wait",
+          8816
+        ],
+        [
+          "board-4:script-wait",
+          8818
+        ],
+        [
+          "board-4:hostless-wait",
+          8956
+        ],
+        [
+          "board-4:done",
+          9115
+        ],
+        [
+          "board-4:rendered",
+          10623
+        ],
+        [
+          "boards-rendered",
+          10623
+        ],
+        [
+          "media-ready",
+          10644
+        ],
+        [
+          "paint-ready",
+          10675
+        ]
+      ],
+      "samples": 116,
+      "sampleSpanSec": 11.692,
+      "workers": {
+        "cpuSeconds": 16.414,
+        "averageCores": 1.404,
+        "peakCores500ms": 2.474,
+        "peakCgroupMiB": 969.7,
+        "peakWorkingSetMiB": 764.5,
+        "initialWorkingSetMiB": 280.6
+      },
+      "chromiumWorker": {
+        "cpuSeconds": 16.172,
+        "averageCores": 1.383,
+        "peakCores500ms": 2.474,
+        "peakCgroupMiB": 847.6,
+        "peakWorkingSetMiB": 642.6,
+        "initialWorkingSetMiB": 190.8
+      },
+      "studioPage": {
+        "cpuSeconds": 0.243,
+        "averageCores": 0.021,
+        "peakCores500ms": 0.404,
+        "peakCgroupMiB": 123.8,
+        "peakWorkingSetMiB": 123.7,
+        "initialWorkingSetMiB": 89.8
+      },
+      "allServingContainers": {
+        "cpuSeconds": 17.912,
+        "averageCores": 1.532,
+        "peakCores500ms": 2.582,
+        "peakCgroupMiB": 1491.3,
+        "peakWorkingSetMiB": 924.6,
+        "initialWorkingSetMiB": 428.4
+      },
+      "hostBusyPct": 42.96,
+      "hostMinAvailableMiB": 3480.4,
+      "sha256": "0969123278d30914e30c1a543bf020fe3d724b0262f40cfde0be0cdd8e08863b",
+      "idleWorkingSetMiB": 331.7
+    },
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.webp",
+      "bytes": 11334,
+      "startEpochMs": 1795036048183,
+      "endEpochMs": 1795036059489,
+      "readyMs": 10854,
+      "elapsedMs": 11306,
+      "capturedMs": 11273,
+      "modelHttpMs": 612,
+      "marks": [
+        [
+          "entry",
+          912
+        ],
+        [
+          "model-headers",
+          1707
+        ],
+        [
+          "model-json",
+          1836
+        ],
+        [
+          "unbundled",
+          2103
+        ],
+        [
+          "contexts",
+          2134
+        ],
+        [
+          "root-packages",
+          2650
+        ],
+        [
+          "studio",
+          2718
+        ],
+        [
+          "board-1:start",
+          2718
+        ],
+        [
+          "board-1:host-loaded",
+          3204
+        ],
+        [
+          "board-1:user-body-wait",
+          3211
+        ],
+        [
+          "board-1:script-wait",
+          3217
+        ],
+        [
+          "board-1:hostless-wait",
+          3515
+        ],
+        [
+          "board-1:done",
+          3619
+        ],
+        [
+          "board-1:rendered",
+          4659
+        ],
+        [
+          "board-2:start",
+          4659
+        ],
+        [
+          "board-2:host-loaded",
+          4789
+        ],
+        [
+          "board-2:user-body-wait",
+          4792
+        ],
+        [
+          "board-2:script-wait",
+          4793
+        ],
+        [
+          "board-2:hostless-wait",
+          4949
+        ],
+        [
+          "board-2:done",
+          5120
+        ],
+        [
+          "board-2:rendered",
+          6158
+        ],
+        [
+          "board-3:start",
+          6158
+        ],
+        [
+          "board-3:host-loaded",
+          6279
+        ],
+        [
+          "board-3:user-body-wait",
+          6282
+        ],
+        [
+          "board-3:script-wait",
+          6286
+        ],
+        [
+          "board-3:hostless-wait",
+          6469
+        ],
+        [
+          "board-3:done",
+          6639
+        ],
+        [
+          "board-3:rendered",
+          8303
+        ],
+        [
+          "board-4:start",
+          8303
+        ],
+        [
+          "board-4:host-loaded",
+          8462
+        ],
+        [
+          "board-4:user-body-wait",
+          8465
+        ],
+        [
+          "board-4:script-wait",
+          8466
+        ],
+        [
+          "board-4:hostless-wait",
+          8598
+        ],
+        [
+          "board-4:done",
+          8775
+        ],
+        [
+          "board-4:rendered",
+          10325
+        ],
+        [
+          "boards-rendered",
+          10325
+        ],
+        [
+          "media-ready",
+          10371
+        ],
+        [
+          "paint-ready",
+          10384
+        ]
+      ],
+      "samples": 113,
+      "sampleSpanSec": 11.376,
+      "workers": {
+        "cpuSeconds": 16.152,
+        "averageCores": 1.42,
+        "peakCores500ms": 2.311,
+        "peakCgroupMiB": 996.5,
+        "peakWorkingSetMiB": 822.2,
+        "initialWorkingSetMiB": 331.7
+      },
+      "chromiumWorker": {
+        "cpuSeconds": 15.92,
+        "averageCores": 1.4,
+        "peakCores500ms": 2.311,
+        "peakCgroupMiB": 866.5,
+        "peakWorkingSetMiB": 692.3,
+        "initialWorkingSetMiB": 209.8
+      },
+      "studioPage": {
+        "cpuSeconds": 0.232,
+        "averageCores": 0.02,
+        "peakCores500ms": 0.416,
+        "peakCgroupMiB": 131.0,
+        "peakWorkingSetMiB": 130.8,
+        "initialWorkingSetMiB": 121.9
+      },
+      "allServingContainers": {
+        "cpuSeconds": 17.763,
+        "averageCores": 1.562,
+        "peakCores500ms": 3.214,
+        "peakCgroupMiB": 1520.4,
+        "peakWorkingSetMiB": 985.6,
+        "initialWorkingSetMiB": 491.8
+      },
+      "hostBusyPct": 42.79,
+      "hostMinAvailableMiB": 3407.1,
+      "sha256": "c7c338dbd174883fe4d7bbe90905062870f2a7bd515aa7cb17b5166e8029e74f",
+      "idleWorkingSetMiB": 348.2
+    },
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.webp",
+      "bytes": 11286,
+      "startEpochMs": 1795036064590,
+      "endEpochMs": 1795036075708,
+      "readyMs": 10676,
+      "elapsedMs": 11118,
+      "capturedMs": 11114,
+      "modelHttpMs": 559,
+      "marks": [
+        [
+          "entry",
+          1086
+        ],
+        [
+          "model-headers",
+          1811
+        ],
+        [
+          "model-json",
+          1920
+        ],
+        [
+          "unbundled",
+          2197
+        ],
+        [
+          "contexts",
+          2232
+        ],
+        [
+          "root-packages",
+          2738
+        ],
+        [
+          "studio",
+          2820
+        ],
+        [
+          "board-1:start",
+          2820
+        ],
+        [
+          "board-1:host-loaded",
+          3293
+        ],
+        [
+          "board-1:user-body-wait",
+          3298
+        ],
+        [
+          "board-1:script-wait",
+          3304
+        ],
+        [
+          "board-1:hostless-wait",
+          3539
+        ],
+        [
+          "board-1:done",
+          3633
+        ],
+        [
+          "board-1:rendered",
+          4718
+        ],
+        [
+          "board-2:start",
+          4718
+        ],
+        [
+          "board-2:host-loaded",
+          4837
+        ],
+        [
+          "board-2:user-body-wait",
+          4842
+        ],
+        [
+          "board-2:script-wait",
+          4846
+        ],
+        [
+          "board-2:hostless-wait",
+          5015
+        ],
+        [
+          "board-2:done",
+          5177
+        ],
+        [
+          "board-2:rendered",
+          6098
+        ],
+        [
+          "board-3:start",
+          6098
+        ],
+        [
+          "board-3:host-loaded",
+          6233
+        ],
+        [
+          "board-3:user-body-wait",
+          6243
+        ],
+        [
+          "board-3:script-wait",
+          6248
+        ],
+        [
+          "board-3:hostless-wait",
+          6455
+        ],
+        [
+          "board-3:done",
+          6646
+        ],
+        [
+          "board-3:rendered",
+          8204
+        ],
+        [
+          "board-4:start",
+          8204
+        ],
+        [
+          "board-4:host-loaded",
+          8354
+        ],
+        [
+          "board-4:user-body-wait",
+          8356
+        ],
+        [
+          "board-4:script-wait",
+          8358
+        ],
+        [
+          "board-4:hostless-wait",
+          8508
+        ],
+        [
+          "board-4:done",
+          8646
+        ],
+        [
+          "board-4:rendered",
+          10139
+        ],
+        [
+          "boards-rendered",
+          10139
+        ],
+        [
+          "media-ready",
+          10156
+        ],
+        [
+          "paint-ready",
+          10179
+        ]
+      ],
+      "samples": 111,
+      "sampleSpanSec": 11.174,
+      "workers": {
+        "cpuSeconds": 15.967,
+        "averageCores": 1.429,
+        "peakCores500ms": 2.447,
+        "peakCgroupMiB": 1049.6,
+        "peakWorkingSetMiB": 880.7,
+        "initialWorkingSetMiB": 348.2
+      },
+      "chromiumWorker": {
+        "cpuSeconds": 15.773,
+        "averageCores": 1.412,
+        "peakCores500ms": 2.447,
+        "peakCgroupMiB": 911.6,
+        "peakWorkingSetMiB": 742.9,
+        "initialWorkingSetMiB": 218.3
+      },
+      "studioPage": {
+        "cpuSeconds": 0.194,
+        "averageCores": 0.017,
+        "peakCores500ms": 0.375,
+        "peakCgroupMiB": 138.6,
+        "peakWorkingSetMiB": 138.4,
+        "initialWorkingSetMiB": 129.9
+      },
+      "allServingContainers": {
+        "cpuSeconds": 17.552,
+        "averageCores": 1.571,
+        "peakCores500ms": 3.016,
+        "peakCgroupMiB": 1546.6,
+        "peakWorkingSetMiB": 1039.4,
+        "initialWorkingSetMiB": 509.9
+      },
+      "hostBusyPct": 44.07,
+      "hostMinAvailableMiB": 3405.0,
+      "sha256": "d5208e3397bc4c29446aab3eb38c0472385a32431b41c21fd746b0d2f392c299",
+      "idleWorkingSetMiB": 408.4
+    }
+  ]
+}

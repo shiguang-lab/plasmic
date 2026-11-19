@@ -2842,19 +2842,6 @@ async function getLatestRevisionSynced(
   return (await mgr.tryGetLatestRevisionSynced(projectId))?.revision || 0;
 }
 
-export async function getProjectCover(req: Request, res: Response) {
-  const { projectId } = req.params;
-  res.set("Cache-Control", "private, no-store");
-  await userDbMgr(req).checkProjectPerms(projectId, "viewer", "View project cover");
-  const cover = await fetch(
-    `http://canvas-snapshot-page:3100/_covers/${encodeURIComponent(projectId)}`,
-    { signal: AbortSignal.timeout(5000) }
-  );
-  if (cover.headers.has("retry-after")) res.set("Retry-After", "10");
-  if (cover.status !== 200) { res.status(cover.status).end(); return; }
-  res.type("image/webp").send(Buffer.from(await cover.arrayBuffer()));
-}
-
 export async function getProjectMeta(req: Request, res: Response) {
   const projectId = req.params.projectId;
   const mgr = userDbMgr(req);

@@ -23,7 +23,7 @@ function createUpdateDialog(manager, window, webContents) {
     send();
     window.show();
     window.focus();
-    if (["idle", "current"].includes(manager.state.phase)) {
+    if (["idle", "current", "downloaded"].includes(manager.state.phase)) {
       void manager.command("check");
     }
   }

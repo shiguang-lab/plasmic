@@ -6,6 +6,7 @@ import {
   readFile,
   readdir,
   rm,
+  stat,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -18,7 +19,7 @@ import {
 } from "../../scripts/build-identity.mjs";
 import { bundleStudioFonts } from "../../scripts/bundle-studio-fonts.mjs";
 import { buildReferenceBrowserUi } from "./build-reference-browser-ui.mjs";
-import { deduplicateCanvasPackages } from "./deduplicate-canvas-packages.mjs";
+import { prepareCanvasPackages, stripSourceMap } from "./prepare-canvas-packages.mjs";
 
 const desktop = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -83,9 +84,6 @@ try {
     recursive: true,
     filter: (file) => !file.endsWith(".map"),
   });
-  const canvasDirectory = path.join(target, "static/canvas-packages/build");
-  const aliases = await deduplicateCanvasPackages(canvasDirectory);
-  await writeFile(path.join(canvasDirectory, "aliases.json"), JSON.stringify(aliases));
   await bundleStudioFonts(target, config.studioOrigin);
   if (fromIndex >= 0) await buildReferenceBrowserUi(target);
   else await readFile(path.join(target, "reference-browser-ui.js"));
@@ -102,28 +100,25 @@ try {
     path.join(localeSource, "locale-resolution.cjs"),
     path.join(target, "ui-locales/locale-resolution.cjs"),
   );
-  let count = 0,
-    bytes = 0;
   async function configure(directory) {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const file = path.join(directory, entry.name);
       if (entry.isDirectory()) await configure(file);
-      else {
-        let data = await readFile(file);
-        if (/\.(html|js|css|json|template)$/.test(entry.name)) {
-          let text = data
-            .toString()
-            .replaceAll("http://plasmic-origin.invalid", config.studioOrigin)
-            .replaceAll("http://canvas-origin.invalid", config.canvasOrigin);
-          data = Buffer.from(text);
-          await writeFile(file, data);
-        }
-        count++;
-        bytes += data.length;
+      else if (/\.(html|js|css|json|template)$/.test(entry.name)) {
+        let text = (await readFile(file, "utf8"))
+          .replaceAll("http://plasmic-origin.invalid", config.studioOrigin)
+          .replaceAll("http://canvas-origin.invalid", config.canvasOrigin);
+        if (/\.(js|css)$/.test(entry.name)) text = stripSourceMap(text);
+        await writeFile(file, text);
       }
     }
   }
   await configure(target);
+  await prepareCanvasPackages(path.join(target, "static/canvas-packages/build"));
+  const files = (await readdir(target, { recursive: true, withFileTypes: true }))
+    .filter(entry => entry.isFile());
+  let bytes = 0;
+  for (const entry of files) bytes += (await stat(path.join(entry.parentPath, entry.name))).size;
   await writeFile(
     path.join(target, "desktop-assets.json"),
     JSON.stringify(
@@ -141,7 +136,7 @@ try {
           rendererHash: await hashFiles(target, ["."], ["desktop-assets.json"]),
           desktopHash: await hashFiles(desktop, desktopSources),
         },
-        files: count,
+        files: files.length,
         bytes,
       },
       null,
@@ -149,7 +144,7 @@ try {
     ) + "\n",
   );
   console.log(
-    `Bundled ${count} local assets (${(bytes / 1024 / 1024).toFixed(1)} MiB).`,
+    `Bundled ${files.length} local assets (${(bytes / 1024 / 1024).toFixed(1)} MiB).`,
   );
 } finally {
   if (container) execFileSync("docker", ["rm", container], { stdio: "ignore" });

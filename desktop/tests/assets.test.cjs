@@ -40,27 +40,35 @@ before(async () => {
 });
 after(() => fs.rm(root, { recursive: true, force: true }));
 test("canvas host variants share only matching scripts and retain both local URLs", async () => {
-  const { deduplicateCanvasPackages } = await import("../scripts/deduplicate-canvas-packages.mjs");
+  const { prepareCanvasPackages } = await import("../scripts/prepare-canvas-packages.mjs");
   const directory = path.join(root, "static/canvas-packages/build");
   await fs.mkdir(directory, { recursive: true });
-  const scripts = {
-    "equal.abc.js": "run();\n//# sourceMappingURL=equal.js.abc.map\n",
-    "equal-v2.abc.js": "run();\n//# sourceMappingURL=equal-v2.js.abc.map\n",
-    "different.abc.js": "run();\n//# sourceMappingURL=x.map\nfirst();",
-    "different-v2.abc.js": "run();\n//# sourceMappingURL=x.map\nsecond();",
-    "unpaired-v2.abc.js": "orphan();",
-  };
-  for (const [name, content] of Object.entries(scripts)) {
+  const original = {};
+  for (const revision of ["abc", "def"]) {
+    const license = `equal.${revision}.js.LICENSE.txt`;
+    original[license] = "License text";
+    for (const variant of ["equal", "equal-v2"]) {
+      const name = `${variant}.${revision}.js`;
+      original[name] = `/*! For license information please see ${license} */\nrun();\n//# sourceMappingURL=${name}.map\n`;
+    }
+  }
+  original["different.abc.js"] = "run();\n//# sourceMappingURL=x.map\nfirst();";
+  original["different-v2.abc.js"] = "run();\n//# sourceMappingURL=x.map\nsecond();";
+  for (const [name, content] of Object.entries(original)) {
     await fs.writeFile(path.join(directory, name), content);
   }
-  const aliases = await deduplicateCanvasPackages(directory);
-  assert.deepEqual(aliases, { "equal-v2.abc.js": "equal.abc.js" });
-  await assert.rejects(fs.access(path.join(directory, "equal-v2.abc.js")), { code: "ENOENT" });
-  await fs.writeFile(path.join(directory, "aliases.json"), JSON.stringify(aliases));
+  await prepareCanvasPackages(directory);
+  const aliases = JSON.parse(await fs.readFile(path.join(directory, "aliases.json"), "utf8"));
+  const script = aliases["equal.abc.js"], license = aliases["equal.abc.js.LICENSE.txt"];
+  assert.equal(script, aliases["equal-v2.def.js"]);
+  assert.equal(license, aliases["equal.def.js.LICENSE.txt"]);
+  assert.notEqual(aliases["different.abc.js"], aliases["different-v2.abc.js"]);
+  await assert.rejects(fs.access(path.join(directory, "equal.abc.js")), { code: "ENOENT" });
   for (const origin of [config.canvasOrigin, config.studioOrigin]) {
-    for (const name of Object.keys(scripts)) {
+    for (const name of [...Object.keys(original), license]) {
       const url = origin + "/static/canvas-packages/build/" + name + "?v=1";
-      const body = scripts[aliases[name] ?? name];
+      const body = aliases[name] === script ? `/*! For license information please see ${license} */\nrun();\n`
+        : name.endsWith(".txt") ? "License text" : original[name];
       for (const method of ["GET", "HEAD"]) {
         const response = await handler(new Request(url, { method }));
         assert.equal(response.status, 200);
@@ -72,6 +80,12 @@ test("canvas host variants share only matching scripts and retain both local URL
     const missing = await handler(new Request(origin + "/static/canvas-packages/build/equal-v2.missing.js"));
     assert.equal(missing.status, 404);
   }
+});
+test("desktop drops external trailing source-map directives and preserves inline maps", async () => {
+  const { stripSourceMap } = await import("../scripts/prepare-canvas-packages.mjs");
+  assert.equal(stripSourceMap("a {}\n/*# sourceMappingURL=a.css.map */"), "a {}\n");
+  const inline = "f();\n//# sourceMappingURL=data:application/json;base64,abc";
+  assert.equal(stripSourceMap(inline), inline);
 });
 test("Studio navigation and refresh use local index without a network fallback", async () => {
   const count = remote.length;

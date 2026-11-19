@@ -1,0 +1,153 @@
+{
+  "environment": "UGREEN NAS, Intel Pentium Gold 8505, 6 logical CPUs, Chromium 117, persistent worker with a fresh context for each task. Real saved main revision; no session cookies.",
+  "method": "Three sequential uncached PNG renders. Elapsed covers page.goto through file and directory fsync; readiness precedes PNG capture. Sampled cgroup v2 at ~100ms. 1 core = 100% of one logical CPU. Working set subtracts inactive_file. Host CPU includes unrelated NAS services.",
+  "runs": [
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.png",
+      "bytes": 22746,
+      "startEpochMs": 1795026399526,
+      "endEpochMs": 1795026410933,
+      "readyMs": 11172,
+      "elapsedMs": 11406,
+      "samples": 114,
+      "sampleSpanSec": 11.459,
+      "workers": {
+        "cpuSeconds": 16.656,
+        "averageCores": 1.454,
+        "peakCores500ms": 2.232,
+        "peakCgroupMiB": 734.9,
+        "peakWorkingSetMiB": 732.8,
+        "initialWorkingSetMiB": 242.0
+      },
+      "chromiumWorker": {
+        "cpuSeconds": 16.367,
+        "averageCores": 1.428,
+        "peakCores500ms": 2.232,
+        "peakCgroupMiB": 614.5,
+        "peakWorkingSetMiB": 612.3,
+        "initialWorkingSetMiB": 150.3
+      },
+      "studioPage": {
+        "cpuSeconds": 0.289,
+        "averageCores": 0.025,
+        "peakCores500ms": 0.425,
+        "peakCgroupMiB": 121.4,
+        "peakWorkingSetMiB": 121.4,
+        "initialWorkingSetMiB": 91.7
+      },
+      "allServingContainers": {
+        "cpuSeconds": 18.23,
+        "averageCores": 1.591,
+        "peakCores500ms": 3.008,
+        "peakCgroupMiB": 902.9,
+        "peakWorkingSetMiB": 884.8,
+        "initialWorkingSetMiB": 393.2
+      },
+      "hostBusyPct": 48.06,
+      "hostMinAvailableMiB": 3243.5,
+      "sha256": "311d8954df0c85cde384a48cccd7d7652c12c702181729c99cecc67656d6823d",
+      "idleWorkingSetMiB": 263.9
+    },
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.png",
+      "bytes": 22692,
+      "startEpochMs": 1795026416001,
+      "endEpochMs": 1795026426052,
+      "readyMs": 9822,
+      "elapsedMs": 10050,
+      "samples": 101,
+      "sampleSpanSec": 10.114,
+      "workers": {
+        "cpuSeconds": 15.138,
+        "averageCores": 1.497,
+        "peakCores500ms": 2.271,
+        "peakCgroupMiB": 742.1,
+        "peakWorkingSetMiB": 740.0,
+        "initialWorkingSetMiB": 263.9
+      },
+      "chromiumWorker": {
+        "cpuSeconds": 14.855,
+        "averageCores": 1.469,
+        "peakCores500ms": 2.271,
+        "peakCgroupMiB": 603.6,
+        "peakWorkingSetMiB": 601.5,
+        "initialWorkingSetMiB": 143.5
+      },
+      "studioPage": {
+        "cpuSeconds": 0.283,
+        "averageCores": 0.028,
+        "peakCores500ms": 0.419,
+        "peakCgroupMiB": 138.9,
+        "peakWorkingSetMiB": 138.9,
+        "initialWorkingSetMiB": 120.4
+      },
+      "allServingContainers": {
+        "cpuSeconds": 16.716,
+        "averageCores": 1.653,
+        "peakCores500ms": 2.763,
+        "peakCgroupMiB": 910.4,
+        "peakWorkingSetMiB": 892.3,
+        "initialWorkingSetMiB": 415.6
+      },
+      "hostBusyPct": 43.18,
+      "hostMinAvailableMiB": 3202.4,
+      "sha256": "c00d51bf19380f2c2d879ec155f8d9e2466f04dce6d64f7bb40f62d9d7280ffb",
+      "idleWorkingSetMiB": 273.2
+    },
+    {
+      "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+      "revision": 577,
+      "boards": 4,
+      "name": "4yd87ATApmu8JkZHh6x7Ac-577.png",
+      "bytes": 22756,
+      "startEpochMs": 1795026431129,
+      "endEpochMs": 1795026442177,
+      "readyMs": 10758,
+      "elapsedMs": 11048,
+      "samples": 110,
+      "sampleSpanSec": 11.009,
+      "workers": {
+        "cpuSeconds": 16.088,
+        "averageCores": 1.461,
+        "peakCores500ms": 2.086,
+        "peakCgroupMiB": 785.4,
+        "peakWorkingSetMiB": 782.3,
+        "initialWorkingSetMiB": 283.2
+      },
+      "chromiumWorker": {
+        "cpuSeconds": 15.868,
+        "averageCores": 1.441,
+        "peakCores500ms": 2.085,
+        "peakCgroupMiB": 642.0,
+        "peakWorkingSetMiB": 639.1,
+        "initialWorkingSetMiB": 144.8
+      },
+      "studioPage": {
+        "cpuSeconds": 0.221,
+        "averageCores": 0.02,
+        "peakCores500ms": 0.339,
+        "peakCgroupMiB": 143.7,
+        "peakWorkingSetMiB": 143.7,
+        "initialWorkingSetMiB": 138.4
+      },
+      "allServingContainers": {
+        "cpuSeconds": 17.623,
+        "averageCores": 1.601,
+        "peakCores500ms": 2.669,
+        "peakCgroupMiB": 950.3,
+        "peakWorkingSetMiB": 929.7,
+        "initialWorkingSetMiB": 436.7
+      },
+      "hostBusyPct": 47.97,
+      "hostMinAvailableMiB": 3199.2,
+      "sha256": "badda1277707bdb8dff300433a170ff8298fd1fb7652cdb36d3ba7892d35e256",
+      "idleWorkingSetMiB": 315.4
+    }
+  ]
+}

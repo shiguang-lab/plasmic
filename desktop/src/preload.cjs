@@ -129,7 +129,7 @@ if (window.top === window) {
     },
   });
 }
-const pending = new Set();
+const pending = new Map();
 ipcRenderer.on("desktop:caller-disconnected", (_event, { callerId }) => {
   window.postMessage({ channel: "plasmic-desktop-caller-disconnected", callerId }, location.origin);
 });
@@ -139,7 +139,8 @@ ipcRenderer.on("desktop:cancel", (_event, { id }) => {
   }
 });
 ipcRenderer.on("desktop:invoke", (_event, request) => {
-  pending.add(request.id);
+  pending.set(request.id, request.method);
+  if (request.method === "metadata") console.info("[Desktop metadata] " + request.id + " preload-received");
   window.postMessage(
     { channel: "plasmic-desktop-request", ...request },
     location.origin,
@@ -150,10 +151,12 @@ window.addEventListener("message", (event) => {
     event.source !== window ||
     event.origin !== location.origin ||
     event.data?.channel !== "plasmic-desktop-response" ||
-    !pending.delete(event.data.id)
+    !pending.has(event.data.id)
   ) {
     return;
   }
+  if (pending.get(event.data.id) === "metadata") console.info("[Desktop metadata] " + event.data.id + " preload-replied");
+  pending.delete(event.data.id);
   ipcRenderer.send("desktop:result", event.data.id, event.data.result);
 });
 

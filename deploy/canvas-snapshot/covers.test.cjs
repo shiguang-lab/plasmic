@@ -12,8 +12,10 @@ test("autosaves coalesce, a continuously edited project eventually renders", asy
     calls++;
     return { projectId: "p", revision: 80 };
   };
-  await queue.run(capture, () => 299999);
-  await queue.run(capture, () => 316000);
+  assert.equal(await queue.run(capture, () => 299999), undefined);
+  assert.deepEqual(await queue.run(capture, () => 316000), {
+    projectId: "p", publishedRevision: 80,
+  });
   queue.offer("p", 80, 316001, true);
   await queue.run(capture, () => 316002);
   assert.equal(calls, 1);
@@ -52,7 +54,7 @@ test("a failed screenshot retains the previous revision, backs off and then park
     throw Error("simulated screenshot timeout");
   };
   for (const now of [0, 1, 15000, 75000, 375000, 999999])
-    await queue.run(fail, () => now);
+    assert.equal(await queue.run(fail, () => now), undefined);
   assert.equal(calls, 4);
   assert.equal(queue.published.get("p"), 1);
   assert.equal(queue.pending.get("p").due, Infinity);

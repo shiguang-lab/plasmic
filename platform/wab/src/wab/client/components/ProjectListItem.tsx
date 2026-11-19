@@ -233,7 +233,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
             <ProjectPreview
               key={selfInfo.id + project.id}
               projectId={project.id}
-              updatedAt={new Date(project.updatedAt).toISOString()}
+              account={selfInfo.id}
             />
           ) : (
             <>

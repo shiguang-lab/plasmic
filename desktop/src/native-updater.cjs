@@ -4,8 +4,9 @@ const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const semver = require("semver");
 const { NsisUpdater, AppImageUpdater } = require("electron-updater");
+const { DownloadedUpdateHelper } = require("electron-updater/out/DownloadedUpdateHelper");
 const { CancellationError, CURRENT_APP_INSTALLER_FILE_NAME } = require("builder-util-runtime");
-const { downloadArchive, seedArchive } = require("./update-download.cjs");
+const { downloadArchive, seedArchive, pruneArchives } = require("./update-download.cjs");
 
 function artifact(updater, version, fileInfo) {
   const url = new URL(fileInfo.url);
@@ -35,14 +36,6 @@ function transport(updater, headers) {
 async function download(updater, fileInfo, options, destination) {
   const { info, cache, archive } = artifact(updater, options.updateInfoAndProvider.info.version, fileInfo);
   await fs.mkdir(cache, { recursive: true, mode: 0o700 });
-  // This directory is outside electron-updater's pending directory, which it
-  // clears on failure. Retain only the running base and the current target.
-  for (const entry of await fs.readdir(cache, { withFileTypes: true })) {
-    const match = /^Plasmic-(\d+\.\d+\.\d+)\.(?:exe|AppImage)(?:\.(?:json|blockmap|partial(?:\.json)?))?$/.exec(entry.name);
-    if (entry.isFile() && match && ![updater.currentVersion.version, info.version].includes(match[1])) {
-      await fs.rm(path.join(cache, entry.name));
-    }
-  }
   const controller = new AbortController();
   const token = options.cancellationToken;
   const cancel = () => controller.abort(new CancellationError());
@@ -50,7 +43,7 @@ async function download(updater, fileInfo, options, destination) {
   try {
     await downloadArchive({
       fetch: transport(updater, options.requestHeaders), info, archive,
-      currentVersion: updater.currentVersion.version, arch: process.arch,
+      arch: process.arch,
       signal: controller.signal,
       onProgress: (progress) => updater.emit("download-progress", progress),
     });
@@ -64,16 +57,52 @@ async function download(updater, fileInfo, options, destination) {
   }
 }
 
+// The SDK empties its pending directory when a replacement fails. Stage the
+// replacement in a second slot so install-on-quit always sees a verified file.
+class ReplacementHelper extends DownloadedUpdateHelper {
+  get cacheDirForPendingUpdate() { return path.join(this.cacheDir, "pending-next"); }
+}
+
+const withPendingReplacement = (Base) => class extends Base {
+  getOrCreateDownloadHelper() {
+    return this.replacement || super.getOrCreateDownloadHelper();
+  }
+
+  async executeDownload(options) {
+    const ready = this.downloadedUpdateHelper;
+    const version = options.downloadUpdateOptions.updateInfoAndProvider.info.version;
+    if (ready?.file && ready.versionInfo?.version !== version) {
+      const Helper = ready instanceof ReplacementHelper ? DownloadedUpdateHelper : ReplacementHelper;
+      this.replacement = new Helper(ready.cacheDir);
+    }
+    try {
+      const target = artifact(this, version, options.fileInfo);
+      const files = await super.executeDownload(options);
+      if (this.replacement) await ready.clear();
+      await pruneArchives(target.archive, this.currentVersion.version)
+        .catch(error => this.logger.info(`Cannot prune cached updates: ${error.message}`));
+      return files;
+    } finally {
+      this.replacement = undefined;
+    }
+  }
+
+  dispatchUpdateDownloaded(event) {
+    if (this.replacement) this.downloadedUpdateHelper = this.replacement;
+    super.dispatchUpdateDownloaded(event);
+  }
+};
+
 // NSIS still checks the publisher signature and AppImage still sets executable
 // permissions after the shared download.
-class WindowsUpdater extends NsisUpdater {
+class WindowsUpdater extends withPendingReplacement(NsisUpdater) {
   async differentialDownloadInstaller(fileInfo, options, destination) {
     await download(this, fileInfo, options, destination);
     return false;
   }
 }
 
-class LinuxUpdater extends AppImageUpdater {
+class LinuxUpdater extends withPendingReplacement(AppImageUpdater) {
   async downloadDifferential(fileInfo, _oldFile, destination, _provider, options) {
     await download(this, fileInfo, options, destination);
     return false;

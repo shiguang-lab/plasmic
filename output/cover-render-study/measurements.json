@@ -1,0 +1,328 @@
+{
+  "host": "Apple M4 / macOS-26.6.2-arm64-arm-64bit",
+  "gitHead": "0f55db6288d77233368d63039bc4c5a8654f59af",
+  "scope": "Local generated covers only. No writes to production.",
+  "renderMethod": "Local built canvas-snapshot and state-management fixture; fixed JS wall clock, no remote resources, 640x360 DPR1, one already-running browser per variant, isolated context per run. Navigation to lossless WebP bytes. Excludes startup, queue, durable write. Peak sampled browser process-tree RSS in MiB, includes shared pages more than once; excludes Node. WebKit excluded from memory statistics due to XPC process ownership. First run warmup. 17 boards are clones of the three fixture pages, no overlap. Partial modes manually rerender first board every time; do not test invalidation.",
+  "visualTrace": {
+    "ready": "ready",
+    "events": [
+      [
+        "This is page 1\nGo back"
+      ],
+      [
+        "",
+        "This is page 2:  value\nGo back"
+      ],
+      [
+        "",
+        "",
+        "Go to page1\nGo to page2\nIncrement\nGo to page2 (dynamic value)"
+      ]
+    ],
+    "end": [
+      "",
+      "",
+      "Go to page1\nGo to page2\nIncrement\nGo to page2 (dynamic value)"
+    ]
+  },
+  "cases": {
+    "pageArenas3": {
+      "chromium": {
+        "version": "148.0.7778.96",
+        "ms": [
+          888,
+          855,
+          855,
+          844,
+          860
+        ],
+        "medianMs": 855,
+        "sampledPeakRSSMiB": [
+          979,
+          979,
+          984,
+          987,
+          981
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "shell": {
+        "version": "148.0.7778.96",
+        "ms": [
+          715,
+          740,
+          720,
+          739,
+          710
+        ],
+        "medianMs": 720,
+        "sampledPeakRSSMiB": [
+          497,
+          500,
+          499,
+          506,
+          500
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          3704,
+          3704,
+          3704,
+          3704,
+          3704
+        ]
+      },
+      "firefox": {
+        "version": "150.0.2",
+        "ms": [
+          987,
+          973,
+          1000,
+          979,
+          993
+        ],
+        "medianMs": 987,
+        "sampledPeakRSSMiB": [
+          1034,
+          1076,
+          1134,
+          1184,
+          1185
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          3707,
+          3707,
+          3707,
+          3707,
+          3707
+        ]
+      },
+      "webkit": {
+        "version": "26.4",
+        "ms": [
+          877,
+          806,
+          737,
+          747,
+          775
+        ],
+        "medianMs": 775,
+        "sampledPeakRSSMiB": null,
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          2600,
+          2600,
+          2600,
+          2600,
+          2600
+        ]
+      },
+      "bounded": {
+        "version": "148.0.7778.96",
+        "ms": [
+          977,
+          979,
+          976,
+          984,
+          982
+        ],
+        "medianMs": 979,
+        "sampledPeakRSSMiB": [
+          972,
+          974,
+          979,
+          974,
+          978
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          8430,
+          8430,
+          8430,
+          8430,
+          8430
+        ]
+      },
+      "partial": {
+        "version": "148.0.7778.96",
+        "ms": [
+          691,
+          693,
+          673,
+          692,
+          671
+        ],
+        "medianMs": 691,
+        "sampledPeakRSSMiB": [
+          953,
+          955,
+          954,
+          954,
+          955
+        ],
+        "reference": "bounded1",
+        "unequalRGBPixels": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "singleArena17": {
+      "chromium": {
+        "version": "148.0.7778.96",
+        "ms": [
+          2101,
+          2055,
+          2073
+        ],
+        "medianMs": 2073,
+        "sampledPeakRSSMiB": [
+          1150,
+          1147,
+          1150
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          0,
+          0,
+          0
+        ]
+      },
+      "shell": {
+        "version": "148.0.7778.96",
+        "ms": [
+          1480,
+          1677,
+          1525
+        ],
+        "medianMs": 1525,
+        "sampledPeakRSSMiB": [
+          665,
+          662,
+          661
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          12468,
+          12468,
+          12468
+        ]
+      },
+      "bounded": {
+        "version": "148.0.7778.96",
+        "ms": [
+          2728,
+          2794,
+          2823
+        ],
+        "medianMs": 2794,
+        "sampledPeakRSSMiB": [
+          1092,
+          1091,
+          1100
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          1658,
+          1630,
+          1658
+        ]
+      },
+      "partial": {
+        "version": "148.0.7778.96",
+        "ms": [
+          707,
+          702,
+          693
+        ],
+        "medianMs": 702,
+        "sampledPeakRSSMiB": [
+          951,
+          953,
+          954
+        ],
+        "reference": "bounded1",
+        "unequalRGBPixels": [
+          0,
+          0,
+          0
+        ]
+      },
+      "shell-bounded": {
+        "version": "148.0.7778.96",
+        "ms": [
+          2211,
+          2194,
+          2216
+        ],
+        "medianMs": 2211,
+        "sampledPeakRSSMiB": [
+          607,
+          614,
+          614
+        ],
+        "reference": "chromium1",
+        "unequalRGBPixels": [
+          12468,
+          12468,
+          12468
+        ]
+      },
+      "shell-partial": {
+        "version": "148.0.7778.96",
+        "ms": [
+          577,
+          597,
+          579
+        ],
+        "medianMs": 579,
+        "sampledPeakRSSMiB": [
+          479,
+          477,
+          479
+        ],
+        "reference": "shell-bounded1",
+        "unequalRGBPixels": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "composition": {
+    "node": {
+      "p50Ms": 56.913500000000056,
+      "p95Ms": 61.5385,
+      "maxProcessRssMiB": 118.578125,
+      "encodedBytes": 10738,
+      "unequalRGBPixels": 0
+    },
+    "py": {
+      "p50Ms": 50.38481249999998,
+      "p95Ms": 54.85308399999988,
+      "maxProcessRssMiB": 34.859375,
+      "encodedBytes": 10740,
+      "unequalRGBPixels": 0
+    },
+    "go": {
+      "p50Ms": 54.4614995,
+      "p95Ms": 57.232708,
+      "maxProcessRssMiB": 28.953125,
+      "encodedBytes": 10738,
+      "unequalRGBPixels": 0
+    }
+  },
+  "compositionMethod": "4 tight disjoint PNG tiles cut from the published NAS 640x360 cover and loaded in memory; each run decodes, places tiles, encodes lossless WebP. Per tool: 3 warmups, 30 timings, P95 nearest rank, process RSS high-water over full run via /usr/bin/time -l. Warm process; no live component rendering or disk I/O in timings."
+}

@@ -2,9 +2,11 @@
 
 The project list requests a WebP from the Studio API after the card becomes visible. Studio checks project viewer permission before every read. The screenshot page and its model require a short-lived, project-scoped service credential. Both NAS services use the internal Studio network.
 
+The project list shares one authenticated event stream across its mounted cover cards. It closes the stream when the last card unmounts, the document is hidden, or Desktop deactivates its Dashboard. The snapshot service emits the published revision after the file is durable. Studio checks viewer permission before forwarding it. Visible cards reconcile revisions after the publisher connects or reconnects and request a WebP only when needed.
+
 Every 15 seconds the service checks committed main revisions using project metadata. Changes since installation wait for 45 seconds of quiet, with a five-minute limit from the first observed change. The first visible card requests a missing historical cover immediately. The queue coalesces revisions and allows one browser job at a time. A restart reloads the successful revisions from disk and reconciles current saves.
 
-Each job opens a fresh context in resident Chromium, loads the complete saved canvas, waits for the artboards, images and fonts, screenshots it once and encodes a lossless 640 × 360 WebP. The file and directory are synced before the new revision is published. A failure retains the last cover. Retries wait 15 seconds, one minute and five minutes, then stop until a newer revision or service restart. The two most recent successful WebPs are retained.
+Each job opens a fresh context in resident Chromium, loads the complete saved canvas, waits for the artboards and gives images and fonts a shared five-second loading budget, screenshots it once and encodes a lossless 640 × 360 WebP. Project images, stylesheets, fonts and media can use any public HTTP(S) domain. Their requests use the server’s public-address filter. An unavailable image retains its layout box and the worker reports the count in the capture result. The file and directory are synced before the new revision is published. A failure retains the last cover. Retries wait 15 seconds, one minute and five minutes, then stop until a newer revision or service restart. The two most recent successful WebPs are retained.
 
 ## First deployment
 

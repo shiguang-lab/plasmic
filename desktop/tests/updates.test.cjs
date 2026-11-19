@@ -76,6 +76,23 @@ test("checks download automatically and an explicit restart saves before install
   await updates.command("install");
   assert.deepEqual(order, ["save", "install"]);
 });
+test("an install confirmed during a feed check uses the displayed ready version", async () => {
+  const updater = new EventEmitter();
+  const updates = manager(updater);
+  updater.emit("update-downloaded", manifest);
+  let finish;
+  updater.checkForUpdates = () => new Promise(resolve => { finish = resolve; });
+  updater.downloadUpdate = async () => assert.fail("The user already confirmed the ready version");
+  let installed;
+  updater.quitAndInstall = async () => { installed = updates.state.version; };
+  const checking = updates.command("check");
+  const installing = updates.command("install");
+  updater.emit("update-available", { version: "0.0.3" });
+  finish();
+  await Promise.all([checking, installing]);
+  assert.equal(installed, manifest.version);
+});
+
 test("normal quit prepares only a downloaded macOS update and does not request a restart", async () => {
   const updater = new EventEmitter();
   const order = [];
@@ -90,6 +107,28 @@ test("normal quit prepares only a downloaded macOS update and does not request a
   await Promise.all([updates.prepareQuit(), updates.prepareQuit()]);
   assert.deepEqual(order, ["prepare on quit"]);
 });
+test("normal quit during a replacement stages the ready version without waiting for the network", async () => {
+  const updater = new EventEmitter();
+  const updates = manager(updater);
+  updater.emit("update-downloaded", manifest);
+  const next = { version: "0.0.3" };
+  updater.checkForUpdates = async () => updater.emit("update-available", next);
+  let finish;
+  updater.downloadUpdate = () => new Promise(resolve => { finish = resolve; });
+  let preparations = 0;
+  updater.prepareInstallOnQuit = async () => { preparations++; };
+  const checking = updates.command("check");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(updates.state.phase, "downloading");
+  await updates.prepareQuit();
+  assert.equal(preparations, 1);
+  updater.emit("update-downloaded", next);
+  finish();
+  await checking;
+  assert.equal(updates.state.phase, "installing");
+  assert.equal(updates.state.version, manifest.version);
+});
+
 test("failed save reports failure and blocks installation and a later check allows installation", async () => {
   const updater = new EventEmitter();
   let installs = 0,
@@ -147,21 +186,22 @@ test("overlapping checks share one request; failed downloads wait for a later ch
   assert.equal(checks, 2);
   assert.equal(downloads, 2);
 });
-test("startup downloads in the background and periodic checks cannot interrupt the download or ready state", async (t) => {
+test("startup downloads in the background and periodic checks continue once ready without downloading the same release twice", async (t) => {
   t.mock.timers.enable({ apis: ["setInterval"] });
   const updater = new EventEmitter();
   let checks = 0,
     downloads = 0,
+    release = manifest,
     finish;
   updater.checkForUpdates = async () => {
     checks++;
-    updater.emit("update-available", manifest);
+    updater.emit("update-available", release);
   };
   updater.downloadUpdate = () => {
     downloads++;
     return new Promise((resolve) => {
       finish = () => {
-        updater.emit("update-downloaded", manifest);
+        updater.emit("update-downloaded", release);
         resolve();
       };
     });
@@ -177,8 +217,17 @@ test("startup downloads in the background and periodic checks cannot interrupt t
   finish();
   await updates.running;
   t.mock.timers.tick(60 * 1000);
+  await updates.running;
   assert.equal(updates.state.phase, "downloaded");
-  assert.equal(checks, 1);
+  assert.equal(checks, 2);
+  assert.equal(downloads, 1);
+  release = { version: "0.0.5" };
+  t.mock.timers.tick(60 * 1000);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(downloads, 2);
+  finish();
+  await updates.running;
+  assert.equal(updates.state.version, release.version);
 });
 test("stable version comparison rejects downgrade, prerelease, traversal and cross-origin artifacts", () => {
   assert.equal(parseManifest(YAML.stringify(manifest), "0.0.2", feed), null);

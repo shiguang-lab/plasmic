@@ -1,0 +1,291 @@
+{
+  "environment": "macOS 原生 Electron StudioWindow，独立测试用户目录。只读回放 NAS 上已发布的「海外 O 端」4.0.1 模型和依赖，17 个页面。修复前使用已安装 0.9.6 的 Studio 渲染资源，修复后使用本地生产构建。权限和项目读取由测试后端提供。",
+  "measurement": "每个 metadata 请求从主进程派发到主进程收到结果或超时，单位毫秒。stages 是自派发起经过的时间，visible 是派发时原生窗口的可见性。每轮先在指定窗口状态连续读取三次，再切换窗口重复测试。",
+  "normalHiddenFirstRequestBeforeFix": {
+    "id": "259213f7-84d0-4537-a7fe-95a230caa287",
+    "visible": false,
+    "outcome": "received",
+    "durationMs": 2310,
+    "stages": {
+      "preload-received": 0,
+      "page-received": 1,
+      "context-requested": 1,
+      "context-returned": 2304,
+      "page-replied": 2304,
+      "preload-replied": 2310
+    }
+  },
+  "canvasResourceDelayMs": 5000,
+  "readinessProbeTimeoutMs": 2000,
+  "beforeVisible": {
+    "firstThree": [
+      {
+        "id": "597e382b-6579-42e4-af73-93316eccc960",
+        "visible": true,
+        "outcome": "timeout",
+        "durationMs": 2001,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 1,
+          "context-requested": 1
+        }
+      },
+      {
+        "id": "b8640732-1cac-4ddc-ba05-6b96486dbcb5",
+        "visible": true,
+        "outcome": "timeout",
+        "durationMs": 2001,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 1,
+          "context-requested": 1
+        }
+      },
+      {
+        "id": "9b9aeb7e-b875-4ea3-a00b-ab317fdd30fc",
+        "visible": true,
+        "outcome": "received",
+        "durationMs": 1902,
+        "stages": {
+          "preload-received": 1,
+          "page-received": 1,
+          "context-requested": 1,
+          "context-returned": 1902,
+          "page-replied": 1902,
+          "preload-replied": 1902
+        }
+      }
+    ],
+    "allSix": 6,
+    "allSixTimeouts": 2,
+    "canvasWaitMsInCompletionOrder": [
+      4083,
+      6292,
+      1878,
+      0,
+      0,
+      0
+    ]
+  },
+  "afterVisible": {
+    "firstThree": [
+      {
+        "id": "2107b9fa-96e5-474a-a945-999aad20c152",
+        "visible": true,
+        "outcome": "received",
+        "durationMs": 5,
+        "stages": {
+          "preload-received": 1,
+          "page-received": 1,
+          "context-requested": 1,
+          "context-returned": 4,
+          "page-replied": 4,
+          "preload-replied": 5
+        }
+      },
+      {
+        "id": "0771b263-aac4-439c-a10f-3e882271638b",
+        "visible": true,
+        "outcome": "received",
+        "durationMs": 1,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 0,
+          "context-requested": 1,
+          "context-returned": 1,
+          "page-replied": 1,
+          "preload-replied": 1
+        }
+      },
+      {
+        "id": "65b40cd4-cc53-44bc-946c-87e358d24894",
+        "visible": true,
+        "outcome": "received",
+        "durationMs": 3,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 1,
+          "context-requested": 1,
+          "context-returned": 3,
+          "page-replied": 3,
+          "preload-replied": 3
+        }
+      }
+    ],
+    "allSix": 6,
+    "allSixTimeouts": 0,
+    "canvasWaitMsInCompletionOrder": []
+  },
+  "beforeHidden": {
+    "firstThree": [
+      {
+        "id": "36034a7d-f4a7-4b10-8052-9c3116c22bb4",
+        "visible": false,
+        "outcome": "timeout",
+        "durationMs": 2001,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 1,
+          "context-requested": 1
+        }
+      },
+      {
+        "id": "039c724a-de2b-400f-9aa8-9c4ce2640564",
+        "visible": false,
+        "outcome": "timeout",
+        "durationMs": 2001,
+        "stages": {
+          "preload-received": 1,
+          "page-received": 1,
+          "context-requested": 1
+        }
+      },
+      {
+        "id": "c5312f6e-55bf-477d-988c-bffe032de0fc",
+        "visible": false,
+        "outcome": "timeout",
+        "durationMs": 2001,
+        "stages": {
+          "preload-received": 1,
+          "page-received": 1,
+          "context-requested": 1
+        }
+      }
+    ],
+    "allSix": 6,
+    "allSixTimeouts": 3,
+    "canvasWaitMsInCompletionOrder": [
+      2382,
+      4586,
+      6795,
+      58,
+      0,
+      0
+    ]
+  },
+  "afterHidden": {
+    "firstThree": [
+      {
+        "id": "16471d15-e99e-471d-a6f2-a8e97315fd90",
+        "visible": false,
+        "outcome": "received",
+        "durationMs": 6,
+        "stages": {
+          "preload-received": 1,
+          "page-received": 1,
+          "context-requested": 1,
+          "context-returned": 5,
+          "page-replied": 5,
+          "preload-replied": 6
+        }
+      },
+      {
+        "id": "18943d89-b1f1-40cb-a0ff-f9576769c05e",
+        "visible": false,
+        "outcome": "received",
+        "durationMs": 3,
+        "stages": {
+          "preload-received": 1,
+          "page-received": 1,
+          "context-requested": 1,
+          "context-returned": 2,
+          "page-replied": 2,
+          "preload-replied": 3
+        }
+      },
+      {
+        "id": "fff668d5-d54f-402c-b33f-1fbf19a037ae",
+        "visible": false,
+        "outcome": "received",
+        "durationMs": 2,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 1,
+          "context-requested": 1,
+          "context-returned": 2,
+          "page-replied": 2,
+          "preload-replied": 2
+        }
+      }
+    ],
+    "allSix": 6,
+    "allSixTimeouts": 0,
+    "canvasWaitMsInCompletionOrder": []
+  },
+  "stateProbeWith3000msDeadlineBeforeFix": {
+    "firstThree": [
+      {
+        "id": "fb7d68e0-85c4-4ba1-bd64-2e42317c260b",
+        "visible": false,
+        "outcome": "timeout",
+        "durationMs": 3002,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 0,
+          "context-requested": 0
+        }
+      },
+      {
+        "id": "7a75a88f-99c3-4d9a-bd99-928ff50152d6",
+        "visible": false,
+        "outcome": "timeout",
+        "durationMs": 3002,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 1,
+          "context-requested": 1
+        }
+      },
+      {
+        "id": "8df77aa3-b979-4609-bb6b-7a62b81f4634",
+        "visible": false,
+        "outcome": "timeout",
+        "durationMs": 3001,
+        "stages": {
+          "preload-received": 0,
+          "page-received": 0,
+          "context-requested": 0
+        }
+      }
+    ],
+    "allSix": 6,
+    "allSixTimeouts": 3,
+    "canvasWaitMsInCompletionOrder": [
+      3200,
+      9611,
+      6404,
+      0,
+      0,
+      0
+    ]
+  },
+  "stalledCanvas": {
+    "injectedResourceDelayMs": 134000,
+    "beforeOpenTemplateError": "Design did not become ready",
+    "beforeTimedOutProbes": 54,
+    "afterOpenTemplateMs": 2889,
+    "afterTemplateVersion": "4.0.1",
+    "afterMetadataTimeouts": 0,
+    "afterMcpChecks": [
+      "get_app_state、get_editor_view 在显示、隐藏、重新显示时均返回同一项目和会话",
+      "只读模板 save 在执行前按权限拒绝"
+    ]
+  },
+  "hiddenEditableFixture": {
+    "fixture": "使用同一模板模型构造的可写测试项目，新增 MetadataSaveQA 画布后调用 MCP save。保存请求仅写入测试后端。",
+    "receipt": {
+      "saved": {
+        "projectId": "metadata-save-fixture",
+        "revision": 2,
+        "saved": true
+      },
+      "revisions": [
+        {
+          "revision": "2",
+          "containsCanvas": true
+        }
+      ]
+    }
+  },
+  "historicalLimit": "首次线上事故尚无逐段日志。受控回放确认了足以造成同样两类超时的等待点，无法据此确定当时具体阻塞的是哪项画板资源。"
+}

@@ -28,6 +28,11 @@ import * as authRoutes from "@/wab/server/auth/routes";
 import { apiAuth } from "@/wab/server/auth/routes";
 import { withShiguangDirectoryCache } from "@/wab/server/auth/shiguang-directory";
 import {
+  getCoverRevisions,
+  getProjectCover,
+  streamCoverEvents,
+} from "@/wab/server/routes/project-covers";
+import {
   checkShiguangOrigin,
   shiguangIdentityMiddleware,
 } from "@/wab/server/auth/shiguang";
@@ -231,7 +236,6 @@ import {
   getPkgVersionPublishStatus,
   getPlumePkg,
   getPlumePkgVersionStrings,
-  getProjectCover,
   getProjectMeta,
   getProjectRev,
   getProjectRevWithoutData,
@@ -1073,6 +1077,9 @@ export function addMainAppServerRoutes(
   app.post("/api/v1/template-center/:templateId/unpublish", adminOnly, withNext(templateCenter.unpublishDesignTemplate));
   app.delete("/api/v1/template-center/:templateId", adminOnly, withNext(templateCenter.deleteDesignTemplate));
 
+  // Long-lived streams use short permission reads, without a request-lifetime transaction.
+  app.get("/api/v1/project-covers/events", streamCoverEvents);
+  app.get("/api/v1/project-covers/revisions", getCoverRevisions);
   app.get("/api/v1/projects/:projectId/cover", withNext(getProjectCover));
   app.get("/api/v1/projects/:projectId/preview-publication", withNext(getPreviewPublication));
   app.get("/api/v1/hostless-libraries/:name/canvas", withNext(getHostlessLibraryCanvas));

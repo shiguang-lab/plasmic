@@ -1,0 +1,253 @@
+{
+  "date": "2026-11-19",
+  "project": {
+    "revision": 577,
+    "modelObjects": 10819,
+    "boards": 4,
+    "dependencyPackages": 4
+  },
+  "limits": {
+    "vCPU": 2,
+    "memoryMiB": 1280,
+    "swapAllowed": false,
+    "concurrency": 1
+  },
+  "method": "Serial fresh Chromium 117 processes, pinned 0.9.4 preview engine, exact same input and fonts in Shanghai and NAS. NAS benchmark is local render, excludes project transfer. Shanghai end-to-end starts with GET over direct Tailscale, includes NAS read-only Postgres extraction of model and pinned dependencies and library artifacts, gzip, download, unpack and hash verification, starting the disposable container, render, file write, browser/container shutdown, PNG POST to NAS test directory, fsync and SHA-256 readback before receipt. Static engine/browser/font installation, queue wait and production gateway/authentication are outside measured jobs. No production project mutation or cover replacement.",
+  "limitsOfComparison": "Render CPU is worker cgroup CPU seconds from browser launch to completed PNG verification; peak memory is memory.peak of a fresh container, including Chromium and Node. Browser-only sampled PSS is reported separately. E2E CPU figures for HTTP on the NAS are not measured. Each Shanghai render has a real fresh project pull; runtime and fonts are prepositioned and the OS file cache may be warm. NAS and Shanghai use Debian bookworm base images, identical Node binary and Chromium. Short serial trials at overnight load, not throughput or P95. The run* cases use 30s internal preview-ready wait; long* cases, if present, use 90s in the isolated benchmark only.",
+  "shanghai": [
+    {
+      "label": "long1",
+      "epoch": 1795022153.4178154,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1103,
+      "timeToHeadersMs": 1156,
+      "downloadBodyMs": 2276,
+      "fetchAndUnpackMs": 3639,
+      "workerLifecycleMs": 44485,
+      "render": {
+        "startAt": 1795022157943,
+        "endAt": 1795022201272,
+        "ms": 43329,
+        "renderMs": 42858,
+        "cpuSec": 70.03,
+        "chromePssPeakMiB": 634,
+        "peakMiB": 592,
+        "memPeakMiB": 593,
+        "width": 640,
+        "height": 360,
+        "colored": 65664,
+        "bytes": 25231,
+        "ok": true
+      },
+      "shMinMemAvailableMiB": 2013,
+      "status": 0,
+      "uploadAndAckMs": 28,
+      "pngBytes": 25231,
+      "nasReceipt": {
+        "bytes": 25231,
+        "sha256": "61b3b16db6dad314f24334e4967d0048f64677d52f59b2dbd8ddbbcd6536809d"
+      },
+      "elapsedMs": 48152,
+      "controllerCpuSec": 0.344,
+      "controllerPeakRssMiB": 81.9
+    },
+    {
+      "label": "long2",
+      "epoch": 1795022201.673409,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1117,
+      "timeToHeadersMs": 1179,
+      "downloadBodyMs": 1732,
+      "fetchAndUnpackMs": 3126,
+      "workerLifecycleMs": 44278,
+      "render": {
+        "startAt": 1795022205492,
+        "endAt": 1795022248877,
+        "ms": 43386,
+        "renderMs": 42856,
+        "cpuSec": 70,
+        "chromePssPeakMiB": 636,
+        "peakMiB": 606,
+        "memPeakMiB": 606,
+        "width": 640,
+        "height": 360,
+        "colored": 65664,
+        "bytes": 25225,
+        "ok": true
+      },
+      "shMinMemAvailableMiB": 2027,
+      "status": 0,
+      "uploadAndAckMs": 28,
+      "pngBytes": 25225,
+      "nasReceipt": {
+        "bytes": 25225,
+        "sha256": "a9679324f68caabd1673265a0472b02e197c26a4291772566ef6708edd0f6905"
+      },
+      "elapsedMs": 47432,
+      "controllerCpuSec": 0.36,
+      "controllerPeakRssMiB": 82.0
+    },
+    {
+      "label": "run1",
+      "epoch": 1795022072.7181904,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1103,
+      "timeToHeadersMs": 1158,
+      "downloadBodyMs": 1735,
+      "fetchAndUnpackMs": 3083,
+      "workerLifecycleMs": 38666,
+      "render": {
+        "ok": false,
+        "error": "page.evaluate: Error: PromiseTimeoutError: Preview timed out",
+        "startAt": 1795022079354,
+        "endAt": 1795022113848,
+        "ms": 34494,
+        "cpuSec": 54.6,
+        "chromePssPeakMiB": 603,
+        "memPeakMiB": 837
+      },
+      "shMinMemAvailableMiB": 2034,
+      "status": 1,
+      "elapsedMs": 41750,
+      "controllerCpuSec": 0.327,
+      "controllerPeakRssMiB": 81.9
+    },
+    {
+      "label": "run2",
+      "epoch": 1795022114.6340983,
+      "snapshotSha256": "e406dbc845a7970b3e81c0c42669b0ba107880adc9183eb365c222596773d3aa",
+      "sourceBytes": 10754845,
+      "wireBytes": 1853138,
+      "nasPrepareMs": 1148,
+      "timeToHeadersMs": 1202,
+      "downloadBodyMs": 2354,
+      "fetchAndUnpackMs": 3768,
+      "workerLifecycleMs": 34344,
+      "render": {
+        "ok": false,
+        "error": "page.evaluate: Error: PromiseTimeoutError: Preview timed out",
+        "startAt": 1795022119194,
+        "endAt": 1795022152439,
+        "ms": 33246,
+        "cpuSec": 54.73,
+        "chromePssPeakMiB": 611,
+        "memPeakMiB": 616
+      },
+      "shMinMemAvailableMiB": 2003,
+      "status": 1,
+      "elapsedMs": 38111,
+      "controllerCpuSec": 0.322,
+      "controllerPeakRssMiB": 81.8
+    }
+  ],
+  "nasLocal": [
+    {
+      "startAt": 1795021522936,
+      "endAt": 1795021560021,
+      "ms": 37085,
+      "renderMs": 34775,
+      "cpuSec": 55.8,
+      "chromePssPeakMiB": 840,
+      "peakMiB": 964,
+      "memPeakMiB": 964,
+      "width": 640,
+      "height": 360,
+      "colored": 65664,
+      "bytes": 25223,
+      "ok": true
+    },
+    {
+      "startAt": 1795021561930,
+      "endAt": 1795021596630,
+      "ms": 34700,
+      "renderMs": 33655,
+      "cpuSec": 54.81,
+      "chromePssPeakMiB": 977,
+      "peakMiB": 961,
+      "memPeakMiB": 961,
+      "width": 640,
+      "height": 360,
+      "colored": 65664,
+      "bytes": 25213,
+      "ok": true
+    }
+  ],
+  "summaryByDeadline": {
+    "run": {
+      "attempts": 2,
+      "success": 0,
+      "e2e": null,
+      "render": null
+    },
+    "long": {
+      "attempts": 2,
+      "success": 2,
+      "e2e": {
+        "min": 47432,
+        "median": 47792.0,
+        "max": 48152
+      },
+      "render": {
+        "ms": {
+          "min": 43329,
+          "median": 43357.5,
+          "max": 43386
+        },
+        "cpuSec": {
+          "min": 70,
+          "median": 70.015,
+          "max": 70.03
+        },
+        "memPeakMiB": {
+          "min": 593,
+          "median": 599.5,
+          "max": 606
+        },
+        "chromePssPeakMiB": {
+          "min": 634,
+          "median": 635.0,
+          "max": 636
+        },
+        "effectiveCores": {
+          "min": 1.61,
+          "median": 1.6150000000000002,
+          "max": 1.62
+        }
+      }
+    }
+  },
+  "nasMatchedRenderSummary": {
+    "ms": {
+      "min": 34700,
+      "median": 35892.5,
+      "max": 37085
+    },
+    "cpuSec": {
+      "min": 54.81,
+      "median": 55.305,
+      "max": 55.8
+    },
+    "memPeakMiB": {
+      "min": 961,
+      "median": 962.5,
+      "max": 964
+    },
+    "chromePssPeakMiB": {
+      "min": 840,
+      "median": 908.5,
+      "max": 977
+    },
+    "effectiveCores": {
+      "min": 1.5,
+      "median": 1.54,
+      "max": 1.58
+    }
+  },
+  "runtimeSetup": "Fixed runtime archive, 336640484 bytes; transfer and SHA-256 check 610.6 seconds, excluded from per-job time."
+}

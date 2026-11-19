@@ -59,7 +59,10 @@ export function TopFrameCopilotToolsBridge({ onOpenChatChange }: {
               "This project session has closed; reconnect to the open project.",
             );
           }
-          await hostFrameApi.waitForStudioReady();
+          // Context describes the current project even while its canvas is mounting.
+          if (name !== "getEditorContext") {
+            await hostFrameApi.waitForStudioReady();
+          }
           signal?.throwIfAborted();
           if (!active) {
             throw new Error(

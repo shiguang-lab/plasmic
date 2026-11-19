@@ -1,0 +1,16 @@
+{
+  "projectId": "4yd87ATApmu8JkZHh6x7Ac",
+  "revision": 577,
+  "boards": 4,
+  "beforeFailureSha256": "a86aee0dbf66f5de162ca010606d7eb3ba5b40d71a506ac2c53eb24e9d6d2760",
+  "writeFailure": "EACCES in an isolated NAS worker",
+  "oldHashVerified": true,
+  "recovery": {
+    "bytes": 11322,
+    "elapsedMs": 11078
+  },
+  "firstRun": {
+    "bytes": 10744,
+    "elapsedMs": 11580
+  }
+}

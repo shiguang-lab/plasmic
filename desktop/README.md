@@ -105,7 +105,10 @@ npm run package:mac
 `desktop.config.json` pins the web release and Studio/Canvas origins. Keep this
 web release aligned with the NAS server release. `assets` extracts `/opt/plasmic-web`
 from the pinned image, sets its deployment origin, excludes source maps, and
-writes `renderer/desktop-assets.json`. The fixed Studio Google Fonts stylesheet,
+writes `renderer/desktop-assets.json`. The Desktop asset handler resolves Studio's
+Canvas package URLs through the bundled `aliases.json`. Scripts and license texts
+are stored by SHA-256 of the final bytes. License banners reference the bundled
+license and trailing directives for omitted source maps are stripped. The fixed Studio Google Fonts stylesheet,
 font binaries and OFL license files are bundled at build time too. Project requests
 for those same bundled font families reuse local font faces; other Google font
 families still require the network. Docker and curl
@@ -581,6 +584,10 @@ and `package:mac:x64` select an explicit architecture. Both independent builds
 include a DMG for installation and a ZIP for automatic updates. Website release
 JSON lists `mac-arm64`, `mac-x64`, `windows` and `linux` separately.
 
+While an update is ready to install, Desktop continues checking every minute
+and when the update panel opens. The ready installer remains available if
+checking or downloading its replacement fails.
+
 Clicking **Restart and Install** saves an open design before quitting; a failed save blocks
 installation. An ordinary quit follows the usual draft protection flow. macOS verifies
 SHA-512, bundle identity, version, CPU architecture and code signature, stages the
@@ -594,18 +601,32 @@ ordinary quit, Linux replaces the AppImage at its existing path.
 
 macOS ZIP, Windows NSIS EXE and Linux AppImage downloads share the same `.blockmap`
 and HTTP Range downloader. It reuses unchanged bytes from a verified cached
-artifact to reconstruct and SHA-512-check the complete installer, including for
-skipped versions. NSIS publisher checks and native installation, AppImage
+artifact, preferring the newest usable download even before installation. It
+fetches up to four changed ranges concurrently, writes them in order and
+verifies the reconstructed installer with SHA-512, including for skipped versions. NSIS publisher checks and native installation, AppImage
 executable permissions and installation, and macOS bundle verification and
 rollback remain in their platform updaters. First downloads, unavailable bases
 or blockmaps, and unsupported Range responses use a full download. Invalid
 differential results are discarded before retrying the full artifact.
 
+The macOS packager signs with 4 KiB pages on both ARM runners so the same
+Electron framework has a consistent signature layout. When building the macOS
+update ZIP, the packager resets the DEFLATE dictionary
+at each packed ASAR file boundary and every 256 KiB within a file. It copies the
+other compressed ZIP entries and generates the blockmap and feed digest from the
+final ZIP. The signed application is byte-identical after extraction.
+
+The installer workflow runs `scripts/verify-update-delta.mjs` against the deployed
+release for its platform and architecture. It reports requested archive bytes and
+range count, reconstructs the target and checks its SHA-512. On macOS it also
+compares a recompressed previous ZIP when its original layout differs, verifies
+the reconstructed app signature and launches it with a temporary profile.
+
 Network interruptions preserve a target-bound partial file and resume on the
 next automatic check, including after restarting the app. Native pending-directory
 cleanup cannot remove this resume cache. A server ignoring Range restarts the
-full download. Cache cleanup keeps the running version and current target;
-macOS also removes older versions after successful installation. When the feed
+full download. Cache cleanup preserves the running version and the ready installer while a
+replacement downloads. macOS removes older versions after successful installation. When the feed
 still describes the installed version, existing verified ZIPs, NSIS cached
 installers and installed AppImages can seed the differential base without
 downloading the installer again. Missing bases require one complete download.
