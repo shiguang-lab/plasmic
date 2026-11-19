@@ -156,6 +156,7 @@ export function projectSchema() {
       .array(
         z.object({
           name: z.string(),
+          description: z.string().optional(),
           frames: z.array(
             z.object({
               uuid: z.string(),
@@ -175,6 +176,10 @@ export function projectSchema() {
         z.object({
           componentUuid: z.string(),
           frameUuid: z.string(),
+          matrix: z.enum(["standard", "custom"]),
+          rowIndex: z.number(),
+          columnIndex: z.number(),
+          variantUuids: z.array(z.string()),
           width: z.number(),
           height: z.number(),
         }),

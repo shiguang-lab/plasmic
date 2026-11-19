@@ -421,17 +421,13 @@ import {
   isKnownProjectDependency,
   isKnownVariantSetting,
 } from "@/wab/shared/model/classes";
-import { modelSchemaHash } from "@/wab/shared/model/classes-metas";
+import { getBundleSchemaHash } from "@/wab/shared/model/bundle-schema";
 import {
   ChangeSummary,
   ChangesType,
   summarizeChanges,
 } from "@/wab/shared/model/model-change-util";
 import { reorderPageArenaCols } from "@/wab/shared/page-arenas";
-import {
-  ensurePageOverviewArena,
-  findPageOverviewArena,
-} from "@/wab/shared/page-overview";
 import { getAccessLevelToResource, getUniqueUsersFromApiPermissions } from "@/wab/shared/perms";
 import {
   APP_ROUTES,
@@ -2780,6 +2776,7 @@ export class StudioCtx extends WithDbCtx {
       return;
     }
 
+    this.pageOverviewOpenStore.setState(false);
     if (this.currentArena !== (arena ?? null) || this.watchPlayerId !== null || !this.arenaState.isArenaResolved()) {
       if (this.watchPlayerId !== null && this.isInteractiveMode) {
         this.isInteractiveMode = false;
@@ -2879,6 +2876,7 @@ export class StudioCtx extends WithDbCtx {
     arenaUuidOrName,
     threadId,
     slug,
+    pageOverview,
     replace = false,
     stopWatching = true,
   }: {
@@ -2889,6 +2887,7 @@ export class StudioCtx extends WithDbCtx {
     arenaUuidOrName: string | undefined;
     threadId: string | undefined;
     slug: string | undefined;
+    pageOverview?: boolean;
     replace?: boolean;
     stopWatching?: boolean;
   }) {
@@ -2905,6 +2904,7 @@ export class StudioCtx extends WithDbCtx {
       branchRevision,
       arenaType,
       arenaUuidOrNameOrPath: arenaUuidOrName,
+      pageOverview,
       threadId,
     });
 
@@ -3092,7 +3092,12 @@ export class StudioCtx extends WithDbCtx {
         await this.handleBranchChange(branchName, branchVersion, branchRevision);
       }
       if (this.canvasLoadingDisposed) { return; }
+      if (match.pageOverview) {
+        this.showPageOverview();
+        return;
+      }
       if (!isPreview) {
+        this.pageOverviewOpenStore.setState(false);
         // We don't want to render the arenas in preview mode, for performance
         // and to avoid setting the zoom level when the arena is not rendered.
         // Preview hides the editor without changing its panel preferences.
@@ -3296,6 +3301,7 @@ export class StudioCtx extends WithDbCtx {
     },
   ) {
     try {
+      this.pageOverviewOpenStore.setState(false);
       // Stop any active animation previews before switching arenas
       this.styleMgr.stopAllAnimationPreviews();
 
@@ -4054,35 +4060,28 @@ export class StudioCtx extends WithDbCtx {
     this.leftPanelState.togglePanels();
   });
 
-  get canOpenPageOverview() {
-    if (this.contentEditorMode) {
-      return false;
+  readonly pageOverviewOpenStore = createStore<boolean>(() => false);
+
+  private showPageOverview() {
+    if (!this.pageOverviewOpenStore.getState()) {
+      this.changeArena(null);
+      this.pageOverviewOpenStore.setState(true);
     }
-    const pages = this.site.components.filter(isPageComponent);
-    if (pages.length === 0) {
-      return false;
-    }
-    const existing = findPageOverviewArena(this.site);
-    return (
-      this.canSave() ||
-      (!!existing &&
-        pages.every((page) =>
-          existing.children.some((frame) => frame.container.component === page),
-        ))
-    );
   }
 
-  openPageOverview = async () => {
-    if (!this.canOpenPageOverview) {
-      return;
-    }
-    const arena = this.canSave()
-      ? await this.changeUnsafe(() => ensurePageOverviewArena(this.tplMgr()))
-      : findPageOverviewArena(this.site);
-    if (arena) {
-      this.switchToArena(arena);
-      defer(() => this.tryZoomToFitArena());
-    }
+  openPageOverview = () => {
+    this.showPageOverview();
+    const db = this.dbCtx();
+    this.switchRouteRaw({
+      branchName: db.branchInfo?.name ?? MainBranchId,
+      branchVersion: db.pkgVersionInfoMeta?.version ?? latestTag,
+      branchRevision: db.revisionInfo?.id,
+      arenaType: undefined,
+      arenaUuidOrName: undefined,
+      threadId: undefined,
+      slug: undefined,
+      pageOverview: true,
+    });
   };
 
   get leftPaneWidth() {
@@ -5708,11 +5707,11 @@ export class StudioCtx extends WithDbCtx {
         }
       },
       initServerInfo: (data) => {
-        const oudatedSchema = modelSchemaHash !== data.modelSchemaHash;
+        const outdatedSchema = getBundleSchemaHash(data.bundleVersion) !== data.modelSchemaHash;
         const outdatedBundle =
           data.bundleVersion !== this.appCtx.lastBundleVersion;
         this.multiplayerCtx.updateSelfId(data.selfPlayerId);
-        if (oudatedSchema || outdatedBundle) {
+        if (outdatedSchema || outdatedBundle) {
           this.alertBannerState.set(AlertSpec.OutOfDate);
           spawn(this.changeUnsafe(() => (this.isAtTip = false)));
         }
@@ -6700,6 +6699,23 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
+  pagePathError(newPath: string) {
+    const params = extractParamsFromPagePath(newPath);
+    if (params.some((param, i) => isCatchallParam(param) && i !== params.length - 1)) {
+      return { message: translate(getUiLocale(), "Catch-all path slugs must be the last slug in the path") };
+    }
+    if (params.some(isCatchallParam)) {
+      const version = getRootSubHostVersion();
+      if (!version || lt(version, "1.0.186")) {
+        return {
+          message: translate(getUiLocale(), "Catch-all routes are not supported for your host"),
+          description: <UiText message="Please upgrade the {part1} packages in your host app" values={{ part1: <code>@plasmicapp/*</code> }} />,
+        };
+      }
+    }
+    return undefined;
+  }
+
   tryChangePath = (page: PageComponent, newPath: string) => {
     if (!newPath.startsWith("/")) {
       newPath = `/${newPath}`;
@@ -6707,39 +6723,10 @@ export class StudioCtx extends WithDbCtx {
     if ((page.pageMeta?.path || "") === newPath) {
       return;
     }
-    const params = extractParamsFromPagePath(newPath);
-    for (let i = 0; i < params.length; i++) {
-      if (isCatchallParam(params[i]) && i !== params.length - 1) {
-        notification.error({
-          message: translate(
-            getUiLocale(),
-            "Catch-all path slugs must be the last slug in the path",
-          ),
-        });
-        return;
-      }
-    }
-    if (params.some((p) => isCatchallParam(p))) {
-      // catch all routes only supported if host is greater than
-      // 1.0.186
-      const hostVersion = getRootSubHostVersion();
-      if (!hostVersion || lt(hostVersion, "1.0.186")) {
-        notification.error({
-          message: translate(
-            getUiLocale(),
-            "Catch-all routes are not supported for your host",
-          ),
-          description: (
-            <>
-              <UiText
-                message="Please upgrade the {part1} packages in your host app"
-                values={{ part1: <code>@plasmicapp/*</code> }}
-              />
-            </>
-          ),
-        });
-        return;
-      }
+    const error = this.pagePathError(newPath);
+    if (error) {
+      notification.error(error);
+      return;
     }
     return this.changeUnsafe(() => {
       this.tplMgr().changePagePath(page, newPath);
@@ -7230,6 +7217,7 @@ export class StudioCtx extends WithDbCtx {
             revisionNum: this.dbCtx().revisionNum + 1,
             aiReceipt: this.aiSaveReceipt,
             data: JSON.stringify(changesBundle),
+            modelSchemaHash: getBundleSchemaHash(changesBundle.version),
             modelVersion: this.dbCtx().modelVersion,
             hostlessDataVersion: this.dbCtx().hostlessDataVersion,
             incremental: incremental,

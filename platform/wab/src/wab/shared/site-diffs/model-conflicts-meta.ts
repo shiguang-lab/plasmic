@@ -567,6 +567,7 @@ export const modelConflictsMeta: ModelConflictsMeta = {
     _focusedFrame: "harmless",
   },
   Arena: {
+    metadata: "generic",
     children: {
       arrayType: "ordered",
       conflictType: "merge",

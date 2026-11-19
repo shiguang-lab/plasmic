@@ -81,6 +81,11 @@ describe("mkProjectLocation/parseProjectLocation", () => {
       expect(mkProjectLocation(expectedParams)).toEqual(expectedLocation);
       expect(parseProjectLocation(expectedLocation)).toEqual(expectedParams);
     }
+    expectMkParse({
+      projectId: "PROJECT_ID", slug: undefined, branchRevision: undefined,
+      branchName: "main", branchVersion: "latest", arenaType: undefined,
+      arenaUuidOrNameOrPath: undefined, pageOverview: true,
+    }, { pathname: "/projects/PROJECT_ID", search: "?view=pages" });
     expectMkParse(
       {
         projectId: "PROJECT_ID",

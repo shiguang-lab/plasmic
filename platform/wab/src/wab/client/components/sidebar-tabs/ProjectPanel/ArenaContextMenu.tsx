@@ -1,3 +1,4 @@
+import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { menuSection } from "@/wab/client/components/menu-builder";
 import { promptDeleteComponent } from "@/wab/client/components/modals/componentDeletionModal";
 import { useI18n } from "@/wab/client/i18n";
@@ -11,6 +12,7 @@ import {
   isDedicatedArena,
   isMixedArena,
   isPageArena,
+  setArenaDescription,
 } from "@/wab/shared/Arenas";
 import { componentsReferencerToPageHref } from "@/wab/shared/cached-selectors";
 import { assert, spawn } from "@/wab/shared/common";
@@ -21,6 +23,7 @@ import {
 } from "@/wab/shared/core/components";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { Component } from "@/wab/shared/model/classes";
+import { supportsArenaMetadata } from "@/wab/shared/model/bundle-schema";
 import { naturalSort } from "@/wab/shared/sort";
 import { Menu } from "antd";
 import { ok } from "neverthrow";
@@ -72,6 +75,7 @@ export function ArenaContextMenu({
   onClose?: () => void;
 }) {
   const { t: uiT } = useI18n();
+  const itemTypeLabel = uiT(getSiteItemTypeName(arena));
   const isCurrentMixedArena = useStudioArena(studioCtx, (state) => state.kind === "mixed");
   const component = isDedicatedArena(arena) ? arena.component : undefined;
 
@@ -246,11 +250,16 @@ export function ArenaContextMenu({
               onSelectRename();
             }}
           >
-            <strong>
-              <UiText message={"Rename"} />
-            </strong>{" "}
-            {getSiteItemTypeName(arena)}
+            {uiT("Rename {part1}", { part1: itemTypeLabel })}
           </Menu.Item>
+        ) : null,
+        isMixedArena(arena) && onSelectRename && supportsArenaMetadata(studioCtx.appCtx.lastBundleVersion) ? (
+          <Menu.Item key="description" onClick={async () => {
+            const description = await reactPrompt({ message: uiT("Description"), defaultValue: arena.metadata?.description ?? "" });
+            if (description !== undefined) {
+              await studioCtx.changeUnsafe(() => setArenaDescription(arena, description));
+            }
+          }}>{uiT("Description")}</Menu.Item>
         ) : null,
         <Menu.Item
           key="duplicate"
@@ -367,10 +376,7 @@ export function ArenaContextMenu({
           onClick={onDelete}
           hidden={!shouldShowItem.delete}
         >
-          <strong>
-            <UiText message={"Delete"} />
-          </strong>{" "}
-          {getSiteItemTypeName(arena)}
+          {uiT("Delete {part1}", { part1: itemTypeLabel })}
         </Menu.Item>,
       )}
       {isAdmin &&
@@ -425,7 +431,7 @@ export function ArenaContextMenu({
 
 function getSiteItemTypeName(item: AnyArena) {
   if (isMixedArena(item)) {
-    return "arena";
+    return "Arena";
   } else if (isComponentArena(item)) {
     return "component";
   } else if (isPageArena(item)) {

@@ -29,63 +29,65 @@ import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import React from "react";
 import { useStore } from "zustand";
 
-async function loadDocsPreviewRuntime(
+export async function loadComponentPreviewRuntime(
   studioCtx: DocsPortalCtx["studioCtx"],
   iframe: HTMLIFrameElement,
   packages: Parameters<typeof getSortedHostLessPkgs>[2],
+  thumbnail = false,
 ) {
-            const frameWindow = ensure(
-              iframe.contentWindow,
-              `currentTarget must be attached to window`,
-            );
-            const onAnchorClick = (href) =>
-              showCanvasPageNavigationNotification(studioCtx, href);
-            await onLoadInjectLiveRuntime(
-              studioCtx,
-              frameWindow,
-              false,
-              onAnchorClick,
-            );
-            (frameWindow as any).__PlasmicWrapUserFunction = (
-              loc: InteractionLoc | InteractionArgLoc,
-              fn: () => any,
-              args: Record<string, any>,
-            ) => {
-              try {
-                if (isInteractionLoc(loc) && loc.actionName === "goBack") {
-                  showCanvasPageNavigationNotification(studioCtx, "");
-                  return;
-                }
-                if (isInteractionLoc(loc) && loc.actionName === "navigation") {
-                  onAnchorClick(`${args.destination}`);
-                  return;
-                }
-                return fn();
-              } catch (e) {
-                trapInteractionError(studioCtx, loc, e);
-                throw e;
-              }
-            };
-            (frameWindow as any).__PlasmicWrapUserPromise = async (
-              loc: InteractionLoc | InteractionArgLoc,
-              promise: Promise<any>,
-            ) => {
-              try {
-                return await promise;
-              } catch (e) {
-                trapInteractionError(studioCtx, loc, e);
-                throw e;
-              }
-            };
+  const frameWindow = ensure(
+    iframe.contentWindow,
+    `currentTarget must be attached to window`,
+  );
+  const onAnchorClick = (href) =>
+    showCanvasPageNavigationNotification(studioCtx, href);
+  await onLoadInjectLiveRuntime(
+    studioCtx,
+    frameWindow,
+    false,
+    onAnchorClick,
+  );
+  (frameWindow as any).__PlasmicWrapUserFunction = (
+    loc: InteractionLoc | InteractionArgLoc,
+    fn: () => any,
+    args: Record<string, any>,
+  ) => {
+    if (thumbnail) { return; }
+    try {
+      if (isInteractionLoc(loc) && loc.actionName === "goBack") {
+        showCanvasPageNavigationNotification(studioCtx, "");
+        return;
+      }
+      if (isInteractionLoc(loc) && loc.actionName === "navigation") {
+        onAnchorClick(`${args.destination}`);
+        return;
+      }
+      return fn();
+    } catch (e) {
+      trapInteractionError(studioCtx, loc, e);
+      throw e;
+    }
+  };
+  (frameWindow as any).__PlasmicWrapUserPromise = async (
+    loc: InteractionLoc | InteractionArgLoc,
+    promise: Promise<any>,
+  ) => {
+    try {
+      return await promise;
+    } catch (e) {
+      trapInteractionError(studioCtx, loc, e);
+      throw e;
+    }
+  };
 
-            const modules = await getSortedHostLessPkgs(
-              frameWindow,
-              studioCtx.appCtx.api,
-              packages,
-              getVersionForCanvasPackages(frameWindow),
-              studioCtx.site,
-            );
-            for (const [_pkg, pkgModule] of modules) { scriptExec(frameWindow, pkgModule); }
+  const modules = await getSortedHostLessPkgs(
+    frameWindow,
+    studioCtx.appCtx.api,
+    packages,
+    getVersionForCanvasPackages(frameWindow),
+    studioCtx.site,
+  );
+  for (const [_pkg, pkgModule] of modules) { scriptExec(frameWindow, pkgModule); }
   return { frameWindow, identities: modules.map(([identity]) => identity) };
 }
 
@@ -177,7 +179,7 @@ export function DocsPreviewCanvas(props: {
           `&origin=${encodeURIComponent(getPublicUrl())}` +
           `&staticBaseUrl=${encodeURIComponent(getStaticBaseUrl())}`
         }
-        onLoad={(event) => loadDocsPreviewRuntime(studioCtx, event.currentTarget, packages.packages.slice())
+        onLoad={(event) => loadComponentPreviewRuntime(studioCtx, event.currentTarget, packages.packages.slice())
           .then(({ frameWindow, identities }) => {
             setInstalledPackages(identities);
             setFrameLoaded(true);

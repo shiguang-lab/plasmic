@@ -186,12 +186,79 @@ const EDIT_TOOL_META = {
       .strict(),
     outputSchema: modelReadResultSchema,
   },
+  renameComponent: {
+    toolName: "renameComponent",
+    title: "Rename a page or component",
+    description: "Rename the directory entry by UUID, preserving its route and references.",
+    inputSchema: z.object({ componentUuid: uuid, name: uuid }).strict(),
+    outputSchema: mutationReceiptSchema,
+  },
+  removeArtboard: {
+    toolName: "removeArtboard",
+    title: "Remove a shared artboard",
+    description: "Remove only this frame reference from its mixed canvas. Preserve the underlying page or component.",
+    inputSchema: z.object({ canvasName: uuid, frameUuid: uuid }).strict(),
+    outputSchema: mutationReceiptSchema,
+  },
+  updatePageSettings: {
+    toolName: "updatePageSettings",
+    title: "Update page settings",
+    description: "Update the route and plain-text page metadata of a local page. Other settings remain intact.",
+    inputSchema: z.object({ componentUuid: uuid, path: z.string().regex(/^\/(?!\/)/).optional(), title: z.string().optional(), description: z.string().optional(), canonical: z.string().optional() }).strict(),
+    outputSchema: mutationReceiptSchema,
+  },
+  duplicateComponent: {
+    toolName: "duplicateComponent",
+    title: "Duplicate a page or component",
+    description: "Clone a local definition with a new name and optionally place it on a canvas. Routes apply only to pages.",
+    inputSchema: z.object({ componentUuid: uuid, name: uuid, path: z.string().regex(/^\/(?!\/)/).optional(), canvasName: uuid.optional() }).strict(),
+    outputSchema: mutationReceiptSchema,
+  },
+  replacePageLinks: {
+    toolName: "replacePageLinks",
+    title: "Replace native page links",
+    description: "Replace structured PageHref references to a local page with references to another page. Literal URLs and code expressions are left intact.",
+    inputSchema: z.object({ componentUuid: uuid, targetPageUuid: uuid }).strict(),
+    outputSchema: mutationReceiptSchema,
+  },
+  readCanvasFlow: {
+    toolName: "readCanvasFlow",
+    title: "Read group flow and page entrances",
+    description: "Read ordered frames and static navigations on each page artboard for its configured variants. Each link identifies its source page, control, event, conditional status, destination and group scope. pagesWithoutInbound lists distinct pages with no statically resolved link from another page in this group, including intentional start pages. Inspects bindings authored on the page tree, including component instance props. Dynamic destinations, nested component implementations and runtime reachability require separate inspection.",
+    inputSchema: z.object({ canvasName: uuid }).strict(),
+    outputSchema: z.object({
+      canvasName: uuid,
+      frames: z.array(z.object({ frameUuid: uuid, componentUuid: uuid, name: z.string(), path: z.string().nullable() })),
+      links: z.array(z.object({
+        sourceFrameUuid: uuid, sourcePageUuid: uuid, sourcePageName: z.string(),
+        elementUuid: uuid, elementName: z.string(), event: z.string(), property: z.string(),
+        conditional: z.boolean(), kind: z.enum(["page", "external", "dynamic", "anchor"]),
+        destination: z.string().nullable(),
+        target: z.object({ pageUuid: uuid, name: z.string(), inGroup: z.boolean() }).nullable(),
+      })),
+      pagesWithoutInbound: z.array(z.object({ pageUuid: uuid, name: z.string() })),
+    }),
+  },
+  reorderArtboards: {
+    toolName: "reorderArtboards",
+    title: "Arrange a group in flow order",
+    description: "Set the group’s frame order and lay out all frames left to right on one row, anchored at the group’s top-left corner using native frame spacing. Supply every existing frame UUID exactly once in the desired order. Read the sequence with readCanvasFlow. Page definitions and navigation actions are preserved.",
+    inputSchema: z.object({ canvasName: uuid, frameUuids: z.array(uuid).min(1) }).strict(),
+    outputSchema: mutationReceiptSchema,
+  },
+  readPageReferences: {
+    toolName: "readPageReferences",
+    title: "Find incoming page links",
+    description: "List structured PageHref references to a local page by source component, element and interaction where applicable.",
+    inputSchema: z.object({ componentUuid: uuid }).strict(),
+    outputSchema: z.object({ references: z.array(z.object({ componentUuid: uuid, elementUuid: uuid.optional(), interactionUuid: uuid.optional() })) }),
+  },
   createCanvas: {
     toolName: "createCanvas",
     title: "Create a freeform canvas",
     description:
       "Create a native mixed arena for arranging multiple component/page artboards. The unique canvas name is its native identity.",
-    inputSchema: z.object({ name: uuid }).strict(),
+    inputSchema: z.object({ name: uuid, description: z.string().optional() }).strict(),
     outputSchema: mutationReceiptSchema,
   },
   deleteCanvas: {
@@ -206,8 +273,8 @@ const EDIT_TOOL_META = {
     toolName: "updateCanvas",
     title: "Rename a freeform canvas",
     description:
-      "Rename an existing mixed arena without recreating its frames.",
-    inputSchema: z.object({ canvasName: uuid, name: uuid }).strict(),
+      "Rename or describe a mixed canvas without recreating its frames.",
+    inputSchema: z.object({ canvasName: uuid, name: uuid.optional(), description: z.string().optional() }).strict(),
     outputSchema: mutationReceiptSchema,
   },
   updateArtboard: {
@@ -219,6 +286,7 @@ const EDIT_TOOL_META = {
       .object({
         canvasName: uuid,
         frameUuid: uuid,
+        targetCanvasName: uuid.optional().describe("Move this existing frame to another mixed canvas."),
         width: z.number().int().min(320).max(4096).optional(),
         height: z.number().int().min(1).max(16384).optional(),
         x: z.number().min(0).max(100000).optional(),
@@ -237,6 +305,7 @@ const EDIT_TOOL_META = {
       .object({
         preset: uuid.default("Desktop"),
         componentUuid: uuid.optional(),
+        frameUuid: uuid.optional().describe("Change only this dedicated page frame. Requires componentUuid. Omit to consolidate device columns."),
       })
       .strict(),
     outputSchema: mutationReceiptSchema,
@@ -287,7 +356,7 @@ const EDIT_TOOL_META = {
     toolName: "navigateCanvas",
     title: "Open a freeform canvas",
     description:
-      "Open a native mixed canvas and focus the given frameUuid, or its first artboard if omitted. For a Page, prefer its frameUuid in the shared overview. Find the canvasName and frameUuid with read collection:canvases.",
+      "Open a native mixed canvas and focus the given frameUuid, or its first artboard if omitted. For a Page, prefer its frameUuid in the target group. Find the canvasName and frameUuid with read collection:canvases.",
     inputSchema: z
       .object({ canvasName: uuid, frameUuid: uuid.optional() })
       .strict(),
@@ -321,11 +390,12 @@ const EDIT_TOOL_META = {
     toolName: "createComponent",
     title: "Create page or reusable component",
     description:
-      "Create an editable empty page/component. A page starts with one device column using the live Studio preset (Desktop by default) and is referenced in the shared Pages overview canvas. Then insertHtml into its root. Names and page paths must be unique.",
+      "Create an editable empty page/component. A page starts with one device column using the live Studio preset (Desktop by default) and is listed in the read-only project page overview. Specify canvasName to place a frame in a business canvas. Then insertHtml into its root. Names and page paths must be unique.",
     inputSchema: z
       .object({
         name: uuid,
         type: z.enum(["page", "component"]).default("page"),
+        canvasName: uuid.optional(),
         preset: uuid.default("Desktop").describe("Native device preset for a new page; ignored for reusable components"),
         path: z
           .string()
@@ -674,6 +744,7 @@ const EDIT_TOOL_META = {
         error: z.string().optional(),
         pendingDrafts: z.number(),
       }).nullable().optional(),
+      pageOverview: z.boolean(),
       canvasName: z.string().nullable(),
       projectId: uuid,
       branchId: uuid.nullable(),
@@ -750,7 +821,7 @@ const EDIT_TOOL_META = {
     toolName: "selectElement",
     title: "Select a rendered element",
     description:
-      "Select an element in the current canvas and automatically reveal it by minimally scrolling nested content containers after rendering, without changing the design or Studio pan/zoom. Selection still succeeds if the target has no layout box or clipping prevents visibility. componentUuid must be the component defining elementUuid (nested elements belong to their defining component, not the host page). Prefer the Page's frameUuid in the shared overview from read collection:canvases. If the frame needs focus, use navigateCanvas with canvasName and frameUuid. instanceIndex selects a repeated instance. Requires edit mode.",
+      "Select an element in the current canvas and automatically reveal it by minimally scrolling nested content containers after rendering, without changing the design or Studio pan/zoom. Selection still succeeds if the target has no layout box or clipping prevents visibility. componentUuid must be the component defining elementUuid (nested elements belong to their defining component, not the host page). Prefer the Page's frameUuid in its target group from read collection:canvases. If the frame needs focus, use navigateCanvas with canvasName and frameUuid. instanceIndex selects a repeated instance. Requires edit mode.",
     inputSchema: z
       .object({
         ...element,
@@ -766,11 +837,18 @@ const EDIT_TOOL_META = {
       guidance: z.string(),
     }),
   },
+  openPageOverview: {
+    toolName: "openPageOverview",
+    title: "Open the project page overview",
+    description: "Open the project directory's gallery of visible pages.",
+    inputSchema: z.object({}).strict(),
+    outputSchema: z.object({ view: z.literal("overview") }),
+  },
   navigate: {
     toolName: "navigate",
     title: "Locate a Page or component on the canvas",
     description:
-      'Use this to open or interact with a local Page on the canvas. Discover its UUID with read collection:components. A Page defaults to an existing artboard in a shared canvas, even when Studio is on another Page. Use the returned frameUuid for interactive snapshots and inputs after enabling setInteractiveMode. Pass view:"dedicated" only when the user explicitly asks for a standalone Page canvas. Local component definitions open their dedicated canvas. If multiple shared artboards are equally suitable, choose from the reported candidates with navigateCanvas. Model reads and writes target UUIDs directly.',
+      'Use this to open or interact with a local Page on the canvas. Discover its UUID with read collection:components. A Page opens on an existing group artboard when available, otherwise on its dedicated canvas. Use the returned frameUuid for interactive snapshots and inputs after enabling setInteractiveMode. Pass view:"dedicated" only when the user explicitly asks for a standalone Page canvas. Local component definitions open their dedicated canvas. If multiple shared artboards are equally suitable, choose from the reported candidates with navigateCanvas. Model reads and writes target UUIDs directly.',
     inputSchema: z.object({ componentUuid: uuid, view: z.literal("dedicated").optional() }).strict(),
     outputSchema: z.object({ componentUuid: uuid, rootElementUuid: uuid, canvasName: uuid.optional(), frameUuid: uuid.optional() }),
   },
@@ -804,7 +882,7 @@ const EDIT_TOOL_META = {
     toolName: "scrollElementIntoView",
     title: "Scroll a rendered element into view",
     description:
-      "Reveal an element in the current canvas by minimally scrolling its nested content containers. Prefer the Page's frameUuid in the shared overview from read collection:canvases. If the frame needs focus, use navigateCanvas with canvasName and frameUuid and wait for rendering. Scrolling preserves selection, editor mode, Studio pan/zoom and design properties. instanceIndex selects a repeated rendered instance (zero-based). The result includes visibilityBefore and visibility diagnoses, including partial clipping. scroll-clipped means use nested scrolling, not interaction; layout-clipped requires inspecting clipping/sizing; outside-viewport requires locating the artboard. hidden is observed CSS/hidden-attribute suppression, not proof of a business state: read its owner state/style before enabling setInteractiveMode and operating its real trigger. no-layout/not-rendered does not prove hidden state or absence from the model. Missing/unrendered instances fail with recovery guidance. Bounds are in artboard CSS pixels. Use a workspace screenshot to inspect the resulting editor position.",
+      "Reveal an element in the current canvas by minimally scrolling its nested content containers. Prefer the Page's frameUuid in its target group from read collection:canvases. If the frame needs focus, use navigateCanvas with canvasName and frameUuid and wait for rendering. Scrolling preserves selection, editor mode, Studio pan/zoom and design properties. instanceIndex selects a repeated rendered instance (zero-based). The result includes visibilityBefore and visibility diagnoses, including partial clipping. scroll-clipped means use nested scrolling, not interaction; layout-clipped requires inspecting clipping/sizing; outside-viewport requires locating the artboard. hidden is observed CSS/hidden-attribute suppression, not proof of a business state: read its owner state/style before enabling setInteractiveMode and operating its real trigger. no-layout/not-rendered does not prove hidden state or absence from the model. Missing/unrendered instances fail with recovery guidance. Bounds are in artboard CSS pixels. Use a workspace screenshot to inspect the resulting editor position.",
     inputSchema: z
       .object({
         ...element,
@@ -900,8 +978,50 @@ export const prototypeMutationSchema = z.discriminatedUnion("name", [
   z
     .object({
       as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
+      name: z.literal("renameComponent"),
+      input: EDIT_TOOL_META.renameComponent.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
+      name: z.literal("removeArtboard"),
+      input: EDIT_TOOL_META.removeArtboard.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
+      name: z.literal("updatePageSettings"),
+      input: EDIT_TOOL_META.updatePageSettings.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
+      name: z.literal("duplicateComponent"),
+      input: EDIT_TOOL_META.duplicateComponent.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
+      name: z.literal("replacePageLinks"),
+      input: EDIT_TOOL_META.replacePageLinks.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
       name: z.literal("updateCanvas"),
       input: EDIT_TOOL_META.updateCanvas.inputSchema,
+    })
+    .strict(),
+  z
+    .object({
+      as: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/).optional(),
+      name: z.literal("reorderArtboards"),
+      input: EDIT_TOOL_META.reorderArtboards.inputSchema,
     })
     .strict(),
   z
@@ -1113,7 +1233,13 @@ export const PROTOTYPE_TOOL_META = {
     outputSchema: componentReviewResultSchema,
   },
   deleteCanvas: reviewed(EDIT_TOOL_META.deleteCanvas),
+  renameComponent: reviewed(EDIT_TOOL_META.renameComponent),
+  removeArtboard: reviewed(EDIT_TOOL_META.removeArtboard),
+  updatePageSettings: reviewed(EDIT_TOOL_META.updatePageSettings),
+  duplicateComponent: reviewed(EDIT_TOOL_META.duplicateComponent),
+  replacePageLinks: reviewed(EDIT_TOOL_META.replacePageLinks),
   updateCanvas: reviewed(EDIT_TOOL_META.updateCanvas),
+  reorderArtboards: reviewed(EDIT_TOOL_META.reorderArtboards),
   updateArtboard: reviewed(EDIT_TOOL_META.updateArtboard),
   setPageViewport: reviewed(EDIT_TOOL_META.setPageViewport),
   deleteBreakpoint: reviewed(EDIT_TOOL_META.deleteBreakpoint),

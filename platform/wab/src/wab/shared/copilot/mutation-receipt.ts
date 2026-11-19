@@ -5,7 +5,7 @@ import { toolPresentationSchema } from "@/wab/shared/copilot/presentation";
 
 export const mutationIdentitySchema = z.object({
   kind: z.string(), uuid: z.string(), name: z.string().optional(),
-  componentUuid: z.string().optional(), rootElementUuid: z.string().optional(),
+  componentUuid: z.string().optional(), rootElementUuid: z.string().optional(), canvasName: z.string().optional(),
 });
 export type MutationIdentity = z.infer<typeof mutationIdentitySchema>;
 export const mutationReceiptSchema = z.object({
@@ -32,7 +32,7 @@ export function resolveBatchInput(input: Record<string, unknown>, bindings: Map<
   };
   const visit = (object: Record<string, unknown>): Record<string, unknown> => Object.fromEntries(
     Object.entries(object).map(([key, value]) => [key,
-      /(?:Uuid|Uuids)$/.test(key) || key === "canvasName" ? resolve(value)
+      /(?:Uuid|Uuids)$/.test(key) || (key === "canvasName" || key === "targetCanvasName") ? resolve(value)
       : key === "action" && value && typeof value === "object" && !Array.isArray(value)
         ? visit(value as Record<string, unknown>) : value]),
   );

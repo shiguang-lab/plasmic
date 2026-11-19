@@ -60,7 +60,7 @@ function setup() {
   const frames = ["List", "Details"].map((name) =>
     mkArenaFrame({ site, component, name, width: 1440, height: 960 }),
   );
-  const arena = new Arena({ name: "Overview", children: frames });
+  const arena = new Arena({ metadata: {}, name: "Overview", children: frames });
   const studio = mock<StudioCtx>();
   site.arenas.push(arena);
   const models = new ModelSnapshots();
@@ -228,7 +228,7 @@ it("flattens expanded artboards into one list with independent contexts and uniq
 
 it("retires inactive arena rows without recreating old frame inputs and reactivates A-B-A before commit", () => {
   const f = setup();
-  const next = new Arena({ name: "Other", children: [] });
+  const next = new Arena({ metadata: {}, name: "Other", children: [] });
   f.site.arenas.push(next);
   const childStops: ReturnType<typeof vi.fn>[] = [];
   for (const child of f.children) {

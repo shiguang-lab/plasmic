@@ -5,7 +5,6 @@ import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { InsertableTemplatesItem } from "@/wab/shared/devflags";
 import { InsertableTemplateComponentExtraInfo } from "@/wab/shared/insertable-templates/types";
-import { ensurePageOverviewArena } from "@/wab/shared/page-overview";
 const mocks = vi.hoisted(() => ({
   build: vi.fn(),
   screen: vi.fn(),
@@ -27,7 +26,7 @@ const meta: InsertableTemplatesItem = {
 function fixture(withArena = true) {
   const site = createSite();
   const mgr = new TplMgr({ site });
-  const arena = ensurePageOverviewArena(mgr);
+  const arena = mgr.addArena("Page group");
   const createFrame = vi.fn();
   const addComponent = vi.fn<StudioCtx["addComponent"]>((name) =>
     mgr.addComponent({ name, type: ComponentType.Page }),

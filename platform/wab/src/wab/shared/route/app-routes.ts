@@ -134,6 +134,7 @@ export const SEARCH_PARAM_VERSION = "version";
 export const SEARCH_PARAM_REVISION = "revision";
 export const SEARCH_PARAM_ARENA_TYPE = "arena_type";
 export const SEARCH_PARAM_ARENA = "arena";
+export const SEARCH_PARAM_OVERVIEW = "view";
 export const SEARCH_PARAM_COMMENT = "comment";
 export const SEARCH_PARAM_PUBLISHED_TEMPLATE = "publishedTemplate";
 export const SEARCH_PROMPT = "prompt";
@@ -146,6 +147,7 @@ export interface ProjectLocationParams {
   branchRevision: string | undefined;
   arenaType: ArenaType | undefined;
   arenaUuidOrNameOrPath: string | undefined;
+  pageOverview?: boolean;
   isPreview?: boolean;
   publishedTemplate?: boolean;
   threadId?: string;
@@ -160,6 +162,7 @@ export function mkProjectLocation({
   arenaType,
   arenaUuidOrNameOrPath,
   threadId,
+  pageOverview,
   publishedTemplate,
 }: ProjectLocationParams): {
   pathname: string;
@@ -177,6 +180,9 @@ export function mkProjectLocation({
   }
   if (branchRevision) {
     searchParams.push([SEARCH_PARAM_REVISION, branchRevision]);
+  }
+  if (pageOverview) {
+    searchParams.push([SEARCH_PARAM_OVERVIEW, "pages"]);
   }
   if (arenaType) {
     searchParams.push([SEARCH_PARAM_ARENA_TYPE, arenaType]);

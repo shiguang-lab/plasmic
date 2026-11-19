@@ -1,3 +1,5 @@
+import { supportsArenaMetadata } from "@/wab/shared/model/bundle-schema";
+import { readCanvasFlow, reorderArtboards } from "@/wab/shared/copilot/canvas-flow";
 import { COMMENT_TOOLS } from "@/wab/client/copilot/comments";
 import { resolveBatchInput, type MutationReceipt, type MutationIdentity } from "@/wab/shared/copilot/mutation-receipt";
 import { flushSync } from "react-dom";
@@ -59,6 +61,7 @@ import {
   isDedicatedArena,
   isHeightAutoDerived,
   mkArenaFrame,
+  setArenaDescription,
 } from "@/wab/shared/Arenas";
 import { VariantOptionsType } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
@@ -106,18 +109,20 @@ import {
 import { codeLit } from "@/wab/shared/core/exprs";
 import { ParamExportType } from "@/wab/shared/core/lang";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
-import { walkDependencyTree } from "@/wab/shared/core/project-deps";
+import { extractTransitiveDepsFromComponents, walkDependencyTree } from "@/wab/shared/core/project-deps";
 import {
   allGlobalVariants,
   getArenaByNameOrUuidOrPath,
   getComponentArena,
   getPageArena,
+  swapPageLinks,
 } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { isValidStyleProp } from "@/wab/shared/core/style-props";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import {
   ancestorsUp,
+  findExprsInComponent,
   clone,
   flattenTpls,
   getAllEventHandlersOfAttrType,
@@ -139,13 +144,13 @@ import {
   RawText,
   TplNode,
   isKnownEventHandler,
+  isKnownPageHref,
   isKnownRawText,
   isKnownRenderExpr,
   isKnownTplComponent,
   isKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { frameSizeGroups } from "@/wab/shared/responsiveness";
-import { ensurePageOverviewArena } from "@/wab/shared/page-overview";
 import {
   assertSiteInvariants,
   genSiteErrors,
@@ -227,7 +232,7 @@ const canvasVisibilityGuidance: Record<ReturnType<typeof getCanvasElementVisibil
   "outside-viewport": "Locate the artboard in the workspace viewport before inspecting the element.",
   hidden: "Inspect the owning state and styles before enabling interaction and operating the real trigger; CSS suppression alone does not prove a business state.",
   "no-layout": "The element has no layout box; inspect its owning state and styles before inferring visibility or model absence.",
-  "not-rendered": "Verify the model UUID. If the Page has an overview artboard, focus it with navigateCanvas using canvasName and frameUuid, then wait for rendering.",
+  "not-rendered": "Verify the model UUID. Focus the target Page with navigate or its group frame with navigateCanvas, then wait for rendering.",
 };
 
 function editorView(studio: StudioCtx) {
@@ -317,6 +322,25 @@ function findCanvas(studio: StudioCtx, name: string) {
   );
 }
 
+function incomingPageReferences(studio: StudioCtx, page: Component) {
+  return studio.site.components.flatMap(component => {
+    const refs = findExprsInComponent(component);
+    const interactions = new Map(refs.flatMap(({ expr }) => isKnownEventHandler(expr)
+      ? expr.interactions.flatMap(step => step.args.map(arg => [arg.expr, step.uuid] as const)) : []));
+    return refs.flatMap(({ expr, node }) => isKnownPageHref(expr) && expr.page === page
+      ? [{ componentUuid: component.uuid, elementUuid: node?.uuid, interactionUuid: interactions.get(expr) }] : []);
+  });
+}
+
+function setExactPagePath(studio: StudioCtx, page: Component, path: string) {
+  assert(isPageComponent(page), "Page required");
+  assert(!studio.site.components.some(c => c !== page && c.pageMeta?.path === path), "Page path already exists");
+  const error = studio.pagePathError(path);
+  if (error) { throw new Error(error.message); }
+  studio.tplMgr().changePagePath(page, path);
+  assert(page.pageMeta.path === path, "Invalid or conflicting page path");
+}
+
 function focusCanvas(studio: StudioCtx, arena: ReturnType<typeof findCanvas>, frame?: ArenaFrame) {
   assert(!studio.contentEditorMode, "Canvas navigation requires full editor permission");
   studio.switchToArena(arena);
@@ -333,7 +357,7 @@ function findPageArtboard(studio: StudioCtx, page: Component) {
     const coverage = new Set(arena.children.map((frame) => frame.container.component).filter(isPageComponent)).size;
     return [{ arena, frames, coverage }];
   });
-  assert(candidates.length > 0, `No shared canvas contains Page ${page.name}. Use navigate with view:"dedicated" only if the user requests its dedicated canvas.`);
+  if (!candidates.length) { return undefined; }
 
   const current = candidates.find(({ arena }) => arena === studio.currentArena);
   const largest = Math.max(...candidates.map(({ coverage }) => coverage));
@@ -666,7 +690,7 @@ function mutationIdentities(studio: StudioCtx, components: Component[]) {
   }
   for (const canvas of studio.site.arenas) {
     add({ kind: "Canvas", uuid: canvas.name, name: canvas.name });
-    for (const frame of canvas.children) { add({ kind: "Artboard", uuid: frame.uuid, componentUuid: frame.container.component.uuid }); }
+    for (const frame of canvas.children) { add({ kind: "Artboard", uuid: frame.uuid, componentUuid: frame.container.component.uuid, canvasName: canvas.name }); }
   }
   return identities;
 }
@@ -709,7 +733,7 @@ async function runNativeBatch(
           !added.some((other) => other.kind === "Element" && other.uuid === identity.parentUuid)
         )).map(({ parentUuid: _parentUuid, ...identity }) => identity);
         const primaryKinds: Partial<Record<PrototypeMutation["name"], string>> = {
-          insertHtml: "Element", copyElement: "Element", createComponent: "Component",
+          insertHtml: "Element", copyElement: "Element", createComponent: "Component", duplicateComponent: "Component",
           createState: "State", createInteraction: "Interaction", createStyleToken: "StyleToken",
           createVariantGroup: "VariantGroup", createVariant: "Variant",
           createGlobalVariantGroup: "GlobalVariantGroup", createGlobalVariant: "GlobalVariant",
@@ -772,6 +796,80 @@ async function runMutation(studio: StudioCtx, operation: PrototypeMutation) {
 }
 
 function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: MutationAssets): MutationPlan {
+  if (operation.name === "renameComponent") {
+    const { componentUuid, name } = operation.input;
+    const component = findComponent(studio, componentUuid, true);
+    assert(!isFrameComponent(component) && name.trim(), "Choose a named page or component and supply a name");
+    assert(!studio.site.components.some(other => other !== component && other.name === name), "Component name already exists");
+    const messages: string[] = [];
+    return { components: [component], messages, apply: () => {
+      studio.tplMgr().renameComponent(component, name);
+      assert(component.name === name, "Component name conflicts with an existing name");
+      messages.push(component.name);
+    }};
+  }
+  if (operation.name === "removeArtboard") {
+    const { canvasName, frameUuid } = operation.input;
+    const arena = findCanvas(studio, canvasName);
+    const frame = ensure(arena.children.find(f => f.uuid === frameUuid), "Artboard not found");
+    return { components: [frame.container.component], messages: [`Removed artboard ${frameUuid} from ${canvasName}`], apply: () => {
+      studio.siteOps().removeMixedArenaFrame(arena, frame, { pruneUnnamedComponent: false });
+    }};
+  }
+  if (operation.name === "replacePageLinks") {
+    const from = findComponent(studio, operation.input.componentUuid, true);
+    const to = findComponent(studio, operation.input.targetPageUuid, true);
+    assert(isPageComponent(from) && isPageComponent(to) && from !== to, "Choose two distinct local pages");
+    const messages: string[] = [];
+    return { components: [], messages, apply: () => {
+      const count = incomingPageReferences(studio, from).length;
+      swapPageLinks(studio.site, from, to);
+      messages.push(`Replaced ${count - incomingPageReferences(studio, from).length} page references`);
+    }};
+  }
+  if (operation.name === "updatePageSettings") {
+    const { componentUuid, path, title, description, canonical } = operation.input;
+    const page = findComponent(studio, componentUuid, true);
+    assert(isPageComponent(page), "Page required");
+    assert([path, title, description, canonical].some(value => value !== undefined), "Supply a page setting");
+    return { components: [page], apply: () => {
+      if (path !== undefined) { setExactPagePath(studio, page, path); }
+      if (title !== undefined) { page.pageMeta.title = title; }
+      if (description !== undefined) { page.pageMeta.description = description; }
+      if (canonical !== undefined) { page.pageMeta.canonical = canonical; }
+    }};
+  }
+  if (operation.name === "duplicateComponent") {
+    const { componentUuid, name, path, canvasName } = operation.input;
+    const source = findComponent(studio, componentUuid, true);
+    assert(!source.superComp && !isFrameComponent(source), "Choose a local page or standalone component");
+    assert(!path || isPageComponent(source), "Only pages have paths");
+    const destination = canvasName ? findCanvas(studio, canvasName) : undefined;
+    const deps = extractTransitiveDepsFromComponents(studio.site, [source]);
+    return { components: [source], apply: () => {
+      assert(name.trim() && !studio.site.components.some(c => c.name === name), "Component name is empty or already exists");
+      for (const dep of deps) {
+        assert(!studio.projectDependencyManager.getDependencyData(dep.pkgId), "Conflicting versions of a component dependency");
+        studio.projectDependencyManager.addTransitiveDepAsDirectDep(dep);
+      }
+      const copy = studio.tplMgr().cloneComponent(source, name, true).component;
+      assert(copy.name === name, "Conflicting component name");
+      if (path && isPageComponent(copy)) { setExactPagePath(studio, copy, path); }
+      if (destination) {
+        const frame = getArenaFrames(isPageComponent(copy) ? getPageArena(studio.site, copy) : getComponentArena(studio.site, copy))[0];
+        studio.tplMgr().addNewMixedArenaFrame(destination, copy.name, copy, { width: frame?.width ?? 1440, height: frame?.height ?? 900, insertPt: new Pt(0, 0) });
+      }
+    }};
+  }
+  if (
+    (operation.name === "createCanvas" || operation.name === "updateCanvas") &&
+    operation.input.description !== undefined
+  ) {
+    assert(
+      supportsArenaMetadata(studio.appCtx.lastBundleVersion),
+      "The connected server does not support canvas descriptions yet.",
+    );
+  }
   if (operation.name === "deleteCanvas" || operation.name === "updateCanvas") {
     const arena = findCanvas(studio, operation.input.canvasName);
     return {
@@ -779,7 +877,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
       messages:
         operation.name === "deleteCanvas"
           ? [`Canvas "${operation.input.canvasName}" deleted.`]
-          : [`Canvas "${operation.input.canvasName}" renamed to "${operation.input.name}".`],
+          : [operation.input.name ? `Canvas "${operation.input.canvasName}" renamed to "${operation.input.name}".` : `Updated description for ${arena.name}`],
       apply: () => {
         assert(
           studio.site.arenas.includes(arena),
@@ -794,11 +892,19 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
             ),
             "Canvas name already exists",
           );
-          arena.name = operation.input.name;
+          const { name, description } = operation.input;
+          assert(name !== undefined || description !== undefined, "Supply a name or description");
+          if (name !== undefined) { studio.tplMgr().renameArena(arena, name); }
+          if (description !== undefined) { setArenaDescription(arena, description); }
         }
       },
 
     };
+  }
+  if (operation.name === "reorderArtboards") {
+    const { canvasName, frameUuids } = operation.input;
+    const arena = findCanvas(studio, canvasName);
+    return { components: [], apply: () => reorderArtboards(arena, frameUuids) };
   }
   if (operation.name === "updateArtboard") {
     const input = operation.input;
@@ -814,6 +920,11 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           studio.site.arenas.includes(arena) && arena.children.includes(frame),
           "Artboard removed during batch",
         );
+        if (input.targetCanvasName && input.targetCanvasName !== arena.name) {
+          const destination = findCanvas(studio, input.targetCanvasName);
+          studio.siteOps().removeMixedArenaFrame(arena, frame, { pruneUnnamedComponent: false });
+          studio.tplMgr().addExistingArenaFrame(destination, frame, new Pt(0, 0));
+        }
         if (input.width !== undefined) {frame.width = input.width;}
         if (input.height !== undefined) {frame.height = input.height;}
         if (input.x !== undefined) {frame.left = input.x;}
@@ -837,6 +948,8 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
     };
   }
   if (operation.name === "setPageViewport") {
+    const { frameUuid, componentUuid } = operation.input;
+    assert(!frameUuid || componentUuid, "A frame requires its page UUID");
     const arenas = operation.input.componentUuid
       ? studio.site.pageArenas.filter(
           (arena) =>
@@ -862,6 +975,13 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
       components: arenas.map((a) => a.component),
       apply: () => {
         for (const arena of arenas) {
+          if (frameUuid) {
+            const frame = ensure(getArenaFrames(arena, true).find(f => f.uuid === frameUuid), "Page frame not found");
+            frame.width = size.width;
+            frame.height = size.height;
+            ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
+            continue;
+          }
           for (const row of arena.matrix.rows) {
             row.cols.splice(1);
           }
@@ -875,9 +995,6 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
               ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
             }
           }
-        }
-        if (studio.site.arenas.some((arena) => arena.children.some((frame) => isPageComponent(frame.container.component)))) {
-          ensurePageOverviewArena(studio.tplMgr());
         }
       },
 
@@ -911,7 +1028,8 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           !studio.site.arenas.some((arena) => arena.name === input.name),
           "Canvas name already exists",
         );
-        studio.tplMgr().addArena(input.name);
+        const arena = studio.tplMgr().addArena(input.name);
+        if (input.description !== undefined) { setArenaDescription(arena, input.description); }
       },
 
     };
@@ -1025,7 +1143,13 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
               ensureActivatedScreenVariantsForFrameByWidth(studio.site, frame);
             }
           }
-          ensurePageOverviewArena(studio.tplMgr());
+        }
+        if (input.canvasName) {
+          const arena = studio.getDedicatedArena(created);
+          const frame = ensure(getArenaFrames(arena)[0], "Dedicated artboard missing");
+          studio.tplMgr().addNewMixedArenaFrame(findCanvas(studio, input.canvasName), created.name, created, {
+            width: frame.width, height: frame.height, insertPt: Pt.zero(),
+          });
         }
       },
 
@@ -2144,6 +2268,27 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   updateCanvas: defineCopilotTool(meta.updateCanvas, (studio, input) =>
     runMutation(studio, { name: "updateCanvas", input }),
   ),
+  renameComponent: defineCopilotTool(meta.renameComponent, (studio, input) =>
+    runMutation(studio, { name: "renameComponent", input }),
+  ),
+  removeArtboard: defineCopilotTool(meta.removeArtboard, (studio, input) =>
+    runMutation(studio, { name: "removeArtboard", input }),
+  ),
+  updatePageSettings: defineCopilotTool(meta.updatePageSettings, (studio, input) =>
+    runMutation(studio, { name: "updatePageSettings", input }),
+  ),
+  duplicateComponent: defineCopilotTool(meta.duplicateComponent, (studio, input) =>
+    runMutation(studio, { name: "duplicateComponent", input }),
+  ),
+  replacePageLinks: defineCopilotTool(meta.replacePageLinks, (studio, input) =>
+    runMutation(studio, { name: "replacePageLinks", input }),
+  ),
+  readCanvasFlow: defineCopilotTool(meta.readCanvasFlow, async (studio, input) =>
+    readCanvasFlow(studio.site, findCanvas(studio, input.canvasName)),
+  ),
+  reorderArtboards: defineCopilotTool(meta.reorderArtboards, (studio, input) =>
+    runMutation(studio, { name: "reorderArtboards", input }),
+  ),
   updateArtboard: defineCopilotTool(meta.updateArtboard, (studio, input) =>
     runMutation(studio, { name: "updateArtboard", input }),
   ),
@@ -2176,6 +2321,11 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       return focusCanvas(studio, arena, frame);
     },
   ),
+  readPageReferences: defineCopilotTool(meta.readPageReferences, async (studio, input) => {
+    const page = findComponent(studio, input.componentUuid, true);
+    assert(isPageComponent(page), "Page required");
+    return { references: incomingPageReferences(studio, page) };
+  }),
   readVector: defineCopilotTool(meta.readVector, async (studio, input, caller, signal) => {
     const { component, tpl, asset } = vectorAsset(
       studio,
@@ -2593,6 +2743,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       },
       saveStatus: studio.saveStatus,
       desktopDraftStatus: studio.desktopDraft?.store.getState().status ?? null,
+      pageOverview: studio.pageOverviewOpenStore.getState(),
       canvasName: studio.currentArena ? getArenaName(studio.currentArena) : null,
       projectId: studio.siteInfo.id,
       branchId: studio.dbCtx().branchInfo?.id ?? null,
@@ -2822,13 +2973,23 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       };
     },
   ),
+  openPageOverview: defineCopilotTool(meta.openPageOverview, async (studio) => {
+    studio.openPageOverview();
+    return { view: "overview" as const };
+  }),
   navigate: defineCopilotTool(meta.navigate, async (studio, input) => {
     const component = findComponent(studio, input.componentUuid, true);
     const target = { componentUuid: component.uuid, rootElementUuid: component.tplTree.uuid };
-    if (isPageComponent(component) && input.view !== "dedicated") {
-      const { arena, frame } = findPageArtboard(studio, component);
-      focusCanvas(studio, arena, frame);
-      return { ...target, canvasName: arena.name, frameUuid: frame.uuid };
+    if (isPageComponent(component) && input.view !== "dedicated" && !studio.contentEditorMode) {
+      const shared = findPageArtboard(studio, component);
+      if (shared) {
+        focusCanvas(studio, shared.arena, shared.frame);
+        return { ...target, canvasName: shared.arena.name, frameUuid: shared.frame.uuid };
+      }
+      studio.switchToComponentArena(component);
+      const frame = getArenaFrames(getPageArena(studio.site, component))[0];
+      if (frame) { studio.setStudioFocusOnFrame({ frame, autoZoom: true }); }
+      return { ...target, frameUuid: frame?.uuid };
     }
     studio.switchToComponentArena(component);
     return target;

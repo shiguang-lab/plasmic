@@ -205,6 +205,7 @@ import escapeRegExp from "lodash/escapeRegExp";
 import keys from "lodash/keys";
 import orderBy from "lodash/orderBy";
 import pick from "lodash/pick";
+import uniqBy from "lodash/uniqBy";
 import { CSSProperties } from "react";
 
 export const writeable = <T extends ObjInst>(
@@ -2174,10 +2175,10 @@ export function getSiteScreenSizes(site: Site) {
     const first = site.pageArenas[0];
     if (first.matrix.rows.length > 0) {
       const firstRow = first.matrix.rows[0];
-      return firstRow.cols.map((it) => ({
+      return uniqBy(firstRow.cols.map((it) => ({
         width: it.frame.width,
         height: it.frame.height!,
-      }));
+      })), (size) => `${size.width}x${size.height}`);
     }
   }
 

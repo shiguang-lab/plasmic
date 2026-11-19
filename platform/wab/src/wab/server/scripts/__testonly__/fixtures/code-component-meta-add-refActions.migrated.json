@@ -546,7 +546,8 @@
     "gI_OZ4OAsbcR": {
       "name": "Custom arena 1",
       "children": [],
-      "__type": "Arena"
+      "__type": "Arena",
+      "metadata": {}
     },
     "V226OBkzRSPU": {
       "__type": "Component",
@@ -15166,5 +15167,5 @@
     "iV2sWwaSguNr": { "__type": "RawText", "markers": [], "text": "Button" }
   },
   "deps": [],
-  "version": "258-add-page-href-encode"
+  "version": "259-add-arena-metadata"
 }

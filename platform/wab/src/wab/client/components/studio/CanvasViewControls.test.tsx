@@ -36,7 +36,7 @@ function scene(count = 1) {
   const site = createSite();
   const component = new TplMgr({ site }).addComponent({ name: "Canvas", type: ComponentType.Plain });
   const frames = Array.from({ length: count }, (_, index) => mkArenaFrame({ site, component, name: `Canvas ${index}`, width: 100, height: 100 }));
-  const arena = new Arena({ name: "Pages", children: frames });
+  const arena = new Arena({ metadata: {}, name: "Pages", children: frames });
   site.arenas.push(arena);
   return { site, arena, frames };
 }

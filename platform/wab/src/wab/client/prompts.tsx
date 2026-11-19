@@ -85,13 +85,11 @@ export async function promptPageTemplate(
   return await showTemporaryPrompt<NewPageInfo>((onSubmit, onCancel) =>
     providesAppCtx(studioCtx.appCtx)(
       <Modal
-        width={775}
-        open={true}
-        title={null}
+        open
+        centered
+        title={<UiText message="New page" />}
         footer={null}
         closable={false}
-        styles={{ container: { padding: 0 } }}
-        style={{ top: 32 }}
         onCancel={onCancel}
       >
         <NewPageModal

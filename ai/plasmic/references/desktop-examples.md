@@ -50,10 +50,10 @@ For page/layout inventory without dependency catalogues:
 
 Every project view lists dependency identities/versions without expanding directories. Read each reachable dependency explicitly with fromProject, including indirect dependencies and view:full for complete evidence. Imports stay read-only. `components` is an output collection, not a read input key.
 
-Find the Page's frame in the shared overview's `canvases.frames`, matching its `componentUuid`. Call `snapshot_layout` directly with that frame's UUID.
+Match the Page’s `componentUuid` in the selected group’s `canvases.frames`, or in `pageFrames` for a dedicated device frame. Call `snapshot_layout` directly with that frame's UUID.
 
 ```json
-{"frameUuid":"overview-frame-uuid","view":"full"}
+{"frameUuid":"page-frame-uuid","view":"full"}
 ```
 
 This pins a background canvas without changing the active arena/selection. Check frame readiness and truncation. Use [rendered inspection](desktop-inspection.md) for actual Preview interactions.
@@ -61,13 +61,13 @@ This pins a background canvas without changing the active arena/selection. Check
 Call `get_screenshot` directly for a content review that includes nested scroll regions:
 
 ```json
-{"frameUuid":"overview-frame-uuid","fullContent":true}
+{"frameUuid":"page-frame-uuid","fullContent":true}
 ```
 
 To capture only an expanded section, use its model element UUID:
 
 ```json
-{"frameUuid":"overview-frame-uuid","elementUuid":"section-uuid","fullContent":true}
+{"frameUuid":"page-frame-uuid","elementUuid":"section-uuid","fullContent":true}
 ```
 
 Full-content captures default to original-size lossless pixels. Read the returned `fullContent` coverage and limitations; virtualized items absent from the DOM still require Preview scrolling. For viewport layout review, omit `fullContent`. See [rendered inspection](desktop-inspection.md#geometry-and-static-screenshots) for mode restrictions and size limits.
@@ -171,7 +171,7 @@ Use `execute` with these exact envelopes:
 {"name":"setPageViewport","input":{"componentUuid":"PAGE_UUID","preset":"Desktop"}}
 ```
 
-Component collections with `view:"contract"` return real contracts. `fromProject` can also scope `componentUuids` or `elements` and verifies their owner; omit it when UUIDs already identify the target. New Pages initialize Desktop and shared overview references. Verify `pageFrames`, `devicePresets` and `canvases`; shorter Preview tests do not add devices. Slot-typed content uses `<slot>`; fix failed required bindings rather than deleting them.
+Component collections with `view:"contract"` return real contracts. `fromProject` can also scope `componentUuids` or `elements` and verifies their owner; omit it when UUIDs already identify the target. New Pages default to one Desktop device column. Pass `canvasName` at creation for an explicit group placement. Verify `pageFrames`, `devicePresets` and `canvases`; shorter Preview tests do not add devices. Slot-typed content uses `<slot>`; fix failed required bindings rather than deleting them.
 
 ## Interaction conditions and method contracts
 

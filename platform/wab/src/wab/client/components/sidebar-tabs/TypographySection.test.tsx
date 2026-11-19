@@ -141,7 +141,7 @@ async function actualText(name = "Text requests") {
   assert(isTplTextBlock(tpl), "Actual text template");
   ensureBaseVariantSetting(component, tpl).text = new RawText({ text: "Business text", markers: [] });
   const frame = mkArenaFrame({ site, component, name, width: 200, height: 100 });
-  const arena = new Arena({ name, children: [frame] });
+  const arena = new Arena({ metadata: {}, name, children: [frame] });
   site.arenas.splice(0, site.arenas.length, arena);
   const f = fakeStudioCtx({ site, initialUrl: `/projects/test?arena_type=custom&arena=${encodeURIComponent(name)}`, devFlagOverrides: { ccStubs: true } });
   const studio = f.studioCtx; studios.add(studio);

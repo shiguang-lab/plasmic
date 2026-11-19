@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { TEST_GLOBAL_VARIANT } from "@/wab/__testonly__/tpls";
-import { Bundler, FastBundler } from "@/wab/shared/bundler";
+import { Bundler, FastBundler, checkBundleFields } from "@/wab/shared/bundler";
 import { jsonClone, mkUuid } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { jsonLit } from "@/wab/shared/core/exprs";
@@ -9,11 +9,13 @@ import { mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import {
   TplTag,
+  ensureKnownArena,
   ensureKnownComponent,
   ensureKnownTplComponent,
   ensureKnownTplTag,
 } from "@/wab/shared/model/classes";
-import { meta } from "@/wab/shared/model/classes-metas";
+import { meta, modelSchemaHash } from "@/wab/shared/model/classes-metas";
+import { getBundleSchemaHash } from "@/wab/shared/model/bundle-schema";
 import { BaseRuntime } from "@/wab/shared/model/model-meta";
 import { typeFactory } from "@/wab/shared/model/model-util";
 
@@ -29,6 +31,54 @@ export class Comparator {
 }
 
 describe("bundler", () => {
+  it("opens and re-saves an arena without metadata on a legacy server", () => {
+    const uuid = mkUuid();
+    const record = { __type: "Arena", name: "健身", children: [] };
+    const legacy = {
+      root: "a",
+      map: { a: record },
+      deps: [],
+      version: "258-add-page-href-encode",
+    };
+    const bundler = new FastBundler();
+    // The collaboration handshake and save endpoint on the 258 server require
+    // this exact wire schema. Other bundle versions retain the client schema.
+    expect(getBundleSchemaHash(legacy.version)).toBe(639587200);
+    expect(getBundleSchemaHash("258-unknown")).toBe(modelSchemaHash);
+    expect(getBundleSchemaHash("259-add-arena-metadata")).toBe(modelSchemaHash);
+    checkBundleFields(legacy);
+    const arena = ensureKnownArena(
+      bundler.unbundleAndRecomputeParents(legacy, uuid),
+    );
+    arena.name = "训练";
+    const renamed = { ...record, name: "训练" };
+    expect(
+      bundler.fastBundle(arena, uuid, [{ inst: arena, field: "name" }]).map.a,
+    ).toEqual(renamed);
+    expect(bundler.bundle(arena, uuid, legacy.version).map.a).toEqual(renamed);
+
+    const version = "259-add-arena-metadata";
+    const current = bundler.bundle(arena, uuid, version);
+    expect(current.map.a.metadata).toBeNull();
+    arena.metadata = { description: "力量训练与瑜伽", category: "训练" };
+    const saved = bundler.bundle(arena, uuid, version);
+    const reader = new Bundler();
+    const reopened = ensureKnownArena(reader.unbundle(saved, uuid));
+    reader.unbundlePartial({ ...legacy, map: { a: renamed } }, uuid);
+    expect(reopened.metadata).toEqual(arena.metadata);
+    expect(saved.map.a).not.toHaveProperty("description");
+
+    const invalid = {
+      ...legacy,
+      map: { a: { __type: "Arena", children: [] } },
+    };
+    expect(() => checkBundleFields(invalid)).toThrow("- name");
+    expect(() => new Bundler().unbundle(invalid, uuid)).toThrow("- name");
+    expect(() =>
+      checkBundleFields({ ...legacy, map: { a: { ...record, typo: true } } }),
+    ).toThrow("+ typo");
+  });
+
   it("should work", function () {
     const component = mkComponent({
       name: "Component",

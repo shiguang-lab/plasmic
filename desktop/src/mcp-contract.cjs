@@ -16,6 +16,14 @@ const EDITOR_METHODS = [
   "createCanvas",
   "deleteCanvas",
   "updateCanvas",
+  "renameComponent",
+  "removeArtboard",
+  "updatePageSettings",
+  "duplicateComponent",
+  "replacePageLinks",
+  "readPageReferences",
+  "readCanvasFlow",
+  "reorderArtboards",
   "updateArtboard",
   "setPageViewport",
   "deleteBreakpoint",
@@ -50,6 +58,7 @@ const EDITOR_METHODS = [
   "preview",
   "restoreEditorView",
   "selectElement",
+  "openPageOverview",
   "navigate",
   "beginCanvasInspection",
   "endCanvasInspection",
@@ -93,6 +102,11 @@ const tools = [
       offset: { type: "integer", minimum: 0 },
       limit: { type: "integer", minimum: 1, maximum: 16000 },
     }), required: ["resultId"] },
+  },
+  {
+    name: "cancel_operation",
+    description: "Request cancellation of a queued or running screenshot, layout inspection, or design export from this MCP connection. Use the id in get_app_state.operations; the original call reports its outcome.",
+    inputSchema: { ...object({ operationId: { type: "string", minLength: 1 } }), required: ["operationId"] },
   },
   {
     name: "get_app_state",
@@ -254,7 +268,7 @@ const tools = [
   {
     name: "get_screenshot",
     description:
-      "Return a clean rendered artboard as a WebP preview (quality 85, long edge at most 2048; fullResolution requests original-size lossless WebP) without editor chrome or slot placeholders. For content review use fullContent:true to expand nested scroll regions in the isolated copy and capture a long image, defaulting to original-size lossless pixels. This covers rendered DOM only; unmounted virtualized items and unloaded content require Preview scrolling. If the image is still incomplete, call execute setCanvasPageHeight {mode:'full'}, capture again, then restore the returned previous mode. Keep a normal viewport capture for layout acceptance. For a Page, prefer its overview frameUuid from execute read collection:canvases. Use componentUuid if the Page has no suitable overview frame. Targeted captures render one artboard in the background, including during in-app Preview, and preserve the active canvas and selection. When both IDs are supplied, the frame must belong to the component. If background rendering times out in the editor, focus the overview artboard with execute navigateCanvas {canvasName, frameUuid}, then retry with frameUuid and liveCanvas:true. This waits for that exact frame and preserves artboard options including fullContent and elementUuid. Use execute navigate only when the dedicated Page/component canvas is explicitly needed. artboardElementUuid selects the whole artboard containing that visible element; elementUuid crops a visible node (including repeated instances). Without a component/frame target captures the focused rendered artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid/frameUuid are not accepted. Not an interactive preview.",
+      "Return a clean rendered artboard as a WebP preview (quality 85, long edge at most 2048; fullResolution requests original-size lossless WebP) without editor chrome or slot placeholders. For content review use fullContent:true to expand nested scroll regions in the isolated copy and capture a long image, defaulting to original-size lossless pixels. This covers rendered DOM only; unmounted virtualized items and unloaded content require Preview scrolling. If the image is still incomplete, call execute setCanvasPageHeight {mode:'full'}, capture again, then restore the returned previous mode. Keep a normal viewport capture for layout acceptance. For a Page, use a group frameUuid from read collection:canvases or its dedicated frameUuid from read collection:pageFrames. Use componentUuid for an unqualified component capture. Targeted captures render one artboard in the background, including during in-app Preview, and preserve the active canvas and selection. When both IDs are supplied, the frame must belong to the component. If background rendering times out in the editor, focus the target artboard with execute navigate or navigateCanvas, then retry with frameUuid and liveCanvas:true. This waits for that exact frame and preserves artboard options including fullContent and elementUuid. Use execute navigate only when the dedicated Page/component canvas is explicitly needed. artboardElementUuid selects the whole artboard containing that visible element; elementUuid crops a visible node (including repeated instances). Without a component/frame target captures the focused rendered artboard; ambiguous canvases require an explicit target. width resizes the selected static rendering. Use mode workspace for the current editor view; rect applies only to workspace and componentUuid/frameUuid are not accepted. Not an interactive preview.",
     inputSchema: object({
       fullContent: { type: "boolean", description: "Artboard only: expand nested horizontal/vertical scroll regions in an isolated static copy and capture the full rendered DOM as a long image. Does not change the live canvas or saved design. Defaults to original-size lossless pixels unless fullResolution:false. Reports scroll regions and rendered-dom coverage; unmounted virtualized items and unloaded content are not included. Maximum 16383 pixels per side and 20 megapixels; use elementUuid for a smaller region." },
       fullResolution: { type: "boolean", description: "Return original-size lossless WebP instead of the default compressed preview (long edge at most 2048)." },
@@ -468,9 +482,12 @@ tools.push(
                       "upgradeLibrary",
                       "installLibrary",
                       "queryElements",
+                      "readPageReferences",
+                      "readCanvasFlow",
                       "readVector",
                       "findEmptySpace",
                       "navigateCanvas",
+                      "openPageOverview",
                       "navigate",
                       "getEditorContext",
                       "restoreEditorView",
@@ -510,7 +527,7 @@ tools.push(
   {
     name: "snapshot_layout",
     description:
-      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. For a Page, prefer its overview frameUuid from execute read collection:canvases. Use componentUuid if the Page has no suitable overview frame. Targeted reads render one artboard in the background, including during in-app Preview, and preserve the active canvas and selection. When both IDs are supplied, the frame must belong to the component. If background rendering times out in the editor, focus the overview artboard with execute navigateCanvas {canvasName, frameUuid}, then retry with frameUuid and liveCanvas:true. The read waits for that exact frame. Use execute navigate only when the dedicated Page/component canvas is explicitly needed. elementUuid filters that rendering; follow nextOffset per frame. Checks horizontal overflow, sticky Table-cell control containment (including native padding) and image loading. cellContent.tableIndex identifies the owning table by its snapshot element index; columnIndex is the logical grid column after colSpan/rowSpan placement, and columnSpan is its covered column count. Group measured widths only within the same Table and column range. Overlapping malformed cells omit logical ownership; these capture-local identities never come from matching screen coordinates. Interactions, breakpoints and other overlap require Preview. Get editable IDs through execute read.",
+      "Read rendered layout. Default summary returns frame dimensions/counts and paginated problems. elements defaults to identity/geometry; request text/classes through fields. images/problems are paginated; full retains complete acceptance evidence. read.fields declares projections; omissions are not empty. For a Page, use a group frameUuid from read collection:canvases or its dedicated frameUuid from read collection:pageFrames. Use componentUuid for an unqualified component capture. Targeted reads render one artboard in the background, including during in-app Preview, and preserve the active canvas and selection. When both IDs are supplied, the frame must belong to the component. If background rendering times out in the editor, focus the target artboard with execute navigate or navigateCanvas, then retry with frameUuid and liveCanvas:true. The read waits for that exact frame. Use execute navigate only when the dedicated Page/component canvas is explicitly needed. elementUuid filters that rendering; follow nextOffset per frame. Checks horizontal overflow, sticky Table-cell control containment (including native padding) and image loading. cellContent.tableIndex identifies the owning table by its snapshot element index; columnIndex is the logical grid column after colSpan/rowSpan placement, and columnSpan is its covered column count. Group measured widths only within the same Table and column range. Overlapping malformed cells omit logical ownership; these capture-local identities never come from matching screen coordinates. Interactions, breakpoints and other overlap require Preview. Get editable IDs through execute read.",
     inputSchema: object({
       componentUuid: { type: "string", minLength: 1 },
       frameUuid: { type: "string", minLength: 1 },

@@ -19,7 +19,6 @@ import {
   isKnownRawText,
   isKnownSite,
 } from "@/wab/shared/model/classes";
-import { ensurePageOverviewArena } from "@/wab/shared/page-overview";
 import { assertSiteInvariants } from "@/wab/shared/site-invariants";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { $$$ } from "@/wab/shared/TplQuery";
@@ -51,9 +50,9 @@ it("imports real template text, image and styles into a Page, and persists the s
   expect(isKnownImageAssetRef(image.vsettings[0].attrs.src)).toBe(true);
   const site = createSite();
   const mgr = new TplMgr({ site });
-  mgr.addComponent({ name: "ExistingPage", type: ComponentType.Page });
-  const arena = ensurePageOverviewArena(mgr);
-  const firstFrame = arena.children[0];
+  const existing = mgr.addComponent({ name: "ExistingPage", type: ComponentType.Page });
+  const arena = mgr.addArena("Page group");
+  const firstFrame = mgr.addNewMixedArenaFrame(arena, existing.name, existing, { insertPt: new Pt(0, 0) });
   firstFrame.left = 120;
   firstFrame.top = 80;
   const deps: Pick<

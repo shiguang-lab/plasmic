@@ -145,7 +145,7 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     });
     Object.assign(studioCtx, {
       isTransforming: () => false,
-      currentArena: new Arena({ name: "Page", children: [frame] }),
+      currentArena: new Arena({ metadata: {}, name: "Page", children: [frame] }),
       showAncestorsHoverBoxes: () => overlayState.ancestorsHoverBoxes,
     });
     arenaState.viewRegistry.register(viewCtx);

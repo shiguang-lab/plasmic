@@ -301,6 +301,31 @@ describe("ViewportCtx", () => {
     expect(dom.scaleTo).not.toHaveBeenCalled();
     expect(dom.scrollTo).not.toHaveBeenCalled();
   });
+  test("zooming back to the artboards releases distant scroll space and keeps the pointer anchored", () => {
+    ctx = new ViewportCtx({
+      dom,
+      initialArena: pageArena,
+      initialClipperBox: new Box(0, 0, 1000, 500),
+      initialClipperScroll: Pt.zero(),
+    });
+    ctx.setArenaScalerSize(new Pt(3000, 2000));
+    const padding = ctx.canvasPadding();
+    ctx.panTo(new Pt(-2_000_000, -1_000_000));
+    vi.runAllTimers();
+    expect(ctx.canvasPadding().x).toBeGreaterThan(2_000_000);
+
+    const pointer = new Pt(650, 200);
+    const distantTarget = ctx.clientToScaler(pointer);
+    ctx.scaleAtFixedPt(2, distantTarget, pointer);
+    vi.runAllTimers();
+    expect(ctx.scalerToClient(distantTarget)).toEqual(pointer);
+
+    const target = new Pt(900, 750);
+    ctx.scaleAtFixedPt(1.25, target, pointer);
+    vi.runAllTimers();
+    expect(ctx.scalerToClient(target)).toEqual(pointer);
+    expect(ctx.canvasPadding()).toEqual(padding);
+  });
   test("zoomToFitScalerBox does math and updates DOM", () => {
     ctx = new ViewportCtx({
       dom,

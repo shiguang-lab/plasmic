@@ -38,6 +38,17 @@ it("enters the left side even for vertically stacked pages", () => {
   expect(route.points.at(-1)).toEqual({ x: 0, y: 964 });
 });
 
+it.each([
+  { layout: "side by side", frames: [frame(0), frame(640, 116.001)] },
+  { layout: "stacked", frames: [frame(0), frame(0.001, 940), frame(0.002, 1880)] },
+])("keeps segments axis-aligned before rounding corners in a $layout layout with fractional coordinates", ({ frames }) => {
+  const route = ensure(routeNavigation(source, frames[0], frames[1], frames), "Expected a navigable route");
+  for (let i = 1; i < route.points.length; i++) {
+    const from = route.points[i - 1], to = route.points[i];
+    expect(from.x === to.x || from.y === to.y).toBe(true);
+  }
+});
+
 it("does not invent a line through completely overlapping frames", () => {
   const a = frame(0), b = frame(0);
   expect(routeNavigation(source, a, b, [a, b])).toBeUndefined();

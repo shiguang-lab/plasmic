@@ -187,7 +187,6 @@ import {
 import { OperationTemplate } from "@/wab/shared/data-sources-meta/data-sources";
 import { GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { LowerHttpMethod } from "@/wab/shared/HttpClientUtil";
-import { modelSchemaHash } from "@/wab/shared/model/classes-metas";
 import { UiConfig } from "@/wab/shared/ui-config-utils";
 import type { PlasmicHostingSettings } from "@plasmic-shared/hosting";
 import { executePlasmicDataOp } from "@plasmicapp/data-sources";
@@ -534,6 +533,7 @@ export abstract class SharedApi {
       aiReceipt?: { operationId: string; sessionId: string; fence: number; result?: import("@/wab/shared/copilot/local-edit").LocalEditToolResult };
       revisionNum: number;
       data: string;
+      modelSchemaHash: number;
       modelVersion: number;
       hostlessDataVersion: number;
       incremental: boolean;
@@ -548,10 +548,7 @@ export abstract class SharedApi {
         toOpaque(projectId),
         branchId,
       )}/revisions/${revisionNum}`,
-      {
-        modelSchemaHash,
-        ...rest,
-      },
+      rest,
     );
   }
 

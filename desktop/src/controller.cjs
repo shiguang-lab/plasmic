@@ -44,6 +44,7 @@ class DesktopController {
     this.callerContext = new AsyncLocalStorage();
     this.signalContext = new AsyncLocalStorage();
     this.graphics = new BackgroundWorker({ name: "Plasmic Graphics" });
+    this.cancellableReads = new Map();
     this.operations = this.activity.operations;
     this.pending = new Map();
     this.queue = Promise.resolve();
@@ -124,7 +125,7 @@ class DesktopController {
             "Editor command timed out: " +
               method +
               (method === "beginCanvasInspection"
-                ? ". For get_screenshot or snapshot_layout, focus the Page's overview artboard in the editor with execute navigateCanvas {canvasName, frameUuid}, then retry with that frameUuid and liveCanvas:true. Keep the original artboard screenshot or layout options. If Preview is open, close it explicitly before using the live editor canvas."
+                ? ". For get_screenshot or snapshot_layout, focus the target artboard in the editor with execute navigate or navigateCanvas, then retry with that frameUuid and liveCanvas:true. Keep the original artboard screenshot or layout options. If Preview is open, close it explicitly before using the live editor canvas."
                 : ""),
           ),
         );
@@ -298,7 +299,20 @@ class DesktopController {
     if (this.updating) return Promise.reject(uiError("Plasmic is restarting to install an update. Retry after it reopens."));
     if (!input || typeof input !== "object" || Array.isArray(input)) return Promise.reject(new Error("Arguments must be an object"));
     try { assertToolRouting(method, input); } catch (error) { return Promise.reject(error); }
+    if (method === "cancel_operation") {
+      const request = this.cancellableReads.get(input.operationId);
+      if (!caller?.id || !request || request.callerId !== caller.id) {
+        return Promise.reject(new Error("No cancellable inspection or export for this caller and operation ID"));
+      }
+      request.controller.abort();
+      return Promise.resolve({ operationId: input.operationId, cancellationRequested: true });
+    }
     const id = randomUUID();
+    if (caller?.id && ["get_screenshot", "snapshot_layout", "export_design", "export_pages"].includes(method)) {
+      const controller = new AbortController();
+      this.cancellableReads.set(id, { callerId: caller.id, controller });
+      signal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
+    }
     this.activity.enqueue(id, method, input, caller);
     const run = () => this.signalContext.run(signal, () => this.callerContext.run(caller, async () => {
       this.activity.start(id);
@@ -325,6 +339,7 @@ class DesktopController {
         }
         throw error;
       } finally {
+        this.cancellableReads.delete(id);
         this.activity.finish(id, failure);
       }
     }));
@@ -981,6 +996,7 @@ class DesktopController {
         throw new Error("outputPath must be an absolute .pdf file");
       }
       const { PDFDocument } = require("pdf-lib");
+      const signal = this.signalContext.getStore();
       const merged = await PDFDocument.create();
       for (const page of input.pages) {
         const rendered = await this.inspectCanvas(
@@ -990,7 +1006,7 @@ class DesktopController {
               ...page,
               inspectionId,
               format: "pdf",
-            }),
+            }, signal),
           true,
         );
         const document = await PDFDocument.load(rendered.pdf);
@@ -1002,6 +1018,7 @@ class DesktopController {
         }
       }
       const data = await merged.save();
+      signal?.throwIfAborted();
       await fs.writeFile(input.outputPath, data, { flag: "wx" });
       return {
         path: input.outputPath,
@@ -1038,10 +1055,7 @@ class DesktopController {
             };
           }
           if (method === "export_design") {
-            return exportCanvas(win, {
-              ...input,
-              inspectionId,
-            });
+            return exportCanvas(win, { ...input, inspectionId }, signal);
           }
           if (input.mode !== "workspace") {
             if (input.rect) {

@@ -34,6 +34,7 @@ import { PlayerCursors } from "@/wab/client/components/canvas/Multiplayer/Player
 import RichTextToolbar from "@/wab/client/components/canvas/RichText/RichTextToolbar";
 import { Spotlight } from "@/wab/client/components/canvas/Spotlight";
 import { VariantsBar } from "@/wab/client/components/canvas/VariantsBar";
+import { PageOverview } from "@/wab/client/components/studio/PageOverview";
 import { CanvasArenaShell } from "@/wab/client/components/canvas/canvas-arena";
 import { CanvasClickTracker } from "@/wab/client/components/canvas/canvas-clicks";
 import { isCanvasModifierPressed } from "@/wab/client/components/canvas/canvas-interactions";
@@ -573,6 +574,15 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
         canvasClipper.scrollTop,
       ),
     });
+    // Reuse the painted canvas while its scale is changing, then let the
+    // browser rasterize at the settled scale for crisp text and images.
+    this.listeners.push(viewportCtx.store.subscribe((next, previous) => {
+      if (next.scale !== previous.scale) {
+        canvasScaler.style.willChange = "transform";
+      } else if (previous.isTransforming && !next.isTransforming) {
+        canvasScaler.style.removeProperty("will-change");
+      }
+    }));
     this.props.studioCtx.viewportCtx = viewportCtx;
 
     if (initArena && !this.props.studioCtx.hasInitialEditorView) {
@@ -2220,6 +2230,7 @@ export function ViewEditor_(props: ViewEditorProps) {
   React.useLayoutEffect(() => { dbg.viewEditor = controller; return () => { if (dbg.viewEditor === controller) { delete dbg.viewEditor; } controller.dispose(); }; }, [controller]);
   const {marqueeBox, hasDrag} = useStore(controller.store);
   const arenaInputs = useStore(studioCtx.arenaState.store);
+  const overview = useStore(studioCtx.pageOverviewOpenStore);
   const startup = useStore(studioCtx.startupStore);
   const registry = useStore(studioCtx.arenaState.viewRegistry.store);
   const insertion = useStore(studioCtx.canvasInsertStore);
@@ -2357,7 +2368,8 @@ export function ViewEditor_(props: ViewEditorProps) {
                 </div>
                 {!publishedTemplate && !arenaInputs.focusedMode && <VariantsBar />}
               </Scrollbar>
-              {(canvasLoading || !startup.viewportLoaded) && (
+              {overview && <PageOverview studio={studioCtx} />}
+              {!overview && (canvasLoading || !startup.viewportLoaded) && (
                 <StudioLoading />
               )}
               <CanvasDndOverlay container={canvasContainer} />
@@ -2377,7 +2389,7 @@ export function ViewEditor_(props: ViewEditorProps) {
                 </>
               )}
             </div>
-            {!publishedTemplate && <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />}
+            {!overview && !publishedTemplate && <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />}
           </div>
 
           <DevContainer

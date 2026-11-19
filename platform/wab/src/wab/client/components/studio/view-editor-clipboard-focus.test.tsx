@@ -71,6 +71,19 @@ it("keeps artboard outlines sized in screen pixels as the canvas zoom changes", 
   } finally { f.dispose(); }
 });
 
+it("reuses the painted canvas during zoom and releases it at the final scale", async () => {
+  const f = await fixture();
+  try {
+    f.studioCtx.viewportCtx?.enqueueTransform(1.25, Pt.zero(), false);
+    expect(f.scaler.style.willChange).toBe("transform");
+    f.studioCtx.viewportCtx?.enqueueTransform(1.5, Pt.zero(), false);
+    await waitFor(() => expect(f.scaler.style.willChange).toBe(""));
+    expect(f.scaler.style.transform).toBe("scale(1.5)");
+    f.studioCtx.viewportCtx?.scrollBy(new Pt(80, 0));
+    expect(f.scaler.style.willChange).toBe("");
+  } finally { f.dispose(); }
+});
+
 it("routes real copy, cut and paste events from the outline's shared scrolling viewport to Studio", async () => {
   const f = await fixture();
   try {

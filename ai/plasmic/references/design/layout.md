@@ -39,7 +39,7 @@ AppShell fills its containing width rather than using `100vw`. Keep its Page and
 
 ## Viewport and scroll ownership
 
-Use the live Studio Desktop device preset for PC requirements (currently 1440x1024); discover it through read.devicePresets rather than assuming a viewport. Explicit user dimensions take precedence. Keep only Desktop preview columns in Pages and one overview Arena referencing every existing routed Page exactly once. Use `createComponent` defaults for new Pages; inspect returned project `pageFrames` and `canvases`. Viewport testing at a shorter height does not add another device column or artboard. Do not add per-page duplicate Arenas, test pages, mobile breakpoints or responsive overrides to PC-only scope.
+Use the live Studio Desktop device preset for PC requirements (currently 1440x1024); discover it through read.devicePresets rather than assuming a viewport. Explicit user dimensions take precedence. Keep one Desktop preview column per Page. Place an artboard in a business group when the requirement names that group. Use `createComponent` defaults for new Pages; inspect returned project `pageFrames` and `canvases`. Viewport testing at a shorter height does not add another device column or artboard. Do not add per-page duplicate Arenas, test pages, mobile breakpoints or responsive overrides to PC-only scope.
 
 For an explicitly fixed desktop design viewport WxH, keep the preview/artboard WxH and use the required minimum width only when that fixed-width contract is intentional. For a fluid application, the Page and shell fill the available width with minWidth:0; do not turn the current screenshot width into a permanent minimum. A shorter live preview must fit its real viewport without making fixed navigation scroll away. Verify the shell starts at (0,0), fills the viewport and keeps navigation/header fixed while content scrolls.
 
@@ -58,7 +58,7 @@ Before accepting each affected standalone shell page:
 3. In real Preview, repeat at a width larger than the design artboard, a shorter height and with overflowing content. This distinguishes fluid sizing from fixed dimensions that happen to match the artboard. The shell follows the viewport, navigation/header stay in place, the content region owns vertical scrolling and the last action remains reachable. A resized static screenshot does not test a different live viewport.
 4. After an authorized edit, save/reopen, reread the affected Page and repeat the geometry check. For an explicitly requested shell/editor regression, additionally test a subsequent content edit using [engineering verification](../engineering/component-contracts.md). Ordinary delivery and read-only review do not introduce artificial edits. Missing geometry or untested Preview scrolling remains unverified; general model/rendering checks do not establish viewport fill.
 
-For the shared Overseas/Antd-v6 AppShell, run [verify_shell_height.py](../../scripts/verify_shell_height.py) from resourceRoot against a full read of one Page and its [overview artboard's](../desktop-inspection.md#locate-the-overview-artboard) snapshot_layout JSON.
+For the shared Overseas/Antd-v6 AppShell, run [verify_shell_height.py](../../scripts/verify_shell_height.py) from resourceRoot against a full read of one Page and its [page artboard's](../desktop-inspection.md#locate-a-page-artboard) snapshot_layout JSON.
 
 ```sh
 python3 scripts/verify_shell_height.py page-read.json page-layout.json

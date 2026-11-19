@@ -583,12 +583,12 @@ async function renderCanvas(win, input = {}, signal) {
     preview.destroy();
   }
 }
-async function exportCanvas(win, input) {
+async function exportCanvas(win, input, signal) {
   if (!path.isAbsolute(input.outputPath))
     throw new Error("outputPath must be absolute");
   if (path.extname(input.outputPath).toLowerCase() !== "." + input.format)
     throw new Error("File extension must match export format");
-  const result = await renderCanvas(win, input);
+  const result = await renderCanvas(win, input, signal);
   const data =
     input.format === "html"
       ? result.html
@@ -599,6 +599,7 @@ async function exportCanvas(win, input) {
           : input.format === "webp"
             ? result.webp
             : result.image.toPNG();
+  signal?.throwIfAborted();
   await fs.writeFile(input.outputPath, data, { flag: "wx" });
   return {
     path: input.outputPath,

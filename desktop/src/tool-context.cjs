@@ -1,5 +1,5 @@
-const modelReads = new Set(["identify", "read", "listLibraries", "getLibrary", "searchLibraryComponents", "reviewComponentReuse", "queryElements", "readVector", "getEditorContext", "validate", "findEmptySpace"]);
-const viewOperations = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight", "setInteractiveMode"]);
+const modelReads = new Set(["identify", "read", "listLibraries", "getLibrary", "searchLibraryComponents", "reviewComponentReuse", "queryElements", "readPageReferences", "readCanvasFlow", "readVector", "getEditorContext", "validate", "findEmptySpace"]);
+const viewOperations = new Set(["openPageOverview", "navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight", "setInteractiveMode"]);
 const editableContext = { surface: "editor", previewKind: [null, "interactive"], canEdit: true };
 
 function requiredContext(method, input = {}) {

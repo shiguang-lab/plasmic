@@ -40,6 +40,14 @@ export const useStructurePanelStyles = createStyles(({ token }) => ({
       outlineOffset: 2,
     },
   },
+  overviewRow: {
+    display: "flex", alignItems: "center", gap: 8, flexShrink: 0, height: 32,
+    margin: "0 8px 4px", padding: "0 8px", border: 0, borderRadius: 6,
+    color: token.colorText, background: "transparent", cursor: "pointer", textAlign: "left",
+    "& span:first-of-type": { flex: 1 },
+    "&:hover": { background: token.colorFillSecondary },
+    '&[aria-pressed="true"]': { color: token.colorPrimaryText, background: token.colorPrimaryBg },
+  },
   directorySummary: {
     display: "flex",
     alignItems: "center",

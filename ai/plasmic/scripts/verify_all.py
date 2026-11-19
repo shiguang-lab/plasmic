@@ -420,8 +420,8 @@ def run_suite(config, base, evidence, project_id, page_path=None):
             return {"passed": valid, "errors": [] if valid else ["Successful native model validation for the exact scoped Pages required"], "result": result}
         if name == "page_layout":
             if not isinstance(spec, dict) or set(spec) - {"presets", "overviewName"}:
-                raise ValueError("page_layout accepts only presets and overviewName; defaults to Desktop and 页面总览")
-            return verify_page_layout.check(overview, spec.get("presets"), spec.get("overviewName", "页面总览"))
+                raise ValueError("page_layout accepts only presets and overviewName; overviewName selects an explicitly requested page group")
+            return verify_page_layout.check(overview, spec.get("presets"), spec.get("overviewName"))
         if name == "review":
             return review_check(spec)
         allowed = {"inventory", "reads"} if name == "structure" else {"pages"} if name == "slots" else set() if name == "shell_height" else {"inventory", "evidence"} if name == "references" else {"inventory"}

@@ -1,4 +1,4 @@
-const reads = new Set(["readComments", "read", "queryElements", "readVector", "validate", "findEmptySpace", "beginCanvasInspection"]);
+const reads = new Set(["readComments", "read", "queryElements", "readPageReferences", "readCanvasFlow", "readVector", "validate", "findEmptySpace", "beginCanvasInspection"]);
 const passive = new Set(["identify", "getEditorContext", "endCanvasInspection"]);
 const operationLabels = {
   create_project: "Creating project", create_workspace: "Creating workspace", create_org: "Creating organization",
@@ -8,7 +8,7 @@ const operationLabels = {
   generate_image: "Generating image", search_stock_images: "Searching images", export_code: "Exporting code",
 };
 const quiet = new Set(["get_app_state", "get_build_info", "get_image_service_status", "report_task"]);
-const view = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight", "setInteractiveMode"]);
+const view = new Set(["openPageOverview", "navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight", "setInteractiveMode"]);
 
 function operationTargets(method, input = {}) {
   const target = (value) => Object.fromEntries(["componentUuid", "elementUuid", "frameUuid", "ref"].flatMap((key) => typeof value?.[key] === "string" ? [[key, value[key]]] : []));

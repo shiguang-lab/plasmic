@@ -7,8 +7,18 @@ exports[`Project Serialization > serialize project with all filters enabled 1`] 
   </canvases>
   <pageFrames>
     <ARRAY>
-      <ITEM componentUuid="ypvAo6PBDTFP" frameUuid="8-ZJ3FFUcUIN" width="1440" height="1024"></ITEM>
-      <ITEM componentUuid="ypvAo6PBDTFP" frameUuid="JrTZWqeSYX-4" width="414" height="736"></ITEM>
+      <ITEM componentUuid="ypvAo6PBDTFP" frameUuid="8-ZJ3FFUcUIN" width="1440" height="1024" matrix="standard" rowIndex="0" columnIndex="0">
+        <variantUuids>
+          <ARRAY></ARRAY>
+        </variantUuids>
+      </ITEM>
+      <ITEM componentUuid="ypvAo6PBDTFP" frameUuid="JrTZWqeSYX-4" width="414" height="736" matrix="standard" rowIndex="0" columnIndex="1">
+        <variantUuids>
+          <ARRAY>
+            <ITEM>pIBrJnbkAQLL</ITEM>
+          </ARRAY>
+        </variantUuids>
+      </ITEM>
     </ARRAY>
   </pageFrames>
   <devicePresets>
@@ -6418,15 +6428,25 @@ exports[`Project Serialization > serialize project with all filters enabled 2`] 
   ],
   "pageFrames": [
     {
+      "columnIndex": 0,
       "componentUuid": "ypvAo6PBDTFP",
       "frameUuid": "8-ZJ3FFUcUIN",
       "height": 1024,
+      "matrix": "standard",
+      "rowIndex": 0,
+      "variantUuids": [],
       "width": 1440,
     },
     {
+      "columnIndex": 1,
       "componentUuid": "ypvAo6PBDTFP",
       "frameUuid": "JrTZWqeSYX-4",
       "height": 736,
+      "matrix": "standard",
+      "rowIndex": 0,
+      "variantUuids": [
+        "pIBrJnbkAQLL",
+      ],
       "width": 414,
     },
   ],

@@ -89,7 +89,7 @@ function setup() {
   const frames = ["List", "Details"].map((name) =>
     mkArenaFrame({ site, component, name, width: 1440, height: 960 }),
   );
-  const arena = new Arena({ name: "Customer overview", children: frames });
+  const arena = new Arena({ metadata: {}, name: "Customer overview", children: frames });
   site.arenas.push(arena);
   const modelSnapshots = new ModelSnapshots();
   const arenaState = new StudioArenaState({ site, modelSnapshots });
@@ -240,7 +240,7 @@ it("updates the arena footer count when artboards change", () => {
   const { arena, site, component } = setup();
   render(<OutlineTab />);
   act(() => {
-      fixture.ctx.currentArena = new Arena({
+      fixture.ctx.currentArena = new Arena({ metadata: {},
         name: arena.name,
         children: [
           ...arena.children,

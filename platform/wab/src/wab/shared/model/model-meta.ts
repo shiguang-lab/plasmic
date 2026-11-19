@@ -142,7 +142,7 @@ export class MetaRuntime extends BaseRuntime {
 
   private clsToFieldsCache = new Map<Class, Field[]>();
   private clsToFieldKeysCache = new Map<Class, Set<string>>();
-  private clsToTransientFieldKeysCache = new Map<Class, Set<string>>();
+  private clsToNonRequiredFieldKeysCache = new Map<Class, Set<string>>();
   private strict: boolean = true;
 
   constructor(schema: Class[], nextUid: number) {
@@ -161,7 +161,7 @@ export class MetaRuntime extends BaseRuntime {
             checkEqKeys(
               args,
               this.allFieldKeys(cls),
-              this.allTransientFieldKeys(cls),
+              this.allNonRequiredFieldKeys(cls),
               cls.name,
             );
           } catch (e) {
@@ -219,21 +219,24 @@ export class MetaRuntime extends BaseRuntime {
     return fieldKeys;
   }
 
-  allTransientFieldKeys(cls: Class) {
-    if (this.clsToTransientFieldKeysCache.has(cls)) {
+  allNonRequiredFieldKeys(cls: Class) {
+    if (this.clsToNonRequiredFieldKeysCache.has(cls)) {
       return ensure(
-        this.clsToTransientFieldKeysCache.get(cls),
-        `Class ${cls} does not exist in clsToPersistentFieldKeysCache`,
+        this.clsToNonRequiredFieldKeysCache.get(cls),
+        `Class ${cls} does not exist in clsToNonRequiredFieldKeysCache`,
       );
     }
 
     const fields = this.allFields(cls);
     const fieldKeys = new Set(
       fields
-        .filter((f) => f.annotations.includes("Transient"))
+        .filter(
+          (f) =>
+            f.annotations.includes("Transient") || f.type.type === "Optional",
+        )
         .map((f) => f.name),
     );
-    this.clsToTransientFieldKeysCache.set(cls, fieldKeys);
+    this.clsToNonRequiredFieldKeysCache.set(cls, fieldKeys);
     return fieldKeys;
   }
 
@@ -271,12 +274,12 @@ const excludeKeys = ["__type", "uid"];
 export function checkEqKeys(
   x: any,
   allKeys: Set<string>,
-  transientKeys: Set<string>,
+  nonRequiredKeys: Set<string>,
   clsName: string,
 ) {
   let diff = "";
   for (const key of Object.keys(x)) {
-    if (excludeKeys.includes(key) || transientKeys.has(key)) {
+    if (excludeKeys.includes(key)) {
       continue;
     }
     if (!allKeys.has(key)) {
@@ -284,7 +287,7 @@ export function checkEqKeys(
     }
   }
   for (const key of allKeys) {
-    if (excludeKeys.includes(key) || transientKeys.has(key)) {
+    if (excludeKeys.includes(key) || nonRequiredKeys.has(key)) {
       continue;
     }
     if (!(key in x)) {

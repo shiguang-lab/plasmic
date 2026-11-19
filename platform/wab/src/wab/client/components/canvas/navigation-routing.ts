@@ -17,7 +17,9 @@ export function routeSegmentBlocked(a: RoutePoint, b: RoutePoint, r: Rect) {
 function compact(points: RoutePoint[]) {
   const result: RoutePoint[] = [];
   for (const point of points) {
-    if (result.length && distance(result[result.length - 1], point) < 0.01) { continue; }
+    // Even a subpixel step can carry a turn. Dropping it would join its neighbors diagonally.
+    const last = result[result.length - 1];
+    if (last && last.x === point.x && last.y === point.y) { continue; }
     while (result.length >= 2) {
       const a = result[result.length - 2], b = result[result.length - 1];
       if (((a.x === b.x && b.x === point.x) || (a.y === b.y && b.y === point.y)) &&

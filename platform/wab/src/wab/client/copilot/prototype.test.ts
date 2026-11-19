@@ -1,5 +1,6 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
+import { addScreenSizeToPageArenas } from "@/wab/shared/page-arenas";
 import { Pt } from "@/wab/shared/geom";
 import { FastBundler } from "@/wab/shared/bundler";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
@@ -27,6 +28,7 @@ import {
 import * as taggedUnbundle from "@/wab/shared/core/tagged-unbundle";
 import { flattenTpls, mkSlot, mkTplComponentX, mkTplTagX, trackComponentSite } from "@/wab/shared/core/tpls";
 import {
+  PageHref,
   ProjectDependency,
   Arg,
   DataToken,
@@ -264,21 +266,165 @@ describe("AI prototype editor tools", () => {
     await call("changeElement", { componentUuid: page.uuid, elementUuid: instance.uuid, resetProps: ["activeKey"] });
     expect(instance.vsettings[0].args.some((arg) => arg.param.variable.name === "activeKey")).toBe(false);
   });
-  it("creates only native Desktop columns and one complete shared page overview", async () => {
+  it("creates one device column per page without assigning project-directory pages to a business canvas", async () => {
     const { call, createPage, studioCtx } = fixture();
     await createPage("List");
     await createPage("Detail");
     const project = (await call("read", { view: "full" })).results[0];
     expect(project.pageFrames.map((f: { width: number; height: number }) => [f.width, f.height])).toEqual([[1440, 1024], [1440, 1024]]);
     expect(project.canvases).toHaveLength(1);
-    expect(project.canvases[0].frames.map((f: { componentUuid: string }) => f.componentUuid).sort()).toEqual(studioCtx.site.components.map((c) => c.uuid).sort());
-    expect(project.canvases[0].frames.every((f: { width: number; height: number }) => f.width === 1440 && f.height === 1024)).toBe(true);
+    expect(project.canvases[0].frames).toEqual([]);
     const before = await call("read", { view: "full" });
     await expect(call("createComponent", { name: "InvalidDevice", preset: "Unknown" })).rejects.toThrow("Unknown Studio device preset");
     expect(await call("read", { view: "full" })).toEqual(before);
     await call("createComponent", { name: "RequestedMobile", preset: "iPhone 8 Plus" });
     const mobile = (await call("read", { view: "full" })).results[0].pageFrames.at(-1);
     expect([mobile.width, mobile.height]).toEqual([414, 736]);
+  });
+
+  it("keeps canvas edits usable on a server without canvas descriptions", async () => {
+    const { call, studioCtx } = fixture();
+    Object.assign(studioCtx.appCtx, { lastBundleVersion: "258-add-page-href-encode" });
+    await call("createCanvas", { name: "Training" });
+    await expect(call("updateCanvas", {
+      canvasName: "Training", name: "Plan", description: "Daily exercises",
+    })).rejects.toThrow("does not support canvas descriptions");
+    await expect(call("createCanvas", {
+      name: "Practice", description: "Poses",
+    })).rejects.toThrow("does not support canvas descriptions");
+    await call("updateCanvas", { canvasName: "Training", name: "Plan" });
+    const names = studioCtx.site.arenas.map(arena => arena.name);
+    expect(names).toContain("Plan");
+    expect(names).not.toContain("Practice");
+  });
+
+  it("keeps page membership explicit through placement, rename, move, viewport changes and overview navigation", async () => {
+    const { studioCtx, call } = fixture();
+    await call("createCanvas", { name: "信贷" });
+    await call("createCanvas", { name: "健身", description: "训练流程" });
+    const result = await call("createComponent", { type: "page", name: "力量训练", path: "/strength", canvasName: "健身" });
+    const componentUuid = result.created.find(item => item.kind === "Component").uuid;
+    const frameUuid = result.created.find(item => item.kind === "Artboard").uuid;
+    const credit = ensure(studioCtx.site.arenas.find(a => a.name === "信贷"), "credit");
+    const fitness = ensure(studioCtx.site.arenas.find(a => a.name === "健身"), "fitness");
+    expect(fitness.metadata).toEqual({ description: "训练流程" });
+    await studioCtx.changeUnsafe(() => { fitness.metadata = { ...fitness.metadata, category: "运动" }; });
+    await call("updateCanvas", { canvasName: "健身", description: "训练计划" });
+    const canvases = (await call("read", { collection: "canvases" })).results[0].canvases;
+    expect(canvases).toContainEqual(expect.objectContaining({ name: "健身", description: "训练计划" }));
+    await call("renameComponent", { componentUuid, name: "健身-力量训练" });
+    const page = ensure(studioCtx.site.components.find(c => c.uuid === componentUuid), "page");
+    expect([page.name, page.pageMeta?.path]).toEqual(["健身-力量训练", "/strength"]);
+    await call("updatePageSettings", { componentUuid, title: "训练", description: "课程", path: "/plan" });
+    await call("updateArtboard", { canvasName: "健身", frameUuid, targetCanvasName: "信贷" });
+    expect(credit.children[0].uuid).toBe(frameUuid);
+    expect(fitness.children).toHaveLength(0);
+    await call("removeArtboard", { canvasName: "信贷", frameUuid });
+    await call("setPageViewport", { componentUuid, preset: "Desktop" });
+    const before = studioCtx._changeCounter;
+    expect(await call("openPageOverview")).toEqual({ view: "overview" });
+    expect(studioCtx.appCtx.history.location.search).toContain("view=pages");
+    expect(studioCtx.pageOverviewOpenStore.getState()).toBe(true);
+    expect(studioCtx._changeCounter).toBe(before);
+    expect([fitness.children.length, credit.children.length]).toEqual([0, 0]);
+    expect(page.pageMeta?.path).toBe("/plan");
+    const copy = await call("duplicateComponent", { componentUuid, name: "练习", canvasName: "健身", path: "/practice" });
+    const copiedUuid = copy.created.find(item => item.kind === "Component").uuid;
+    expect(copiedUuid).not.toBe(componentUuid);
+    expect(fitness.children[0].container.component.uuid).toBe(copiedUuid);
+    const restored = taggedUnbundle.unbundleSite(new FastBundler(), studioCtx.siteInfo.id, studioCtx.bundleSite().site, []).site;
+    const restoredFitness = ensure(restored.arenas.find(arena => arena.name === "健身"), "fitness");
+    expect(restoredFitness.metadata).toEqual({ description: "训练计划", category: "运动" });
+    expect(restoredFitness.children.map(frame => frame.container.component.uuid)).toEqual([copiedUuid]);
+    expect(restored.arenas.find(arena => arena.name === "信贷")?.children).toHaveLength(0);
+  });
+
+  it("resizes an exact page frame and avoids inheriting duplicate phone columns", async () => {
+    const { call, createPage, studioCtx } = fixture();
+    const page = await createPage("Plan");
+    await call("setPageViewport", { componentUuid: page.uuid, preset: "iPhone 8 Plus" });
+    await studioCtx.changeUnsafe(() => addScreenSizeToPageArenas({ site: studioCtx.site, width: 414, height: 736 }));
+    const inherited = await studioCtx.changeUnsafe(() => studioCtx.tplMgr().addComponent({
+      name: "Activity", type: ComponentType.Page, pageMeta: { path: "/activity" },
+    }));
+    const firstRow = getPageArena(studioCtx.site, page)!.matrix.rows[0];
+    expect(firstRow.cols).toHaveLength(2);
+    expect(getPageArena(studioCtx.site, inherited)!.matrix.rows[0].cols).toHaveLength(1);
+    const [first, second] = firstRow.cols.map(cell => cell.frame);
+    await call("setPageViewport", { componentUuid: page.uuid, frameUuid: second.uuid, preset: "Desktop" });
+    expect([first.width, first.height, second.width, second.height]).toEqual([414, 736, 1440, 1024]);
+  });
+
+  it("audits group entrances by frame and reorders existing artboards as one undoable edit", async () => {
+    const { call, createPage, studioCtx } = fixture();
+    const start = await createPage("Courses");
+    const practice = await createPage("Practice");
+    const report = await createPage("Report");
+    const canvasName = "健身";
+    await call("createCanvas", { name: canvasName });
+    const place = async (componentUuid: string, width: number) => {
+      const result = await call("createArtboard", { canvasName, componentUuid, width, height: 844 });
+      return result.created[0].uuid as string;
+    };
+    const practiceFrame = await place(practice.uuid, 390);
+    const startFrame = await place(start.uuid, 420);
+    const secondPracticeFrame = await place(practice.uuid, 375);
+    await call("createInteraction", {
+      componentUuid: start.uuid, elementUuid: start.tplTree.uuid, eventName: "onClick",
+      name: "Start class", condition: "{{ true }}", action: { actionName: "navigation", destination: "/practice" },
+    });
+    await call("insertHtml", { componentUuid: practice.uuid, html: '<div><a href="/report">Report</a><a href="/practice">Restart</a><a href="https://example.org/">Help</a></div>' });
+    const read = () => call("readCanvasFlow", { canvasName });
+    const beforeRead = studioCtx._changeCounter;
+    const before = await read();
+    expect(studioCtx._changeCounter).toBe(beforeRead);
+    expect(before.frames.map(frame => frame.frameUuid)).toEqual([practiceFrame, startFrame, secondPracticeFrame]);
+    expect(before.pagesWithoutInbound).toEqual([{ pageUuid: start.uuid, name: start.name }]);
+    expect(before.links).toContainEqual(expect.objectContaining({
+      sourceFrameUuid: startFrame, sourcePageUuid: start.uuid, elementUuid: start.tplTree.uuid,
+      event: "onClick", conditional: true, target: { pageUuid: practice.uuid, name: practice.name, inGroup: true },
+    }));
+    for (const sourceFrameUuid of [practiceFrame, secondPracticeFrame]) {
+      expect(before.links).toContainEqual(expect.objectContaining({ sourceFrameUuid, target: { pageUuid: report.uuid, name: report.name, inGroup: false } }));
+      expect(before.links).toContainEqual(expect.objectContaining({ sourceFrameUuid, kind: "external", target: null }));
+    }
+    const target = ensure(studioCtx.site.arenas.find(arena => arena.name === canvasName), "Group");
+    const layout = () => target.children.map(frame => [frame.uuid, frame.left, frame.top]);
+    const original = layout();
+    const order = [startFrame, practiceFrame, secondPracticeFrame];
+    for (const invalid of [[startFrame], [startFrame, startFrame, practiceFrame], [startFrame, practiceFrame, "foreign"]]) {
+      await expect(call("reorderArtboards", { canvasName, frameUuids: invalid })).rejects.toThrow();
+      expect(layout()).toEqual(original);
+    }
+    await call("executeBatch", { operations: [{ name: "reorderArtboards", input: { canvasName, frameUuids: order } }] });
+    expect(target.children.map(frame => frame.uuid)).toEqual(order);
+    expect(new Set(target.children.map(frame => frame.top)).size).toBe(1);
+    expect(target.children[1].left).toBeGreaterThan(ensure(target.children[0].left, "First position") + target.children[0].width);
+    const restored = taggedUnbundle.unbundleSite(new FastBundler(), studioCtx.siteInfo.id, studioCtx.bundleSite().site, []).site;
+    expect(restored.arenas.find(arena => arena.name === canvasName)?.children.map(frame => frame.uuid)).toEqual(order);
+    expect((await read()).links).toHaveLength(before.links.length);
+    await call("undo");
+    expect(layout()).toEqual(original);
+    expect(await read()).toEqual(before);
+  });
+
+  it("finds and retargets native page links while keeping literal URLs", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const source = await createPage("Home");
+    const oldPage = await createPage("Before");
+    const newPage = await createPage("After");
+    await call("insertHtml", { componentUuid: source.uuid, html: '<div><a href="/before">Old</a><a href="/before">Literal</a></div>' });
+    const links = flattenTpls(source.tplTree).filter(node => isKnownTplTag(node) && node.tag === "a");
+    await studioCtx.changeUnsafe(() => {
+      links[0].vsettings[0].attrs.href = new PageHref({ page: oldPage, params: {}, query: {}, fragment: null, encode: true });
+      links[1].vsettings[0].attrs.href = codeLit("/before");
+    });
+    const refs = [{ componentUuid: source.uuid, elementUuid: links[0].uuid }];
+    expect((await call("readPageReferences", { componentUuid: oldPage.uuid })).references).toEqual(refs);
+    await call("replacePageLinks", { componentUuid: oldPage.uuid, targetPageUuid: newPage.uuid });
+    expect((await call("readPageReferences", { componentUuid: newPage.uuid })).references).toEqual(refs);
+    expect((await call("readPageReferences", { componentUuid: oldPage.uuid })).references).toEqual([]);
+    expect(tryExtractJson(links[1].vsettings[0].attrs.href)).toBe("/before");
   });
 
   it("discovers imported resources by project and name without recursive inventories", async () => {
@@ -1467,12 +1613,15 @@ describe("AI prototype editor tools", () => {
     expect(validation.valid, JSON.stringify(validation)).toBe(true);
     studioCtx.copilotActivity.dispose();
   });
-  it("locates pages in a matching shared canvas and keeps dedicated navigation explicit", async () => {
+  it("locates shared artboards and opens ungrouped pages in their own canvas", async () => {
     const { studioCtx, call, createPage } = fixture();
     vi.spyOn(studioCtx, "viewportCtx", "get").mockReturnValue(createViewportFixture().viewportCtx);
     const page = await createPage("TargetPage");
     const otherPage = await createPage("OtherPage");
-    const overview = ensure(studioCtx.site.arenas.find(arena => arena.children.some(frame => frame.container.component === page)), "Target page must have an overview arena in the navigation fixture");
+    const overview = studioCtx.site.arenas[0];
+    for (const component of [page, otherPage]) {
+      await call("createArtboard", { canvasName: overview.name, componentUuid: component.uuid, width: 1024, height: 768 });
+    }
     const overviewFrame = ensure(overview.children.find(frame => frame.container.component === page), "Target page must have a frame in its overview arena");
     await call("createCanvas", { name: "Smaller" });
     const smallerFrame = await call("createArtboard", { canvasName: "Smaller", componentUuid: page.uuid, width: 1024, height: 768 });
@@ -1491,8 +1640,8 @@ describe("AI prototype editor tools", () => {
     expect(studioCtx.currentArena).toBe(otherPageArena);
     await call("deleteCanvas", { canvasName: "Smaller" });
     await call("deleteCanvas", { canvasName: overview.name });
-    await expect(call("navigate", { componentUuid: page.uuid })).rejects.toThrow(/No shared canvas contains Page/);
-    expect(studioCtx.currentArena).toBe(otherPageArena);
+    await call("navigate", { componentUuid: page.uuid });
+    expect(studioCtx.currentArena).toBe(getPageArena(studioCtx.site, page));
 
     const component = await call("createComponent", { name: "Definition", type: "component" });
     const componentUuid = component.created[0].uuid;
@@ -1702,6 +1851,7 @@ describe("AI prototype editor tools", () => {
     const original = await createPage("Original");
     const target = await createPage("Target");
     const arena = ensure(studioCtx.site.arenas[0], "Overview missing");
+    await call("createArtboard", { canvasName: arena.name, componentUuid: original.uuid, width: 390, height: 844 });
     const frame = ensure(arena.children.find((f) => f.container.component === original), "Original artboard missing");
     studioCtx.currentArena = arena;
     vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(frame);

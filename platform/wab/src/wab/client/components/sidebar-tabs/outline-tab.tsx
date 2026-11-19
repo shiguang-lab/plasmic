@@ -15,7 +15,6 @@ import MixedArenaIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import {
   getArenaFrames,
   isMixedArena,
@@ -42,9 +41,6 @@ function OutlineTab_() {
   const studioCtx = useStudioCtx();
   useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
   const world = studioCtx.arenaState.lifetime();
-  // Subscribe precisely to save permission so the overview menu re-evaluates
-  // when it changes; the unique overview policy stays in StudioCtx.
-  const canOpenPageOverview = useStudioSaveState(studioCtx, () => studioCtx.canOpenPageOverview);
   const { styles: panelStyles } = useStructurePanelStyles();
   const dndManager = React.useMemo(
     () => new TreeDndManager(studioCtx),
@@ -187,19 +183,9 @@ function OutlineTab_() {
                     selectedKeys={
                       currentArenaFrame
                         ? [currentArenaFrame.uuid]
-                        : ["overview"]
+                        : []
                     }
                   >
-                    <Menu.Item
-                      key="overview"
-                      disabled={!canOpenPageOverview}
-                      onClick={() => {
-                        void studioCtx.openPageOverview();
-                      }}
-                    >
-                      {uiT("Pages overview")}
-                    </Menu.Item>
-                    <Menu.Divider />
                     {arenaFrameGroups
                       .filter((it) => it.frames.length)
                       .map((group) => {

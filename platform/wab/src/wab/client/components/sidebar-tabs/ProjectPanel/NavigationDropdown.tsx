@@ -282,6 +282,7 @@ function NavigationDropdown_(
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
+  const overviewOpen = useStore(studioCtx.pageOverviewOpenStore);
   const navigationPanel = useStore(studioCtx.navigationPanelStore);
   const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
   const catalog = useNavigationCatalogInputs(studioCtx, contentEditorMode);
@@ -893,6 +894,14 @@ function NavigationDropdown_(
           }}
         />
       </label>
+      {expanded && (
+        <button type="button" className={panelStyles.overviewRow} aria-pressed={overviewOpen}
+          onClick={studioCtx.openPageOverview}>
+          <FiGrid size={15} />
+          <span>{uiT("Pages overview")}</span>
+          <span>{catalog.pages.length}</span>
+        </button>
+      )}
       {!expanded && currentArena && (
         <button
           type="button"
@@ -1009,6 +1018,7 @@ function ArenaTreeRow(props: RenderElementProps<ArenaPanelRow>) {
         <NavigationArenaRow
           arena={value.arena}
           name={value.name}
+          description={value.description}
           pathName={value.pathName}
           componentId={value.componentId}
           matcher={treeState.matcher}

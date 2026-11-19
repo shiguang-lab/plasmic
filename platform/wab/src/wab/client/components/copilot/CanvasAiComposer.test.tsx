@@ -52,7 +52,7 @@ beforeEach(() => {
   state.session.setThreadDraft(state.session.activeThreadId, {prompt: "Create page", attachments: []});
   vi.spyOn(state.session, "run").mockResolvedValue(undefined);
 });
-it.each([new Arena({ name: "Pages", children: [] })])(
+it.each([new Arena({ metadata: {}, name: "Pages", children: [] })])(
   "sends canvas requests without a focused page in arena=%s",
   (currentArena) => {
     const studio = mock<StudioCtx>({

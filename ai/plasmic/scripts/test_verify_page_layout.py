@@ -10,8 +10,8 @@ class PageLayoutTests(unittest.TestCase):
                         "pageFrames": [{"componentUuid": "page", "width": 1440, "height": 1024}],
                         "canvases": [{"name": "页面总览", "frames": [{"uuid": "frame", "componentUuid": "page", "width": 1440, "height": 1024, "x": 0, "y": 0}]}]}
 
-    def result(self):
-        return check({"results": [self.project]})
+    def result(self, name=None):
+        return check({"results": [self.project]}, overview_name=name)
 
     def test_native_desktop_and_shared_reference_pass(self):
         self.assertTrue(self.result()["passed"])
@@ -23,28 +23,28 @@ class PageLayoutTests(unittest.TestCase):
             self.project = {**copy.deepcopy(original), "pageFrames": frames}
             self.assertFalse(self.result()["passed"])
 
-    def test_empty_missing_duplicate_and_overlapping_overviews_fail(self):
+    def test_explicit_group_requires_each_page_once(self):
         frame = self.project["canvases"][0]["frames"][0]
         for groups in [[], [{"name": "Empty", "frames": []}], [{"name": "Duplicate", "frames": [frame, frame]}],
                        self.project["canvases"] * 2]:
             self.project["canvases"] = groups
-            self.assertFalse(self.result()["passed"])
+            self.assertTrue(self.result()["passed"])
+            self.assertFalse(self.result("页面总览")["passed"])
 
     def test_invalid_preset_geometry_cannot_establish_a_native_device(self):
         for value in (True, 0, float("nan"), "1440"):
             self.project["devicePresets"][0]["width"] = value
             self.assertFalse(self.result()["passed"])
 
-    def test_overview_directory_name_checks_defaults_and_reviewed_override(self):
-        for name in ("Custom arena 1", "Pages overview", "", None):
-            self.project["canvases"][0]["name"] = name
-            self.assertFalse(self.result()["passed"])
-        self.project["canvases"][0]["name"] = "客群管理页面总览"
-        self.assertFalse(self.result()["passed"])
-        self.assertTrue(check({"results": [self.project]}, overview_name="客群管理页面总览")["passed"])
-        self.project["canvases"][0]["name"] = "Explicit user name"
-        self.assertTrue(check({"results": [self.project]}, overview_name="Explicit user name")["passed"])
-        self.assertFalse(check({"results": [self.project]}, overview_name="")["passed"])
+    def test_group_names_are_checked_only_when_requested(self):
+        group = self.project["canvases"][0]
+        group["name"] = "健身"
+        self.project["canvases"].append({"name": "信贷", "frames": []})
+        self.assertTrue(self.result()["passed"])
+        self.assertTrue(self.result("健身")["passed"])
+        self.assertFalse(self.result("信贷")["passed"])
+        self.assertFalse(self.result("页面总览")["passed"])
+        self.assertFalse(self.result("")["passed"])
 
     def test_explicit_other_device_is_supported(self):
         self.project["devicePresets"][0]["name"] = "RequestedDevice"

@@ -90,7 +90,7 @@ function setup() {
   const frames = ["List", "Details"].map((name) =>
     mkArenaFrame({ site, component, name, width: 1440, height: 960 }),
   );
-  const arena = new Arena({ name: "Overview", children: frames });
+  const arena = new Arena({ metadata: {}, name: "Overview", children: frames });
   site.arenas.push(arena);
   const models = new ModelSnapshots();
   const arenaState = new StudioArenaState({ site, modelSnapshots: models });
@@ -241,7 +241,7 @@ it("does not reuse the retained artboard in another arena or after it is removed
   const f = setup();
   f.select(f.frames[1], f.leafA);
   f.deselect();
-  const other = new Arena({ name: "Other", children: [] });
+  const other = new Arena({ metadata: {}, name: "Other", children: [] });
   f.site.arenas.push(other);
   f.arenaState.setCurrent(other);
   expect(f.outline.viewCtx()).toBeUndefined();
@@ -283,7 +283,7 @@ it("disposes artboard outlines when leaving their arena", () => {
   const f = setup();
   const child = f.outline.getFrameOutline(f.frames[0]);
   const dispose = vi.spyOn(child, "dispose");
-  const other = new Arena({ name: "Other", children: [] });
+  const other = new Arena({ metadata: {}, name: "Other", children: [] });
   f.site.arenas.push(other);
   f.arenaState.setCurrent(other);
   expect(dispose).toHaveBeenCalledOnce();
@@ -310,7 +310,7 @@ it("retires departed frame outlines in one bounded publication despite a synchro
   const first = f.outline.getFrameOutline(f.frames[0]);
   const second = f.outline.getFrameOutline(f.frames[1]);
   const firstDispose = vi.spyOn(first, "dispose"), secondDispose = vi.spyOn(second, "dispose");
-  const next = new Arena({ name: "Other", children: [] });
+  const next = new Arena({ metadata: {}, name: "Other", children: [] });
   f.site.arenas.push(next);
   let reads = 0;
   const stop = f.outline.stateStore.subscribe(() => {

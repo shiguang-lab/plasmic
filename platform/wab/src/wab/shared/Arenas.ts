@@ -124,9 +124,15 @@ export function ensureAutoDerivedFrameHeight(frame: ArenaFrame, initialHeight: n
 
 export function mkMixedArena(name: string, children: ArenaChild[] = []) {
   return new Arena({
+    metadata: {},
     children,
     name,
   });
+}
+
+export function setArenaDescription(arena: Arena, description: string) {
+  arena.metadata ??= {};
+  arena.metadata.description = description;
 }
 
 export function mkArenaFrame({
@@ -363,6 +369,7 @@ export function cloneArenaFrame(frame: ArenaFrame) {
 
 export function cloneArena(arena: Arena) {
   return new Arena({
+    metadata: { ...arena.metadata },
     name: arena.name,
     children: arena.children.map((c) =>
       cloneArenaFrame(ensureKnownArenaFrame(c)),

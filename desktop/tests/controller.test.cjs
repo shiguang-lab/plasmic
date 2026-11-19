@@ -866,6 +866,30 @@ test("cancellation clears only its IPC activity and keeps the transaction queue 
   assert.equal(sent.length, 3);
 });
 
+test("an MCP caller can cancel its own active inspection and release the next operation", async t => {
+  const controller = new DesktopController(() => studioFixture(null), {});
+  t.after(() => controller.close());
+  controller.checkContext = async () => {};
+  const started = deferred();
+  controller.execute = async method => {
+    if (method !== "get_screenshot") return method;
+    const signal = controller.signalContext.getStore();
+    started.resolve();
+    await new Promise(resolve => signal.addEventListener("abort", resolve, { once: true }));
+    signal.throwIfAborted();
+  };
+  const owner = { id: "owner" }, other = { id: "other" };
+  const capture = controller.dispatch("get_screenshot", {}, owner);
+  await started.promise;
+  const operationId = [...controller.operations.keys()][0];
+  const next = controller.dispatch("execute", { name: "read" }, owner);
+  await assert.rejects(controller.dispatch("cancel_operation", { operationId }, other), /No cancellable/);
+  await controller.dispatch("cancel_operation", { operationId }, owner);
+  await assert.rejects(capture, { name: "AbortError" });
+  assert.equal(await next, "execute");
+  assert.equal(controller.cancellableReads.size, 0);
+});
+
 test("cancelled inspection still releases its background canvas", async (t) => {
   const controller = new DesktopController(() => studioFixture(null), {});
   t.after(() => controller.close());

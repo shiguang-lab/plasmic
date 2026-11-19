@@ -317,31 +317,30 @@ export class ViewportCtx {
     );
   }
 
-  private transform(
-    scale: number,
-    scroll: Pt,
-    smooth: boolean,
-    paddingGrowth = Pt.zero(),
-  ) {
+  private transform(scale: number, scroll: Pt, smooth: boolean) {
     if (this.disposed) {
       return;
     }
     this.debouncedUnsetIsTransforming();
     const previous = this.snapshot;
+    // An instant zoom can rebase the scroll origin in the same DOM update.
+    // Keep only the extra space needed to reach the new focal point.
+    const rebase = previous.hasFrames && !smooth && scale !== previous.scale;
+    const target = rebase ? scroll.sub(previous.extraPadding) : scroll;
     const scaled = this.derive(previous, {
       ...previous,
       scale,
-      extraPadding: previous.extraPadding.plus(paddingGrowth),
+      extraPadding: rebase ? Pt.zero() : previous.extraPadding,
       isTransforming: true,
     });
-    const growth = this.scrollSpaceGrowth(scroll, scaled);
+    const growth = this.scrollSpaceGrowth(target, scaled);
     const next = this.derive(previous, {
       ...scaled,
       extraPadding: scaled.extraPadding.plus(growth),
     });
     this.commit(next, {
       scale,
-      scroll: scroll.plus(growth),
+      scroll: target.plus(growth),
       smooth,
       canvasPadding: next.canvasPadding,
       arenaSize: next.arenaSize,
@@ -363,11 +362,7 @@ export class ViewportCtx {
     });
     this.dom.scrollBy(delta, opts?.smooth ?? false);
   };
-  panTo = (target: Pt) => {
-    const state = this.snapshot;
-    const growth = this.scrollSpaceGrowth(target, state);
-    this.transform(state.scale, target.plus(growth), false, growth);
-  };
+  panTo = (target: Pt) => this.transform(this.scale(), target, false);
   scrollTo = (target: Pt, opts?: { smooth: boolean }) =>
     this.transform(this.scale(), target, opts?.smooth ?? false);
 

@@ -28,6 +28,23 @@ import _bundle from "@/wab/shared/web-exporter/bundles/starter-project-desktop-f
 
 const TEAM_ID = "team123" as TeamId;
 
+it("saves an arena edit using the schema expected by a 258 server", async () => {
+  const { studioCtx, appCtx, api } = fakeStudioCtx();
+  Object.assign(appCtx, { lastBundleVersion: "258-add-page-href-encode" });
+  const { site } = studioCtx.bundleSite();
+  appCtx.bundler.unbundleAndRecomputeParents(site, studioCtx.siteInfo.id);
+  studioCtx.dbCtx().revisionNum = 10;
+  api.saveProjectRevChanges.mockResolvedValue(undefined);
+  await studioCtx.changeUnsafe(() => studioCtx.tplMgr().addArena("Training"));
+  await studioCtx.save({ noErrorNotification: true });
+  const [, request] = api.saveProjectRevChanges.mock.calls[0];
+  expect(request.modelSchemaHash).toBe(639587200);
+  const data: Bundle = JSON.parse(request.data);
+  expect(data.version).toBe("258-add-page-href-encode");
+  const arena = Object.values(data.map).find(record => record.name === "Training");
+  expect(arena).toEqual({ __type: "Arena", name: "Training", children: [] });
+});
+
 it("binds the active canvas to the restored draft model instead of the previous model", async () => {
   const { studioCtx, appCtx } = fakeStudioCtx({
     devFlagOverrides: { ccStubs: true },

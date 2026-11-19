@@ -9,6 +9,7 @@ import * as React from "react";
 interface NavigationArenaFields {
   readonly key: string;
   readonly name: string;
+  readonly description?: string;
   readonly pathName: string | undefined;
   readonly componentId: string | undefined;
 }
@@ -19,7 +20,7 @@ export type NavigationArenaInput = NavigationArenaFields & (
 );
 function captureArena(arena: AnyArena): NavigationArenaInput {
   return Object.freeze(switchType(arena)
-    .when(Arena, (value) => ({ type: "custom" as const, arena: value, key: `${value.name}-${value.uid}`, name: value.name, pathName: undefined, componentId: undefined }))
+    .when(Arena, (value) => ({ type: "custom" as const, arena: value, key: `${value.name}-${value.uid}`, name: value.name, description: value.metadata?.description, pathName: undefined, componentId: undefined }))
     .when(PageArena, (value) => ({ type: "page" as const, arena: value, key: value.component.uuid, name: value.component.name, pathName: value.component.pageMeta?.path, componentId: value.component.uuid }))
     .when(ComponentArena, (value) => ({ type: "component" as const, arena: value, key: value.component.uuid, name: value.component.name, pathName: undefined, componentId: value.component.uuid }))
     .result());
@@ -44,7 +45,7 @@ export class NavigationCatalogInputs {
     const models = studio.modelSnapshots;
     this.inputs = new ModelFieldInputs({ models, lifetime: studio.arenaState.lifetime(), isCurrent: () => models === studio.modelSnapshots && this.site === studio.site }, (field) => {
     field(this.site, "arenas", "pageArenas", "componentArenas");
-    this.site.arenas.forEach((arena) => field(arena, "name"));
+    this.site.arenas.forEach((arena) => field(arena, "name", "metadata"));
     [...this.site.pageArenas, ...this.site.componentArenas].forEach((arena) => {
       field(arena, "component");
       const component = arena.component;

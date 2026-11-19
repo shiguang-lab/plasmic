@@ -176,6 +176,7 @@ PageArena
 
 Arena
   name: String
+  metadata: Map[String, String]?
   children: [ArenaChild]
 
 ArenaChild

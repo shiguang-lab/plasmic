@@ -10,6 +10,7 @@ import {
   SEARCH_PARAM_ARENA,
   SEARCH_PARAM_ARENA_TYPE,
   SEARCH_PARAM_BRANCH,
+  SEARCH_PARAM_OVERVIEW,
   SEARCH_PARAM_COMMENT,
   SEARCH_PARAM_PUBLISHED_TEMPLATE,
   SEARCH_PARAM_REVISION,
@@ -41,6 +42,7 @@ export function parseProjectLocation(
     searchParams.get(SEARCH_PARAM_ARENA) || undefined;
   const threadId = (!publishedTemplate && searchParams.get(SEARCH_PARAM_COMMENT)) || undefined;
 
+  const pageOverview = !arenaType && !arenaUuidOrNameOrPath && !threadId && searchParams.get(SEARCH_PARAM_OVERVIEW) === "pages";
   const matchProject = APP_ROUTES.project.parse(location.pathname);
   if (matchProject) {
     return {
@@ -52,6 +54,7 @@ export function parseProjectLocation(
       arenaType,
       arenaUuidOrNameOrPath,
       threadId,
+      ...(pageOverview ? { pageOverview } : {}),
       ...(publishedTemplate ? { publishedTemplate } : {}),
     };
   }
@@ -67,6 +70,7 @@ export function parseProjectLocation(
       arenaType,
       arenaUuidOrNameOrPath,
       threadId,
+      ...(pageOverview ? { pageOverview } : {}),
       ...(publishedTemplate ? { publishedTemplate } : {}),
     };
   }

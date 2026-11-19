@@ -33,12 +33,6 @@ vi.mock("@/wab/client/insertable-templates", () => ({
     },
   ],
 }));
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_new_component/PlasmicNewComponentModal",
-  () => ({
-    PlasmicNewComponentModal: ({ children }) => <>{children}</>,
-  }),
-);
 vi.mock("@/wab/client/components/widgets/NewComponentSection", () => ({
   default: ({ children }) => <>{children}</>,
 }));

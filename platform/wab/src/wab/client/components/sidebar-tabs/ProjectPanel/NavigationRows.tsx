@@ -199,6 +199,7 @@ export function NavigationFolderRow({
 export interface NavigationArenaRowProps {
   arena: AnyArena;
   name: string;
+  description?: string;
   pathName: string | undefined;
   componentId: string | undefined;
   matcher: Matcher;
@@ -210,6 +211,7 @@ export interface NavigationArenaRowProps {
 export function NavigationArenaRow({
   arena,
   name: fullArenaName,
+  description,
   pathName,
   componentId,
   matcher,
@@ -319,7 +321,7 @@ export function NavigationArenaRow({
         programmaticallyTriggered
       >
         <div className="flex-col editor-document-label">
-          <span title={pathName ? `${displayName} · ${pathName}` : displayName}>
+          <span title={description || (pathName ? `${displayName} · ${pathName}` : displayName)}>
             {matcher.boldSnippets(displayName)}
           </span>
         </div>

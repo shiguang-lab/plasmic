@@ -1,3 +1,5 @@
+import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
+import { PageOverview } from "@/wab/client/components/studio/PageOverview";
 import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
@@ -30,6 +32,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import React from "react";
 import { createStore } from "zustand/vanilla";
@@ -138,7 +141,7 @@ beforeEach(async () => {
   const navigationPanelStore = createStore<"pages" | "outline">(
     () => "outline",
   );
-  const arena = new Arena({ name: "Customer overview", children: [] });
+  const arena = new Arena({ metadata: {}, name: "Customer overview", children: [] });
   const site = createSite();
   site.arenas.push(arena);
   const modelSnapshots = new ModelSnapshots();
@@ -154,6 +157,8 @@ beforeEach(async () => {
     get currentArena() { return arenaState.currentArena(); },
     contentEditorMode: false,
     navigationPanelStore,
+    pageOverviewOpenStore: createStore(() => false),
+    openPageOverview: vi.fn(),
     get navigationPanel() {
       return navigationPanelStore.getState();
     },
@@ -311,6 +316,42 @@ async function actualStudio() {
   await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   return studioCtx;
 }
+
+it("opens the fixed overview above groups, includes ungrouped pages once, and returns with Back", async () => {
+  const site = createSite();
+  const mgr = new TplMgr({ site });
+  const group = mgr.addArena("Fitness");
+  const plan = mgr.addComponent({ name: "Training plan", type: ComponentType.Page, pageMeta: { path: "/plan" } });
+  mgr.addComponent({ name: "Activity", type: ComponentType.Page, pageMeta: { path: "/activity" } });
+  for (let i = 0; i < 2; i++) {
+    mgr.addNewMixedArenaFrame(group, plan.name, plan, { insertPt: Pt.zero() });
+  }
+  const { studioCtx, history } = fakeStudioCtx({ site, initialUrl: "/projects/test?view=pages" });
+  studioCtx.viewportCtx = createViewportFixture().viewportCtx;
+  try {
+    fixture.ctx = studioCtx;
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    expect(studioCtx.pageOverviewOpenStore.getState()).toBe(true);
+    render(<><Directory /><PageOverview studio={studioCtx} /></>);
+    const entry = screen.getByRole("button", { name: /Pages overview.*2/ });
+    expect(entry.compareDocumentPosition(screen.getByRole("button", { name: "Fitness" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const gallery = within(screen.getByRole("region", { name: "Pages overview" }));
+    expect(gallery.getAllByRole("button")).toHaveLength(2);
+    fireEvent.click(gallery.getByRole("button", { name: "Training plan" }));
+    await waitFor(() => expect(studioCtx.currentArena === studioCtx.getDedicatedArena(plan)).toBe(true));
+    expect(entry).toHaveAttribute("aria-pressed", "false");
+    act(() => history.back());
+    await waitFor(() => expect(entry).toHaveAttribute("aria-pressed", "true"));
+    fireEvent.click(screen.getByRole("button", { name: "Fitness" }));
+    await waitFor(() => expect(studioCtx.currentArena === group).toBe(true));
+    fireEvent.click(entry);
+    await waitFor(() => expect(studioCtx.pageOverviewOpenStore.getState()).toBe(true));
+    expect(group.children).toHaveLength(2);
+  } finally {
+    cleanup();
+    studioCtx.dispose();
+  }
+});
 
 it("opens a published page with no inbound links from the directory and previews that page", async () => {
   const site = createSite();

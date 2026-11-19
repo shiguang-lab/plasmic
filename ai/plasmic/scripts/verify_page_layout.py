@@ -3,7 +3,7 @@ from collections import Counter
 from math import isfinite
 
 
-def check(overview, presets=None, overview_name="页面总览"):
+def check(overview, presets=None, overview_name=None):
     errors = []
     projects = [p for p in overview.get("results", []) if p.get("__type") == "Project"]
     if len(projects) != 1:
@@ -30,12 +30,12 @@ def check(overview, presets=None, overview_name="页面总览"):
         actual = {(f.get("width"), f.get("height")) for f in project.get("pageFrames", []) if f.get("componentUuid") == uuid}
         if not expected or actual != expected:
             errors.append({"page": uuid, "error": "Device columns differ from requested native presets", "expected": sorted(expected), "actual": sorted(actual, key=str)})
-    groups = [c for c in project.get("canvases", []) if any(f.get("componentUuid") in pages for f in c.get("frames", []))]
-    if len(groups) != 1:
-        errors.append("Exactly one overview canvas must reference all routed Pages")
+    if overview_name is None:
+        return {"passed": not errors, "presets": requested, "pageCount": len(pages), "errors": errors}
+    groups = [canvas for canvas in project.get("canvases", []) if canvas.get("name") == overview_name]
+    if not isinstance(overview_name, str) or not overview_name.strip() or len(groups) != 1:
+        errors.append({"error": "Expected one explicitly requested artboard group", "expected": overview_name})
     else:
-        if not isinstance(overview_name, str) or not overview_name.strip() or groups[0].get("name") != overview_name:
-            errors.append({"error": "Overview canvas name must match the source-reviewed business name", "expected": overview_name, "actual": groups[0].get("name")})
         frames = [f for f in groups[0]["frames"] if f.get("componentUuid") in pages]
         if Counter(f["componentUuid"] for f in frames) != Counter({p: 1 for p in pages}):
             errors.append("Overview Page references are missing or duplicated")

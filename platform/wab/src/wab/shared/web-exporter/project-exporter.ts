@@ -169,6 +169,7 @@ export function buildProjectResource(
     id: opts.projectId,
     canvases: site.arenas.map((arena) => ({
       name: arena.name,
+      ...(arena.metadata?.description ? { description: arena.metadata.description } : {}),
       frames: arena.children.map((frame) => ({
         uuid: frame.uuid,
         componentUuid: frame.container.component.uuid,
@@ -179,7 +180,14 @@ export function buildProjectResource(
         viewMode: frame.viewMode,
       })),
     })),
-    pageFrames: site.pageArenas.flatMap(arena => [...arena.matrix.rows, ...arena.customMatrix.rows].flatMap(row => row.cols.map(({frame}) => ({ componentUuid: arena.component.uuid, frameUuid: frame.uuid, width: frame.width, height: getFrameHeight(frame) })))),
+    pageFrames: site.pageArenas.flatMap(arena =>
+      ([["standard", arena.matrix], ["custom", arena.customMatrix]] as const).flatMap(([matrix, grid]) =>
+        grid.rows.flatMap((row, rowIndex) => row.cols.map(({ frame }, columnIndex) => ({
+          componentUuid: arena.component.uuid, frameUuid: frame.uuid, width: frame.width, height: getFrameHeight(frame),
+          matrix, rowIndex, columnIndex, variantUuids: [...frame.targetVariants, ...frame.targetGlobalVariants].map(v => v.uuid),
+        })))
+      )
+    ),
     devicePresets: frameSizeGroups.flatMap(group => group.sizes),
     ...(screenBreakpoints ? { screenBreakpoints } : {}),
     ...buildSections(),

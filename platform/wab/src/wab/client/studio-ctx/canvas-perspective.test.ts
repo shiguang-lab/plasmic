@@ -3,7 +3,7 @@ import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
-import { ensurePageOverviewArena } from "@/wab/shared/page-overview";
+import { Pt } from "@/wab/shared/geom";
 
 it("edits shared page metadata through the normal undo and save flow", async () => {
   const { studioCtx, api } = fakeStudioCtx();
@@ -15,10 +15,10 @@ it("edits shared page metadata through the normal undo and save flow", async () 
         noSwitchArena: true,
       }),
     );
-    const arena = await studioCtx.changeUnsafe(() =>
-      ensurePageOverviewArena(studioCtx.tplMgr()),
-    );
-    const frame = arena.children[0];
+    const frame = await studioCtx.changeUnsafe(() => {
+      const mgr = studioCtx.tplMgr();
+      return mgr.addNewMixedArenaFrame(mgr.addArena("Pages"), page.name, page, { insertPt: new Pt(0, 0) });
+    });
     const meta = ensure(page.pageMeta, "Expected page metadata");
     const originalTitle = meta.title;
     const bundle = studioCtx

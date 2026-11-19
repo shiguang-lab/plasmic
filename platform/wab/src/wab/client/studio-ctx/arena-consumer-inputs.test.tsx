@@ -34,7 +34,7 @@ async function setup() {
   const site = createSite(), manager = new TplMgr({ site });
   const component = manager.addComponent({ name: "Card", type: ComponentType.Plain });
   const page = manager.addComponent({ name: "Customers", type: ComponentType.Page });
-  const mixed = new Arena({ name: "Scenarios", children: [cloneArenaFrame(ensure(getArenaFrames(getDedicatedArena(site, component))[0], "Mixed frame"))] });
+  const mixed = new Arena({ metadata: {}, name: "Scenarios", children: [cloneArenaFrame(ensure(getArenaFrames(getDedicatedArena(site, component))[0], "Mixed frame"))] });
   site.arenas.splice(0, site.arenas.length, mixed);
   const { studioCtx: studio } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Scenarios", devFlagOverrides: { ccStubs: true } });
   studios.add(studio);

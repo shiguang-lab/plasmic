@@ -18,6 +18,7 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import { InstUtil } from "@/wab/shared/model/InstUtil";
 import * as classesModule from "@/wab/shared/model/classes";
 import { meta } from "@/wab/shared/model/classes-metas";
+import { supportsArenaMetadata } from "@/wab/shared/model/bundle-schema";
 import {
   Field,
   MetaRuntime,
@@ -271,6 +272,18 @@ export function checkRefsInBundle(
   });
 }
 
+// The 258 wire format has no field for the metadata of a new arena.
+function arenaForBundleVersion(record: BundledInst, version: string) {
+  if (
+    record.__type === "Arena" &&
+    isEmpty(record.metadata) &&
+    !supportsArenaMetadata(version)
+  ) {
+    delete record.metadata;
+  }
+  return record;
+}
+
 export function checkBundleFields(bundle: Bundle, iidsToCheck?: string[]) {
   const map = bundle.map || {};
 
@@ -398,7 +411,7 @@ export function checkBundleFields(bundle: Bundle, iidsToCheck?: string[]) {
     checkEqKeys(
       obj,
       meta.allFieldKeys(cls),
-      meta.allTransientFieldKeys(cls),
+      meta.allNonRequiredFieldKeys(cls),
       obj.__type,
     );
 
@@ -671,10 +684,16 @@ export class Bundler {
           ),
         );
 
-        return tuple(iid, {
-          ...json,
-          __type: this._instUtil.getInstClass(inst).name,
-        });
+        return tuple(
+          iid,
+          arenaForBundleVersion(
+            {
+              ...json,
+              __type: this._instUtil.getInstClass(inst).name,
+            },
+            version,
+          ),
+        );
       }),
     );
     return {
@@ -1072,14 +1091,17 @@ export class FastBundler extends Bundler {
         }),
       );
 
-      bundle.map[iid] = {
-        ...(listOfFields
-          ? bundle.map[iid]
-          : {
-              __type: this._instUtil.getInstClass(inst).name,
-            }),
-        ...json,
-      };
+      bundle.map[iid] = arenaForBundleVersion(
+        {
+          ...(listOfFields
+            ? bundle.map[iid]
+            : {
+                __type: this._instUtil.getInstClass(inst).name,
+              }),
+          ...json,
+        },
+        bundle.version,
+      );
     }
 
     // Remove all unreachable iids from bundle (filter insts that are still

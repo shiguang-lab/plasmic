@@ -4,11 +4,11 @@
 
 Default prototype Page names, task-owned canvas/group names and business UI copy to Simplified Chinese. Use concise business wording from the requirement; an explicit current user choice of another language or exact name takes precedence. Retain technical terms such as SQL/UID when needed. Do not infer English directory names from English routes, generated identifiers or this reference's examples.
 
-Project-directory names are separate from editable internal node names. Declare each Page's native `name` alongside its route in the source inventory before creation, e.g. `{"path":"/orders","name":"订单列表"}`. For a shared overview declare `page_layout.overviewName`, e.g. `订单管理页面总览`; the default is `页面总览`. Avoid generated placeholders such as Custom arena 1, Pages overview, GroupList and GroupDetail. These names belong in Studio's directory, not a new heading inside the business Page.
+Project-directory names are separate from editable internal node names. Declare each Page's native `name` alongside its route in the source inventory before creation, e.g. `{"path":"/orders","name":"订单列表"}`. Give each requested business group its own name in the directory.
 
-Create Pages through `createComponent.name`. Reread canvases after creation: the native automatic overview may retain an English/default name. Rename that existing group through `updateCanvas` before business generation, preserving its frames and references; do not create a duplicate group merely to obtain a Chinese name. Existing Page renames use Studio's supported rename entry; do not delete/recreate Pages or invent a rename MCP operation. Preserve UUIDs, routes, business props, states and interactions. Do not translate registered library definitions, device preset names, route keys or internal code/state identifiers.
+Create Pages through `createComponent.name` and use `canvasName` for explicit placement in a business group. Use `renameComponent` with the Page UUID to change a directory name while preserving links and routes. Use `updateCanvas` for group names and descriptions. The fixed Pages overview lists visible project Pages automatically.
 
-The full verifier requires reviewed Page names and compares both overview/full readbacks with them; page_layout compares the actual overview group name with overviewName. Exact name matching supports explicitly requested other languages; source review still checks language and meaning. Save/reopen and inspect directory labels. Frame captions unavailable in the public overview need direct Studio inspection rather than a claimed automated check.
+For page layout verification, specify `overviewName` only when the source requires a particular group to contain the complete set of Pages. Save/reopen and check directory labels.
 
 ## Editor node naming
 
