@@ -1,6 +1,5 @@
 import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
 import { subscribeStudioArena } from "@/wab/client/studio-ctx/arena-state";
-import { subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { subscribeStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
 import type { ModelFieldStore, ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
 import { createStore } from "zustand/vanilla";
@@ -759,16 +758,6 @@ export class ViewCtx extends WithDbCtx {
     updateMirror();
     this.disposals.push(() => mirrorObserver.disconnect());
 
-    // An overview needs every current artboard, independently of viewport clipping.
-    const updateViewportVisibility = () => {
-      if (this.isDisposed) { return; }
-      if (!this.studioCtx.isTransforming() && this.isRenderActive()) {
-        this.syncQueue.resume();
-      } else {
-        this.syncQueue.pause();
-      }
-    };
-    const visibilityFrame = this.studioCtx.modelSnapshots.ref(this.arenaFrame());
     this.disposals.push(
       this.frameState.valRootStore.subscribe(() => this.variants.syncRuntime()),
       this.variants.subscribePrepared(() => this.styleInputs.prepareCommit()),
@@ -790,24 +779,25 @@ export class ViewCtx extends WithDbCtx {
           this.publishEditorFocus();
         }
       }),
-      subscribeViewport(this.studioCtx, (state) => state.visibleScalerBox, updateViewportVisibility),
-      subscribeViewport(this.studioCtx, (state) => state.isTransforming, updateViewportVisibility),
-      subscribeStudioArena(this.studioCtx, (state) => state.frames.includes(visibilityFrame), updateViewportVisibility),
-      subscribeStudioLiveMode(this.studioCtx, updateViewportVisibility),
-      subscribeStudioSelection(this.studioCtx, (state) => state.view === this, updateViewportVisibility),
+      subscribeViewport(this.studioCtx, (state) => state.visibleScalerBox, this.updateSyncQueue),
+      subscribeViewport(this.studioCtx, (state) => state.isTransforming, this.updateSyncQueue),
+      subscribeStudioArena(this.studioCtx, (state) => state.frames, this.updateSyncQueue),
+      subscribeStudioLiveMode(this.studioCtx, this.updateSyncQueue),
+      this.studioCtx.selectionStore.subscribe(this.updateSyncQueue),
+      this.initialRenderReadyStore.subscribe(this.updateSyncQueue),
       // Mirror target changes come from the DOM observer above; geometry changes
       // come from model edits (the arena frame layout). Both used to be tracked
       // by one MobX reaction.
       subscribeToSelector(
         this.canvasMirrorStore,
         (state) => state.target,
-        updateViewportVisibility,
+        this.updateSyncQueue,
       ),
-      this.studioCtx.modelRevisions.subscribeModelKeys([modelKeys.site], updateViewportVisibility),
+      this.studioCtx.modelRevisions.subscribeModelKeys([modelKeys.site], this.updateSyncQueue),
 
     );
     // Replaces the reaction's `fireImmediately: true`.
-    updateViewportVisibility();
+    this.updateSyncQueue();
   }
 
   canvasObservers = new Set<CanvasObserverLease>();
@@ -1583,7 +1573,7 @@ export class ViewCtx extends WithDbCtx {
     // The active artboard is user-visible work. Waiting for an idle deadline
     // before its first render can starve startup on a busy host. Subsequent
     // evaluations and background artboards retain the existing idle policy.
-    if (opts.asap || (!this.initialRenderReady && this.arenaFrame() === this.studioCtx.activeCanvasFrame)) {
+    if (opts.asap || this.needsActiveFrameFirstRender()) {
       await doEval();
     } else {
       await requestIdleCallbackAsync(async () => {
@@ -1618,6 +1608,25 @@ export class ViewCtx extends WithDbCtx {
     }),
   );
 
+  private needsActiveFrameFirstRender() {
+    return !this.initialRenderReady && this.arenaFrame() === this.studioCtx.activeCanvasFrame;
+  }
+
+  private syncWaiters = 0;
+
+  private updateSyncQueue = () => {
+    if (this.isDisposed) { return; }
+    if (
+      this.syncWaiters > 0 ||
+      this.needsActiveFrameFirstRender() ||
+      (!this.studioCtx.isTransforming() && this.isRenderActive())
+    ) {
+      this.syncQueue.resume();
+    } else {
+      this.syncQueue.pause();
+    }
+  };
+
   scheduleSync(opts: ViewCtxSyncArgs) {
     if (!opts.eval && !opts.styles) {
       return;
@@ -1633,8 +1642,14 @@ export class ViewCtx extends WithDbCtx {
   }
 
   async awaitSync() {
+    this.syncWaiters++;
     this.syncQueue.resume();
-    await drainQueue(this.syncQueue);
+    try {
+      await drainQueue(this.syncQueue);
+    } finally {
+      this.syncWaiters--;
+      this.updateSyncQueue();
+    }
     if (!this._isDisposed && this._canvasRerenderQueue.size) {
       this.flushRerenderQueue();
       (() => this.updateCtxPostChange())();

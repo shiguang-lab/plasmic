@@ -80,6 +80,38 @@ it("keeps the selected content frame as the target, without changing selection o
   }
 });
 
+it("reveals an offscreen initial target while other offscreen artboards stay paused", async () => {
+  const { site, arena } = canvasFixture(2);
+  const [target, other] = arena.children;
+  target.left = 5000;
+  other.left = 6000;
+  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
+  try {
+    await waitFor(() => expect(studioCtx.initialViewportReady).toBe(true));
+    const view = ensure(studioCtx.tryGetViewCtxForFrame(target), "Missing target ViewCtx");
+    const background = ensure(studioCtx.tryGetViewCtxForFrame(other), "Missing background ViewCtx");
+    expect(studioCtx.activeCanvasFrame).toBe(target);
+    expect(view.isVisible()).toBe(false);
+    expect(background.isVisible()).toBe(false);
+    vi.spyOn(studioCtx, "change").mockImplementation(async (callback) => ok(await callback()));
+    vi.spyOn(view.csEvaluator, "evalAsync").mockResolvedValue();
+    vi.spyOn(view.csEvaluator, "runPostEvalTasks").mockImplementation(() => undefined);
+    vi.spyOn(view, "updateCtxPostChange").mockImplementation(() => undefined);
+    vi.spyOn(view, "valState").mockReturnValue(new ValState({ sysRoot: mock<ValComponent>(), globalRoot: undefined }));
+    const revealed = vi.fn(async () => {});
+    studioCtx.runAfterInitialCanvasReady(revealed);
+    background.scheduleSync({ eval: true });
+    view.scheduleSync({ eval: true });
+    await waitFor(() => expect(revealed).toHaveBeenCalledOnce());
+    expect(view.initialRenderReady).toBe(true);
+    expect(view["syncQueue"].paused).toBe(true);
+    expect(background["syncQueue"].paused).toBe(true);
+    expect(background.initialRenderReady).toBe(false);
+  } finally {
+    studioCtx.dispose();
+  }
+});
+
 it("marks first render only after evaluation and post-eval work, and stays ready during subsequent edits", async () => {
   const { site, arena } = canvasFixture(1);
   const { studioCtx } = fakeStudioCtx({
@@ -232,7 +264,6 @@ it.each([
     expect(studioCtx.activeCanvasFrame).toBe(target);
     expect(studioCtx.initialViewportReady).toBe(false);
     expect(studioCtx.activeCanvasReady).toBe(false);
-    await waitFor(() => expect(vc.awaitSync).toHaveBeenCalledTimes(1));
     studioCtx.tryZoomToFitArena();
     expect(fit).not.toHaveBeenCalled();
     await waitFor(() => expect(animationFrames.length).toBeGreaterThan(0));
@@ -249,7 +280,7 @@ it.each([
     expect(studioCtx.focusedFrame()).toBe(target);
     let toolReady = false;
     const tools = studioCtx.awaitStudioReady().then(() => { toolReady = true; });
-    await waitFor(() => expect(vc.awaitSync).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(vc.awaitSync).toHaveBeenCalledTimes(1));
     expect(toolReady).toBe(false);
     vc.isStale.mockReturnValue(false);
     finishSync();

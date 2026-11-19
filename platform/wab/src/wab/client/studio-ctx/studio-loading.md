@@ -18,16 +18,16 @@ The target is the focused frame (including focus inside its content), or the
 first frame of the current arena. Resolve it before its ViewCtx exists. Queue
 that frame ahead of other frames in the current arena and background arenas.
 Target iframe initialization starts without an idle wait; other iframe loads
-remain serial and idle scheduled. Canvas evaluation retains its existing model
-change and visibility scheduling.
-The active target's first evaluation runs without an idle wait; subsequent
+remain serial and idle scheduled.
+The active target's evaluation queue runs until its first render even when the
+target is offscreen or the viewport is moving. After that, viewport visibility
+governs the queue again. The first evaluation runs without an idle wait; subsequent
 evaluations and background frames remain idle scheduled. Its post-evaluation
 task boundary retains promise ownership through completion. Idle-task and
 evaluation failures release their queues, report the original canvas error and
 reject tool readiness instead of leaving startup waiting for a success marker.
 Canvas errors retain their stack in Desktop's existing error log.
-Saved-view restoration waits for the target ViewCtx and resumes its queue even
-if the saved target is initially offscreen. It restores the camera after the
+Saved-view restoration waits for the target ViewCtx. It restores the camera after the
 inspector layout frames while target rendering proceeds. The viewport commit
 frame and observable first render readiness both complete before releasing the
 loading overlay. Editing tools continue to wait for the complete sync queue;

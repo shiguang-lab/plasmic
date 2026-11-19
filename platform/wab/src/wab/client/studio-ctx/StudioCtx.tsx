@@ -2995,12 +2995,6 @@ export class StudioCtx extends WithDbCtx {
           const targetWaitDone = this.loadTimings.begin("initial-target-wait");
           await this.awaitActiveCanvasInputs(() => !!this.activeCanvasViewCtx() || !this.activeCanvasFrame, "Timed out waiting for the active canvas context");
           if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
-          // The saved target may be offscreen until its camera is restored.
-          // Resume its queue without holding restoration on later evaluations.
-          const targetViewCtx = this.activeCanvasViewCtx();
-          if (targetViewCtx) {
-            spawn(targetViewCtx.awaitSync());
-          }
           targetWaitDone();
           // Let the inspector mount and determine the viewport padding before restoring.
           // Hidden Desktop windows can stop animation frames after navigation even

@@ -1,0 +1,7 @@
+{
+  "en": "- Fixed a canvas that could stay on the loading screen when its initial artboard was outside the viewport.",
+  "zh-CN": "- 修复打开画布时，首张待显示的画板位于视口外可能导致加载界面一直显示的问题。",
+  "zh-TW": "- 修正開啟畫布時，第一張待顯示的畫板位於視窗外可能導致載入畫面一直顯示的問題。",
+  "ja": "- キャンバスを開いたとき、最初のアートボードが表示範囲の外にあると読み込み画面が消えないことがある問題を修正しました。",
+  "ko": "- 캔버스를 열 때 첫 아트보드가 화면 밖에 있으면 로딩 화면이 사라지지 않던 문제를 수정했습니다."
+}
