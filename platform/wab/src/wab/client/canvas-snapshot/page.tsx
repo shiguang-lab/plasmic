@@ -1,10 +1,13 @@
-import { waitForCoverMedia } from "@/wab/client/canvas-snapshot/media";
 import { Api, BundlingSiteApi, SiteApi } from "@/wab/client/api";
 import { AppCtx, loadStarters } from "@/wab/client/app-ctx";
 import {
   overviewLayout,
   previewBounds,
 } from "@/wab/client/canvas-snapshot/layout";
+import {
+  waitForCoverMedia,
+  waitForCoverTransitions,
+} from "@/wab/client/canvas-snapshot/media";
 import { Router } from "@/wab/client/cli-routes";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { CanvasFrameHash } from "@/wab/client/components/canvas/canvas-frame-hash-observer";
@@ -207,78 +210,105 @@ async function render() {
     },
   });
   performance.mark("snapshot:studio");
-  const docs: Document[] = [];
-  for (const [i, { frame, arena }] of frames.entries()) {
-    const mark = (phase: string) =>
-      performance.mark(`snapshot:board-${i + 1}:${phase}`);
-    mark("start");
-    studio.currentArena = arena;
-    const board = boards[i],
-      bounds = previewBounds(board),
-      pos = positions[i],
-      scale = pos.width / bounds.width;
-    const wrapper = document.createElement("div");
-    Object.assign(wrapper.style, {
-      position: "absolute",
-      left: pos.left + (board.left - bounds.left) * scale + "px",
-      top: pos.top + (board.top - bounds.top) * scale + "px",
-      width: board.width + "px",
-      height: board.height + "px",
-      transformOrigin: "0 0",
-      transform: "scale(" + scale + ")",
-    });
-    overview.append(wrapper);
-    if (board.deviceFrame) {
-      const shell = document.createElement("div");
-      wrapper.append(shell);
-      createRoot(shell).render(<DeviceFrame frame={board.deviceFrame} />);
-    }
-    const iframe = document.createElement("iframe");
-    iframe.width = String(board.width);
-    iframe.height = String(board.height);
-    if (board.deviceFrame)
-      iframe.style.borderRadius = board.deviceFrame.viewportRadius + "px";
-    const hash = new CanvasFrameHash(
-      studio,
-      frame,
-      studio.arenaState.lifetime(),
-      () => {},
-    );
-    iframe.src = "/static/host.html#" + hash.getHash();
-    hash.dispose();
-    await new Promise<void>((resolve, reject) => {
-      iframe.onload = () => resolve();
-      iframe.onerror = () =>
-        reject(new Error("Could not load the canvas host"));
-      wrapper.append(iframe);
-    });
-    mark("host-loaded");
-    const doc = ensure(iframe.contentDocument, "Canvas document");
-    const canvas = new CanvasCtx({ $viewport: $(iframe), name: frame.uuid });
-    for await (const state of canvas.initViewPort($(iframe), frame, studio)) {
-      mark(state);
-    }
-    studio.fontManager.installAllUsedFonts([canvas.$head()]);
-    const view = studio.createViewCtx(frame, canvas);
-    view.scheduleSync({ styles: true, eval: true, asap: true });
-    await view.awaitSync();
-    if (!view.initialRenderReady || studio.canvasFrameError(frame)) {
-      throw new Error(
-        studio.canvasFrameError(frame) || "Artboard failed its first render",
+  const views: ReturnType<typeof studio.createViewCtx>[] = [];
+  const shells: ReturnType<typeof createRoot>[] = [];
+  // The worker requests only misses, one arena at a time. Capture the active
+  // arena before switching: Studio may unmount views belonging to the old one.
+  async function renderBoards(indices: number[]) {
+    views.splice(0).forEach((view) => studio.disposeViewCtx(view));
+    shells.splice(0).forEach((shell) => shell.unmount());
+    overview.replaceChildren();
+    const docs: Document[] = [];
+    for (const i of indices) {
+      const { frame, arena } = frames[i];
+      const mark = (phase: string) =>
+        performance.mark(`snapshot:board-${i + 1}:${phase}`);
+      mark("start");
+      studio.currentArena = arena;
+      const board = boards[i],
+        bounds = previewBounds(board),
+        pos = positions[i],
+        scale = pos.width / bounds.width;
+      const wrapper = document.createElement("div");
+      Object.assign(wrapper.style, {
+        position: "absolute",
+        left: pos.left + (board.left - bounds.left) * scale + "px",
+        top: pos.top + (board.top - bounds.top) * scale + "px",
+        width: board.width + "px",
+        height: board.height + "px",
+        transformOrigin: "0 0",
+        transform: "scale(" + scale + ")",
+      });
+      overview.append(wrapper);
+      if (board.deviceFrame) {
+        const shell = document.createElement("div");
+        wrapper.append(shell);
+        const root = createRoot(shell);
+        shells.push(root);
+        root.render(<DeviceFrame frame={board.deviceFrame} />);
+      }
+      const iframe = document.createElement("iframe");
+      iframe.width = String(board.width);
+      iframe.height = String(board.height);
+      if (board.deviceFrame)
+        iframe.style.borderRadius = board.deviceFrame.viewportRadius + "px";
+      const hash = new CanvasFrameHash(
+        studio,
+        frame,
+        studio.arenaState.lifetime(),
+        () => {},
       );
+      iframe.src = "/static/host.html#" + hash.getHash();
+      hash.dispose();
+      await new Promise<void>((resolve, reject) => {
+        iframe.onload = () => resolve();
+        iframe.onerror = () =>
+          reject(new Error("Could not load the canvas host"));
+        wrapper.append(iframe);
+      });
+      mark("host-loaded");
+      const doc = ensure(iframe.contentDocument, "Canvas document");
+      const canvas = new CanvasCtx({ $viewport: $(iframe), name: frame.uuid });
+      for await (const state of canvas.initViewPort($(iframe), frame, studio)) {
+        mark(state);
+      }
+      studio.fontManager.installAllUsedFonts([canvas.$head()]);
+      const view = studio.createViewCtx(frame, canvas);
+      view.scheduleSync({ styles: true, eval: true, asap: true });
+      await view.awaitSync();
+      if (!view.initialRenderReady || studio.canvasFrameError(frame)) {
+        throw new Error(
+          studio.canvasFrameError(frame) || "Artboard failed its first render",
+        );
+      }
+      mark("rendered");
+      docs.push(doc);
+      views.push(view);
     }
-    mark("rendered");
-    docs.push(doc);
+    // A transition handler can reveal media, and loading media can start a transition.
+    await waitForCoverTransitions(docs);
+    const unavailable = await waitForCoverMedia(docs);
+    await waitForCoverTransitions(docs);
+    const settling = docs.some(
+      (doc) =>
+        doc.fonts.status !== "loaded" ||
+        Array.from(doc.fonts).some((font) => font.status === "error") ||
+        doc
+          .getAnimations()
+          .some((animation) => animation.playState === "running"),
+    );
+    return { unavailable, settling };
   }
-  performance.mark("snapshot:boards-rendered");
-  overview.dataset.unavailableImages = String(await waitForCoverMedia(docs));
-  performance.mark("snapshot:media-ready");
-  await new Promise<void>((resolve) =>
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-  );
-  overview.dataset.boards = String(frames.length);
-  overview.dataset.revision = String(revision);
-  performance.mark("snapshot:paint-ready");
+  const snapshotRenderer = {
+    revision,
+    boards: frames.map(({ frame }, index) => ({
+      id: frame.uuid,
+      arena: free ? 0 : index,
+      ...positions[index],
+    })),
+    renderBoards,
+  };
+  Object.assign(window, { canvasSnapshot: snapshotRenderer });
   overview.dataset.state = "ready";
 }
 render().catch((error) => {

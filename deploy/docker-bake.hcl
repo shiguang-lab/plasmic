@@ -7,20 +7,20 @@ variable "PLASMIC_COMMIT" {
 }
 
 group "default" {
-  targets = ["server", "web", "preview"]
+  targets = ["server", "web", "preview", "cover-worker"]
 }
 
-# One BuildKit solve shares the builder stage, then builds the three images
+# One BuildKit solve shares the Studio builder stage and builds the release images
 # concurrently. Separate registry cache tags retain intermediate layers across
 # release tags without competing for a single cache manifest.
 target "images" {
   matrix = {
-    image = ["server", "web", "preview"]
+    image = ["server", "web", "preview", "cover-worker"]
   }
   name       = image
-  context    = "."
-  dockerfile = "deploy/Dockerfile"
-  target     = image
+  context    = image == "cover-worker" ? "deploy/canvas-snapshot/worker" : "."
+  dockerfile = image == "cover-worker" ? "Dockerfile" : "deploy/Dockerfile"
+  target     = image == "cover-worker" ? null : image
   platforms  = ["linux/amd64"]
   tags       = ["ghcr.io/shiguang-lab/plasmic-${image}:${RELEASE_TAG}"]
   args = {

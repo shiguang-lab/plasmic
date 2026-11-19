@@ -17,8 +17,8 @@ services:
       - ./secrets/key:/run/secrets/snapshot-key:ro
     networks: [studio]
   canvas-screenshot:
-    image: ghcr.io/shiguang-lab/plasmic-server:${IMAGE_TAG:?}
-    entrypoint: ["node", "/snapshot/worker.cjs"]
+    image: ghcr.io/shiguang-lab/plasmic-cover-worker:${IMAGE_TAG:?}
+    platform: linux/amd64
     restart: unless-stopped
     init: true
     user: "1000:1000"
@@ -29,11 +29,7 @@ services:
     environment:
       STUDIO_ORIGIN: http://edge:8080
       STUDIO_ASSET_ORIGINS: ${STUDIO_ORIGIN:?},${CANVAS_ORIGIN:?}
-      CHROMIUM_PATH: /snapshot/chrome.sh
     volumes:
-      - ../../browser/chromium-1080:/runtime/chromium:ro
-      - ../../browser/playwright-core:/runtime/playwright-core:ro
-      - ./browser-lib:/snapshot/lib:ro
       - ./secrets/key:/run/secrets/snapshot-key:ro
       - ./covers:/covers
       - ./jobs:/jobs

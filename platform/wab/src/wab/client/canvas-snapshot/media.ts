@@ -1,6 +1,6 @@
 import { withTimeout } from "@/wab/shared/common";
 
-/** Keep every image's layout box in the snapshot, even if its pixels are unavailable. */
+/** Count images that failed to decode or missed the shared media deadline. */
 export async function waitForCoverMedia(documents: Document[]) {
   const images = documents.flatMap((doc) =>
     Array.from(doc.images).filter(
@@ -24,8 +24,29 @@ export async function waitForCoverMedia(documents: Document[]) {
     5_000,
   ).catch(() => undefined);
 
-  for (const img of unavailable) {
-    img.style.visibility = "hidden";
-  }
   return unavailable.size;
+}
+
+export async function waitForCoverTransitions(documents: Document[]) {
+  for (;;) {
+    // Let styles paint and transitionend/transitioncancel handlers take effect.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    const transitions = documents.flatMap((doc) =>
+      doc
+        .getAnimations()
+        .filter(
+          (animation) =>
+            "transitionProperty" in animation &&
+            animation.playState === "running",
+        ),
+    );
+    if (transitions.length === 0) {
+      return;
+    }
+    await Promise.allSettled(
+      transitions.map((transition) => transition.finished),
+    );
+  }
 }

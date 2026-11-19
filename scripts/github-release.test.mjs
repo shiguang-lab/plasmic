@@ -43,6 +43,7 @@ test("full release collects only selected public artifacts, preserves both Mac f
       `version: ${options.plan.tag}\n# localized ${arch}`,
     );
   assert.match(notes, /plasmic-server:1.2.3/);
+  assert.match(notes, /plasmic-cover-worker:1.2.3/);
   assert.match(notes, /Desktop fixes/);
 });
 

@@ -54,7 +54,7 @@ If the final Release step fails after every build succeeds, manually run
 build/test results, then publishes those artifacts with the current publisher.
 This recovery workflow does not rebuild images or installers or deploy services.
 
-The workflow uses `deploy/docker-bake.hcl` to build server/web/preview in one BuildKit
+The workflow uses `deploy/docker-bake.hcl` to build server/web/preview and the cover worker in one BuildKit
 invocation: the shared builder runs once, then the image targets run concurrently.
 Each image stores a `mode=max` registry cache at its GHCR `:buildcache` tag, so
 intermediate layers can be reused across release tags. Keep these cache tags when
@@ -78,7 +78,7 @@ workspaces and built-in library sources plus the locally built SDK host package.
 shares the server's React dependencies through NODE_PATH. The workflow uses the
 built-in GITHUB_TOKEN with packages:write.
 For a newly forked repository, enable Actions in the GitHub Actions tab first.
-New GHCR packages are private by default. Make all three packages public for anonymous
+New GHCR packages are private by default. Make the four image packages public for anonymous
 NAS pulls, or log in on the NAS with a token that has read:packages.
 
 Copy `compose.yml`, `nginx.conf`, `edge/`, `rollout.py`, `postgres-init.sql`, and `.env.example` to a NAS directory.

@@ -40,7 +40,7 @@ export async function collectRelease(plan, root = ".") {
   if (plan.studio) {
     notes.push(
       "Studio images:",
-      ...["server", "web", "preview"].map(
+      ...["server", "web", "preview", "cover-worker"].map(
         (image) => `- ghcr.io/shiguang-lab/plasmic-${image}:${plan.tag}`,
       ),
       "",

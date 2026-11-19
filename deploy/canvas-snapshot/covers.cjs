@@ -1,4 +1,4 @@
-// A single local worker renders full covers. New saves replace pending work.
+// A single local worker publishes revisioned covers. New saves replace pending work.
 const fs = require("node:fs/promises");
 const http = require("node:http");
 const path = require("node:path");
