@@ -3,7 +3,6 @@ import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { AnyArena } from "@/wab/shared/Arenas";
 import { switchType } from "@/wab/shared/common";
 import { Arena, PageArena, ComponentArena, Site } from "@/wab/shared/model/classes";
-import { naturalSort } from "@/wab/shared/sort";
 import * as React from "react";
 
 interface NavigationArenaFields {
@@ -59,22 +58,22 @@ export class NavigationCatalogInputs {
     const values = this.inputs.read();
     if (this.current.fields !== values) {
       const canEdit = (component: ComponentArena["component"]) => !this.contentEditorMode || component.editableByContentEditor;
-      const components: ComponentArena[] = [];
+      const visibleComponents = new Set<ComponentArena>();
       const arenasByComponent = new Map(this.site.componentArenas.map((arena) => [arena.component, arena]));
       const addComponentArena = (arena: ComponentArena) => {
-        components.push(arena);
+        visibleComponents.add(arena);
         arena.component.subComps.forEach((component) => {
           const child = arenasByComponent.get(component);
           if (child) { addComponentArena(child); }
         });
       };
-      naturalSort(this.site.componentArenas, (arena) => arena.component.name).forEach((arena) => {
+      this.site.componentArenas.forEach((arena) => {
         if (!arena.component.superComp && canEdit(arena.component)) { addComponentArena(arena); }
       });
       this.current = Object.freeze({
-        mixed: Object.freeze((this.contentEditorMode ? [] : naturalSort(this.site.arenas, (arena) => arena.name)).map(captureArena)),
-        pages: Object.freeze(naturalSort(this.site.pageArenas, (arena) => arena.component.name).filter((arena) => canEdit(arena.component)).map(captureArena)),
-        components: Object.freeze(components.map(captureArena)),
+        mixed: Object.freeze((this.contentEditorMode ? [] : this.site.arenas).map(captureArena)),
+        pages: Object.freeze(this.site.pageArenas.filter((arena) => canEdit(arena.component)).map(captureArena)),
+        components: Object.freeze(this.site.componentArenas.filter((arena) => visibleComponents.has(arena)).map(captureArena)),
         fields: Object.freeze(values),
       });
     }
