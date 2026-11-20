@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   DefaultSwitchProps,
@@ -24,6 +25,7 @@ function Switch_({ className, ...props }: SwitchProps, ref: SwitchRef) {
     ref,
   );
 
+  if (React.useContext(InspectorReadOnly)) { return <span>{String(!!props.isChecked)}</span>; }
   let content = <PlasmicSwitch {...plasmicProps} />;
   if (props.isDisabled && props.disabledTooltip) {
     content = (

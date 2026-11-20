@@ -1,3 +1,4 @@
+import { InspectorInput, InspectorChoice, InspectorEdit, InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { LayoutSpacingControls } from "@/wab/client/components/style-controls/LayoutSpacingControls";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { isTplCodeComponentStyleable } from "@/wab/client/code-components/code-components";
@@ -595,6 +596,7 @@ export interface LayoutCardProps {
 }
 
 export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps) {
+  const inspecting = React.useContext(InspectorReadOnly);
   const { t: uiT } = useI18n();
   const {
     expsProvider,
@@ -1364,10 +1366,10 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
             <button
               type="button"
               className={styles.tokenBadge}
-              disabled={disabled}
+              disabled={!inspecting && disabled}
               title={tokenRef.name}
               onClick={() => {
-                if (!disabled) {
+                if (inspecting || !disabled) {
                   setOpenResizeAxis((prev) => (prev === axis ? null : axis));
                 }
               }}
@@ -1375,7 +1377,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
               {tokenRef.name}
             </button>
           ) : (
-            <input
+            <InspectorInput
               aria-label={uiT(isWidth ? "Width" : "Height")}
               type="text"
               className={cn(
@@ -1444,7 +1446,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
             type="button"
             aria-label={`${uiT(isWidth ? "Width" : "Height")} mode`}
             aria-expanded={openResizeAxis === axis}
-            disabled={disabled}
+            disabled={!inspecting && disabled}
             className={styles.resizeTrigger}
             onClick={(e) => {
               e.stopPropagation();
@@ -1465,7 +1467,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
               <div className={styles.menuHeader}>
                 {uiT(isWidth ? "Width" : "Height")}
               </div>
-              <button
+              <InspectorChoice aria-pressed={!specialBadge}
                 type="button"
                 role="menuitem"
                 className={cn(
@@ -1478,10 +1480,10 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                   <span>{uiT("Fixed size")}</span>
                 </span>
                 <span className={styles.menuOptionCss}>px</span>
-              </button>
+              </InspectorChoice>
               {canSetSpecialSizes && (
                 <>
-                  <button
+                  <InspectorChoice aria-pressed={raw === "wrap"}
                     type="button"
                     role="menuitem"
                     disabled={!canAutoSize || raw === "wrap"}
@@ -1495,8 +1497,8 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                       <span>{uiT("Hug content")}</span>
                     </span>
                     <span className={styles.menuOptionCss}>auto</span>
-                  </button>
-                  <button
+                  </InspectorChoice>
+                  <InspectorChoice aria-pressed={raw === "stretch"}
                     type="button"
                     role="menuitem"
                     disabled={raw === "stretch"}
@@ -1514,10 +1516,10 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                       </span>
                     </span>
                     <span className={styles.menuOptionCss}>100%</span>
-                  </button>
+                  </InspectorChoice>
                   {isWidth && isDeepContentLayoutChild && !isRoot && (
                     <>
-                      <button
+                      <InspectorChoice aria-pressed={raw === CONTENT_LAYOUT_WIDE}
                         type="button"
                         role="menuitem"
                         disabled={!canAutoSize || raw === CONTENT_LAYOUT_WIDE}
@@ -1533,8 +1535,8 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                           <span>{uiT("Wide")}</span>
                         </span>
                         <span className={styles.menuOptionCss}>wide</span>
-                      </button>
-                      <button
+                      </InspectorChoice>
+                      <InspectorChoice aria-pressed={raw === CONTENT_LAYOUT_FULL_BLEED}
                         type="button"
                         role="menuitem"
                         disabled={!canAutoSize || raw === CONTENT_LAYOUT_FULL_BLEED}
@@ -1551,11 +1553,11 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                           <span>{uiT("Full bleed")}</span>
                         </span>
                         <span className={styles.menuOptionCss}>100vw</span>
-                      </button>
+                      </InspectorChoice>
                     </>
                   )}
                   {tpl && isTplComponent(tpl) && (
-                    <button
+                    <InspectorChoice aria-pressed={raw === "default"}
                       type="button"
                       role="menuitem"
                       className={cn(
@@ -1568,7 +1570,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                         <span>{uiT("Default")}</span>
                       </span>
                       <span className={styles.menuOptionCss}>default</span>
-                    </button>
+                    </InspectorChoice>
                   )}
                 </>
               )}
@@ -1671,7 +1673,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
               {tokenRef.name}
             </button>
           ) : (
-            <input
+            <InspectorInput
               aria-label={tooltip}
               type="text"
               disabled={disabled}
@@ -1733,7 +1735,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
     return (
       <div className={styles.gridControlsBlock} data-testid="layout-grid-controls">
         <div className={styles.gridTypeSwitch}>
-          <button
+          <InspectorEdit><button
             type="button"
             disabled={gridDisabled}
             className={cn(
@@ -1750,8 +1752,8 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
             }}
           >
             {uiT("Fixed columns")}
-          </button>
-          <button
+          </button></InspectorEdit>
+          <InspectorEdit><button
             type="button"
             disabled={gridDisabled}
             className={cn(
@@ -1773,14 +1775,14 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
             }}
           >
             {uiT("Fill columns")}
-          </button>
+          </button></InspectorEdit>
         </div>
 
         <div className={styles.twoColGrid}>
           {isFlexibleSize(templateColumns) ? (
             <div className={styles.cellInputWrap}>
               <span className={styles.cellPrefix}>{uiT("Min Width")}</span>
-              <input
+              <InspectorInput
                 aria-label={uiT("Min Width")}
                 type="text"
                 disabled={gridDisabled}
@@ -1829,7 +1831,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
           ) : (
             <div className={styles.cellInputWrap}>
               <span className={styles.cellPrefix}>{uiT("Grid columns")}</span>
-              <input
+              <InspectorInput
                 aria-label={uiT("Grid columns")}
                 type="number"
                 min={1}
@@ -1998,7 +2000,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
         <div className={styles.header}>
           <div className={styles.titleGroup}>
             <span className={styles.title}>{uiT("Layout")}</span>
-            {capabilities.readOnly && (
+            {capabilities.readOnly && !inspecting && (
               <span
                 className={styles.readOnlyBadge}
                 title={
@@ -2020,7 +2022,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
               capabilities.allowGridSwitch ? (
               <div className={styles.flowBar} role="group" aria-label={uiT("Layout")}>
                 <Tooltip title={uiT("Free")}>
-                  <button
+                  <InspectorChoice
                     type="button"
                     data-test-id="layout-free"
                     aria-label={uiT("Free")}
@@ -2035,10 +2037,10 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                     onClick={() => handleContainerTypeChange(ContainerLayoutType.free)}
                   >
                     <FreeFlowIcon />
-                  </button>
+                  </InspectorChoice>
                 </Tooltip>
                 <Tooltip title={uiT("Vertical")}>
-                  <button
+                  <InspectorChoice
                     type="button"
                     data-test-id="layout-vstack"
                     aria-label={uiT("Vertical")}
@@ -2057,10 +2059,10 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                     }
                   >
                     <ColFlowIcon />
-                  </button>
+                  </InspectorChoice>
                 </Tooltip>
                 <Tooltip title={uiT("Horizontal")}>
-                  <button
+                  <InspectorChoice
                     type="button"
                     data-test-id="layout-hstack"
                     aria-label={uiT("Horizontal")}
@@ -2079,11 +2081,11 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                     }
                   >
                     <RowFlowIcon />
-                  </button>
+                  </InspectorChoice>
                 </Tooltip>
                 {capabilities.allowGridSwitch && (
                   <Tooltip title={uiT("Grid")}>
-                    <button
+                    <InspectorChoice
                       type="button"
                       data-test-id="layout-grid"
                       aria-label={uiT("Grid")}
@@ -2102,7 +2104,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                       }
                     >
                       <GridFlowIcon />
-                    </button>
+                    </InspectorChoice>
                   </Tooltip>
                 )}
               </div>
@@ -2148,7 +2150,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                     : uiT("Constrain proportions")
                 }
               >
-                <button
+                <InspectorChoice
                   type="button"
                   aria-label={uiT("Constrain proportions")}
                   aria-pressed={aspectLocked}
@@ -2163,7 +2165,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                   {hasExplicitAspectCss && (
                     <span className={styles.lockAspectDot} />
                   )}
-                </button>
+                </InspectorChoice>
               </Tooltip>
             </WithContextMenu>
           </div>
@@ -2251,7 +2253,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                     const isActive =
                       coord.h === activeVisualH && coord.v === activeVisualV;
                     return (
-                      <button
+                      <InspectorChoice
                         key={`${coord.v}-${coord.h}`}
                         type="button"
                         disabled={!capabilities.containerEditable}
@@ -2268,7 +2270,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                         ) : (
                           <span className={styles.matrixDot} />
                         )}
-                      </button>
+                      </InspectorChoice>
                     );
                   })}
                 </div>
@@ -2319,7 +2321,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                 <WithContextMenu overlay={renderJustifyDistMenu}>
                   <div className={styles.betweenWrap}>
                     <Tooltip title={uiT("Space between")}>
-                      <button
+                      <InspectorChoice
                         type="button"
                         aria-pressed={isDistributed}
                         disabled={
@@ -2345,7 +2347,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                         <span className={styles.betweenState}>
                           {isDistributed ? uiT("On") : uiT("Off")}
                         </span>
-                      </button>
+                      </InspectorChoice>
                     </Tooltip>
                   </div>
                 </WithContextMenu>
@@ -2353,7 +2355,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                 {/* Row 3: Fixed 3 equal icon-only buttons */}
                 <div className={styles.actionRow}>
                   <Tooltip title={uiT("Allow wrapping")}>
-                    <button
+                    <InspectorChoice
                       type="button"
                       aria-label={uiT("Wrap")}
                       aria-pressed={isWrap}
@@ -2368,10 +2370,10 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                       onClick={handleToggleWrap}
                     >
                       <WrapSvg />
-                    </button>
+                    </InspectorChoice>
                   </Tooltip>
                   <Tooltip title={uiT("Wrap reverse")}>
-                    <button
+                    <InspectorChoice
                       type="button"
                       aria-label={uiT("Wrap reverse")}
                       aria-pressed={isWrapReverse}
@@ -2387,10 +2389,10 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                       onClick={handleToggleWrapReverse}
                     >
                       <WrapReverseSvg />
-                    </button>
+                    </InspectorChoice>
                   </Tooltip>
                   <Tooltip title={uiT("Reverse items")}>
-                    <button
+                    <InspectorChoice
                       type="button"
                       aria-label={uiT("Reverse items")}
                       aria-pressed={isReverse}
@@ -2405,7 +2407,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
                       onClick={handleToggleReverseItems}
                     >
                       <ReverseItemsSvg isRow={isRowDir} />
-                    </button>
+                    </InspectorChoice>
                   </Tooltip>
                 </div>
               </div>

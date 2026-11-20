@@ -91,14 +91,14 @@ import { createStore, type StoreApi } from "zustand/vanilla";
 
 export type AnyArena = Arena | ComponentArena | PageArena;
 type AutoFrameHeightStore = Pick<StoreApi<number | undefined>, "getState" | "getInitialState" | "subscribe">;
-const autoFrameHeights = new WeakMap<ArenaFrame, { readonly state: StoreApi<number | undefined>; readonly store: AutoFrameHeightStore }>();
+const autoFrameHeights = new WeakMap<ArenaFrame, { readonly state: StoreApi<number | undefined>; readonly store: AutoFrameHeightStore; viewportOwners: number }>();
 
 /** A record can be demanded without initializing its first-read cached height. */
 function autoFrameHeight(frame: ArenaFrame) {
   let record = autoFrameHeights.get(frame);
   if (!record) {
     const state = createStore<number | undefined>(() => undefined);
-    record = { state, store: { getState: state.getState, getInitialState: state.getInitialState, subscribe: state.subscribe } };
+    record = { state, viewportOwners: 0, store: { getState: state.getState, getInitialState: state.getInitialState, subscribe: state.subscribe } };
     autoFrameHeights.set(frame, record);
   }
   return record;
@@ -391,12 +391,24 @@ export function isHeightAutoDerived(
   );
 }
 
+/** A mounted device screen uses its preset height for every geometry consumer. */
+export function holdFrameAtViewportHeight(frame: ArenaFrame) {
+  const record = autoFrameHeight(frame);
+  record.viewportOwners++;
+  record.state.setState(frame.height, true);
+  return () => { record.viewportOwners--; };
+}
+
+export function measuredFrameHeight(frame: ArenaFrame, bodyHeight: number) {
+  if (autoFrameHeights.get(frame)?.viewportOwners) { return frame.height; }
+  return Math.max(bodyHeight, isPageFrame(frame) ? frame.height : 0);
+}
+
 export function updateAutoDerivedFrameHeight(
   arenaFrame: ArenaFrame,
   newHeight: number,
 ) {
-  const minHeight = isPageFrame(arenaFrame) ? arenaFrame.height : 0;
-  const height = Math.max(newHeight, minHeight);
+  const height = measuredFrameHeight(arenaFrame, newHeight);
   autoFrameHeight(arenaFrame).state.setState(height, true);
 }
 

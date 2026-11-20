@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import Chip from "@/wab/client/components/widgets/Chip";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -66,8 +67,12 @@ export const FontFamilySelector = function FontFamilySelector(props: {
 
   const searchUndo = useUndo("");
 
+  const inspecting = React.useContext(InspectorReadOnly);
   if (!fontTokens.active) { return null; }
 
+  if (inspecting) {
+    return <span>{tokens.find((token) => token.value === selectOpts.value)?.name ?? selectOpts.value ?? "—"}</span>;
+  }
   return (
     <Select
       aria-label={props["aria-label"]}

@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
@@ -28,6 +29,9 @@ function StyleCheckbox_(props: StyleCheckboxProps, ref: CheckboxRef) {
   // Always offset StyleCheckbox by marginLeft of -8px, so that it offsets
   // the padding for the checkbox button and can line up with the rest
   // of the content
+  if (React.useContext(InspectorReadOnly)) {
+    return <span>{String(!!props.isChecked)}</span>;
+  }
   let content = (
     <PlasmicStyleCheckbox
       root={{

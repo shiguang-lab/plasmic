@@ -7,6 +7,7 @@
 **/.next
 .env
 **/secrets
+deploy/desktop-beta
 **/__pycache__
 desktop/renderer
 desktop/desktop-report

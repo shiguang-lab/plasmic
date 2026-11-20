@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
@@ -113,7 +114,7 @@ export const MixinsSection = React.memo(function (props: {
         defaultExpanded
         isHeaderActive={hasMixins}
         emptyBody={!showPicker}
-        controls={
+        controls={<InspectorEdit>{
           <IconLinkButton
             data-test-id="add-mixin-button"
             aria-label="Add style preset"
@@ -124,7 +125,7 @@ export const MixinsSection = React.memo(function (props: {
           >
             <Icon icon={PlusIcon} />
           </IconLinkButton>
-        }
+        }</InspectorEdit>}
       >
         {showPicker && (
           <>

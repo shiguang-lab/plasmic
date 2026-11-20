@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import styles from "@/wab/client/components/ContextMenu.module.scss";
 import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
@@ -73,7 +74,7 @@ export function maybeShowContextMenu(
 }
 
 export function useContextMenu(opts: { menu: MenuType | null | undefined }) {
-  const { menu } = opts;
+  const menu = React.useContext(InspectorReadOnly) ? undefined : opts.menu;
   const destroyRef = React.useRef<(() => void) | undefined>(undefined);
   React.useEffect(() => {
     return () => {
@@ -164,8 +165,9 @@ export function WithContextMenu({ overlay, children, as, ...rest }: WithContextM
       },
     });
   };
+  const inspecting = React.useContext(InspectorReadOnly);
   const Element = as || "div";
-  if (!overlay) { return <Element {...rest}>{children}</Element>; }
+  if (inspecting || !overlay) { return <Element {...rest}>{children}</Element>; }
   return <Element {...rest} onContextMenu={(event: React.MouseEvent) => {
     event.preventDefault();
     setPosition({ pageX: event.pageX, pageY: event.pageY });

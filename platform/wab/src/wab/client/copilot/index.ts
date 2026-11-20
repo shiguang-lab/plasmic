@@ -182,14 +182,15 @@ const previewEditorViews = new WeakMap<StudioCtx, ReturnType<typeof meta.restore
 
 const presentedTools = new Set([...editTools, "read", "queryElements"]);
 
-function showModelReadActivity(
+async function withModelReadActivity<T>(
   studio: StudioCtx,
   targets: { component: Component; tpl?: TplNode }[],
-  caller?: CopilotCaller,
-  signal?: AbortSignal,
+  caller: CopilotCaller | undefined,
+  signal: AbortSignal | undefined,
+  read: () => T | Promise<T>,
 ) {
   if (!studio.studioIsVisible || studio.isLiveMode || signal?.aborted) {
-    return;
+    return read();
   }
   const regions = targets.flatMap<ActivityTarget>(({ component, tpl }) => {
     if (!studio.site.components.includes(component) || isCodeComponent(component)) {
@@ -200,8 +201,14 @@ function showModelReadActivity(
       elementUuid: tpl?.uuid,
     }];
   });
-  if (regions.length) {
-    studio.copilotActivity.begin(regions, "inspection", caller, signal)("success");
+  const finish = regions.length ? studio.copilotActivity.begin(regions, "inspection", caller, signal) : undefined;
+  try {
+    const result = await read();
+    finish?.("success");
+    return result;
+  } catch (error) {
+    finish?.("error");
+    throw error;
   }
 }
 
@@ -209,16 +216,25 @@ function presentOperationTarget(studio: StudioCtx, name: string, input: Record<s
   try {
   if (!studio.studioIsVisible || !presentedTools.has(name) || input.fromProject && input.fromProject !== studio.siteInfo.id || input.view === "contract") { return undefined; }
   const receipt = name === "executeBatch" ? output?.operations?.at(-1) : output;
+  const operation = name === "executeBatch" ? input.operations.at(-1)?.name : name;
+  const linkTarget: ActivityTarget | undefined = receipt?.[affectedLinkTargets]?.[0];
+  if (operation === "replacePageLinks" && !linkTarget) { return undefined; }
+  const newArtboard = operation === "createArtboard" ? receipt?.created?.find((item: MutationIdentity) => item.kind === "Artboard") : undefined;
+  if (operation === "createArtboard" && !newArtboard) { return undefined; }
   const created = receipt?.created?.find((item: MutationIdentity) => item.kind === "Element") ?? receipt?.created?.find((item: MutationIdentity) => item.kind === "Component");
   const match = name === "queryElements" ? output?.results?.find((item: any) => item.__type === "Element") : undefined;
-  const componentUuid = created?.componentUuid ?? (created?.kind === "Component" ? created.uuid : undefined) ??
+  const componentUuid = linkTarget?.componentUuid ?? created?.componentUuid ?? (created?.kind === "Component" ? created.uuid : undefined) ??
     match?.componentUuid ?? receipt?.componentUuid ?? input.elements?.[0]?.componentUuid ?? input.componentUuids?.[0] ?? input.componentUuid;
   const component = studio.site.components.find(candidate => candidate.uuid === componentUuid);
   if (!component || isCodeComponent(component)) { return undefined; }
   if (name === "queryElements" && !match) { return undefined; }
-  const elementUuid = (created?.kind === "Element" ? created.uuid : undefined) ?? match?.uuid ?? receipt?.elementUuid ?? input.elements?.[0]?.elementUuid ?? input.elementUuid;
+  const elementUuid = linkTarget?.elementUuid ?? (created?.kind === "Element" ? created.uuid : undefined) ?? match?.uuid ?? receipt?.elementUuid ?? input.elements?.[0]?.elementUuid ?? input.elementUuid;
   const tpl = elementUuid ? flattenTpls(component.tplTree).find(node => node.uuid === elementUuid) : component.tplTree;
-  return tpl ? requestToolTarget(studio, component, tpl, signal) : undefined;
+  let frameUuid = newArtboard?.uuid ?? (operation === "importWebPage" ? receipt?.frameUuid : undefined) ?? (name === "executeBatch" ? input.operations.at(-1)?.input.frameUuid : input.frameUuid);
+  if (name === "executeBatch" && frameUuid?.startsWith("$") && output) {
+    frameUuid = resolveBatchInput({ frameUuid }, batchBindings(output.operations)).frameUuid;
+  }
+  return tpl ? requestToolTarget(studio, component, tpl, signal, frameUuid) : undefined;
   } catch {
     // Target discovery is optional presentation, not model validation.
     return undefined;
@@ -269,6 +285,58 @@ async function restoreEditorView(studio: StudioCtx, input: ReturnType<typeof met
   return { restored: true };
 }
 
+// Only the editor uses these targets. The public mutation receipt describes model changes.
+const affectedLinkTargets = Symbol("affectedLinkTargets");
+type EditorMutationReceipt = MutationReceipt & { [affectedLinkTargets]?: ActivityTarget[] };
+
+function batchBindings(receipts: MutationReceipt[]) {
+  return new Map(receipts.flatMap(receipt => receipt.as ? [[receipt.as, receipt] as const] : []));
+}
+
+function beginEditActivity(
+  studio: StudioCtx,
+  name: string,
+  input: Record<string, unknown>,
+  caller?: CopilotCaller,
+  signal?: AbortSignal,
+) {
+  const known: ActivityTarget[] = [];
+  const pending: ActivityTarget[] = [];
+  for (const target of activityTargets(name, input)) {
+    const hasBinding = name === "executeBatch" &&
+      Object.values(target).some(value => typeof value === "string" && value.startsWith("$"));
+    (hasBinding ? pending : known).push(target);
+  }
+
+  function capture(target: ActivityTarget) {
+    const component = studio.site.components.find(c => c.uuid === target.componentUuid);
+    const tpl = component && target.elementUuid
+      ? flattenTpls(component.tplTree).find(node => node.uuid === target.elementUuid)
+      : undefined;
+    return tpl ? { ...target, ancestorUuids: ancestorsUp(tpl, true).map(node => node.uuid) } : target;
+  }
+
+  const finish = studio.copilotActivity.begin(known.map(capture), "edit", caller, signal);
+  return {
+    finish,
+    resolveTargets(receipts: EditorMutationReceipt[]) {
+      const destinations = receipts.flatMap<ActivityTarget>(receipt => {
+        if (receipt.name === "createArtboard") {
+          return receipt.created.filter(item => item.kind === "Artboard").map(item => ({
+            componentUuid: item.componentUuid, canvasName: item.canvasName, frameUuid: item.uuid,
+          }));
+        }
+        if (receipt.name === "createComponent" || receipt.name === "duplicateComponent") {
+          return receipt.created.filter(item => item.kind === "Component").map(item => ({ componentUuid: item.uuid }));
+        }
+        return receipt[affectedLinkTargets] ?? [];
+      });
+      const bindings = batchBindings(receipts);
+      finish.addTargets([...destinations, ...pending.map(target => capture(resolveBatchInput({ ...target }, bindings)))]);
+    },
+  };
+}
+
 // Keep input/output validation and serialization in the shared tool wrapper.
 const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
   defineTool(toolMeta, async (studio, input, caller, signal) => {
@@ -281,30 +349,17 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
     assertCanEditPrototype(studio);
     const { context: reviewContext, operations: reviewOperations } = reviewInput(toolMeta.toolName, input);
     const { reviewContext: _reviewContext, ...nativeInput } = input;
-    const targets = activityTargets(toolMeta.toolName, input).map((target) => {
-      const component =
-        studio.site.components.find((c) => c.uuid === target.componentUuid) ??
-        studio.site.projectDependencies
-          .flatMap((dep) => dep.site.components)
-          .find((c) => c.uuid === target.componentUuid);
-      const tpl =
-        component && target.elementUuid
-          ? flattenTpls(component.tplTree).find(
-              (t) => t.uuid === target.elementUuid,
-            )
-          : undefined;
-      return {
-        ...target,
-        ancestorUuids: tpl
-          ? ancestorsUp(tpl, true).map((ancestor) => ancestor.uuid)
-          : undefined,
-      };
-    });
-    const finish = studio.copilotActivity.begin(targets, "edit", caller, signal);
+    const { finish, resolveTargets } = beginEditActivity(studio, toolMeta.toolName, input, caller, signal);
     try {
       const beforeDelete = ["deleteElement", "deleteComponent"].includes(toolMeta.toolName);
       const before = presentOperationTarget(studio, toolMeta.toolName, input, undefined, signal);
       const output = await execute(studio, nativeInput as typeof input, caller, signal);
+      if (toolMeta.toolName === "executeBatch") { resolveTargets(output.operations); }
+      else if (toolMeta.toolName === "importWebPage") {
+        finish.addTargets([{ componentUuid: output.componentUuid, canvasName: output.canvasName, frameUuid: output.frameUuid }]);
+      } else if (output.created) {
+        resolveTargets([output]);
+      }
       const presentation = beforeDelete ? before : presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
       const componentReview = await reviewComponents(studio, reviewOperations, toolMeta.toolName === "executeBatch" ? output.operations : [output], reviewContext, caller?.id, signal);
       finish("success");
@@ -655,6 +710,7 @@ type MutationPlan = {
   components: Component[];
   apply: () => void;
   messages?: string[];
+  linkTargets?: ActivityTarget[];
 };
 
 /** Collect identities, without exporting props, HTML, expressions or recursive models. */
@@ -713,7 +769,7 @@ async function runNativeBatch(
     assets.push(await prepareMutationAssets(studio, operation));
   }
   const bindings = new Map<string, MutationReceipt>();
-  const receipts: MutationReceipt[] = [];
+  const receipts: EditorMutationReceipt[] = [];
   // Existing components are observed before the recorder; newly attached ones are
   // observed through the native site/component attachment operation.
   await change(studio, [...studio.site.components], () => {
@@ -741,7 +797,8 @@ async function runNativeBatch(
         };
         const primaryKind = primaryKinds[operation.name];
         created.sort((a, b) => Number(b.kind === primaryKind) - Number(a.kind === primaryKind));
-        const receipt: MutationReceipt = {
+        const receipt: EditorMutationReceipt = {
+          ...(plan.linkTargets && { [affectedLinkTargets]: plan.linkTargets }),
           name: operation.name, ...(operation.as ? { as: operation.as } : {}), created,
           ...(operation.name === "insertHtml" && operation.input.location === "replace" && operation.input.elementUuid ? { replacedElementUuid: operation.input.elementUuid } : {}),
           ...("componentUuid" in operation.input && operation.input.componentUuid ? { componentUuid: operation.input.componentUuid } : {}),
@@ -821,10 +878,11 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
     const to = findComponent(studio, operation.input.targetPageUuid, true);
     assert(isPageComponent(from) && isPageComponent(to) && from !== to, "Choose two distinct local pages");
     const messages: string[] = [];
-    return { components: [], messages, apply: () => {
-      const count = incomingPageReferences(studio, from).length;
+    const refs = incomingPageReferences(studio, from);
+    const linkTargets = refs.map(({ componentUuid, elementUuid }) => ({ componentUuid, elementUuid }));
+    return { components: [], messages, linkTargets, apply: () => {
       swapPageLinks(studio.site, from, to);
-      messages.push(`Replaced ${count - incomingPageReferences(studio, from).length} page references`);
+      messages.push(`Replaced ${refs.length - incomingPageReferences(studio, from).length} page references`);
     }};
   }
   if (operation.name === "updatePageSettings") {
@@ -1911,12 +1969,21 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               components: true,
             }),
           );
-          const [result] = await runNativeBatch(studio, [{ name: "createComponent", input: parsed }], () => assertLocalBinding(studio, binding));
-          const created = ensure(result.created.find((identity) => identity.kind === "Component"), "Created page resource is missing");
-          const componentReview = localReview ? await reviewComponents(studio, [{ name: "createComponent", input: parsed }], [result], localReview.context, caller?.id, signal) : undefined;
-          return await finish(JSON.stringify({ ...result, componentReview }), before,
-            localSnapshot(studio, [findComponent(studio, created.uuid)]),
-            { ...binding, componentUuid: created.uuid });
+          const activity = beginEditActivity(studio, input.name, parsed, caller, signal);
+          try {
+            const [result] = await runNativeBatch(studio, [{ name: "createComponent", input: parsed }], () => assertLocalBinding(studio, binding));
+            activity.resolveTargets([result]);
+            const created = ensure(result.created.find((identity) => identity.kind === "Component"), "Created page resource is missing");
+            const componentReview = localReview ? await reviewComponents(studio, [{ name: "createComponent", input: parsed }], [result], localReview.context, caller?.id, signal) : undefined;
+            const output = await finish(JSON.stringify({ ...result, componentReview }), before,
+              localSnapshot(studio, [findComponent(studio, created.uuid)]),
+              { ...binding, componentUuid: created.uuid });
+            activity.finish("success");
+            return output;
+          } catch (error) {
+            activity.finish("error");
+            throw error;
+          }
         }
         if (
           input.name === "save" &&
@@ -2106,47 +2173,27 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           assert(localEditToolNames.some((name) => name === op.name), "Tool is not allowed for canvas AI editing.");
           return op;
         });
-        const finishActivity = studio.copilotActivity.begin(
-          operations.map((op) => {
-            assert("componentUuid" in op.input, "Target component is required");
-            const component = inScope(
-              ensure(op.input.componentUuid, "Target component is required"),
-            );
-            const tpl =
-              "elementUuid" in op.input && op.input.elementUuid && !op.input.elementUuid.startsWith("$")
-                ? findElement(component, op.input.elementUuid)
-                : component.tplTree;
-            return {
-              componentUuid: component.uuid,
-              elementUuid: tpl.uuid,
-              ancestorUuids: ancestorsUp(tpl, true).map(
-                (ancestor) => ancestor.uuid,
-              ),
-            };
-          }),
-          "edit",
-          caller,
-          signal,
-        );
-        try {
-          const components = [
-            ...new Set(
-              operations.map((op) => {
-                assert(
-                  "componentUuid" in op.input,
+        const components = [
+          ...new Set(
+            operations.map((op) => {
+              assert(
+                "componentUuid" in op.input,
+                "Target component is required",
+              );
+              return inScope(
+                ensure(
+                  op.input.componentUuid,
                   "Target component is required",
-                );
-                return inScope(
-                  ensure(
-                    op.input.componentUuid,
-                    "Target component is required",
-                  ),
-                );
-              }),
-            ),
-          ];
+                ),
+              );
+            }),
+          ),
+        ];
+        const { finish: finishActivity, resolveTargets } = beginEditActivity(studio, input.name, input.input, caller, signal);
+        try {
           const before = localSnapshot(studio, components);
           const receipts = await runNativeBatch(studio, operations, validateOperation);
+          if (input.name === "executeBatch") { resolveTargets(receipts); }
           const componentReview = localReview ? await reviewComponents(studio, operations, receipts, localReview.context, caller?.id, signal) : undefined;
           const result = await finish(JSON.stringify({ operations: receipts, componentReview }), before, localSnapshot(studio, components));
           finishActivity("success");
@@ -2179,9 +2226,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   }),
   read: defineCopilotTool(meta.read, async (studio, input, caller, signal) => {
     const fields = selectedReadFields(input);
-    if (fields.includes("props") || fields.includes("refActions") || fields.includes("globalActions")) {
-      await studio.ensureCodeComponentRegistrations();
-    }
+    const prepareRegistrations = () => fields.some(field => ["props", "refActions", "globalActions"].includes(field))
+      ? studio.ensureCodeComponentRegistrations() : undefined;
     const depth = readDepth(input);
     const read = { fields, depth: Number.isFinite(depth) ? depth : "all" as const,
       ...(input.propNames ? { propNames: input.propNames } : {}) };
@@ -2198,6 +2244,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     };
     assert(!input.nameContains || input.collection, "nameContains requires collection");
     if (!input.componentUuids?.length && !input.elements?.length) {
+      await prepareRegistrations();
       if (!input.collection && !input.fields && input.view !== "full") {
         return { __type: "OutputResult" as const, results: [{
           __type: "Project", id: projectId,
@@ -2256,10 +2303,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         return { component, tpl: findElement(component, elementUuid) };
       }),
     ];
-    const results = targets.map(({ component, tpl }) => readNativeModel(studio, component, tpl, input));
-    if (input.view !== "contract") {
-      showModelReadActivity(studio, targets, caller, signal);
-    }
+    const results = await withModelReadActivity(studio, input.view === "contract" ? [] : targets, caller, signal, async () => {
+      await prepareRegistrations();
+      return targets.map(({ component, tpl }) => readNativeModel(studio, component, tpl, input));
+    });
     return { __type: "OutputResult" as const, read, results };
   }),
   deleteCanvas: defineCopilotTool(meta.deleteCanvas, (studio, input) =>
@@ -2332,8 +2379,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       input.componentUuid,
       input.elementUuid,
     );
-    const svg = await readSvgSource(ensure(asset.dataUri, "SVG source missing"));
-    showModelReadActivity(studio, [{ component, tpl }], caller, signal);
+    const svg = await withModelReadActivity(studio, [{ component, tpl }], caller, signal,
+      () => readSvgSource(ensure(asset.dataUri, "SVG source missing")));
     return {
       elementUuid: tpl.uuid,
       assetUuid: asset.uuid,
@@ -2450,11 +2497,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       const depth = readDepth(input);
       const end = input.offset + input.limit;
       const page = matches.slice(input.offset, end);
-      const results = page.map((tpl) => readNativeModel(studio, component, tpl, input));
       const [firstMatch] = page;
-      if (input.view !== "contract" && firstMatch) {
-        showModelReadActivity(studio, [{ component, tpl: firstMatch }], caller, signal);
-      }
+      const targets = input.view !== "contract" && firstMatch ? [{ component, tpl: firstMatch }] : [];
+      const results = await withModelReadActivity(studio, targets, caller, signal,
+        () => page.map(tpl => readNativeModel(studio, component, tpl, input)));
       return {
         __type: "OutputResult" as const,
         read: { fields: selectedReadFields(input), depth: Number.isFinite(depth) ? depth : "all" as const,
@@ -2996,13 +3042,13 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   }),
   beginCanvasInspection: defineCopilotTool(
     meta.beginCanvasInspection,
-    (studio, input) =>
+    (studio, input, caller, signal) =>
       beginCanvasInspection(
         studio,
         input.componentUuid
           ? findComponent(studio, input.componentUuid, true)
           : undefined,
-        input,
+        input, caller, signal,
       ),
   ),
   endCanvasInspection: defineCopilotTool(

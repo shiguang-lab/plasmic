@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useAppRoles } from "@/wab/client/components/app-auth/app-auth-contexts";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
@@ -39,6 +40,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
   const appCtx = studioCtx.appCtx;
 
   const pageMeta = usePageMetadata(page);
+  const inspecting = React.useContext(InspectorReadOnly);
   const roleId = useStore(studioCtx.modelSnapshots.field(pageMeta, "roleId"));
 
   const { roles } = useAppRoles(appCtx, authProvider ? appId : undefined);
@@ -151,7 +153,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
         label={uiT("Role needed")}
         tooltip={uiT(MIN_ROLE_TOOLTIP)}
       >
-        <AntSelect
+        {inspecting ? <span>{roles.find((role) => role.id === roleId)?.name ?? uiT("Anonymous")}</span> : <AntSelect
           className="form-control textboxlike"
           style={{ width: "100%" }}
           suffixIcon={<Icon icon={TriangleBottomIcon} />}
@@ -271,7 +273,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
           <AntSelect.Option value="anon" key="anon">
             <UiText message={"Anonymous"} />
           </AntSelect.Option>
-        </AntSelect>
+        </AntSelect>}
       </LabeledItemRow>
     </SidebarSection>
   );

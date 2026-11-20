@@ -1,3 +1,4 @@
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
 export interface CanvasSnapshotStore<T> {
@@ -7,6 +8,7 @@ export interface CanvasSnapshotStore<T> {
 }
 
 export interface CanvasFrameInfo {
+  readonly deviceContentHeight?: number;
   readonly viewMode: "stretch" | "centered";
   readonly height: number;
   readonly isHeightAutoDerived: boolean;
@@ -36,7 +38,7 @@ export interface CanvasFrameProps {
 
 /** The frame owns its Hooks, DOM and context provider in its own React realm. */
 export function CanvasFrame({ children, frameInfo, currentUser, lifetime, DataSourceProvider }: CanvasFrameProps) {
-  const { viewMode, height, isHeightAutoDerived, fullPageHeight, bgColor } =
+  const { viewMode, height, deviceContentHeight, isHeightAutoDerived, fullPageHeight, bgColor } =
     React.useSyncExternalStore(frameInfo.subscribe, frameInfo.getState, frameInfo.getInitialState);
   const appUserCtx = React.useSyncExternalStore(currentUser.subscribe, currentUser.getState, currentUser.getInitialState);
   const subscribeLifetime = React.useCallback((listener: () => void) => {
@@ -61,6 +63,12 @@ export function CanvasFrame({ children, frameInfo, currentUser, lifetime, DataSo
     isHeightAutoDerived ? "__wab_root--page-stretch" : "",
     showFullHeight ? "__wab_root--full-height" : "",
   ].filter(Boolean).join(" ");
+  const viewportHeight = !showFullHeight && deviceContentHeight !== undefined ? deviceContentHeight : height;
+  const root = <div className={className} style={{
+    minHeight: `${viewportHeight}px`,
+    "--viewport-height": `${viewportHeight}px`,
+    ...(showFullHeight ? { "--canvas-content-height": "auto" } : {}),
+  } as React.CSSProperties}>{children}</div>;
   const { appUser } = appUserCtx;
   return <DataSourceProvider value={{
     user: {
@@ -72,9 +80,10 @@ export function CanvasFrame({ children, frameInfo, currentUser, lifetime, DataSo
       isLoggedIn: appUser.isLoggedIn,
     },
     userAuthToken: appUserCtx.fakeAuthToken,
-  }}><div className={className} style={{
-    minHeight: `${height}px`,
-    "--viewport-height": `${height}px`,
-    ...(showFullHeight ? { "--canvas-content-height": "auto" } : {}),
-  } as React.CSSProperties}>{children}</div></DataSourceProvider>;
+  }}>{deviceContentHeight === undefined ? root : (
+    <Scrollbar scrollX={false} scrollY={!showFullHeight}
+      style={{ height: showFullHeight ? "auto" : deviceContentHeight, minWidth: 0 }}>
+      {root}
+    </Scrollbar>
+  )}</DataSourceProvider>;
 }

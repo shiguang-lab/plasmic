@@ -1,12 +1,14 @@
 const { EventEmitter } = require("node:events");
 
+const { beta } = require("./release-version.cjs");
 const semver = require("semver");
 
 class UpdateManager extends EventEmitter {
-  constructor({ updater, version, enabled, beforeInstall }) {
+  constructor({ updater, version, enabled, beforeInstall, canInstallBeta }) {
     super();
     this.updater = updater;
     this.enabled = enabled;
+    this.canInstallBeta = canInstallBeta;
     this.beforeInstall = beforeInstall;
     this.state = {
       phase: enabled ? "idle" : "disabled",
@@ -20,6 +22,7 @@ class UpdateManager extends EventEmitter {
       if (!this.ready) this.set({ phase: "checking" });
     });
     updater.on("update-available", (info) => {
+      this.discardSupersededBeta(info);
       if (this.installQueued || (this.ready && !semver.gt(info.version, this.ready.version))) return;
       this.set({
         phase: "available",
@@ -28,13 +31,15 @@ class UpdateManager extends EventEmitter {
         percent: undefined,
       });
     });
-    updater.on("update-not-available", () => {
+    updater.on("update-not-available", (info) => {
+      this.discardSupersededBeta(info);
       if (!this.ready) this.set({ phase: "current", version: undefined, releaseNotes: undefined });
     });
     updater.on("download-progress", (progress) =>
       this.set({ phase: "downloading", percent: Math.floor(progress.percent) }),
     );
     updater.on("update-downloaded", (info) => {
+      updater.autoInstallOnAppQuit = !beta.test(info.version);
       this.ready = {
         phase: "downloaded", version: info.version, percent: 100,
         releaseNotes: info.localizedReleaseNotes || info.releaseNotes || this.state.releaseNotes,
@@ -42,6 +47,17 @@ class UpdateManager extends EventEmitter {
       this.set(this.ready);
     });
     updater.on("error", (error) => this.fail(error));
+  }
+  discardSupersededBeta(info) {
+    if (this.ready && beta.test(this.ready.version) && this.ready.version !== info?.version) {
+      this.ready = undefined;
+      this.updater.autoInstallOnAppQuit = false;
+    }
+  }
+  async verifyBetaInstall(version) {
+    if (beta.test(version) && !(await this.canInstallBeta?.(version))) {
+      throw new Error("Beta update is no longer available for this account");
+    }
   }
   set(value) {
     if (!this.enabled || this.quitPreparation) return;
@@ -66,7 +82,11 @@ class UpdateManager extends EventEmitter {
     // A normal quit installs the last verified Mac archive even if a newer
     // download is offline or still in progress.
     this.set({ ...this.ready, phase: "installing" });
-    this.quitPreparation = this.updater.prepareInstallOnQuit().catch(error => {
+    const version = this.ready.version;
+    const prepare = beta.test(version)
+      ? this.verifyBetaInstall(version).then(() => this.updater.prepareInstallOnQuit(version))
+      : this.updater.prepareInstallOnQuit(version);
+    this.quitPreparation = prepare.catch(error => {
       this.quitPreparation = undefined;
       this.fail(error);
     });
@@ -104,6 +124,7 @@ class UpdateManager extends EventEmitter {
         if (command === "install") {
           this.set({ phase: "installing" });
           await this.beforeInstall();
+          await this.verifyBetaInstall(this.state.version);
           await this.updater.quitAndInstall(false, true);
         }
       } catch (error) {

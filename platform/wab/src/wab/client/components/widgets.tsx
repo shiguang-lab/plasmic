@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import searchStyles from "@/wab/client/components/widgets/Searchbox.module.scss";
 import { reportError } from "@/wab/client/ErrorNotifications";
 import { PublicLink } from "@/wab/client/components/PublicLink";
@@ -559,6 +560,7 @@ interface ListBoxItemProps {
 }
 
 export function ListBoxItem(props: ListBoxItemProps) {
+  const inspecting = React.useContext(InspectorReadOnly);
   const dragId = React.useId();
   const { t } = useI18n();
     const {
@@ -580,7 +582,7 @@ export function ListBoxItem(props: ListBoxItemProps) {
       <Draggable
         draggableId={`${dragId}`}
         index={index}
-        isDragDisabled={isDragDisabled}
+        isDragDisabled={inspecting || isDragDisabled}
       >
         {(provided, snapshot) => {
           const child = (
@@ -639,7 +641,7 @@ export function ListBoxItem(props: ListBoxItemProps) {
                     {props.mainContent}
                   </div>
 
-                  {showGrip && (
+                  {!inspecting && showGrip && (
                     <div
                       className="list-box-item__handle"
                       data-test-id="drag-handle"
@@ -650,7 +652,7 @@ export function ListBoxItem(props: ListBoxItemProps) {
                     </div>
                   )}
 
-                  {(showDelete || menu) && (
+                  {!inspecting && (showDelete || menu) && (
                     <div
                       className="list-box-item__actions"
                       onClick={(e) => swallowClick(e)}
@@ -684,7 +686,7 @@ export function ListBoxItem(props: ListBoxItemProps) {
                     </div>
                   )}
 
-                  {showHide &&
+                  {!inspecting && showHide &&
                     (isHidden ? (
                       <button
                         className={"icon-button"}

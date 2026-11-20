@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import Option from "@/wab/client/components/style-controls/StyleSelect__Option";
 import OptionGroup from "@/wab/client/components/style-controls/StyleSelect__OptionGroup";
@@ -17,6 +18,9 @@ interface StyleSelectProps extends DefaultStyleSelectProps {
 
 function StyleSelect_(props: StyleSelectProps, ref: SelectRef) {
   const { plasmicProps } = PlasmicStyleSelect.useBehavior(props, ref);
+  if (React.useContext(InspectorReadOnly)) {
+    return <span>{plasmicProps.args.selectedContent ?? props.value ?? "—"}</span>;
+  }
   return (
     <PlasmicStyleSelect
       {...plasmicProps}

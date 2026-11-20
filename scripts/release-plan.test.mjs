@@ -11,8 +11,8 @@ test("milestone releases advance the minor or major series", () => {
   assert.equal(isNewReleaseSeries("0.0.89", "0.1.0"), false);
 });
 
-test("only one numeric release tag starts publication", () => {
-  for (const tag of ["v1.2.3", "desktop-v1.2.3", "cli-v1.2.3", "resources-v1.2.3", "1.2.3-beta", "01.2.3"]) {
+test("unsupported release tag formats are rejected", () => {
+  for (const tag of ["v1.2.3", "desktop-v1.2.3", "cli-v1.2.3", "resources-v1.2.3", "1.2.3-beta", "1.2.3-beta.01", "1.2.3-rc.1", "01.2.3"]) {
     assert.throws(() => releasePlan(tag), /Unsupported release tag/);
   }
 });
@@ -191,6 +191,16 @@ test("unified patches select changed products; minor, major and manual full rele
     commit();
     assert.equal(releasePlan("2.0.4").baselines.desktop, "2.0.2");
     assert.deepEqual(selected("2.0.4"), ["desktop"]);
+    for (const tag of ["2.0.4-beta.0", "2.0.4-beta.1", "2.0.4-beta.2"]) {
+      desktop(tag);
+      commit();
+      git("tag", tag);
+      assert.equal(releasePlan(tag).beta, true);
+      assert.deepEqual(selected(tag), ["studio", "desktop"]);
+    }
+    desktop("2.0.4", "2.0.3");
+    commit();
+    assert.equal(releasePlan("2.0.4").baselines.desktop, "2.0.2");
   } finally {
     process.chdir(original);
     rmSync(repo, { recursive: true, force: true });

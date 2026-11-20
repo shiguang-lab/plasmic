@@ -183,7 +183,7 @@ async function differentialBase(archive, info, arch, blockmap) {
   const directory = path.dirname(archive), extension = path.extname(archive);
   const versions = [];
   for (const name of await fs.readdir(directory)) {
-    const match = /^Plasmic-(\d+\.\d+\.\d+)(\.zip|\.exe|\.AppImage)\.json$/.exec(name);
+    const match = /^Plasmic-(\d+\.\d+\.\d+(?:-beta\.\d+)?)(\.zip|\.exe|\.AppImage)\.json$/.exec(name);
     if (match && match[2] === extension && semver.valid(match[1]) &&
         semver.lt(match[1], info.version)) versions.push(match[1]);
   }
@@ -208,7 +208,7 @@ async function pruneArchives(archive, currentVersion, readyArchive) {
   const keep = [path.basename(archive), `Plasmic-${currentVersion}${path.extname(archive)}`];
   if (readyArchive) keep.push(path.basename(readyArchive));
   for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
-    const match = /^(Plasmic-\d+\.\d+\.\d+(\.zip|\.exe|\.AppImage))(?:\.(?:json|blockmap|partial(?:\.json)?))?$/.exec(entry.name);
+    const match = /^(Plasmic-\d+\.\d+\.\d+(?:-beta\.\d+)?(\.zip|\.exe|\.AppImage))(?:\.(?:json|blockmap|partial(?:\.json)?))?$/.exec(entry.name);
     if (entry.isFile() && match && match[2] === path.extname(archive) && !keep.includes(match[1]))
       await fs.rm(path.join(directory, entry.name), { force: true });
   }

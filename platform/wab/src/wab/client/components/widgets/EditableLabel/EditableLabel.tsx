@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import styles from "@/wab/client/components/widgets/EditableLabel/EditableLabel.module.scss";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
@@ -83,7 +84,7 @@ const EditableLabel_: ForwardRefRenderFunction<
     value,
     inputBoxFactory = createInputBoxFactory,
     labelFactory: _labelFactoryInput,
-    disabled = false,
+    disabled: labelDisabled = false,
     onEdit,
     doubleClickToEdit = false,
     programmaticallyTriggered = false,
@@ -123,6 +124,8 @@ const EditableLabel_: ForwardRefRenderFunction<
     );
   }, [value]);
 
+  const inspecting = React.useContext(InspectorReadOnly);
+  const disabled = inspecting || labelDisabled;
   const [_editing, _setEditing] = useState(defaultEditing);
   const [_value, _setValue] = useState(value);
   const inputBoxRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
@@ -243,7 +246,7 @@ const EditableLabel_: ForwardRefRenderFunction<
     onClick: handleClick,
     onDoubleClick: handleDoubleClick,
     ref: setLabelElement,
-    children: _editing ? (
+    children: !inspecting && _editing ? (
       <OnClickAway onDone={finish}>
         {inputBoxFactory(
           {

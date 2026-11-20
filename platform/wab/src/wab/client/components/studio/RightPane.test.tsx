@@ -137,6 +137,7 @@ it("keeps the active page editor and valid tabs as the selection changes", async
   sc.focusedFrames.mockReturnValue([]);
   sc.showComments.mockReturnValue(false);
   Object.defineProperties(sc, {
+    saveState: { value: { store: createStore(() => ({ blockChanges: false, canSave: true })) } },
     arenaState: { value: arenaState },
     modelSnapshots: { value: models },
     selectionStore: { value: focus.store },

@@ -249,6 +249,49 @@ and version history are available without plan limits. Capabilities are resolved
 when serving API data; no paid subscription or feature tier is written to the
 database. Resource authentication and role permissions still apply.
 
+## Desktop beta updates
+
+Everyone installs the same Desktop app. The public check is
+`GET /desktop-updates/latest.json`. An anonymous request gets the current
+Desktop release. With a Studio session cookie the relay asks the NAS for the
+account's installer index. A rejected session or unavailable identity service
+falls back to the public index. Only verified Studio user IDs listed in
+`DESKTOP_BETA_USER_IDS` qualify for beta. NAS compares the newest available
+beta with the published Desktop version using SemVer and returns the higher
+version. A release such as `0.9.13` wins over every `0.9.13-beta.N`.
+The native updater also compares with the installed version before downloading.
+
+**Enable once.** Deploy the server and Compose changes, set
+`DESKTOP_BETA_USER_IDS` in the deployment's `.env` (comma-separated Studio
+user IDs, as returned by `/api/v1/auth/self`), then recreate the server with
+that environment. Install the updated relay configuration as described below.
+Ship the channel-aware updater once through the normal stable release so
+existing installations can discover beta. Earlier Desktop builds read only
+the public platform manifest. Changing membership requires reloading the
+server environment. Beta files are served through the authenticated API.
+
+**Publish a test build.** Choose the next public version and append a numbered
+suffix, for example `0.9.13-beta.1`, then `0.9.13-beta.2`. Set the Desktop
+package and lockfile with `npm version 0.9.13-beta.1 --no-git-tag-version`
+from `desktop/`. For subsequent builds in the same cycle,
+`npm version prerelease --preid=beta --no-git-tag-version` increments the
+beta sequence. Pin `desktop.config.json.webImage` to the same beta tag,
+add the usual release notes, commit, and push that exact Git tag. CI builds
+the tagged web renderer and the four tested installers. The resulting Actions
+artifact contains the verified beta distribution. Download it from the release
+run and publish it on the NAS alongside the deployed Compose file:
+
+```sh
+gh run download <run-id> --name desktop-beta-0.9.13-beta.1
+python3 publish-desktop-beta.py desktop-beta-0.9.13-beta.1.tar.gz
+```
+
+Each archive becomes visible in one rename under `desktop-beta/<version>/`.
+The server picks the highest version, including when builds finish out of
+order. For the public release, take the tested source, set the matching
+numeric version and release notes, and follow the stable tag workflow above.
+The public release plan compares with prior stable tags across the beta cycle.
+
 ## Release download routing
 
 Public Desktop and CLI/Skill downloads use Seoul Caddy to fetch GitHub Release
@@ -256,7 +299,7 @@ assets. Clients retain the existing Studio domain and `/desktop-updates/` paths.
 Caddy handles GitHub latest's redirect to the numeric tag and the subsequent
 signed redirect to `release-assets.githubusercontent.com` internally; clients
 receive the file without a redirect. Upstream connections verify TLS.
-Cookies, authorization and identity headers are removed before either upstream.
+Caddy strips cookies, authorization and identity headers before requests to GitHub and its asset host. Only the account-aware installer index uses the NAS gateway for a signed-in request.
 Only the explicitly registered public download paths accept GET, HEAD and OPTIONS.
 Application, API, canvas and preview traffic continues through the NAS gateway.
 
@@ -267,7 +310,7 @@ node scripts/release-downloads.mjs /absolute/path/to/Caddyfile
 ```
 
 No version or release state is stored in Caddy. Installer filenames contain their
-numeric tag, so fixed platform rules derive the matching Release URL. The six
+numeric tag, so fixed platform rules derive the matching Release URL. Anonymous requests to the six
 unversioned feed paths use GitHub `/releases/latest/download/<asset>`. Every real
 release supplies all six, carrying unchanged product feeds forward without changing
 their contents. A resource-only patch therefore retains the Desktop version;
@@ -298,7 +341,7 @@ on the internal signed-URL rewrite so the query remains intact. GitHub requests
 include a per-request identifier to avoid reusing an expired cached redirect.
 Both GitHub upstreams retry connection failures for at most ten seconds.
 
-Download assets are hosted exclusively on GitHub Release. Missing assets return
+Public release assets are hosted on GitHub Release. Missing assets return
 404, and upstream failures are not redirected to NAS.
 
 The integration test runs the actual publisher against a GitHub HTTP fixture and

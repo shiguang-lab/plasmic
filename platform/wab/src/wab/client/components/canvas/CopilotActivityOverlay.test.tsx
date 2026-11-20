@@ -11,7 +11,8 @@ import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
-import { mkTplTagX } from "@/wab/shared/core/tpls";
+import { getBaseVariant } from "@/wab/shared/Variants";
+import { flattenTpls, mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
 import { ArenaFrame, Component, TplNode } from "@/wab/shared/model/classes";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
@@ -27,7 +28,7 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-function nestedActivity(withArena = false) {
+function nestedActivity(withArena = false, embedded?: Component) {
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
   const descendant = mkTplTagX("span");
@@ -38,6 +39,14 @@ function nestedActivity(withArena = false) {
   const root = mkTplTagX("div", {}, [parent, sibling]);
   const initialComponent = mkComponent({ name: "Page", type: ComponentType.Page, tplTree: root });
   const component = withArena ? initialComponent : new Component({ ...initialComponent, uuid: "page" });
+  if (embedded) {
+    site.components.push(embedded);
+    for (let i = 0; i < 2; i++) {
+      const instance = mkTplComponent(embedded, getBaseVariant(component));
+      root.children.push(instance);
+      instance.parent = root;
+    }
+  }
   const initialFrame = mkArenaFrame({ site, component, name: "First", width: 1440, height: 1024 });
   const frame = withArena ? initialFrame : new ArenaFrame({ ...initialFrame, uuid: "frame" });
   const otherFrame = withArena ? mkArenaFrame({ site, component, name: "Second", width: 1440, height: 1024 }) : undefined;
@@ -50,7 +59,12 @@ function nestedActivity(withArena = false) {
   document.body.append(element);
   rect(element, 10, 10, 100, 100);
   const renderState = mock<ViewCtx["renderState"]>();
-  renderState.tpl2bestVal.mockReturnValue(mock<ValTag>());
+  const vals = new Map<string, ValTag>();
+  for (const tpl of flattenTpls(root)) {
+    vals.set(tpl.uuid, Object.assign(mock<ValTag>(), { fullKey: tpl.uuid, parent: tpl.parent ? vals.get(tpl.parent.uuid) : undefined }));
+  }
+  renderState.tpl2fullKeys.mockImplementation(tpl => vals.has(tpl.uuid) ? [tpl.uuid] : []);
+  renderState.fullKey2val.mockImplementation(key => vals.get(key));
   renderState.sel2dom.mockReturnValue([element]);
   const { view: viewCtx } = fakeRegistryViewCtx(studioCtx, frame);
   Object.defineProperty(viewCtx, "renderState", { value: renderState });
@@ -76,10 +90,10 @@ function renderOnly(
     const element = document.createElement("div");
     document.body.append(element);
     rect(element, left, top, width, height);
-    return { tpl, val: mock<ValTag>(), element };
+    return { tpl, val: renderState.fullKey2val(tpl.uuid), element };
   });
-  vi.mocked(renderState.tpl2bestVal).mockImplementation(
-    (tpl) => rendered.find((entry) => entry.tpl === tpl)?.val,
+  vi.mocked(renderState.tpl2fullKeys).mockImplementation(
+    tpl => rendered.some(entry => entry.tpl === tpl) ? [tpl.uuid] : [],
   );
   vi.mocked(renderState.sel2dom).mockImplementation((val) =>
     rendered
@@ -224,6 +238,92 @@ it.each([
   expect(container.querySelector(`[data-copilot-target="${child.uuid}"]`)?.getAttribute("data-kind")).toBe(childKind);
   expect(container.querySelector(`[data-copilot-target="${descendant.uuid}"]`)).toBeNull();
   activity.dispose();
+});
+
+it.each([
+  ["edit", "node"], ["inspection", "node"], ["edit", "component"], ["inspection", "component"],
+] as const)("draws %s on each visible instance of a nested %s", (kind, scope) => {
+  const button = mkTplTagX("button");
+  const card = mkComponent({ name: "Card", type: ComponentType.Plain, tplTree: mkTplTagX("div", {}, [button]) });
+  const { studioCtx, frame, renderState } = nestedActivity(false, card);
+  const instances = [10, 220].map(left => {
+    const element = document.createElement("button");
+    document.body.append(element);
+    rect(element, left, 20, 80, 30);
+    return { val: mock<ValTag>({ fullKey: String(left), parent: undefined }), element };
+  });
+  const drawn = scope === "node" ? button : card.tplTree;
+  renderState.tpl2fullKeys.mockImplementation(tpl => tpl === drawn ? instances.map(({ val }) => val.fullKey) : []);
+  renderState.fullKey2val.mockImplementation(key => instances.find(({ val }) => val.fullKey === key)?.val);
+  renderState.sel2dom.mockImplementation(val => instances.filter(entry => entry.val === val).map(entry => entry.element));
+  studioCtx.copilotActivity.begin([{ componentUuid: card.uuid, elementUuid: scope === "node" ? button.uuid : undefined }], kind);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container)).toEqual([
+    { target: drawn.uuid, box: "10px 20px 80px 30px" },
+    { target: drawn.uuid, box: "220px 20px 80px 30px" },
+  ]);
+  studioCtx.copilotActivity.dispose();
+});
+
+it("scans a visible repeated row when its first instance is offscreen", () => {
+  const { studioCtx, frame, child, target, renderState } = nestedActivity();
+  const rows = [-100, 120].map((top, i) => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    rect(element, 20, top, 200, 40);
+    return { val: mock<ValTag>({ fullKey: "row-" + i, parent: undefined }), element };
+  });
+  renderState.tpl2fullKeys.mockReturnValue(rows.map(row => row.val.fullKey));
+  renderState.fullKey2val.mockImplementation(key => rows.find(row => row.val.fullKey === key)?.val);
+  renderState.sel2dom.mockImplementation(val => rows.filter(row => row.val === val).map(row => row.element));
+  studioCtx.copilotActivity.begin([target(child.uuid)]);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container)).toEqual([{ target: child.uuid, box: "20px 120px 200px 40px" }]);
+  studioCtx.copilotActivity.dispose();
+});
+
+it.each(["inspection", "edit"] as const)("removes a running %s scan as soon as its node scrolls out and restores it on return", kind => {
+  const { studioCtx, frame, child, target, renderState } = nestedActivity();
+  const callbacks = new Map<number, FrameRequestCallback>();
+  let next = 0;
+  vi.mocked(window.requestAnimationFrame).mockImplementation(cb => { callbacks.set(++next, cb); return next; });
+  vi.spyOn(window, "cancelAnimationFrame").mockImplementation(id => { callbacks.delete(id); });
+  const move = (top: number) => {
+    renderOnly(renderState, [[child, [20, top, 120, 30]]]);
+    act(() => {
+      const batch = [...callbacks.values()];
+      callbacks.clear();
+      batch.forEach(cb => cb(performance.now()));
+    });
+  };
+  move(50);
+  studioCtx.copilotActivity.begin([target(child.uuid)], kind);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container)).toEqual([{ target: child.uuid, box: "20px 50px 120px 30px" }]);
+  move(-80);
+  expect(scans(container)).toEqual([]);
+  move(90);
+  expect(scans(container)).toEqual([{ target: child.uuid, box: "20px 90px 120px 30px" }]);
+  studioCtx.copilotActivity.dispose();
+});
+
+it("replaces a running child scan immediately when its same-kind parent starts", () => {
+  const { studioCtx, frame, parent, child, target } = nestedActivity();
+  studioCtx.copilotActivity.begin([target(child.uuid)]);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container).map(region => region.target)).toEqual([child.uuid]);
+  act(() => { studioCtx.copilotActivity.begin([target(child.uuid), target(parent.uuid)]); });
+  expect(scans(container).map(region => region.target)).toEqual([parent.uuid]);
+  studioCtx.copilotActivity.dispose();
+});
+
+it("keeps the visible child scan when the targeted parent has no visible box", () => {
+  const { studioCtx, frame, parent, child, target, renderState } = nestedActivity();
+  renderOnly(renderState, [[parent, [0, -100, 100, 40]], [child, [40, 60, 120, 30]]]);
+  studioCtx.copilotActivity.begin([target(parent.uuid), target(child.uuid)]);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  expect(scans(container)).toEqual([{ target: child.uuid, box: "40px 60px 120px 30px" }]);
+  studioCtx.copilotActivity.dispose();
 });
 
 it("does not suppress a child for ancestors targeted in another component or frame", () => {

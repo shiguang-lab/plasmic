@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { translate } from "@/wab/client/i18n/locales";
 import { getUiLocale } from "@/wab/client/i18n";
 import { showError } from "@/wab/client/ErrorNotifications";
@@ -166,6 +167,7 @@ export const CodeEditor = React.memo(function CodeEditor(props: {
     data,
     fileName,
   } = props;
+  const inspecting = React.useContext(InspectorReadOnly);
   const stringValue =
     (lang === "json" && saveAsObject) || (value && typeof value === "object")
       ? swallow(() => JSON.stringify(value, undefined, 2))
@@ -257,7 +259,7 @@ export const CodeEditor = React.memo(function CodeEditor(props: {
     <>
       <div
         className="code-editor-input"
-        onClick={() => !props.isDisabled && setShow(true)}
+        onClick={() => (inspecting || !props.isDisabled) && setShow(true)}
         data-plasmic-prop={props["data-plasmic-prop"]}
       >
         <Tooltip title={props.isDisabled && props.disabledTooltip}>
@@ -283,7 +285,7 @@ export const CodeEditor = React.memo(function CodeEditor(props: {
             }}
             className="flex-col"
           >
-            {fullscreen && (
+            {!inspecting && fullscreen && (
               <div className="mb-lg flex-col">
                 <div className="mb-sm">
                   <UiText
@@ -325,7 +327,7 @@ export const CodeEditor = React.memo(function CodeEditor(props: {
                 </div>
               </div>
             )}
-            {props.templateVariables && (
+            {!inspecting && props.templateVariables && (
               <div className="flex gap-sm mb-sm">
                 {props.templateVariables.map((name) => (
                   <Button key={name} onClick={() => editor.current?.insertAtCursor(`{${name}}`)}>
@@ -334,7 +336,7 @@ export const CodeEditor = React.memo(function CodeEditor(props: {
                 ))}
               </div>
             )}
-            <Loadable
+            {inspecting ? <pre>{stringValue ?? "—"}</pre> : <Loadable
               loader={loadFullCodeEditor}
               contents={(FullCodeEditor) => (
                 <FullCodeEditor
@@ -349,12 +351,12 @@ export const CodeEditor = React.memo(function CodeEditor(props: {
                   fileName={fileName}
                 />
               )}
-            />
+            />}
             <div className="flex flex-right mt-lg mr-xlg">
               <Button onClick={onCancel}>
                 <UiText message={"Cancel"} />
               </Button>
-              <Button
+              {!inspecting && <Button
                 className={"ml-lg"}
                 onClick={() => {
                   if (
@@ -373,7 +375,7 @@ export const CodeEditor = React.memo(function CodeEditor(props: {
                 data-test-id={"save-code"}
               >
                 <UiText message={"Save"} />
-              </Button>
+              </Button>}
               {!fullscreen && (
                 <Button
                   className={"ml-lg"}

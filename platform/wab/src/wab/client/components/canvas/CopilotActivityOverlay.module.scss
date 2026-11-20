@@ -1,18 +1,19 @@
 .screenClip {
   position: absolute;
-  inset: 0;
+  inset: var(--device-safe-top, 0px) var(--device-safe-side, 0px) var(--device-safe-bottom, 0px);
   pointer-events: none;
   z-index: 100;
-  clip-path: inset(0 round var(--device-screen-radius, 0px));
+  overflow: hidden;
+  clip-path: var(--device-content-clip, inset(0));
 }
 
 .cursorHost {
   position: absolute;
-  inset: 0;
+  inset: var(--device-safe-top, 0px) var(--device-safe-side, 0px) var(--device-safe-bottom, 0px);
   pointer-events: none;
   z-index: 101;
   overflow: hidden;
-  border-radius: var(--device-screen-radius, 0px);
+  clip-path: var(--device-content-clip, inset(0));
 }
 
 .region {

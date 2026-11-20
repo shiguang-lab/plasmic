@@ -6,12 +6,13 @@ import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { CanvasFrameHash } from "@/wab/client/components/canvas/canvas-frame-hash-observer";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useCanvasExporting } from "@/wab/client/components/canvas/canvas-frame-info";
 import { CanvasFrameLoad } from "@/wab/client/components/canvas/canvas-frame-load";
 import { CanvasActions } from "@/wab/client/components/canvas/CanvasActions/CanvasActions";
 import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasHeader";
 import { DeviceFrame } from "@/wab/client/components/device-frame/DeviceFrame";
-import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
+import { deviceViewportStyle, getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import { isPageComponent } from "@/wab/shared/core/components";
 import { headRegexp } from "@/wab/client/components/canvas/CanvasFrame/headRegexp";
 import { CopilotActivityOverlay } from "@/wab/client/components/canvas/CopilotActivityOverlay";
@@ -28,7 +29,7 @@ import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { AsyncGeneratorReturnType } from "@/wab/commons/types";
-import { AnyArena, getArenaName } from "@/wab/shared/Arenas";
+import { AnyArena, getArenaName, holdFrameAtViewportHeight } from "@/wab/shared/Arenas";
 import {
   cx,
   ensure,
@@ -597,17 +598,30 @@ export const CanvasFrame = React.memo(function CanvasFrame({
   const commentsOverlay = useStudioOverlayState(studioCtx, (state) => state.commentsOverlay);
 
 
+  const fullPageHeight = useStudioRenderPolicy(studioCtx, (policy) => policy.fullPageHeight && !policy.interactive);
+  const exporting = useCanvasExporting(entry?.view);
   const contentView = useActiveContentEditor(studioCtx)?.viewCtx;
   const [contentSize, isContentEditing, contentReady] = useContentEditor(maybeViewCtx()?.contentEditor,
     useShallow((state) => [state.size, !!state.target, state.ready] as const));
+  const deviceFrame = isContentEditing || (fullPageHeight && !exporting) ? undefined : framePresentation?.deviceFrame;
+  const deviceHeight = deviceFrame && arenaFrame.height;
+  React.useLayoutEffect(() => {
+    if (deviceHeight !== undefined && studioCtx.arenaState.isCurrentLifetime(modelLifetime)) {
+      return holdFrameAtViewportHeight(arenaFrame);
+    }
+    return undefined;
+  }, [arenaFrame, deviceHeight, modelLifetime, studioCtx]);
   if (!framePresentation || !studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return null; }
-  const deviceFrame = isContentEditing ? undefined : framePresentation.deviceFrame;
   return (
     <div onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div
         className={cx("CanvasFrame__Container", deviceFrame && styles.device)}
         style={{
           ...(deviceFrame ? {
+            "--device-safe-side": `${deviceFrame.safeSide}px`,
+            "--device-safe-top": `${deviceFrame.safeTop}px`,
+            "--device-safe-bottom": `${deviceFrame.safeBottom}px`,
+            "--device-content-clip": deviceViewportStyle(deviceFrame).clipPath,
             "--device-inset-x": `${deviceFrame.insetX}px`,
             "--device-inset-top": `${deviceFrame.insetTop}px`,
             "--device-screen-radius": `${deviceFrame.viewportRadius}px`,
@@ -666,7 +680,7 @@ export const CanvasFrame = React.memo(function CanvasFrame({
         <iframe
           style={isContentEditing
             ? { background: "transparent", opacity: contentReady ? 1 : 0 }
-            : deviceFrame ? { borderRadius: deviceFrame.viewportRadius } : undefined}
+            : deviceFrame ? deviceViewportStyle(deviceFrame) : undefined}
           data-plasmic-frame-uuid={arenaFrame.uuid}
           data-plasmic-component-uuid={arenaFrame.container.component.uuid}
           className={cx(

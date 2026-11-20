@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { MenuType, useContextMenu } from "@/wab/client/components/ContextMenu";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
@@ -70,8 +71,9 @@ function ContextMenuIndicator_(
     setOpenTooltip,
     editDynamicValue: onIndicatorClickDefault ?? signals.editDynamicValue,
   }), [signals, onIndicatorClickDefault, setOpenTooltip]);
+  const inspecting = React.useContext(InspectorReadOnly);
   const contextMenuProps = useContextMenu({
-    menu: showMenuOnRightClick ? menu : undefined,
+    menu: !inspecting && showMenuOnRightClick ? menu : undefined,
   });
   return (
     <ContextMenuContext.Provider value={ctx}>
@@ -84,7 +86,7 @@ function ContextMenuIndicator_(
         }}
         {...props}
         contextMenu={
-          menu && (
+          !inspecting && menu && (
             <div className={"baseline-friendly-centered-block-container"}>
               <MenuButton
                 menu={menu}
@@ -96,7 +98,7 @@ function ContextMenuIndicator_(
         }
         contextMenuIndicatorInner={{
           wrap: (node) =>
-            !showDynamicValueButton ? null : (
+            inspecting || !showDynamicValueButton ? null : (
               <Tooltip title={openTooltip === false ? null : tooltip}>
                 <TriggerTarget>{node}</TriggerTarget>
               </Tooltip>

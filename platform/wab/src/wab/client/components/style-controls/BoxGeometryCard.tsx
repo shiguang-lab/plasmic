@@ -1,3 +1,4 @@
+import { InspectorReadOnly, InspectorInput, InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import styles from "@/wab/client/components/style-controls/BoxGeometryCard.module.scss";
 import {
@@ -608,6 +609,7 @@ export interface BoxGeometryCardProps {
 export const BoxGeometryCard = React.memo(function BoxGeometryCard(
   props: BoxGeometryCardProps,
 ) {
+  const inspecting = React.useContext(InspectorReadOnly);
   const { t: uiT } = useI18n();
   const { expsProvider, vsh: providedVsh, readOnly = false, multiTarget } = props;
   const studioCtx = expsProvider.studioCtx;
@@ -1150,7 +1152,7 @@ export const BoxGeometryCard = React.memo(function BoxGeometryCard(
           }}
         >
           {isEditing ? (
-            <input
+            <InspectorInput
               type="text"
               inputMode="decimal"
               autoFocus
@@ -1188,7 +1190,7 @@ export const BoxGeometryCard = React.memo(function BoxGeometryCard(
       <div className={styles.header}>
         <div className={styles.titleGroup}>
           <span className={styles.title}>{uiT("Box Geometry")}</span>
-          {allReadOnly && (
+          {allReadOnly && !inspecting && (
             <Tooltip
               title={
                 allBlockedByVariant
@@ -1217,7 +1219,7 @@ export const BoxGeometryCard = React.memo(function BoxGeometryCard(
                 : uiT("Independent edges")
             }
           >
-            <button
+            <InspectorEdit><button
               type="button"
               aria-label={
                 linked
@@ -1243,7 +1245,7 @@ export const BoxGeometryCard = React.memo(function BoxGeometryCard(
                   <path d="M5 7l-1.5 1.5a2.1 2.1 0 0 0 3 3L8 10M11 9l1.5-1.5a2.1 2.1 0 0 0-3-3L8 6M3 3l10 10" />
                 )}
               </svg>
-            </button>
+            </button></InspectorEdit>
           </Tooltip>
         )}
       </div>
@@ -1297,7 +1299,7 @@ export const BoxGeometryCard = React.memo(function BoxGeometryCard(
                 >
                   <span>╭</span>
                   {editingRadius ? (
-                    <input
+                    <InspectorInput
                       type="text"
                       inputMode="decimal"
                       autoFocus

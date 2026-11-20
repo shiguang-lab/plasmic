@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import React from "react";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
@@ -24,6 +25,7 @@ export function SimpleReorderableList(props: {
   customDragHandle?: boolean;
   as?: React.ElementType;
 }) {
+  const inspecting = React.useContext(InspectorReadOnly);
   const { onReordered, children, customDragHandle } = props;
   const Container = props.as ?? "ul";
   const childrenArray = React.useMemo(
@@ -53,6 +55,9 @@ export function SimpleReorderableList(props: {
     [customDragHandle],
   );
   const renderItem = getRenderItem(childrenArray);
+  if (inspecting) {
+    return <Container className={props.className} style={props.style}>{children}</Container>;
+  }
   return (
     <NoSSR>
       <DragDropContext

@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { translate } from "@/wab/client/i18n/locales";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { ArrayPrimitiveEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPrimitiveEditor";
@@ -113,6 +114,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
     suggestedDefaultExpr,
   } = props;
 
+  const inspecting = React.useContext(InspectorReadOnly);
   const componentParamTypes = studioCtx.appCtx.appConfig.enableDataQueries
     ? COMPONENT_PARAM_TYPES
     : COMPONENT_PARAM_TYPES.filter((type) => type.value !== "queryData");
@@ -370,7 +372,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        spawn(onSave());
+        if (!inspecting) { spawn(onSave()); }
       }}
     >
       <ParamSection
@@ -413,7 +415,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
           </LabeledListItem>
         ))}
         plusIcon={
-          <IconLinkButton
+          !inspecting && <IconLinkButton
             onClick={() =>
               setDefaultArgs((prev) => [
                 ...prev,
@@ -438,7 +440,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
         hideEventArgs={!!type && paramType === "eventHandler"}
         showAdvancedSection={true}
         choiceSettings={
-          isChoiceType ? (
+          isChoiceType && inspecting ? <span>{choices.map(getValue).join(", ")}</span> : isChoiceType ? (
             <ArrayPrimitiveEditor
               label={uiT("Allowed Values")}
               options={choices}
@@ -476,7 +478,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
               ),
             },
           },
-          paramName: {
+          paramName: inspecting ? { render: () => <span>{paramName}</span> } : {
             props: {
               defaultValue: paramName,
               onChange: (e) => setParamName(e.target.value),
@@ -488,7 +490,7 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
             value: type && smartHumanize(typeDisplayName(type, true)),
             disabled: true,
           },
-          paramType: {
+          paramType: inspecting ? { render: () => <span>{componentParamTypes.find((item) => item.value === paramType)?.label ?? paramType}</span> } : {
             props: {
               value: paramType,
               onChange: (val) => {
@@ -549,11 +551,11 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
               );
             },
           },
-          localizableSwitch: {
+          localizableSwitch: inspecting ? { render: () => <span>{String(isLocalizable)}</span> } : {
             isChecked: isLocalizable,
             onChange: (val) => setIsLocalizable(val),
           },
-          confirmBtn: {
+          confirmBtn: inspecting ? { render: () => null } : {
             props: {
               disabled: !isValid,
               htmlType: "submit",

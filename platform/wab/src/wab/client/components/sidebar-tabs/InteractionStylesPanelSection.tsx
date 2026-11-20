@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import styles from "@/wab/client/components/sidebar-tabs/InteractionStylesPanelSection.module.scss";
 import { changeStyle, ExpsProvider, StylePanelSection } from "@/wab/client/components/style-controls/StyleComponent";
@@ -23,6 +24,7 @@ export function InteractionStylesPanelSection({ expsProvider }: { expsProvider: 
   const indicators = useStyleIndicators(expsProvider, ["cursor", "pointer-events"]);
   const cursorControl = shouldBeDisabled({ props: {}, indicators: [indicators[0]], label: t("Cursor"), studioCtx: expsProvider.studioCtx });
   const pointerControl = shouldBeDisabled({ props: {}, indicators: [indicators[1]], label: t("Pointer events"), studioCtx: expsProvider.studioCtx });
+  const inspecting = React.useContext(InspectorReadOnly);
   const interactive = pointerEvents?.value !== "none";
   return <StylePanelSection expsProvider={expsProvider} title={t("Interactions")}
     styleProps={["cursor", "pointer-events"]} headerMenuOnRightClickOnly>
@@ -31,24 +33,24 @@ export function InteractionStylesPanelSection({ expsProvider }: { expsProvider: 
         <Tooltip title={cursorControl.disabledTooltip || t("Cursor")}>
           <label className={styles.select}>
             <CursorSvgIcon className={styles.cursorIcon} aria-hidden />
-            <select aria-label={t("Cursor")} value={cursor?.value ?? "auto"} disabled={cursorControl.isDisabled}
+            {inspecting ? <span>{t(cursors.find(([value]) => value === (cursor?.value ?? "auto"))?.[1] ?? "Auto")}</span> : <><select aria-label={t("Cursor")} value={cursor?.value ?? "auto"} disabled={cursorControl.isDisabled}
               onChange={event => {
                 const value = event.target.value;
                 changeStyle(expsProvider, () => expsProvider.mergedExp().set("cursor", value));
               }}>
               {cursors.map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}
             </select>
-            <DownOutlined className={styles.chevron} aria-hidden />
+            <DownOutlined className={styles.chevron} aria-hidden /></>}
           </label>
         </Tooltip>
       </StyleWrapper>
       <StyleWrapper styleName="pointer-events" className={styles.pointer}>
         <Tooltip title={pointerControl.disabledTooltip || `${t("Pointer events")}: ${t(interactive ? "On" : "Off")}`}>
-          <button type="button" className={styles.toggle} aria-label={t("Pointer events")} aria-pressed={interactive}
+          {inspecting ? <span>{t(interactive ? "On" : "Off")}</span> : <button type="button" className={styles.toggle} aria-label={t("Pointer events")} aria-pressed={interactive}
             disabled={pointerControl.isDisabled}
             onClick={() => changeStyle(expsProvider, () => expsProvider.mergedExp().set("pointer-events", interactive ? "none" : "auto"))}>
             <CursorClickSvgIcon aria-hidden />
-          </button>
+          </button>}
         </Tooltip>
       </StyleWrapper>
     </div>

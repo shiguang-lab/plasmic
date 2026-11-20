@@ -27,7 +27,7 @@ const temp = await mkdtemp(path.join(os.tmpdir(), "delta-"));
 
 async function baseline() {
   if (localBase) {
-    const version = /^Plasmic-(\d+\.\d+\.\d+)-/.exec(path.basename(localBase))?.[1];
+    const version = /^Plasmic-(\d+\.\d+\.\d+(?:-beta\.\d+)?)-/.exec(path.basename(localBase))?.[1];
     assert(semver.valid(version) && semver.lt(version, target.version), "Expected an older versioned installer");
     return { archive: localBase, version };
   }

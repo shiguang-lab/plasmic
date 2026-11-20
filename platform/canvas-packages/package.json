@@ -70,6 +70,7 @@
     "@shiguang-lab/plasmic-antd6": "link:../../plasmicpkgs/antd6",
     "@shiguang-lab/plasmic-overseas": "link:../../plasmicpkgs/overseas",
     "@shiguang-lab/plasmic-react-ui": "link:../../plasmicpkgs/react-ui",
+    "@shiguang2/components": "0.1.7",
     "@types/isomorphic-fetch": "^0.0.39",
     "@types/lodash": "^4.17.24",
     "@types/md5": "^2.3.6",

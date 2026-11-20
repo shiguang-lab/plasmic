@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useDataBindingDisplayValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/data-binding-display-inputs";
 import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
@@ -74,6 +75,7 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
       isRunCodeInteraction,
       onRunClick,
     } = props;
+    const inspecting = React.useContext(InspectorReadOnly);
     const {codeExpr, displayValue} = useDataBindingDisplayValue(viewCtx, value);
     const world = React.useMemo(() => viewCtx ? captureVariantModelWorld(viewCtx.studioCtx) : undefined, [viewCtx]);
     const isCurrent = () => !viewCtx || !!world?.isCurrent(viewCtx);
@@ -120,7 +122,7 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
     return (
       <Popover
         zIndex={zIndex.dataPicker}
-        content={
+        content={inspecting ? <pre>{codeExpr ?? "—"}</pre> :
           <DataPicker
             value={displayValue}
             onChange={(val) => {
@@ -180,7 +182,7 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
           />
         }
         trigger="click"
-        open={!isDisabled && visible}
+        open={(inspecting || !isDisabled) && visible}
         onOpenChange={(_visible) => {
           // Don't close if a context menu is open (e.g. the data inspector's
           // insert/copy menu), since it's portaled to body and Popover sees
@@ -197,7 +199,7 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
           ref={autoFocus ? autoFocusCallback : undefined}
           className="code-editor-input"
           data-plasmic-prop={props["data-plasmic-prop"]}
-          tabIndex={isDisabled ? -1 : 0}
+          tabIndex={isDisabled && !inspecting ? -1 : 0}
           role="button"
           aria-label={
             complexExpression
@@ -206,9 +208,9 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
                 )
               : studioUiT("Edit data binding")
           }
-          aria-disabled={isDisabled}
+          aria-disabled={isDisabled && !inspecting}
           onKeyDown={(event) => {
-            if (!isDisabled && (event.key === "Enter" || event.key === " ")) {
+            if ((inspecting || !isDisabled) && (event.key === "Enter" || event.key === " ")) {
               event.preventDefault();
               setVisible(!visible);
             }
@@ -221,7 +223,7 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
                 "text-unset": !codeExpr,
               })}
             >
-              {complexExpression
+              {!inspecting && complexExpression
                 ? studioUiT("Dynamic binding · click to edit")
                 : (codeExpr ?? <UiText message="unset" />)}
             </span>

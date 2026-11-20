@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useFocusOnDisplayed } from "@/wab/client/dom-utils";
 import {
   PlasmicTextbox,
@@ -53,6 +54,10 @@ export const SimpleTextbox = React.forwardRef(function SimpleTextbox(
       setEditing(false);
     }
   });
+
+  if (React.useContext(InspectorReadOnly)) {
+    return <span className={className}>{prefixIcon}{defaultValue || props.placeholder}</span>;
+  }
 
   return (
     <PlasmicTextbox

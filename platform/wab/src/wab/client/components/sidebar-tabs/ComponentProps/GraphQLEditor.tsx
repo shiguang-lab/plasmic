@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Loadable } from "@/wab/client/components/widgets";
 import Chip from "@/wab/client/components/widgets/Chip";
@@ -43,6 +44,7 @@ export const GraphQLEditor = (props: {
     }
   };
 
+  const inspecting = React.useContext(InspectorReadOnly);
   const modalProps = {
     visible: show,
     width: "80%",
@@ -67,7 +69,7 @@ export const GraphQLEditor = (props: {
       {show && (
         // Unmount the GraphiQLExplorer component when the modal closes
         <Modal {...modalProps} title={title}>
-          {show && (
+          {inspecting ? <pre>{[value?.query, value?.variables && jsonStringify(value.variables)].filter(Boolean).join("\n")}</pre> : show && (
             <Loadable
               loader={loadGraphqlBuilder}
               contents={(GraphiqlWithExplorer) => (

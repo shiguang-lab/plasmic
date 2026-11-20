@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { ColorTokenPopup } from "@/wab/client/components/sidebar/ColorTokenPopup";
 import { newTokenValueAllowed } from "@/wab/client/components/sidebar/token-utils";
 import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch";
@@ -134,8 +135,12 @@ function ColorPicker_(props: ColorPickerProps) {
   const applied = useColorTokenChoiceInputs(sc, appliedToken ? [appliedToken] : [], vsh);
   const palette = useColorTokenChoiceInputs(sc, props.hideTokenPicker ? [] : colorTokens, vsh);
   const paletteColors = useClientTokenValues(palette.snapshot.choices.map((row) => row.resolved), palette.lifetime);
+  const inspecting = React.useContext(InspectorReadOnly);
   if (resolvedColor === undefined) { return null; }
   const realColor = props.color === "" ? "#FFFFFF" : ensure(resolvedColor, "Unexpected empty real color");
+  if (inspecting) {
+    return <div>{appliedToken && <span>{appliedToken.name} · </span>}{realColor}</div>;
+  }
   return <ColorPickerContent {...props} {...{ realColor, appliedToken, palette, paletteColors, vsh }} appliedChoice={applied.snapshot.choices[0]} />;
 }
 

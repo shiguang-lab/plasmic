@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { useVariableRoster } from "@/wab/client/studio-ctx/state-management-inputs";
 import ImplicitVariablesSection from "@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariablesSection";
 import { VariableEditingModal } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingModal";
@@ -66,7 +67,7 @@ function VariablesSection_(props: VariablesSectionProps) {
             {<UiLabel text={VARIABLE_PLURAL_CAP} />}
           </LabelWithDetailedTooltip>
         }
-        controls={
+        controls={<InspectorEdit>{
           <>
             <Button
               type="text"
@@ -76,7 +77,7 @@ function VariablesSection_(props: VariablesSectionProps) {
               icon={<Icon icon={PlusIcon} data-test-id="add-state-btn" />}
             />
           </>
-        }
+        }</InspectorEdit>}
         defaultExtraContentExpanded={isExpanded}
         onExtraContentCollapsed={() => setExpanded(false)}
         onExtraContentExpanded={() => setExpanded(true)}

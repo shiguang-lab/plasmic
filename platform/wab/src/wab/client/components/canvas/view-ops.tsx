@@ -1323,6 +1323,9 @@ export class ViewOps {
       focusObj: this.viewCtx().focusedSelectable(),
     },
   ) {
+    if (this.studioCtx().blockChanges) {
+      return;
+    }
     const part = this.viewCtx().focusedComponentPart;
     if (part) {
       this.tryEditComponentPartText(part);
@@ -1351,7 +1354,7 @@ export class ViewOps {
     // The text node may not be rendered at all, especially for
     // CanvasTextElement passed to code component.
     const handle = textValNode.handle;
-    if (!handle || this.studioCtx().blockChanges) {
+    if (!handle) {
       return;
     }
 
@@ -1387,7 +1390,7 @@ export class ViewOps {
 
   private tryEditComponentPartText(part: CanvasComponentPart) {
     const vc = this.viewCtx();
-    if (!part.text || !part.props.includes(part.text.prop) || vc.isOutOfContext(part.tpl) || this.studioCtx().blockChanges) {
+    if (!part.text || !part.props.includes(part.text.prop) || vc.isOutOfContext(part.tpl)) {
       return;
     }
     const param = part.tpl.component.params.find((p) => p.variable.name === part.text?.prop);

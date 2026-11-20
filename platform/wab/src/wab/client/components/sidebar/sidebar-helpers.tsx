@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { isReadonlyArray } from "@/wab/shared/collections";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
@@ -112,6 +113,7 @@ export function LabeledItem(props: {
     icon,
     noContent,
   } = props;
+  const inspecting = React.useContext(InspectorReadOnly);
   const indicators = indicatorList(props.definedIndicator);
   const contextMenuProps = useContextMenu({ menu });
   const mergedSource = mergedIndicatorSource(indicators);
@@ -143,7 +145,7 @@ export function LabeledItem(props: {
       data-test-id={dataTestId}
       autoWidth={autoWidth}
       {...contextMenuProps}
-      noMenuButton={noMenuButton}
+      noMenuButton={inspecting || noMenuButton}
       showMoreActions={!!props.rightExtras}
       moreActionButtons={props.rightExtras}
       alwaysShowActions={props.alwaysShowActions}
@@ -158,7 +160,7 @@ export function LabeledItem(props: {
       ])}
       withIcon={!!icon}
       icon={icon}
-      menu={menu}
+      menu={inspecting ? undefined : menu}
       labelSize={labelSize}
       labelContainer={
         props.compactControl
@@ -195,7 +197,7 @@ export function LabeledItem(props: {
       withSubtitle={!!subtitle}
       indicator={
         showIndicator && (
-          <DefinedIndicator label={label} menu={menu} type={indicators} />
+          <DefinedIndicator label={label} menu={inspecting ? undefined : menu} type={indicators} />
         )
       }
     >

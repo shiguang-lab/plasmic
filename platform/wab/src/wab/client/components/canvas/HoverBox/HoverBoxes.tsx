@@ -414,7 +414,9 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       ? isSelectableLocked(controlledSpacingObj, viewCtx.valState())
       : false;
 
+  const canManipulate = !studioCtx.blockChanges;
   const shouldShowSideControls =
+    canManipulate &&
     ((state?.edgeControls.top.length ?? 0) > 0 ||
       (state?.edgeControls.right.length ?? 0) > 0 ||
       (state?.edgeControls.bottom.length ?? 0) > 0 ||
@@ -428,19 +430,12 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   // and for component artboard when their viewmode is set to FrameViewMode.Centered.
   const canShowCornerResizers = false;
 
-  if (studioCtx.isPublishedTemplate) {
-    return <div className="hoverbox" style={{ ...cssProps, top: visibleBox?.top, left: visibleBox?.left,
-      display: viewProps.display, pointerEvents: "none" }}>
-      {clipToScreen(<div className="HoverBox__Border" />)}
-    </div>;
-  }
-
   const showingMeasurements = !!viewCtx?.$measureToolDomElt() && !spacingDragState;
   return (
           <div
             className="hoverbox"
             onContextMenu={(e) => {
-              if (viewCtx && commentCtx && !state?.isComponentPart) {
+              if (canManipulate && viewCtx && commentCtx && !state?.isComponentPart) {
                 viewCtx.tryBlurEditingText();
                 const menu = getContextMenuForFocusedTpl(viewCtx);
                 maybeShowContextMenu(e.nativeEvent, menu);
@@ -484,7 +479,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     style={tagPlacement}
                   >
                     <div ref={frameTagRef} className="node-outline-tag">
-                      {state?.tagName && (
+                      {state?.tagName && (canManipulate ? (
                         <EditableNodeLabel
                           studioCtx={studioCtx}
                           viewCtx={viewCtx}
@@ -492,7 +487,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                           icon={state?.tagIcon}
                           nameable={controlledObj}
                         />
-                      )}
+                      ) : state.tagName)}
                     </div>
                   </div>
                 )}
@@ -920,6 +915,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 )}
                 {state &&
                   viewCtx &&
+                  canManipulate &&
                   controlledTpl &&
                   isTplColumns(controlledTpl) && (
                     // Column dividers are positioned from the element's real
@@ -933,7 +929,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   )}
               </>
             }
-            {viewCtx && state && !state.isComponentPart && shouldShowDimBadge && (
+            {canManipulate && viewCtx && state && !state.isComponentPart && shouldShowDimBadge && (
               <div
                 className={styles.elementActions}
                 style={{
@@ -951,7 +947,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 <CanvasOverlayToolbar viewCtx={viewCtx} />
               </div>
             )}
-            {!isMultiSelection && !state?.isComponentPart && (
+            {canManipulate && !isMultiSelection && !state?.isComponentPart && (
               <InlineAddButton
                 // The button sits on the drawn box, so check space against it.
                 elementWidth={visibleBox?.width}
@@ -1010,6 +1006,7 @@ function HoverBoxGeometry({
   const selection = useViewSelection(viewCtx, useShallow((state) => [state.part, state.doms, state.context, state.cloneKeys]));
   const selectedPart = React.useMemo(() => viewCtx.focusedComponentPart, [viewCtx, selection]);
   useContentEditorScope(viewCtx.studioCtx);
+  useStudioRenderPolicy(viewCtx.studioCtx, (policy) => policy.fullPageHeight);
   const forceUpdate = useFrameForceUpdate(viewCtx.disposeSignal);
   useCanvasGeometry(viewCtx.studioCtx);
 

@@ -108,6 +108,9 @@ describe("captured browser imports", () => {
     });
     expect(result.componentUuid).not.toBe(page.uuid);
     expect(result.frameUuid).not.toBe(first.frameUuid);
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.targets).toEqual([
+      { componentUuid: result.componentUuid, canvasName: result.canvasName, frameUuid: result.frameUuid },
+    ]);
     expect(result.canvasName).toBe(first.canvasName);
     expect(studioCtx.site.components).toHaveLength(2);
     expect(studioCtx.site.arenas[0].children).toHaveLength(2);

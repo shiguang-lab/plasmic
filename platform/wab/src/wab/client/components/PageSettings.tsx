@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { usePageSettingsModelInputs } from "@/wab/client/components/page-settings-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
@@ -261,6 +262,7 @@ const PageSettingsContent = React.memo(function PageSettingsContent({
     return rest;
   }, [env, page, metadataInputs]);
 
+  const inspecting = React.useContext(InspectorReadOnly);
   const descriptionLength = React.useMemo(() => {
     const desc = pageMeta.description;
     if (typeof desc === "string") {
@@ -291,7 +293,7 @@ const PageSettingsContent = React.memo(function PageSettingsContent({
           layout="vertical"
           noMenuButton
         >
-          <Input
+          {inspecting ? <span id={routeId}>{pageMeta.path}</span> : <Input
             id={routeId}
             placeholder="/some-route"
             value={route}
@@ -302,7 +304,7 @@ const PageSettingsContent = React.memo(function PageSettingsContent({
                 setRoute(page.pageMeta.path);
               }
             }}
-          />
+          />}
         </LabeledItemRow>
         <InnerPropEditorRow
           attr="title"

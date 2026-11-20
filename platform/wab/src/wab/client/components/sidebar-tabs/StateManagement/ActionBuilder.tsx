@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useElementPropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useDataPickerSourceInputs } from "@/wab/client/components/sidebar-tabs/DataBinding/data-picker-source-inputs";
 import { useQueryInteractionInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
@@ -217,6 +218,7 @@ function ActionBuilder_(
     interaction.uuid,
   );
   const cachedStepValue = useCachedStepValue(vc.studioCtx, interaction.uuid);
+  const inspecting = React.useContext(InspectorReadOnly);
   const disabledRunInteraction = !canRunInteraction(interaction, vc);
 
   const cancelRename = React.useRef(false);
@@ -319,7 +321,7 @@ function ActionBuilder_(
           )}
         </div>
         <div className={styles.actions}>
-          {enabledPreviewSteps && (
+          {!inspecting && enabledPreviewSteps && (
             <Tooltip title={runHint}>
               <span className={styles.runAnchor}>
                 <Button
@@ -341,7 +343,7 @@ function ActionBuilder_(
               </span>
             </Tooltip>
           )}
-          <Tooltip title={uiT("Rename")}>
+          {!inspecting && <Tooltip title={uiT("Rename")}>
             <Button
               type="text"
               size="small"
@@ -350,7 +352,7 @@ function ActionBuilder_(
               icon={<Icon icon={PencilIcon} />}
               onClick={startRenaming}
             />
-          </Tooltip>
+          </Tooltip>}
           <Tooltip title={uiT(isCollapsed ? "Expand action" : "Collapse")}>
             <Button
               type="text"
@@ -364,7 +366,7 @@ function ActionBuilder_(
               onClick={onCollapseClick}
             />
           </Tooltip>
-          <Tooltip title={uiT("Remove")}>
+          {!inspecting && <Tooltip title={uiT("Remove")}>
             <Button
               type="text"
               size="small"
@@ -373,7 +375,7 @@ function ActionBuilder_(
               icon={<Icon icon={MinusIcon} />}
               onClick={onRemove}
             />
-          </Tooltip>
+          </Tooltip>}
         </div>
       </div>
       <div className={styles.body} hidden={isCollapsed || isDragging}>

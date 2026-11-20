@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { useFocusedViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useBaseTransitionInputs } from "@/wab/client/studio-ctx/transition-inputs";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
@@ -146,11 +147,11 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
         title={<UiText message={"Transitions"} />}
         styleProps={transitionProps}
         headerMenuOnRightClickOnly
-        controls={
+        controls={<InspectorEdit>{
           <IconButton size="small" tooltip={uiT("Add transition")} onClick={addTransition}>
             <Icon icon={PlusIcon} />
           </IconButton>
-        }
+        }</InspectorEdit>}
       >
         {transitions.length > 0 && (
           <>

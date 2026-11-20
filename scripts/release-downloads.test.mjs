@@ -72,7 +72,8 @@ test("routing rejects malformed versions, cross-platform names, traversal and ar
   assert.match(block, /header_up -Cookie/);
   assert.match(block, /header_up -Authorization/);
   assert.match(block, /not method GET HEAD OPTIONS/);
-  assert.doesNotMatch(block, /plasmic_original_uri|plasmic_missing|100\.87\.115\.78/);
+  assert.match(block, /reverse_proxy @plasmic_session_index http:\/\/100[.]87[.]115[.]78:3600/);
+  assert.doesNotMatch(block.slice(block.indexOf("rewrite {plasmic_target}")), /100[.]87[.]115[.]78/);
 });
 test("one-time Caddy installation preserves unrelated sites and replaces the old version map", () => {
   const block = renderDownloadProxy(),

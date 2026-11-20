@@ -105,7 +105,7 @@ jobs:
       - name: Validate native installer
         run: |
           version="$DESKTOP_VERSION"
-          node --input-type=module -e 'import { validateRelease } from "./desktop/scripts/release-artifacts.mjs"; const [platform, arch, version] = process.argv.slice(1); await validateRelease(`desktop/dist/${version}/${platform}-${arch}`, platform, version, arch);' '${{ inputs.platform }}' '${{ inputs.arch }}' "$version"
+          node --input-type=module -e 'import { validateRelease } from "./desktop/scripts/release-artifacts.mjs"; const [platform, arch, version] = process.argv.slice(1); await validateRelease(`desktop/dist/${version}/${platform}-${arch}`, platform, version, arch, { beta: version.includes("-beta.") });' '${{ inputs.platform }}' '${{ inputs.arch }}' "$version"
       - name: Reconstruct the update against the deployed installer
         run: node desktop/scripts/verify-update-delta.mjs "desktop/dist/$DESKTOP_VERSION/${{ inputs.platform }}-${{ inputs.arch }}" '${{ inputs.platform }}' '${{ inputs.arch }}'
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24

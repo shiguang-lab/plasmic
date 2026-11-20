@@ -2,6 +2,8 @@ const fs = require("node:fs/promises");
 const { copyFileSync, renameSync, rmSync } = require("node:fs");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
+const { beta } = require("./release-version.cjs");
+const { Provider, resolveFiles } = require("electron-updater/out/providers/Provider");
 const semver = require("semver");
 const { NsisUpdater, AppImageUpdater } = require("electron-updater");
 const { DownloadedUpdateHelper } = require("electron-updater/out/DownloadedUpdateHelper");
@@ -10,8 +12,9 @@ const { downloadArchive, seedArchive, pruneArchives } = require("./update-downlo
 
 function artifact(updater, version, fileInfo) {
   const url = new URL(fileInfo.url);
-  const base = new URL(updater.desktopFeedUrl);
-  if (!semver.valid(version) || semver.prerelease(version) ||
+  const isBeta = beta.test(version) && !!updater.updateFeed;
+  const base = new URL(isBeta ? updater.updateFeed.betaUrl(version) : updater.desktopFeedUrl);
+  if (!semver.valid(version) || (semver.prerelease(version) && !isBeta) ||
       url.protocol !== "https:" || url.origin !== base.origin ||
       !url.pathname.startsWith(base.pathname) || url.username || url.password || url.search || url.hash ||
       !/^[a-zA-Z0-9._-]+$/.test(path.basename(url.pathname)) ||
@@ -26,11 +29,10 @@ function artifact(updater, version, fileInfo) {
 }
 
 function transport(updater, headers) {
-  return (url, options) => updater.netSession.fetch(url, {
-    ...options,
-    headers: { ...headers, ...options.headers },
-    bypassCustomProtocolHandlers: true,
-  });
+  return (url, options) => {
+    const request = { ...options, headers: { ...headers, ...options.headers }, bypassCustomProtocolHandlers: true };
+    return updater.updateFeed ? updater.updateFeed.fetchFile(url, request) : updater.netSession.fetch(url, request);
+  };
 }
 
 async function download(updater, fileInfo, options, destination) {
@@ -64,6 +66,13 @@ class ReplacementHelper extends DownloadedUpdateHelper {
 }
 
 const withPendingReplacement = (Base) => class extends Base {
+  async prepareInstallOnQuit(version) {
+    if (beta.test(version) && this.downloadedUpdateHelper?.versionInfo?.version === version) {
+      this.autoInstallOnAppQuit = true;
+      this.addQuitHandler();
+    }
+  }
+
   getOrCreateDownloadHelper() {
     return this.replacement || super.getOrCreateDownloadHelper();
   }
@@ -141,11 +150,25 @@ async function seedInstalled(updater, info) {
   });
 }
 
-function createNativeUpdater({ platform, feedUrl }) {
+class DesktopProvider extends Provider {
+  constructor(options, _updater, runtime) {
+    super(runtime);
+    this.feed = options.feed;
+    this.feedUrl = options.url;
+  }
+  getLatestVersion() { return this.feed.latest(); }
+  resolveFiles(info) {
+    const base = beta.test(info.version) ? this.feed.betaUrl(info.version) : this.feedUrl;
+    return resolveFiles(info, new URL(base));
+  }
+}
+
+function createNativeUpdater({ platform, feedUrl, feed }) {
   if (!["win32", "linux"].includes(platform)) throw new Error("Unsupported native updater platform");
   const updater = platform === "win32" ? new WindowsUpdater() : new LinuxUpdater();
   updater.desktopFeedUrl = feedUrl.endsWith("/") ? feedUrl : feedUrl + "/";
-  updater.setFeedURL({ provider: "generic", url: updater.desktopFeedUrl, useMultipleRangeRequest: false });
+  updater.updateFeed = feed;
+  updater.setFeedURL({ ...(feed ? { provider: "custom", updateProvider: DesktopProvider, feed } : { provider: "generic" }), url: updater.desktopFeedUrl, useMultipleRangeRequest: false });
   updater.disableWebInstaller = true;
   updater.autoInstallOnAppQuit = true;
   updater.on("update-not-available", (info) => {

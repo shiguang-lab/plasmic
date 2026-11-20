@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import {
   ImageAssetOrUrlPicker,
@@ -45,6 +46,7 @@ export function ImagePropEditor(props: {
     assetRef !== undefined && assets.includes(assetRef),
   );
   const uri = assetDataUri || (L.isString(value) ? value : undefined);
+  const inspecting = React.useContext(InspectorReadOnly);
   const [pickingImage, setPickingImage] = React.useState(false);
 
   return (
@@ -58,7 +60,7 @@ export function ImagePropEditor(props: {
             extended
             imagePreview={
               <PlainLinkButton
-                onClick={() => !readOnly && setPickingImage(true)}
+                onClick={() => (inspecting || !readOnly) && setPickingImage(true)}
               >
                 <ImagePreview
                   uri={uri ?? placeholderImgUrl()}
@@ -85,7 +87,7 @@ export function ImagePropEditor(props: {
                 }
               >
                 <PlainLinkButton
-                  onClick={() => !readOnly && setPickingImage(true)}
+                  onClick={() => (inspecting || !readOnly) && setPickingImage(true)}
                 >
                   {asset
                     ? assetName
@@ -98,7 +100,7 @@ export function ImagePropEditor(props: {
           />
         )
       }
-      {value && (
+      {value && !inspecting && (
         <IconButton
           className={"flex-start"}
           hoverText={uiT("Remove image")}
@@ -115,7 +117,7 @@ export function ImagePropEditor(props: {
           show={true}
           onClose={() => setPickingImage(false)}
         >
-          <ImageAssetOrUrlPicker
+          {inspecting ? <>{uri && <ImagePreview uri={uri} size="contain" />}<span>{assetName || uri || "—"}</span></> : <ImageAssetOrUrlPicker
             studioCtx={studioCtx}
             value={value}
             onPicked={(picked) => {
@@ -124,7 +126,7 @@ export function ImagePropEditor(props: {
             }}
             type={type}
             hideCancel={true}
-          />
+          />}
         </SidebarModal>
       )}
     </div>

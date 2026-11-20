@@ -1,4 +1,5 @@
-import { PublishedElementProperties } from "@/wab/client/components/studio/PublishedElementProperties";
+import { useInspectorReadOnly } from "@/wab/client/studio-ctx/save-state";
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
@@ -37,6 +38,7 @@ export const RightPane = React.memo(function RightPane({
   studioCtx: StudioCtx;
   canvasLoading: boolean;
 }) {
+  const readOnly = useInspectorReadOnly(studioCtx);
   const rightTabKey = useRightTabKey(studioCtx);
   const collapsed = useStore(studioCtx.rightPanelStore, (state) => state.collapsed);
   const [selectedFrames, focusedViewCtx] = useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view] as const));
@@ -66,7 +68,7 @@ export const RightPane = React.memo(function RightPane({
   }, [focusedComponent]);
 
   const selectionTitle = useInspectorTitle(studioCtx,
-    !studioCtx.isPublishedTemplate && rightTabKey === RightTabKey.component ? undefined : selectedTpl, focusedComponent);
+    rightTabKey === RightTabKey.component ? undefined : selectedTpl, focusedComponent);
   const partTitle = selection.part?.displayName;
   const inspectorTitle = rightTabKey !== RightTabKey.component && partTitle
     ? `${selectionTitle} › ${partTitle}` : selectionTitle;
@@ -169,7 +171,7 @@ export const RightPane = React.memo(function RightPane({
     !canvasLoading &&
     devMode &&
     !panelsHidden &&
-    (showCommentsPanel || (studioCtx.isPublishedTemplate ? !!selectedTpl && !selectedFrames.length : tabs.length > 0 || isFrameSelection));
+    (showCommentsPanel || tabs.length > 0 || isFrameSelection);
 
   return providesSidebarPopupSetting({ left: false })(
     <>
@@ -187,17 +189,8 @@ export const RightPane = React.memo(function RightPane({
       >
         {showCommentsPanel ? (
           <CommentsTab />
-        ) : studioCtx.isPublishedTemplate ? (
-          <>
-            <div className="editor-panel-header">
-              <strong className="editor-panel-title">{selectionTitle}</strong>
-              <UiText message="Read-only" />
-              <PanelCloseButton onClick={() => studioCtx.collapseRightPanel()} />
-            </div>
-            {focusedViewCtx && selectedTpl && <PublishedElementProperties view={focusedViewCtx} tpl={selectedTpl} />}
-          </>
         ) : (
-          <>
+          <InspectorReadOnly.Provider value={readOnly}>
             <RightInspectorHeader
               studioCtx={studioCtx}
               focusedViewCtx={selectedFrames.length === 0 ? focusedViewCtx : undefined}
@@ -243,7 +236,7 @@ export const RightPane = React.memo(function RightPane({
                 }))}
               />
             )}
-          </>
+          </InspectorReadOnly.Provider>
         )}
       </DevContainer>
     </SidePanelShell>

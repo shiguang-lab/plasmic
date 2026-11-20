@@ -37,7 +37,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.release-tag }}
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if((process.env.RELEASE_TAG && process.env.RELEASE_TAG!==p.version) || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if((process.env.RELEASE_TAG && process.env.RELEASE_TAG!==p.version) || !Object.values((await import("./desktop/src/release-version.cjs")).default).some(pattern => pattern.test(p.version))) throw new Error("Tag/version mismatch")'
       - name: Extract the pinned Studio image
         run: node desktop/scripts/prepare-assets.mjs
       - run: tar -czf renderer.tar.gz -C desktop renderer

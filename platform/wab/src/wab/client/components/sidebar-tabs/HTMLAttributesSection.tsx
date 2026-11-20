@@ -1,3 +1,4 @@
+import { InspectorEdit, InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import configSearch from "@/wab/client/components/style-controls/ConfigSearch.module.scss";
 import { useElementPropValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
@@ -193,6 +194,7 @@ export const TplTagSection = React.memo(function TplTagSection(props: Parameters
 });
 
 function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
+  const inspecting = React.useContext(InspectorReadOnly);
   const { t: uiT } = useI18n();
   const { viewCtx, tpl } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
@@ -220,7 +222,7 @@ function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
       controls={
         <div className="tag-select" style={{ width: "100%" }}>
           {allTagOptions.length > 1 && allTagOptions.includes(tpl.tag) && (
-            <Select
+            inspecting ? <span>{tpl.tag}</span> : <Select
               value={tpl.tag}
               data-test-class="tpl-tag-select"
               onChange={(tag) => {
@@ -433,7 +435,7 @@ function HTMLAttributesSectionBody({
           hasExtraContent
           fullyCollapsible
           data-test-id="html-attributes-section"
-          controls={
+          controls={<InspectorEdit>{
             <AddHtmlAttrButton
               tag={isTplTag(tpl) ? tpl.tag : "div"}
               onSelect={(attr) => {
@@ -444,7 +446,7 @@ function HTMLAttributesSectionBody({
                 }
               }}
             />
-          }
+          }</InspectorEdit>}
         >
           {(renderMaybeCollapsibleRows) =>
             renderMaybeCollapsibleRows(

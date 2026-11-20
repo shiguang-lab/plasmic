@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import Option from "@/wab/client/components/widgets/Select__Option";
 import OptionGroup from "@/wab/client/components/widgets/Select__OptionGroup";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -18,6 +19,7 @@ function Select_(props: SelectProps, ref: SelectRef) {
     },
     ref,
   );
+  if (React.useContext(InspectorReadOnly)) { return <span>{plasmicProps.args.selectedContent ?? props.value ?? "—"}</span>; }
   return <PlasmicSelect {...plasmicProps} />;
 }
 

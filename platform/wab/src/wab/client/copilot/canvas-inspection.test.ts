@@ -88,6 +88,33 @@ it("marks the rendered document after the canvas finishes synchronizing", async 
   ).toBe(false);
 });
 
+it("scans the frame actually acquired for a component read and releases it on cancellation", async () => {
+  const { studioCtx, component, iframe } = fixture();
+  const controller = new AbortController();
+  const caller = { id: "reader", name: "Reader" };
+  const inspection = await beginCanvasInspection(studioCtx, component, {}, caller, controller.signal);
+  expect(studioCtx.copilotActivity.store.getState().requests[0]).toMatchObject({
+    caller, targets: [{ componentUuid: component.uuid, frameUuid: inspection.frameUuid }],
+  });
+  controller.abort();
+  await vi.waitFor(() => expect(iframe.getAttribute("data-plasmic-canvas-inspection")).toBe("original"));
+  expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
+});
+
+it("unpins an inspection cancelled while the frame is still rendering", async () => {
+  const { studioCtx, component, viewCtx, iframe, background } = fixture();
+  viewCtx.awaitSync.mockImplementationOnce(() => new Promise<void>(() => {}));
+  const controller = new AbortController();
+  const request = beginCanvasInspection(studioCtx, component, { forExport: true }, undefined, controller.signal);
+  await vi.waitFor(() => expect(viewCtx.canvasExporting).toBe(true));
+  controller.abort();
+  await expect(request).rejects.toThrow();
+  await Promise.allSettled(background.mock.results.map(result => result.value));
+  expect(viewCtx.canvasExporting).toBe(false);
+  expect(iframe.getAttribute("data-plasmic-canvas-inspection")).toBe("original");
+  expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
+});
+
 it("expires abandoned inspections and restores the frame marker", async () => {
   vi.useFakeTimers();
   try {
@@ -111,6 +138,7 @@ it("exports the requested frame without editing reveals and restores them on rel
     frameUuid: "frame",
     forExport: true,
   });
+  expect(studioCtx.copilotActivity.store.getState().regions.map(region => region.target)).toEqual([{ componentUuid: component.uuid, frameUuid: "frame" }]);
   expect(viewCtx.canvasExporting).toBe(true);
   expect(background.mock.calls[0][2]).toEqual({ frameUuid: "frame", timeoutMs: 600000 });
   expect(navigate).not.toHaveBeenCalled();

@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import {
   EnumPropEditor,
   EnumWithSearchPropEditor,
@@ -52,6 +53,11 @@ export function ChoicePropEditor<T extends ChoiceValue>(
     multiSelect,
   } = props;
 
+  if (React.useContext(InspectorReadOnly)) {
+    const selected = value ?? defaultValueHint;
+    const labels = options.map(makeOption);
+    return <span>{(Array.isArray(selected) ? selected : [selected]).map((v) => labels.find((option) => option.value === v)?.label ?? v).join(", ") || "—"}</span>;
+  }
   if (allowSearch) {
     return <EnumWithSearchPropEditor {...props} />;
   } else if (multiSelect) {

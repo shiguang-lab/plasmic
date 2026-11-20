@@ -1,3 +1,4 @@
+import { InspectorInput, InspectorChoice, InspectorEdit, InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { isTplCodeComponentStyleable } from "@/wab/client/code-components/code-components";
 import styles from "@/wab/client/components/style-controls/PositionCard.module.scss";
@@ -581,6 +582,7 @@ export interface PositionCardProps {
 export const PositionCard = React.memo(function PositionCard(
   props: PositionCardProps,
 ) {
+  const inspecting = React.useContext(InspectorReadOnly);
   const { t: uiT } = useI18n();
   const { expsProvider, vsh: providedVsh, readOnly = false } = props;
   const studioCtx = expsProvider.studioCtx;
@@ -1137,7 +1139,7 @@ export const PositionCard = React.memo(function PositionCard(
               {isSet && <span className={styles.setDot} />}
               <span>{prefix}</span>
             </span>
-            <input
+            <InspectorInput
               data-testid={testId}
               aria-label={tooltip}
               type="text"
@@ -1276,7 +1278,7 @@ export const PositionCard = React.memo(function PositionCard(
                 {appliedToken.name}
               </button>
             ) : (
-              <input
+              <InspectorInput
                 data-testid={`position-inset-${side}`}
                 aria-label={getLabelForStyleName(side)}
                 type="text"
@@ -1342,7 +1344,7 @@ export const PositionCard = React.memo(function PositionCard(
             const active = activeAlignValue === option;
             return (
               <Tooltip key={option} title={reason ?? optionTitles[option]}>
-                <button
+                <InspectorChoice
                   type="button"
                   data-testid={`position-align-${option}`}
                   aria-label={optionTitles[option]}
@@ -1354,7 +1356,7 @@ export const PositionCard = React.memo(function PositionCard(
                   onClick={() => handleToggleAlign(option)}
                 >
                   <AlignGlyph option={option} crossAxis={alignCrossAxis} />
-                </button>
+                </InspectorChoice>
               </Tooltip>
             );
           })}
@@ -1387,7 +1389,7 @@ export const PositionCard = React.memo(function PositionCard(
                   part1: String(getLabelForStyleName(corner)),
                 })}
               >
-                <button
+                <InspectorChoice
                   type="button"
                   data-testid={`position-pin-${corner}`}
                   aria-label={getLabelForStyleName(corner)}
@@ -1407,7 +1409,7 @@ export const PositionCard = React.memo(function PositionCard(
             key={side}
             title={propReason(side) ?? getLabelForStyleName(side)}
           >
-            <button
+            <InspectorChoice
               type="button"
               data-testid={`position-pin-${side}`}
               aria-label={getLabelForStyleName(side)}
@@ -1423,7 +1425,7 @@ export const PositionCard = React.memo(function PositionCard(
 
         {isFreeOrFixed && (
           <Tooltip title={uiT("Cover")}>
-            <button
+            <InspectorChoice
               type="button"
               data-testid="position-pin-cover"
               aria-label={uiT("Cover")}
@@ -1467,7 +1469,7 @@ export const PositionCard = React.memo(function PositionCard(
         >
           <div className={styles.titleGroup}>
             <span className={styles.title}>{uiT("Position")}</span>
-            {capabilities.readOnly && (
+            {capabilities.readOnly && !inspecting && (
               <Tooltip
                 title={
                   capabilities.readOnlyReason
@@ -1494,10 +1496,10 @@ export const PositionCard = React.memo(function PositionCard(
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               aria-label={`${uiT("Position")}: ${uiT(activeModeMeta.labelKey)}`}
-              disabled={modeDisabled}
+              disabled={!inspecting && modeDisabled}
               className={styles.modeTrigger}
               onClick={() => {
-                if (!modeDisabled) {
+                if (inspecting || !modeDisabled) {
                   setMenuOpen((prev) => !prev);
                 }
               }}
@@ -1528,7 +1530,7 @@ export const PositionCard = React.memo(function PositionCard(
               {visibleModes.map((opt) => {
                 const isSelected = opt.value === curPosition;
                 return (
-                  <button
+                  <InspectorChoice aria-pressed={isSelected}
                     key={opt.value}
                     type="button"
                     role="menuitemradio"
@@ -1541,7 +1543,7 @@ export const PositionCard = React.memo(function PositionCard(
                   >
                     <span>{uiT(opt.labelKey)}</span>
                     <span className={styles.modeOptionCss}>{opt.cssLabel}</span>
-                  </button>
+                  </InspectorChoice>
                 );
               })}
             </div>
@@ -1636,7 +1638,7 @@ export const PositionCard = React.memo(function PositionCard(
                 >
                   <AngleSvg />
                 </span>
-                <input
+                <InspectorInput
                   data-testid="position-rotate-input"
                   aria-label={uiT("Rotate")}
                   type="text"
@@ -1675,7 +1677,7 @@ export const PositionCard = React.memo(function PositionCard(
 
             <div className={styles.transformActionGroup}>
               <Tooltip title={rotateReason ?? uiT("Rotate 90° clockwise")}>
-                <button
+                <InspectorEdit><button
                   type="button"
                   data-testid="position-rotate-90"
                   aria-label={uiT("Rotate 90° clockwise")}
@@ -1684,10 +1686,10 @@ export const PositionCard = React.memo(function PositionCard(
                   onClick={handleRotate90Cw}
                 >
                   <RotateCw90Svg />
-                </button>
+                </button></InspectorEdit>
               </Tooltip>
               <Tooltip title={rotateReason ?? uiT("Flip horizontal")}>
-                <button
+                <InspectorChoice
                   type="button"
                   data-testid="position-flip-h"
                   aria-label={uiT("Flip horizontal")}
@@ -1699,10 +1701,10 @@ export const PositionCard = React.memo(function PositionCard(
                   onClick={() => handleToggleFlip("h")}
                 >
                   <FlipHorizontalSvg />
-                </button>
+                </InspectorChoice>
               </Tooltip>
               <Tooltip title={rotateReason ?? uiT("Flip vertical")}>
-                <button
+                <InspectorChoice
                   type="button"
                   data-testid="position-flip-v"
                   aria-label={uiT("Flip vertical")}
@@ -1714,7 +1716,7 @@ export const PositionCard = React.memo(function PositionCard(
                   onClick={() => handleToggleFlip("v")}
                 >
                   <FlipVerticalSvg />
-                </button>
+                </InspectorChoice>
               </Tooltip>
             </div>
           </div>

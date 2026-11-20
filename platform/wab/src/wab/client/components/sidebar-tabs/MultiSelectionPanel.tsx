@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { MultiSelectionInputs } from "@/wab/client/components/sidebar-tabs/multi-selection-inputs";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
@@ -188,7 +189,7 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
                 />
               )}
             </div>
-            <Button
+            <InspectorEdit><Button
               type="text"
               size="small"
               disabled={disabled}
@@ -197,7 +198,7 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
               onClick={() => onChange(undefined)}
             >
               ↺
-            </Button>
+            </Button></InspectorEdit>
           </div>
         );
       });

@@ -13,23 +13,23 @@ import type { Component, TplNode } from "@/wab/shared/model/classes";
 const pendingPresentations = new WeakMap<StudioCtx, AbortController>();
 
 /** Presentation is optional UI work, never a prerequisite for a model operation. */
-export function requestToolTarget(studio: StudioCtx, component: Component, tpl: TplNode, signal?: AbortSignal): ToolPresentation {
+export function requestToolTarget(studio: StudioCtx, component: Component, tpl: TplNode, signal?: AbortSignal, frameUuid?: string): ToolPresentation {
   pendingPresentations.get(studio)?.abort();
   const controller = new AbortController();
   pendingPresentations.set(studio, controller);
   const presentationSignal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
-  void withTimeout(presentToolTarget(studio, component, tpl, presentationSignal), "Automatic presentation expired", 10000)
+  void withTimeout(presentToolTarget(studio, component, tpl, presentationSignal, frameUuid), "Automatic presentation expired", 10000)
     .catch(() => undefined)
     .finally(() => {
       controller.abort();
       if (pendingPresentations.get(studio) === controller) {pendingPresentations.delete(studio);}
     });
-  return { componentUuid: component.uuid, elementUuid: tpl.uuid, visible: null, reason: "pending",
+  return { componentUuid: component.uuid, elementUuid: tpl.uuid, ...(frameUuid ? { frameUuid } : {}), visible: null, reason: "pending",
     message: "Automatic target presentation was requested in the background. Model execution does not wait for it; this is not a visibility verdict or a reason to retry the model operation." };
 }
 
 /** Reveal and scroll within the current arena, preserving Studio selection. */
-export async function presentToolTarget(studio: StudioCtx, component: Component, tpl: TplNode, signal?: AbortSignal): Promise<ToolPresentation> {
+export async function presentToolTarget(studio: StudioCtx, component: Component, tpl: TplNode, signal?: AbortSignal, frameUuid?: string): Promise<ToolPresentation> {
   const identity = { componentUuid: component.uuid, elementUuid: tpl.uuid };
   if (studio.isLiveMode) {
     return { ...identity, visible: false, reason: "preview-active", message: "Model operation completed. Close native Preview to show its target in the editing canvas." };
@@ -40,7 +40,7 @@ export async function presentToolTarget(studio: StudioCtx, component: Component,
   try {
     signal?.throwIfAborted();
     const arena = studio.currentArena;
-    const frames = getArenaFrames(arena);
+    const frames = getArenaFrames(arena).filter(frame => !frameUuid || frame.uuid === frameUuid);
     const candidates = studio.viewCtxs.filter(vc => !vc.isDisposed && frames.includes(vc.arenaFrame()) &&
       (vc.component === component || vc.currentComponent() === component || vc.renderState.tpl2fullKeys(tpl).length > 0 || vc.renderState.tpl2fullKeys(component.tplTree).length > 0));
     const focused = studio.focusedViewCtx();

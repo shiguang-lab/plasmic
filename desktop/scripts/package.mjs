@@ -124,7 +124,7 @@ const outputs = await build({
     },
     artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],
-    publish: { provider: "generic", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
+    publish: { provider: "generic", channel: "latest", url: `${config.updateUrl}/${platform}/${arch}/`, useMultipleRangeRequest: false },
     releaseInfo: releaseNotes ? { releaseNotes } : undefined,
     mac: { target: ["dmg", "zip"], icon: "assets/icon.icns", identity: signingCertificate ? signingCertificate.fingerprint.replaceAll(":", "") : "-", type: "development", hardenedRuntime: false, notarize: false,
       // Match the released signature layout on both macOS ARM build runners.

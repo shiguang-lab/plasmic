@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import type { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
@@ -186,7 +187,7 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
                 <Icon icon={GearIcon} />
               </IconButton>
             </StyleEditorPopover>
-            <IconButton
+            <InspectorEdit><IconButton
               size="small"
               tooltip={uiT("Add transform")}
               aria-label={uiT("Add transform")}
@@ -194,7 +195,7 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
               onClick={addTransformation}
             >
               <Icon icon={PlusIcon} />
-            </IconButton>
+            </IconButton></InspectorEdit>
           </>
         }
         expsProvider={expsProvider}

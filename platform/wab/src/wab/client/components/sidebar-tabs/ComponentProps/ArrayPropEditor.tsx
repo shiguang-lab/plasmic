@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import styles from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPropEditor.module.scss";
 import { ConnectorLine } from "@/wab/client/components/widgets/ConnectorLine";
@@ -100,6 +101,7 @@ export function ArrayPropEditor<
     ? getPropTypeDefaultValue(arrayItemType)
     : undefined;
 
+  const inspecting = React.useContext(InspectorReadOnly);
   const isDragDisabled = disabled || (evaluatedValue?.length ?? 0) < 2;
 
   const addButton = (
@@ -117,11 +119,11 @@ export function ArrayPropEditor<
 
   return (
     <div className={styles.editor}>
-      {headerElement ? (
+      {!inspecting && (headerElement ? (
         createPortal(addButton, headerElement)
       ) : (
         <div className={styles.standaloneHeader}>{addButton}</div>
-      )}
+      ))}
       <ListBox
         onReorder={(from, to) => {
           if (!isDragDisabled && compositeValue) {

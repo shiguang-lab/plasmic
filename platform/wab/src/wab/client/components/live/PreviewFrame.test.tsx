@@ -79,7 +79,7 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-it("switches phone, tablet and absent shells without replacing or resizing page content", () => {
+it("switches phone, tablet and absent shells and updates the usable viewport without replacing the page", () => {
   const environment = createStudioUiEnvironmentFixture();
   const fixture = createDocsModelFixture(createSite());
   Object.assign(fixture.studio, environment);
@@ -96,7 +96,8 @@ it("switches phone, tablet and absent shells without replacing or resizing page 
     const container = iframe?.parentElement;
     expect(container?.style.width).toBe("393px");
     expect(container?.style.height).toBe("852px");
-    expect(iframe?.style.borderRadius).toBe("inherit");
+    expect(iframe?.style.top).toBe("59px");
+    expect(iframe?.style.height).toBe("759px");
     expect(container?.style.borderRadius).toBe("44px");
     const shell = view.container.querySelector('[data-test-id="device-frame"]');
     expect(shell?.parentElement).toBe(container);
@@ -107,6 +108,8 @@ it("switches phone, tablet and absent shells without replacing or resizing page 
     changeViewport("phone", 852, 393);
     expect(container?.style.width).toBe("852px");
     expect(container?.style.height).toBe("393px");
+    expect(iframe?.style.left).toBe("59px");
+    expect(iframe?.style.height).toBe("372px");
     expect(view.container.querySelector("iframe")).toBe(iframe);
     changeViewport("tablet", 768, 1024);
     expect(view.container.querySelector('[data-test-id="device-frame"]')?.getAttribute("data-device")).toBe("tablet");

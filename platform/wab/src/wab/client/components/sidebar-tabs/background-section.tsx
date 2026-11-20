@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { EllipseControl } from "@/wab/client/components/EllipseControl";
 import { useBackgroundInputs } from "@/wab/client/studio-ctx/background-inputs";
 import { useImageAssetList } from "@/wab/client/studio-ctx/image-asset-inputs";
@@ -152,11 +153,11 @@ export const BackgroundSection = function BackgroundSection(
       title={uiT("Fill")}
       styleProps={["background"]}
       headerMenuOnRightClickOnly
-      controls={
+      controls={<InspectorEdit>{
           <IconButton size="small" tooltip={uiT("Add fill")} onClick={addFill} disabled={isDisabled}>
             <Icon icon={PlusIcon} />
           </IconButton>
-      }
+      }</InspectorEdit>}
     >
       {isSet && (
         <div>

@@ -82,7 +82,7 @@ it.each([100, 1000])("bounds inspector input work with %i nodes and preserves ed
       <RightPane studioCtx={studio} canvasLoading={false} />
     </StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>);
     save("mount", mount);
-    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "120px");
+    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "120");
     // Budget dependency work independently of machine speed and sibling count.
     expect(binds).toBeLessThan(20000);
     expect(reads).toBeLessThan(40000);
@@ -102,7 +102,7 @@ it.each([100, 1000])("bounds inspector input work with %i nodes and preserves ed
     act(() => studio.switchRightTab(RightTabKey.style));
     save("reopen", reopen);
     expect(mounted.getByRole("textbox", { name: "Width" })).toBe(widthInput);
-    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "120px");
+    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "120");
     expect(binds).toBeLessThan(20000);
     expect(reads).toBeLessThan(20000);
     const output = process.env.INSPECTOR_PERF_OUTPUT;
@@ -116,17 +116,18 @@ it.each([100, 1000])("bounds inspector input work with %i nodes and preserves ed
     vi.useRealTimers();
     await act(async () => { await studio.changeUnsafe(() => new RuleSetHelpers(children[0].vsettings[0].rs, "div").set("width", "160px")); });
     act(() => studio.switchRightTab(RightTabKey.style));
-    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "160px");
+    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "160");
     const editWidth = async (value: string) => {
       const control = ensure(mounted, "Mounted inspector").getByRole("textbox", { name: "Width" });
-      fireEvent.focus(control); fireEvent.change(control, { target: { value } });
+      act(() => control.focus());
+      fireEvent.change(control, { target: { value } });
       await act(async () => { fireEvent.keyDown(control, { key: "Enter", code: "Enter" }); });
     };
     await editWidth("180px");
     await waitFor(() => expect(children[0].vsettings[0].rs.values.width).toBe("180px"));
     act(() => view.setStudioFocusByTpl(children[1]));
     await waitFor(() => expect(studio.isSelectionPending).toBe(false));
-    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "240px");
+    expect(mounted.getByRole("textbox", { name: "Width" })).toHaveProperty("value", "240");
     await editWidth("320px");
     await waitFor(() => expect(children[1].vsettings[0].rs.values.width).toBe("320px"));
     expect(children[0].vsettings[0].rs.values.width).toBe("180px");

@@ -368,6 +368,9 @@ importers:
       '@shiguang-lab/plasmic-react-ui':
         specifier: link:../../plasmicpkgs/react-ui
         version: link:../../plasmicpkgs/react-ui
+      '@shiguang2/components':
+        specifier: 0.1.7
+        version: 0.1.7(@types/react@19.3.0)(date-fns@2.30.0)(moment@2.30.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/isomorphic-fetch':
         specifier: ^0.0.39
         version: 0.0.39

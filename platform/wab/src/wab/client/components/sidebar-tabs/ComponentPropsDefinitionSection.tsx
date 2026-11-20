@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { useComponentParamValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/component-param-inputs";
 import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useInspectorCanvasEnv, useInspectorStateValue } from "@/wab/client/studio-ctx/inspector-state";
@@ -144,14 +145,14 @@ const ComponentPropsDefinitionContent = React.memo(function ComponentPropsDefini
               {<UiLabel text={COMPONENT_PROP_PLURAL_CAP} />}
             </LabelWithDetailedTooltip>
           }
-          controls={
+          controls={<InspectorEdit>{
             <IconLinkButton
               onClick={() => setNewPropPrefix("")}
               data-test-id="add-prop-btn"
             >
               <Icon icon={PlusIcon} />
             </IconLinkButton>
-          }
+          }</InspectorEdit>}
           zeroBodyPadding
           emptyBody={!slotParams.length && !realParams.length}
           emptyDescription={studioUiT(
@@ -311,7 +312,7 @@ const PropFolderRow = function PropFolderRow(props: {
         dragHandleProps={dragHandleProps}
         showActions
         actions={
-          <Tooltip
+          <InspectorEdit><Tooltip
             title={uiT("Add {part1} to folder", {
               part1: translateUiLabel(getUiLocale(), COMPONENT_PROP_LOWER),
             })}
@@ -327,7 +328,7 @@ const PropFolderRow = function PropFolderRow(props: {
             >
               <Icon icon={PlusIcon} />
             </IconLinkButton>
-          </Tooltip>
+          </Tooltip></InspectorEdit>
         }
       >
         {node.name}

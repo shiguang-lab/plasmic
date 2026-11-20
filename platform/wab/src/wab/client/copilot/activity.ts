@@ -170,7 +170,7 @@ export class CopilotActivity {
     signal?: AbortSignal,
   ) {
     signal?.throwIfAborted();
-    const request: CanvasActivity = {
+    let request: CanvasActivity = {
       id: ++this.nextId,
       targets: targets.map((target) => ({
         ...target,
@@ -181,7 +181,7 @@ export class CopilotActivity {
       kind,
       caller: caller && { ...caller },
     };
-    const started = Date.now();
+    let lastTargetAdded = Date.now();
     let finished = false;
     this.setRequests([...this.store.getState().requests, request]);
     if (kind === "edit") {
@@ -253,7 +253,7 @@ export class CopilotActivity {
           }, SCAN_COMPLETION_MS),
         );
       };
-      const remaining = MIN_SCAN_MS - (Date.now() - started);
+      const remaining = MIN_SCAN_MS - (Date.now() - lastTargetAdded);
       if (remaining > 0) {
         this.timers.set(request.id, setTimeout(stopScan, remaining));
       } else {
@@ -266,7 +266,18 @@ export class CopilotActivity {
         signal.removeEventListener("abort", cancel),
       );
     }
-    return finish;
+    return Object.assign(finish, {
+      addTargets: (additional: ActivityTarget[]) => {
+        if (!additional.length || finished) { return; }
+        const active = this.store.getState().requests;
+        if (!active.includes(request)) { return; }
+        lastTargetAdded = Date.now();
+        const previous = request;
+        request = { ...previous, targets: [...previous.targets, ...additional] };
+        this.setRequests(active.map((item) => item === previous ? request : item));
+        this.setCursorRequests(this.cursorRequests.map((item) => item === previous ? request : item));
+      },
+    });
   }
 
   dispose() {
@@ -285,6 +296,11 @@ export function activityTargets(
   name: string,
   input: Record<string, unknown>,
 ): ActivityTarget[] {
+  // Creation and link replacement get their targets from the mutation. An empty canvas has no frame.
+  if (["createArtboard", "createComponent", "importWebPage", "createCanvas", "replacePageLinks"].includes(name)) { return []; }
+  if (name === "updateArtboard" && input.targetCanvasName && typeof input.frameUuid === "string") {
+    return [{ frameUuid: input.frameUuid }];
+  }
   if (name === "executeBatch") {
     return (
       input.operations as { name: string; input: Record<string, unknown> }[]
@@ -293,13 +309,14 @@ export function activityTargets(
   if (typeof input.componentUuid === "string") {
     const target = {
       componentUuid: input.componentUuid,
+      ...(typeof input.frameUuid === "string" ? { frameUuid: input.frameUuid } : {}),
       elementUuid:
         typeof input.elementUuid === "string" ? input.elementUuid : undefined,
     };
     return typeof input.targetUuid === "string"
       ? [
           target,
-          { componentUuid: input.componentUuid, elementUuid: input.targetUuid },
+          { ...target, elementUuid: input.targetUuid },
         ]
       : [target];
   }

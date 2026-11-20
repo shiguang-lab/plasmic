@@ -79,6 +79,7 @@ export function CanvasTransformedBox({
       style={omit(
         {
           ...cssPropsForJqElt,
+          ...(relativeTo === "frame" && { marginLeft: "var(--device-safe-side, 0px)", marginTop: "var(--device-safe-top, 0px)" }),
           ...style,
           ...(clipToScreen && frameRect && canvasScreenClipStyle(viewCtx, frameToScalerRect(frameRect, viewCtx), viewportZoom)),
         },

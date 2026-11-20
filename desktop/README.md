@@ -484,7 +484,9 @@ is in the Plasmic menu immediately below **About Plasmic**. Other platforms use
 the **Updates** menu. These menus also work on the login page.
 Development launches disable installation.
 
-Desktop is selected by the shared numeric release tag, such as `0.4.3`.
+For account-based beta updates, use the [Desktop beta release workflow](../deploy/README.md#desktop-beta-updates).
+
+Public Desktop is selected by the shared numeric release tag, such as `0.4.3`.
 Set `package.json` and `package-lock.json` to that version, pin the compatible
 Studio `webImage` in `desktop.config.json`, and add `release-notes/<version>.md`
 with English notes and `release-notes/<version>.json` with Markdown strings for

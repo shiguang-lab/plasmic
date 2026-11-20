@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { checkStrSizeLimit } from "@/wab/client/components/sidebar-tabs/ComponentProps/CodeEditor";
 import { TemplatedTextEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/TemplatedTextEditor";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
@@ -93,6 +94,7 @@ export const StringPropEditor = React.forwardRef<
     defer(submitDraft);
   });
 
+  if (React.useContext(InspectorReadOnly)) { return <span>{props.value ?? props.defaultValueHint ?? "—"}</span>; }
   return (
     <Input
       disabled={props.disabled}
@@ -190,6 +192,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
     defer(submitDraft);
   });
 
+  const inspecting = React.useContext(InspectorReadOnly);
   const multiLineAllowed = !!props.component || props.control === "multiLine";
   // For textarea control, use "always" mode to show as multiline by default
   const multiLineMode =
@@ -199,6 +202,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
         ? "allowed"
         : undefined;
 
+  if (inspecting) { return <span>{typeof props.value === "string" ? props.value : props.value ? asCode(props.value, exprCtx).code : "—"}</span>; }
   return (
     <TemplatedTextEditor
       value={draft ?? normalizedValue}

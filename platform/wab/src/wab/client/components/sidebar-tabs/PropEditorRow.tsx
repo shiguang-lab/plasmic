@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import arrayStyles from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPropEditor.module.scss";
 import {
   canEditSemanticValue,
@@ -851,7 +852,8 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     ? tryEvalExpr(evaluatedCode, canvasEnv)
     : undefined;
 
-  const readOnly = !!(
+  const inspecting = React.useContext(InspectorReadOnly);
+  const readOnly = inspecting || !!(
     isPlainObjectPropType(propType) &&
     propType.type !== "slot" &&
     getContextDependentValue(
@@ -863,7 +865,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
   );
 
   const allowPointerInteractions =
-    enablePointerInteractionsForPropType(propType);
+    !inspecting && enablePointerInteractionsForPropType(propType);
 
   const allowDynamicValue =
     !readOnly && !referencedParam && !disabledDynamicValue && !disabled;
@@ -1387,7 +1389,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                     : 'Type mismatch with linked prop "{name}"',
                   { name: referencedParam.variable.name },
                 )}
-                onClick={onReconcileLink}
+                onClick={inspecting ? undefined : onReconcileLink}
               />
             ) : null}
             {isSemantic ? (
@@ -1481,7 +1483,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                   }
                 >
                   <ContextMenuIndicator
-                    menu={!isInteraction && !isMenuEmpty(contextMenu) ? contextMenu : undefined}
+                    menu={!inspecting && !isInteraction && !isMenuEmpty(contextMenu) ? contextMenu : undefined}
                     showDynamicValueButton={showDynamicValueButton}
                     tooltip={
                       isEditedAsTemplatedString

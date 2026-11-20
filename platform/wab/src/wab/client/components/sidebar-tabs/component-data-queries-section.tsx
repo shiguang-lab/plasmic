@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { usePropExpressionInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import { useElementPropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
@@ -325,7 +326,7 @@ function ComponentQueriesSection_(props: {
       emptyBody={queries.length === 0 && tplFetchers.length === 0}
       emptyDescription={uiT("Fetch data from an integration.")}
       zeroBodyPadding
-      controls={
+      controls={<InspectorEdit>{
         <div className="inline-flex flex-vcenter gap-m">
           {showMigrate && (
             <LinkButton
@@ -355,7 +356,7 @@ function ComponentQueriesSection_(props: {
             />
           </Tooltip>
         </div>
-      }
+      }</InspectorEdit>}
     >
       {queries.map((query) => (
         <DataQueryRow

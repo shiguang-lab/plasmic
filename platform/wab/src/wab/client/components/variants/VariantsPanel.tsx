@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useVariantLabelInputs } from "@/wab/client/components/variants/variant-label-inputs";
 import { useVariantPanelInputs } from "@/wab/client/components/variants/variant-panel-inputs";
@@ -387,7 +388,7 @@ const VariantsPanelContent = React.memo(
                 : uiT("Component Variants")}
             </LabelWithDetailedTooltip>
           }
-          controls={
+          controls={<InspectorEdit>{
             <div
               className={"pass-through"}
               data-test-id="add-variant-group-button"
@@ -402,7 +403,7 @@ const VariantsPanelContent = React.memo(
                 />
               </IFrameAwareDropdownMenu>
             </div>
-          }
+          }</InspectorEdit>}
         >
           <>
             <VariantRow
@@ -640,7 +641,7 @@ const VariantsPanelContent = React.memo(
               <UiText message={"Global Variants"} />
             </LabelWithDetailedTooltip>
           }
-          controls={
+          controls={<InspectorEdit>{
             <Tooltip title={uiT("Add group of variants")}>
               <Button
                 type="text"
@@ -655,7 +656,7 @@ const VariantsPanelContent = React.memo(
                 }
               />
             </Tooltip>
-          }
+          }</InspectorEdit>}
           defaultExpanded={expandGlobals}
           onExtraContentExpanded={() => setExpandGlobals(true)}
           zeroBodyPadding

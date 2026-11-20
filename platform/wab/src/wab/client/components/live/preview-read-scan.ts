@@ -14,7 +14,7 @@ import { Box } from "@/wab/shared/geom";
 export function installPreviewReadScan(win: Window) {
   const iframe = win.frameElement;
   const container = iframe?.parentElement;
-  if (!iframe || !container) {
+  if (!(iframe instanceof HTMLIFrameElement) || !container) {
     return;
   }
   // Keep the overlay in Studio so it never enters the inspected business DOM.
@@ -46,7 +46,7 @@ export function installPreviewReadScan(win: Window) {
     region.remove();
   };
   const position = () => {
-    const screen = viewportScreen(iframe);
+    const screen = viewportScreen(iframe.style.clipPath ? container : iframe);
     if (!target) {
       Object.assign(region.style, {
         inset: "0",
@@ -67,14 +67,15 @@ export function installPreviewReadScan(win: Window) {
     if (!rect || rect.width <= 0 || rect.height <= 0) {
       return false;
     }
+    const bounds = { ...rect, left: rect.left + iframe.offsetLeft, top: rect.top + iframe.offsetTop };
     Object.assign(region.style, {
       inset: "auto",
-      left: `${rect.left}px`,
-      top: `${rect.top}px`,
+      left: `${bounds.left}px`,
+      top: `${bounds.top}px`,
       width: `${rect.width}px`,
       height: `${rect.height}px`,
       borderRadius: "",
-      clipPath: screen ? screenClipStyle(screen, rect).clipPath : "",
+      clipPath: screen ? screenClipStyle(screen, bounds).clipPath : "",
     });
     return true;
   };

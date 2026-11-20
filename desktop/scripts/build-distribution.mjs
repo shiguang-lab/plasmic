@@ -22,7 +22,7 @@ export async function buildDistribution(
   version,
   updateUrl,
   localizedReleaseNotes,
-  { manifestsOnly = false } = {},
+  { manifestsOnly = false, beta = false } = {},
 ) {
   for (const locale of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
     if (
@@ -51,6 +51,7 @@ export async function buildDistribution(
       target.platform,
       version,
       target.arch,
+      { beta },
     );
     if (
       target.platform === "darwin" &&
@@ -104,6 +105,7 @@ if (
       from: { type: "string" },
       output: { type: "string" },
       tag: { type: "string" },
+      beta: { type: "boolean" },
       "manifests-only": { type: "boolean" },
     },
   });
@@ -119,18 +121,19 @@ if (
   ) {
     throw new Error("Release tag must match Desktop package.json version");
   }
+  if (values.beta && !values.output) throw new Error("Choose an output directory for the private beta distribution");
   const manifest = await buildDistribution(
     values.from || path.join(desktop, "dist", metadata.version),
     values.output || path.join(desktop, "public/desktop-updates"),
     metadata.version,
-    config.updateUrl,
+    values.beta ? `${config.studioOrigin}/api/v1/desktop-beta/${metadata.version}` : config.updateUrl,
     JSON.parse(
       await readFile(
         path.join(desktop, "release-notes", metadata.version + ".json"),
         "utf8",
       ),
     ),
-    { manifestsOnly: values["manifests-only"] },
+    { manifestsOnly: values["manifests-only"], beta: values.beta },
   );
   console.log(
     `Prepared all installers and latest.json for ${manifest.version}`,

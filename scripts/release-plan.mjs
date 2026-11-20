@@ -3,6 +3,7 @@ import { appendFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { compareVersions } from "../packages/plasmic-cli/src/protocol.mjs";
+import versions from "../desktop/src/release-version.cjs";
 import { isNewReleaseSeries } from "./release-version.mjs";
 
 const version = "(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)";
@@ -113,7 +114,45 @@ function localeImpact(file, baseline, ref) {
 const localDesktopOnly = (tag) =>
   git("tag", "-l", tag, "--format=%(contents:trailers:key=Desktop-Release,valueonly)") === "local-only";
 
+function validateDesktop(tag, ref, studio) {
+  const pkg = JSON.parse(git("show", `${ref}:desktop/package.json`));
+  const config = JSON.parse(
+    git("show", `${ref}:desktop/desktop.config.json`),
+  );
+  if (
+    pkg.version !== tag ||
+    (studio && config.webImage !== `ghcr.io/shiguang-lab/plasmic-web:${tag}`) ||
+    (!studio && config.webImage === `ghcr.io/shiguang-lab/plasmic-web:${tag}`)
+  ) {
+    throw new Error(
+      "Desktop release requires its version to match the tag and webImage pinned to the Studio image being released (or an existing image for Desktop-only releases)",
+    );
+  }
+  const lock = JSON.parse(git("show", `${ref}:desktop/package-lock.json`));
+  if (
+    lock.version !== pkg.version ||
+    lock.packages?.[""]?.version !== pkg.version
+  ) {
+    throw new Error("Desktop lockfile version does not match package.json");
+  }
+  if (!git("show", `${ref}:desktop/release-notes/${pkg.version}.md`)) {
+    throw new Error("Desktop English release notes are empty");
+  }
+  const notes = JSON.parse(
+    git("show", `${ref}:desktop/release-notes/${pkg.version}.json`),
+  );
+  for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
+    if (typeof notes[language] !== "string" || !notes[language].trim()) {
+      throw new Error(`Missing Desktop release notes: ${language}`);
+    }
+  }
+}
+
 export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
+  if (versions.beta.test(tag)) {
+    validateDesktop(tag, ref, true);
+    return { tag, beta: true, publish: true, studio: true, desktop: true, cli: false, resources: false, full: false };
+  }
   if (!patterns.studio.test(tag)) throw new Error(`Unsupported release tag: ${tag}`);
   const tags = git("tag", "--merged", ref, "--sort=-version:refname")
     .split("\n")
@@ -160,39 +199,7 @@ export function releasePlan(tag, ref = "HEAD", { forceAll = false } = {}) {
   const desktop = !localDesktopOnly(tag) && (full || changes.desktop.desktop || changes.studio.frontend);
   const cli = full || changes.cli.cli;
   const resources = full || changes.resources.resources || cli;
-  if (desktop) {
-    const pkg = JSON.parse(git("show", `${ref}:desktop/package.json`));
-    const config = JSON.parse(
-      git("show", `${ref}:desktop/desktop.config.json`),
-    );
-    if (
-      pkg.version !== tag ||
-      (studio && config.webImage !== `ghcr.io/shiguang-lab/plasmic-web:${tag}`) ||
-      (!studio && config.webImage === `ghcr.io/shiguang-lab/plasmic-web:${tag}`)
-    ) {
-      throw new Error(
-        "Desktop release requires its version to match the tag and webImage pinned to the Studio image being released (or an existing image for Desktop-only releases)",
-      );
-    }
-    const lock = JSON.parse(git("show", `${ref}:desktop/package-lock.json`));
-    if (
-      lock.version !== pkg.version ||
-      lock.packages?.[""]?.version !== pkg.version
-    ) {
-      throw new Error("Desktop lockfile version does not match package.json");
-    }
-    if (!git("show", `${ref}:desktop/release-notes/${pkg.version}.md`)) {
-      throw new Error("Desktop English release notes are empty");
-    }
-    const notes = JSON.parse(
-      git("show", `${ref}:desktop/release-notes/${pkg.version}.json`),
-    );
-    for (const language of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
-      if (typeof notes[language] !== "string" || !notes[language].trim()) {
-        throw new Error(`Missing Desktop release notes: ${language}`);
-      }
-    }
-  }
+  if (desktop) validateDesktop(tag, ref, studio);
   return {
     tag,
     baseline: baseline || null,

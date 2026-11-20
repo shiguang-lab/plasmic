@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import inputStyles from "@/wab/client/components/widgets/DimTokenSelector.module.scss";
 import { FieldAriaProps } from "@/wab/client/components/aria-utils";
 import ListItem from "@/wab/client/components/ListItem";
@@ -865,6 +866,9 @@ type DimTokenSpinnerProps = Omit<React.ComponentPropsWithoutRef<typeof DimTokenS
 export const DimTokenSpinner = React.memo(React.forwardRef<DimTokenSpinnerRef, DimTokenSpinnerProps>(function DimTokenSpinner(props, ref) {
   const catalog = useStyleTokenCatalogInputs(props.studioCtx, props.tokenType, props.vsh, undefined, false);
   const permissions = useTokenPickerPermissions(props.studioCtx);
+  if (React.useContext(InspectorReadOnly)) {
+    return <span>{tryParseTokenRef(props.value, catalog.tokens)?.name ?? (props.value || props.placeholder || "—")}</span>;
+  }
   if (catalog.source && !catalog.source.isActive()) { return null; }
   return props.studioCtx ? <NativeDimTokenSpinner {...props} studio={props.studioCtx} permissions={permissions} inputRef={ref} key={catalog.source?.key} /> : <DimTokenSpinnerContent {...props} ref={ref} />;
 }));

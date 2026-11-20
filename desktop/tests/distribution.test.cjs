@@ -6,29 +6,12 @@ const os = require("node:os");
 const { createHash } = require("node:crypto");
 const YAML = require("yaml");
 
-test("release JSON and image files publish complete, verified native installers", async (t) => {
-  const { buildDistribution, releaseTargets } =
-    await import("../scripts/build-distribution.mjs");
-  const { manifestNames } = await import("../scripts/release-artifacts.mjs");
-  const root = await fs.mkdtemp(
-    path.join(os.tmpdir(), "plasmic-distribution-"),
-  );
-  t.after(() => fs.rm(root, { recursive: true, force: true }));
-  const version = "1.2.3";
-  const notes = JSON.parse(
-    await fs.readFile(
-      path.join(__dirname, "../release-notes/0.0.42.json"),
-      "utf8",
-    ),
-  );
-  const input = path.join(root, "input");
-  const output = path.join(root, "public/desktop-updates");
-  const bytes = Buffer.from("installer fixture");
-  const sha512 = createHash("sha512").update(bytes).digest("base64");
+async function writeInstallers(input, version, releaseTargets, manifestNames, bytes, sha512) {
   for (const target of releaseTargets) {
     const dir = path.join(input, `${target.platform}-${target.arch}`);
     await fs.mkdir(dir, { recursive: true });
-    const filename = `Plasmic-${version}-${target.platform === "darwin" ? "mac" : target.platform}-${target.arch}${target.extension}`;
+    const suffix = { darwin: `mac-${target.arch}`, win32: "win-x64", linux: "linux-x86_64" }[target.platform];
+    const filename = `Plasmic-${version}-${suffix}${target.extension}`;
     await fs.writeFile(path.join(dir, filename), bytes);
     if (target.platform !== "darwin") {
       const { gzipSync } = require("node:zlib");
@@ -54,6 +37,28 @@ test("release JSON and image files publish complete, verified native installers"
       }),
     );
   }
+}
+
+test("release JSON and image files publish complete, verified native installers", async (t) => {
+  const { buildDistribution, releaseTargets } =
+    await import("../scripts/build-distribution.mjs");
+  const { manifestNames } = await import("../scripts/release-artifacts.mjs");
+  const root = await fs.mkdtemp(
+    path.join(os.tmpdir(), "plasmic-distribution-"),
+  );
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const version = "1.2.3";
+  const notes = JSON.parse(
+    await fs.readFile(
+      path.join(__dirname, "../release-notes/0.0.42.json"),
+      "utf8",
+    ),
+  );
+  const input = path.join(root, "input");
+  const output = path.join(root, "public/desktop-updates");
+  const bytes = Buffer.from("installer fixture");
+  const sha512 = createHash("sha512").update(bytes).digest("base64");
+  await writeInstallers(input, version, releaseTargets, manifestNames, bytes, sha512);
   const manifest = await buildDistribution(
     input,
     output,
@@ -252,6 +257,7 @@ test("distribution validates the unified release tag against the Desktop version
   const run = (tag) => spawnSync(process.execPath, [
     path.join(__dirname, "../scripts/build-distribution.mjs"),
     "--from", path.join(root, "missing-installers"), "--output", path.join(root, "output"), "--tag", tag,
+    ...(version.includes("-beta.") ? ["--beta"] : []),
   ], { encoding: "utf8", env: { ...process.env, GITHUB_REF_NAME: "0.0.83" } });
   const wrong = run("999.0.0");
   assert.notEqual(wrong.status, 0);
@@ -260,4 +266,35 @@ test("distribution validates the unified release tag against the Desktop version
   assert.notEqual(linked.status, 0);
   assert.doesNotMatch(linked.stderr, /Release tag must match/);
   assert.match(linked.stderr, /ENOENT/);
+});
+
+test("beta distribution builds a versioned private feed and stays out of stable output", async (t) => {
+  const { buildDistribution, releaseTargets } = await import("../scripts/build-distribution.mjs");
+  const { manifestNames } = await import("../scripts/release-artifacts.mjs");
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-beta-release-"));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const version = "1.0.0-beta.2";
+  const base = `https://studio.test/api/v1/desktop-beta/${version}`;
+  const notes = Object.fromEntries(["en", "ja", "ko", "zh-CN", "zh-TW"].map(locale => [locale, "Updated"]));
+  const input = path.join(root, "builds"), output = path.join(root, "distribution");
+  const bytes = Buffer.from("beta installer");
+  await writeInstallers(input, version, releaseTargets, manifestNames, bytes, createHash("sha512").update(bytes).digest("base64"));
+  await assert.rejects(buildDistribution(input, output, version, base, notes), /selected channel/);
+  const distribution = await buildDistribution(input, output, version, base, notes, { beta: true });
+  for (const { platform, arch, url } of distribution.installers) {
+    assert.ok(url.startsWith(`${base}/${platform}/${arch}/`));
+    const feed = YAML.parse(await fs.readFile(path.join(output, platform, arch, manifestNames[platform]), "utf8"));
+    assert.equal(feed.version, version);
+  }
+  if (process.platform !== "win32") {
+    const { execFileSync } = require("node:child_process");
+    const archive = path.join(root, `desktop-beta-${version}.tar.gz`);
+    execFileSync("tar", ["-czf", archive, "-C", output, "."]);
+    const directory = path.join(root, "published");
+    const args = [path.join(__dirname, "../../deploy/publish-desktop-beta.py"), archive, "--directory", directory];
+    execFileSync("python3", args);
+    assert.deepEqual(JSON.parse(await fs.readFile(path.join(directory, version, "latest.json"))), distribution);
+    assert.throws(() => execFileSync("python3", args, { stdio: "pipe" }), /not empty|exists/i);
+    assert.deepEqual(await fs.readdir(directory), [version]);
+  }
 });

@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import type { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { BoxShadowPanel, createDefaultBoxShadow } from "@/wab/client/components/style-controls/BoxShadowControls";
@@ -118,7 +119,7 @@ function ShadowsContent(props: StyleComponentProps) {
         title={t("Shadows")}
         styleProps={["box-shadow"]}
         headerMenuOnRightClickOnly
-        controls={
+        controls={<InspectorEdit>{
           <IconButton
             size="small"
             tooltip={addTooltip ?? addLabel}
@@ -128,7 +129,7 @@ function ShadowsContent(props: StyleComponentProps) {
           >
             <Icon icon={PlusIcon} />
           </IconButton>
-        }
+        }</InspectorEdit>}
       >
         {rows.length > 0 && (
           <StyleWrapper styleName="box-shadow" className="flex-fill">

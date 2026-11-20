@@ -59,6 +59,18 @@ it("decorates mobile pages outside the viewport and reacts to resizing without c
     act(() => updateAutoDerivedFrameHeight(frame, 1800));
     expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBe(shell);
     expect(frame.height).toBe(852);
+    expect(container.style.height).toBe("852px");
+    expect(iframe.style.top).toBe("59px");
+    expect(iframe.style.height).toBe("759px");
+    act(() => studioCtx.setFullPageHeightOverride(true));
+    act(() => updateAutoDerivedFrameHeight(frame, 1231));
+    expect(container.style.height).toBe("1231px");
+    expect(iframe.style.top).toBe("");
+    expect(container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    act(() => studioCtx.setFullPageHeightOverride(false));
+    expect(container.style.height).toBe("852px");
+    expect(iframe.style.height).toBe("759px");
+    expect(container.querySelector("iframe")).toBe(iframe);
     await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = 1440; frame.height = 1024; }); });
     expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
     for (const [width, height, kind] of [[834, 1194, "tablet"], [800, 600, undefined], [1194, 834, "tablet"], [768, 1024, "tablet"], [1024, 768, "tablet"], [852, 393, "phone"], [600, 900, undefined], [375, 812, undefined], [393, 852, "phone"]] as const) {

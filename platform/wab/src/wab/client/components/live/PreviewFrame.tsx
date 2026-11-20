@@ -2,7 +2,7 @@ import { trapInteractionError } from "@/wab/client/components/canvas/studio-canv
 import { PreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
 import { DeviceFrame } from "@/wab/client/components/device-frame/DeviceFrame";
-import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
+import { deviceViewportStyle, getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import styles from "@/wab/client/components/live/PreviewViewport.module.scss";
 import {
   onLoadInjectLiveRuntime,
@@ -574,6 +574,7 @@ export function PreviewFrame({
             transformOrigin: "top left",
             boxShadow: fillsWindow ? "none" : undefined,
             borderRadius: fillsWindow ? 0 : deviceFrame?.viewportRadius ?? 8,
+            backgroundColor: deviceFrame ? "white" : undefined,
             outline: fillsWindow || deviceFrame
               ? undefined
               : "1px solid var(--preview-border)",
@@ -605,6 +606,7 @@ export function PreviewFrame({
               border: 0,
               display: "block",
               borderRadius: "inherit",
+              ...(deviceFrame && deviceViewportStyle(deviceFrame)),
             }}
             data-test-id="live-frame"
           />

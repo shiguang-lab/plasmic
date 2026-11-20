@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useRepeatingElementInputs } from "@/wab/client/studio-ctx/state-management-inputs";
 import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
@@ -46,6 +47,7 @@ export const RepeatingElementControl = React.memo(function RepeatingElementContr
   tpl: TplNode;
   viewCtx: ViewCtx;
 }) {
+  const inspecting = React.useContext(InspectorReadOnly);
   const { t: uiT } = useI18n();
   const { tpl, viewCtx } = props;
   const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl, { forDataRepCollection: true });
@@ -69,7 +71,7 @@ export const RepeatingElementControl = React.memo(function RepeatingElementContr
   const baseVs = snapshot.base ? source.resolve(snapshot.base) : undefined;
   const dataRep = snapshot.repetition ? source.resolve(snapshot.repetition) : undefined;
   const schema = useCustomFunctionsSchema(viewCtx.studioCtx);
-  if (!baseVs) {return null;}
+  if (!baseVs || (inspecting && !dataRep)) { return null; }
 
   const evaluated = snapshot.collectionCode
     ? tryEvalExpr(snapshot.collectionCode, canvasEnv ?? {})
@@ -101,7 +103,7 @@ export const RepeatingElementControl = React.memo(function RepeatingElementContr
         <div ref={popup} className={styles.popover} role="dialog" aria-label={uiT("Repeat element")}>
           <div className={styles.heading}>
             <strong>{uiT("Repeat element")}</strong>
-            {dataRep && <Tooltip title={uiT("Remove repetition")}>
+            {!inspecting && dataRep && <Tooltip title={uiT("Remove repetition")}>
               <Button type="text" size="small" aria-label={uiT("Remove repetition")} icon={<Icon icon={MinusIcon} />} onClick={remove} />
             </Tooltip>}
             <Button type="text" size="small" aria-label={uiT("Close")} icon={<Icon icon={CloseIcon} />} onClick={close} />

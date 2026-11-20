@@ -1,3 +1,4 @@
+import { InspectorEdit, InspectorInput, InspectorChoice, InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { isTplCodeComponentStyleable } from "@/wab/client/code-components/code-components";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import type { VisibilityController } from "@/wab/client/components/sidebar-tabs/VisibilitySection";
@@ -511,6 +512,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
   props: AppearanceCardProps,
 ) {
   const { expsProvider, visibilityController } = props;
+  const inspecting = React.useContext(InspectorReadOnly);
   const { t: uiT } = useI18n();
   const studioCtx = expsProvider.studioCtx;
   const fallbackVsh = useVariantedStylesHelperFromCurrentCtx(
@@ -891,14 +893,14 @@ export const AppearanceCard = React.memo(function AppearanceCard(
         <div className={styles.blendDropdownTitle}>{uiT("Blend mode")}</div>
         <label className={styles.isolationRow}>
           <span>{uiT("Isolate blending")}</span>
-          <Switch size="small" aria-label={uiT("Isolate blending")} checked={isolated} disabled={isolationDisabled}
-            onChange={checked => changeStyle(expsProvider, () => expsProvider.mergedExp().set("isolation", checked ? "isolate" : "auto"))} />
+          {inspecting ? <span>{String(isolated)}</span> : <Switch size="small" aria-label={uiT("Isolate blending")} checked={isolated} disabled={isolationDisabled}
+            onChange={checked => changeStyle(expsProvider, () => expsProvider.mergedExp().set("isolation", checked ? "isolate" : "auto"))} />}
         </label>
         <div className={styles.blendDropdownDesc}>
           {uiT("How should the colors blend with the elements behind it?")}
         </div>
       </div>
-      <Scrollbar
+      {inspecting ? <span>{blendLabel}</span> : <Scrollbar
         scrollX={false}
         defer={false}
         className={styles.blendMenuScroll}
@@ -947,7 +949,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
             </React.Fragment>
           ))}
         </Menu>
-      </Scrollbar>
+      </Scrollbar>}
     </div>
   );
 
@@ -978,7 +980,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
       <div className={styles.header}>
         <div className={styles.titleGroup}>
           <span className={styles.title}>{uiT("Appearance")}</span>
-          {capabilities.readOnly && (
+          {capabilities.readOnly && !inspecting && (
             <Tooltip
               title={
                 capabilities.readOnlyReason
@@ -1011,7 +1013,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                     )})`
                   }
                 >
-                  <button
+                  {inspecting ? <span>{visibilityController.currentVisibility}</span> : <InspectorChoice
                     type="button"
                     data-test-id="visibility-quick-toggle"
                     aria-label={uiT("Toggle visibility")}
@@ -1035,10 +1037,10 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                     {visibilityController.targetHasVisibility && (
                       <span className={styles.headerDot} />
                     )}
-                  </button>
+                  </InspectorChoice>}
                 </Tooltip>
               </WithContextMenu>
-              <Dropdown
+              <InspectorEdit><Dropdown
                 trigger={["click"]}
                 popupRender={visibilityController.buildMenu}
                 disabled={
@@ -1069,7 +1071,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                     <ChevronDownSvg />
                   </button>
                 </Tooltip>
-              </Dropdown>
+              </Dropdown></InspectorEdit>
             </div>
           )}
 
@@ -1080,14 +1082,14 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                 open={blendOpen}
                 onOpenChange={setBlendOpen}
                 popupRender={renderBlendMenu}
-                disabled={blendDisabled && isolationDisabled}
+                disabled={!inspecting && blendDisabled && isolationDisabled}
               >
                 <Tooltip title={`${uiT("Blend mode")}: ${blendLabel}`}>
                   <button
                     type="button"
                     aria-label={uiT("Blend mode")}
                     aria-pressed={blendSet}
-                    disabled={blendDisabled && isolationDisabled}
+                    disabled={!inspecting && (blendDisabled && isolationDisabled)}
                     className={cn(
                       styles.iconBtn,
                       blendSet && styles.iconBtnActive,
@@ -1144,7 +1146,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                   </button>
                 ) : (
                   <>
-                    <input
+                    <InspectorInput
                       data-plasmic-prop="opacity"
                       aria-label={uiT("Opacity")}
                       type="text"
@@ -1241,7 +1243,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                       {unifiedTokenRef.name}
                     </button>
                   ) : (
-                    <input
+                    <InspectorInput
                       data-testid="appearance-radius-input"
                       aria-label={uiT("Corner radius")}
                       type="text"
@@ -1299,7 +1301,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                   data-testid="appearance-corners-toggle"
                   aria-label={uiT("Individual corners")}
                   aria-pressed={cornersExpanded}
-                  disabled={radiusDisabled}
+                  disabled={!inspecting && (radiusDisabled)}
                   className={cn(
                     styles.iconBtn,
                     styles.iconBtnPill,
@@ -1372,7 +1374,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                       {tokenRef.name}
                     </button>
                   ) : (
-                    <input
+                    <InspectorInput
                       aria-label={uiT(CORNER_PREFIX_LABELS[corner])}
                       type="text"
                       disabled={cellDisabled}
@@ -1432,7 +1434,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
               </span>
             </WithContextMenu>
 
-            <Dropdown
+            {inspecting ? <span>{uniformOverflow ? formatOverflowModeLabel(uniformOverflow) : uiT("Mixed")}</span> : <Dropdown
               trigger={["click"]}
               disabled={overflowDisabled}
               menu={{
@@ -1458,10 +1460,10 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                 <span>{uniformOverflow ? formatOverflowModeLabel(uniformOverflow) : uiT("Mixed")}</span>
                 <ChevronDownSvg />
               </button>
-            </Dropdown>
+            </Dropdown>}
 
             <Tooltip title={uiT("Split overflow for X and Y")}>
-              <button
+              <InspectorChoice
                 type="button"
                 data-testid="appearance-overflow-split-btn"
                 aria-label={uiT("Split overflow for X and Y")}
@@ -1480,7 +1482,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                 }
               >
                 XY
-              </button>
+              </InspectorChoice>
             </Tooltip>
           </div>
 
@@ -1497,7 +1499,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
               ).map(([axisLabel, prop, val]) => (
                 <div key={prop} className={styles.overflowSplitCell}>
                   <span className={styles.splitAxisLabel}>{axisLabel}</span>
-                  <Dropdown
+                  {inspecting ? <span>{formatOverflowModeLabel(val)}</span> : <Dropdown
                     trigger={["click"]}
                     disabled={overflowDisabled}
                     menu={{
@@ -1517,7 +1519,7 @@ export const AppearanceCard = React.memo(function AppearanceCard(
                       <span>{formatOverflowModeLabel(val)}</span>
                       <ChevronDownSvg />
                     </button>
-                  </Dropdown>
+                  </Dropdown>}
                 </div>
               ))}
             </div>

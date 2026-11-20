@@ -1,3 +1,4 @@
+import { InspectorReadOnly, InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
@@ -264,6 +265,7 @@ function SemanticFields({
   onChange: (value: ObjectValue | undefined) => void;
 }) {
   const { t } = useI18n();
+  const inspecting = React.useContext(InspectorReadOnly);
   const entries = Object.entries(fields);
   return (
     <>
@@ -298,7 +300,7 @@ function SemanticFields({
                         {count}
                       </span>
                     </Tooltip>
-                    {!children && (
+                    {!inspecting && !children && (
                       <IFrameAwareDropdownMenu
                         disabled={disabled || choices.length === 0}
                         menu={
@@ -434,7 +436,7 @@ function CssFields({
                   />
                 </div>
               )}
-              <button
+              <InspectorEdit><button
                 className={styles.iconButton}
                 type="button"
                 disabled={disabled}
@@ -442,7 +444,7 @@ function CssFields({
                 onClick={() => update(undefined)}
               >
                 <Icon icon={MinusIcon} />
-              </button>
+              </button></InspectorEdit>
             </div>
           </ConnectorLine>
         );

@@ -32,6 +32,7 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   getFrameHeight,
   isHeightAutoDerived,
+  measuredFrameHeight,
   updateAutoDerivedFrameHeight,
 } from "@/wab/shared/Arenas";
 import { getBuiltinComponentRegistrations } from "@/wab/shared/code-components/builtin-code-components";
@@ -436,7 +437,10 @@ export class CanvasCtx {
         pendingFrame = undefined;
         if (isHeightAutoDerived(arenaFrame)) {
           const frameHeight = getFrameHeight(arenaFrame);
-          if (height && height !== frameHeight) {
+          // The user body of a bounded device contains its safe viewport.
+          // getFrameHeight() describes the whole display, including system UI.
+          const nextHeight = measuredFrameHeight(arenaFrame, height);
+          if (height && nextHeight !== frameHeight) {
             // We need to resize, but we want to limit how many resizes
             // happen without user-edits (as measured by sc._changeCounter)
             if (
@@ -576,7 +580,7 @@ export class CanvasCtx {
   }
 
   private $wabRoot() {
-    return this._$userBody.children().first();
+    return this._$userBody.find(".__wab_root").first();
   }
 
   // These are elements that is not from the components in the canvas.
@@ -594,8 +598,8 @@ export class CanvasCtx {
   viewportContainerOffset() {
     const viewportContainer = this.viewportContainer();
     return {
-      top: viewportContainer.offsetTop,
-      left: viewportContainer.offsetLeft,
+      top: viewportContainer.offsetTop + this.viewport().offsetTop,
+      left: viewportContainer.offsetLeft + this.viewport().offsetLeft,
     };
   }
   // Get the bounding box of the frame, which includes everything in the

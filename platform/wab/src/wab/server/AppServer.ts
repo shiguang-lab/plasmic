@@ -1,3 +1,4 @@
+import { addDesktopUpdateDiscovery, getDesktopBeta } from "@/wab/server/routes/desktop-beta";
 import { componentSearch } from "@/wab/server/routes/component-search";
 import * as templateCenter from "@/wab/server/routes/template-center";
 import { getDependencyModelResource, withDependencyModelResources } from "@/wab/server/routes/dependency-model-resources";
@@ -466,6 +467,7 @@ function addMiddlewares(
   addOptionsRoutes(app);
 
   app.use((_req, _res, next) => withShiguangDirectoryCache(next));
+  addDesktopUpdateDiscovery(app);
   app.use(shiguangIdentityMiddleware);
   app.use(passport.initialize());
   // This ten-minute session stores only external data-source OAuth state.
@@ -1095,6 +1097,7 @@ export function addMainAppServerRoutes(
    * Auth Routes
    */
   app.get("/api/v1/admin/identities", adminOnly, withNext(searchIdentities));
+  app.get("/api/v1/desktop-beta/:version/:platform/:arch/:file", getDesktopBeta);
   app.get("/api/v1/auth/self", withNext(authRoutes.self));
   app.post(
     "/api/v1/settings/preferences",

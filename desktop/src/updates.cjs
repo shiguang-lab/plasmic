@@ -4,16 +4,20 @@ const fs = require("node:fs/promises");
 const { UpdateManager } = require("./update-manager.cjs");
 const { MacUpdater, acknowledgeMacUpdate } = require("./mac-updater.cjs");
 const { macUpdateArch } = require("./update-architecture.cjs");
+const { createUpdateFeed } = require("./update-feed.cjs");
 
 async function createUpdates({ config, getStudio, session, beforeInstall, showUpdateDialog }) {
-  const feedUrl = `${config.updateUrl}/${process.platform}/${process.platform === "darwin" ? macUpdateArch(app) : process.arch}/`;
-  if (new URL(feedUrl).protocol !== "https:") throw new Error("Updates require HTTPS");
-  const updater = process.platform === "darwin"
-    ? new MacUpdater({ app, feedUrl, fetch: (url, options) => session.fetch(url, { ...options, bypassCustomProtocolHandlers: true }) })
-    : require("./native-updater.cjs").createNativeUpdater({ platform: process.platform, feedUrl });
+  const platform = process.platform;
+  const arch = platform === "darwin" ? macUpdateArch(app) : process.arch;
+  const feedUrl = `${config.updateUrl}/${platform}/${arch}/`;
+  const manifestName = { darwin: "latest-mac.yml", linux: arch === "arm64" ? "latest-linux-arm64.yml" : "latest-linux.yml", win32: "latest.yml" }[platform];
+  const feed = createUpdateFeed({ session, feedUrl, studioOrigin: config.studioOrigin, partition: `${platform}/${arch}`, manifestName });
+  const updater = platform === "darwin"
+    ? new MacUpdater({ app, feedUrl, betaUrl: feed.betaUrl, latest: feed.latest, fetch: feed.fetchFile })
+    : require("./native-updater.cjs").createNativeUpdater({ platform, feedUrl, feed });
   const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
   if (proxy && updater.netSession) await updater.netSession.setProxy({ proxyRules: proxy, proxyBypassRules: process.env.NO_PROXY || "" });
-  const manager = new UpdateManager({ updater, version: app.getVersion(), enabled: app.isPackaged && (process.platform !== "linux" || !!process.env.APPIMAGE), beforeInstall });
+  const manager = new UpdateManager({ updater, version: app.getVersion(), enabled: app.isPackaged && (process.platform !== "linux" || !!process.env.APPIMAGE), beforeInstall, canInstallBeta: feed.canInstallBeta });
   try {
     const error = await fs.readFile(path.join(app.getPath("userData"), "updates/install-failure.txt"), "utf8");
     manager.fail(new Error(error));

@@ -13,12 +13,11 @@ import { createStyles } from "antd-style";
 import * as React from "react";
 
 const useStyles = createStyles(({ token }) => ({
-  root: { minWidth: 0, display: "flex", flexDirection: "column", gap: 12 },
+  root: { minWidth: 0, display: "flex", flexDirection: "column", gap: 8 },
   replies: {
     display: "flex",
     alignItems: "center",
     gap: 10,
-    margin: "12px 0 4px",
     color: token.colorTextSecondary,
     fontSize: 11,
     whiteSpace: "nowrap",

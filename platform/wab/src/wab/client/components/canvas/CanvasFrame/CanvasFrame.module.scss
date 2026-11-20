@@ -2,6 +2,8 @@
 @import "src/wab/styles/tokens";
 
 .device {
+  background: white;
+  border-radius: var(--device-screen-radius);
   > :global(.CanvasFrame__Label) {
     bottom: calc(100% + var(--device-inset-top));
   }

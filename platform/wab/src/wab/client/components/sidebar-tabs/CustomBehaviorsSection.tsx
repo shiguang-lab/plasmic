@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { checkAndNotifyUnsupportedHostVersion } from "@/wab/client/components/modals/codeComponentModals";
 import S from "@/wab/client/components/sidebar-tabs/CustomBehaviorsSection.module.scss";
@@ -75,7 +76,7 @@ export const CustomBehaviorsSection = React.memo(function CustomBehaviorsSection
           {<UiLabel text={CUSTOM_BEHAVIORS_CAP} />}
         </LabelWithDetailedTooltip>
       }
-      controls={
+      controls={<InspectorEdit>{
         <Dropdown popupRender={() => menu} trigger={["click"]}>
           <IconLinkButton
             aria-label={uiT("Add custom behavior")}
@@ -84,7 +85,7 @@ export const CustomBehaviorsSection = React.memo(function CustomBehaviorsSection
             <Icon icon={PlusIcon} />
           </IconLinkButton>
         </Dropdown>
-      }
+      }</InspectorEdit>}
     >
       {attachedComps.length > 0 && (
         <widgets.ListBox>

@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import CardPickerItem from "@/wab/client/components/sidebar-tabs/ComponentProps/CardPickerItem";
 import CardPickerModal from "@/wab/client/components/sidebar-tabs/ComponentProps/CardPickerModal";
 import { BareModal } from "@/wab/client/components/studio/BareModal";
@@ -20,6 +21,7 @@ export function CardPickerEditor(props: {
 }) {
   const { onChange, onSearch, value, title, options, showInput } = props;
   const [show, setShow] = React.useState(false);
+  const inspecting = React.useContext(InspectorReadOnly);
   const [search, setSearch] = React.useState("");
 
   const onCancel = () => {
@@ -50,18 +52,20 @@ export function CardPickerEditor(props: {
       {show && (
         <BareModal onClose={onCancel} width={1200}>
           <CardPickerModal
-            showInput={showInput}
+            showInput={!inspecting && showInput}
             searchValue={search}
             title={title}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (!inspecting && e.key === "Enter") {
                 onSave();
               }
             }}
             onCancel={onCancel}
           >
-            {options.map((option) => (
+            {options.filter((option) => !inspecting || option.value === value).map((option) => inspecting ? (
+              <div key={option.value}><img src={option.imgUrl} alt={option.label ?? option.value} /><span>{option.label ?? option.value}</span></div>
+            ) : (
               <CardPickerItem
                 imgUrl={option.imgUrl}
                 title={option.footer}

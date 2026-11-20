@@ -21,6 +21,7 @@ import React from "react";
 import { createStore } from "zustand/vanilla";
 
 const fixture = vi.hoisted(() => ({
+  saveState: undefined as any,
   arenaState: undefined as any,
   modelSnapshots: undefined as any,
   site: undefined as any,
@@ -49,6 +50,7 @@ afterEach(() => {
 
 function setup() {
   const mgr = new TplMgr({ site: createSite() });
+  fixture.saveState = { store: createStore(() => ({ blockChanges: false, canSave: true })) };
   fixture.modelSnapshots = new ModelSnapshots();
   fixture.site = mgr.site();
   fixture.arenaState = new StudioArenaState({

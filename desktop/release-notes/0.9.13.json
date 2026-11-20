@@ -1,0 +1,7 @@
+{
+  "en": "- Phone and tablet artboards keep their device size while scrolling and leave room for the status bar and home indicator.\n- Inspect properties in read-only designs and published templates.\n- Desktop can offer beta updates to eligible accounts.",
+  "zh-CN": "- 手机和平板画板支持在设备尺寸内滚动，并为状态栏和底部手势条留出空间。\n- 可在只读设计和已发布模板中查看元素属性。\n- Desktop 支持向指定账号提供测试版更新。",
+  "zh-TW": "- 手機和平板畫板支援在裝置尺寸內捲動，並為狀態列和底部手勢列保留空間。\n- 可在唯讀設計和已發佈的範本中查看元素屬性。\n- Desktop 支援向指定帳號提供測試版更新。",
+  "ja": "- スマートフォンとタブレットのアートボードで、端末サイズを保ったままスクロールでき、ステータスバーとホームインジケータの領域が確保されます。\n- 読み取り専用のデザインと公開済みテンプレートで要素のプロパティを確認できます。\n- 対象アカウントで Desktop のベータ版アップデートを受け取れるようになりました。",
+  "ko": "- 휴대폰과 태블릿 아트보드에서 기기 크기를 유지하며 스크롤할 수 있고 상태 표시줄과 홈 표시기 공간이 확보됩니다.\n- 읽기 전용 디자인과 게시된 템플릿에서 요소 속성을 확인할 수 있습니다.\n- 지정된 계정으로 Desktop 베타 업데이트를 받을 수 있습니다."
+}

@@ -1,3 +1,4 @@
+import { InspectorReadOnly, InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { LabeledStyleColorItem, LabeledStyleDimItem, shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import styles from "@/wab/client/components/style-controls/OutlineControls.module.scss";
 import { StylePanelSection, useStyleTarget } from "@/wab/client/components/style-controls/StyleComponent";
@@ -48,12 +49,12 @@ export function OutlinePanelSection() {
 
   return <StylePanelSection title={t("CSS outline")} expsProvider={provider}
     styleProps={outlineStyleProps} headerMenuOnRightClickOnly
-    controls={<IconButton size="small" aria-label={t("Add outline")} tooltip={t("Add outline")}
+    controls={<InspectorEdit><IconButton size="small" aria-label={t("Add outline")} tooltip={t("Add outline")}
       disabled={isDisabled || hasOutline} onClick={() => {
         if (!isDisabled && !hasOutline) {
           sc.change(() => Object.entries(defaultOutlineValues).forEach(([prop, value]) => sc.exp().set(prop, value)));
         }
-      }}><Icon icon={PlusIcon} /></IconButton>}
+      }}><Icon icon={PlusIcon} /></IconButton></InspectorEdit>}
   >
     {hasOutline && <ListBox><ListBoxItem index={0} className={paintStyles.fillItem}
       isDragDisabled showGrip={false} disabled={isDisabled} clickable={false} truncate={false}
@@ -81,6 +82,7 @@ function OutlineRow() {
   const resolved = selected?.resolved;
   const clientColor = useClientTokenValue(resolved?.value, resolved, lifetime);
   const previewColor = selected?.applied ? clientColor : color;
+  const inspecting = React.useContext(InspectorReadOnly);
   const [open, setOpen] = React.useState(false);
   const trigger = React.useRef<HTMLButtonElement>(null), popup = React.useRef<HTMLDivElement>(null);
   useStudioEscape(popup, open, () => { setOpen(false); trigger.current?.focus(); });
@@ -91,7 +93,7 @@ function OutlineRow() {
   };
 
   return <div className={styles.row} data-test-id="outline-row">
-    <Popover trigger="click" open={open && !isDisabled} onOpenChange={setOpen} placement="leftTop" arrow={false} destroyOnHidden
+    <Popover trigger="click" open={open && (inspecting || !isDisabled)} onOpenChange={setOpen} placement="leftTop" arrow={false} destroyOnHidden
       content={<div className={styles.popover} ref={popup} role="group" aria-label={t("Outline settings")}>
         <div className={styles.heading}>{t("Line style")}</div>
         <div className={styles.lineStyles} role="group" aria-label={t("Line style")}>
@@ -114,7 +116,7 @@ function OutlineRow() {
         </div>
       </div>}>
       <Tooltip title={open ? null : t("Outline settings")}><TriggerTarget>
-        <button type="button" className={cn(styles.settings, isNone && styles.none)} ref={trigger} disabled={isDisabled}
+        <button type="button" className={cn(styles.settings, isNone && styles.none)} ref={trigger} disabled={!inspecting && isDisabled}
           aria-label={t("Outline settings")} aria-expanded={open}>
           {isNone ? <><FiSlash aria-hidden="true" /><span>{t("None")}</span></> : <span className={styles.preview} aria-hidden="true" style={{
             color: previewColor,

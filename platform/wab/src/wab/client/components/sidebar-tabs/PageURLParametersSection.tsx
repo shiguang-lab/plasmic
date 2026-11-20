@@ -1,3 +1,4 @@
+import { InspectorEdit, InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import {
   useDataSourceOpExprBottomModal,
   useSource,
@@ -122,6 +123,7 @@ function URLParameterRow(props: {
   onRemove?: () => void;
 }) {
   const { t: uiT } = useI18n();
+  const inspecting = React.useContext(InspectorReadOnly);
   const [draft, setDraft] = React.useState(props.value);
   React.useEffect(() => setDraft(props.value), [props.value]);
   const commit = () => defer(() => props.onCommit(draft));
@@ -142,7 +144,7 @@ function URLParameterRow(props: {
         )
       }
     >
-      <Input
+      {inspecting ? <span>{props.value || "—"}</span> : <Input
         className="transparent"
         placeholder={uiT("Preview value")}
         value={draft}
@@ -153,7 +155,7 @@ function URLParameterRow(props: {
             commit();
           }
         }}
-      />
+      />}
     </LabeledListItem>
   );
 }
@@ -195,7 +197,7 @@ export function PageURLParametersSection(props: { page: Component }) {
             <UiText message={"URL parameters"} />
           </LabelWithDetailedTooltip>
         }
-        controls={
+        controls={<InspectorEdit>{
           <AddQueryParamButton
             onAdd={(key) =>
               void sc.change(() => {
@@ -211,7 +213,7 @@ export function PageURLParametersSection(props: { page: Component }) {
               icon={<Icon icon={PlusIcon} />}
             />
           </AddQueryParamButton>
-        }
+        }</InspectorEdit>}
         zeroBodyPadding
         emptyBody={paramMetas.length === 0}
         emptyDescription={uiT("Use values from the URL in this page.")}
@@ -221,7 +223,7 @@ export function PageURLParametersSection(props: { page: Component }) {
           {mainDetailsSpec && source && sourceMeta && (
             <>
               <SidebarSection noBorder noBottomPadding>
-                <Button
+                <InspectorEdit><Button
                   className="fill-width"
                   onClick={() => {
                     open({
@@ -256,7 +258,7 @@ export function PageURLParametersSection(props: { page: Component }) {
                   }}
                 >
                   <UiText message={"View different record"} />
-                </Button>
+                </Button></InspectorEdit>
               </SidebarSection>
             </>
           )}

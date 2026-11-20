@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
-import semver from "semver";
+import versions from "../src/release-version.cjs";
 import { parseBlockmap } from "../src/update-download.cjs";
 
 export const manifestNames = { darwin: "latest-mac.yml", win32: "latest.yml", linux: "latest-linux.yml" };
@@ -12,9 +12,9 @@ export async function digest(file) {
   for await (const chunk of createReadStream(file)) hash.update(chunk);
   return hash.digest("base64");
 }
-export async function validateRelease(directory, platform, version, arch) {
+export async function validateRelease(directory, platform, version, arch, { beta = false } = {}) {
   const name = platform === "linux" && arch === "arm64" ? "latest-linux-arm64.yml" : manifestNames[platform];
-  if (!name || !semver.valid(version) || semver.prerelease(version)) throw new Error("Stable releases require a valid stable version and platform");
+  if (!name || !(beta ? versions.beta : versions.stable).test(version)) throw new Error("Invalid Desktop release version or platform for the selected channel");
   const manifest = YAML.parse(await readFile(path.join(directory, name), "utf8"));
   if (manifest.version !== version || !manifest.files?.length) throw new Error("Release manifest version or files do not match");
   const files = [];

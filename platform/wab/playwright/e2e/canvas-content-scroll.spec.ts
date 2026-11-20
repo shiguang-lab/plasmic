@@ -154,3 +154,66 @@ test("full page height view lets opted-in viewport shells grow with content", as
   expect(bounded.body).toBe(600);
   expect(bounded.mainOverflow).toBeGreaterThan(0);
 });
+
+test("a device page scrolls inside its safe viewport and returns from full height", async ({ page }) => {
+  const bundle = await build({
+    stdin: {
+      resolveDir: wabDir, loader: "tsx",
+      contents: `
+        import React from "react";
+        import { createRoot } from "react-dom/client";
+        import { CanvasFrame } from "../canvas-packages/src/canvas-frame";
+        import { handleCanvasContentWheel } from "./src/wab/client/components/canvas/canvas-scroll";
+        let info = { viewMode: "stretch", height: 852, deviceContentHeight: 759, isHeightAutoDerived: true, fullPageHeight: false };
+        const listeners = new Set();
+        const frameInfo = { getState: () => info, getInitialState: () => info,
+          subscribe: fn => { listeners.add(fn); return () => listeners.delete(fn); } };
+        window.showFull = value => {
+          info = { ...info, fullPageHeight: value };
+          listeners.forEach(fn => fn());
+        };
+        const user = {appUser: {}};
+        const currentUser = { ...frameInfo, getState: () => user };
+        document.addEventListener("wheel", e => handleCanvasContentWheel(e, e.target), { passive: false });
+        createRoot(document.body.appendChild(document.createElement("div"))).render(
+          <CanvasFrame frameInfo={frameInfo} currentUser={currentUser}
+            DataSourceProvider={({ children }) => children} lifetime={new AbortController().signal}>
+            <main style={{ padding: "16px 16px 104px" }}>
+              <input placeholder="Buscar pregunta" />
+              <section style={{height: 1050}}>FAQ</section>
+              <button>Last question</button>
+              <button style={{position:"fixed", bottom:12, left:16}}>Feedback</button>
+            </main>
+          </CanvasFrame>);
+      `,
+    },
+    bundle: true, write: false, outfile: "device.js",
+  });
+  await page.setContent('<div style="position:relative;width:393px;height:852px"><iframe title="FAQ" style="position:absolute;top:59px;width:100%;height:759px;border:none"></iframe></div>');
+  const frame = page.frames()[1];
+  for (const file of bundle.outputFiles) {
+    if (file.path.endsWith(".css")) { await frame.addStyleTag({ content: file.text }); }
+    else { await frame.addScriptTag({ content: file.text }); }
+  }
+  await frame.addStyleTag({ content: canvasCss });
+  const search = frame.getByPlaceholder("Buscar pregunta");
+  const feedback = frame.getByText("Feedback");
+  const last = frame.getByText("Last question");
+  const host = frame.locator("[data-overlayscrollbars]").first();
+  await expect(host).toHaveCSS("height", "759px");
+  await expect(search).toBeInViewport();
+  const bottom = () => feedback.evaluate(el => el.getBoundingClientRect().bottom);
+  expect(await bottom()).toBe(747);
+  await search.hover();
+  await page.keyboard.down("Alt");
+  await page.mouse.wheel(0, 1200);
+  await page.keyboard.up("Alt");
+  await expect(last).toBeInViewport();
+  expect(await bottom()).toBe(747);
+  expect(await frame.evaluate(() => window.scrollY)).toBe(0);
+  await frame.evaluate(() => (window as any).showFull(true));
+  await expect.poll(() => host.evaluate(el => el.clientHeight)).toBeGreaterThan(1100);
+  await frame.evaluate(() => (window as any).showFull(false));
+  await expect(host).toHaveCSS("height", "759px");
+  expect(await bottom()).toBe(747);
+});

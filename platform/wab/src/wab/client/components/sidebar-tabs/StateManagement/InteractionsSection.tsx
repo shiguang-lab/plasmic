@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useElementPropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useLinkedCodePropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/linked-code-prop-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
@@ -272,6 +273,7 @@ const AddHandlerFunctionButton = React.memo(
   }) {
     const { t: uiT } = useI18n();
     const { tpl, onSelect, options } = props;
+    if (React.useContext(InspectorReadOnly)) { return null; }
     return (
       <IFrameAwareDropdownMenu
         placement="bottomRight"

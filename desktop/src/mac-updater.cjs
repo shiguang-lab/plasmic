@@ -9,6 +9,7 @@ const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const { execFile, execFileSync, spawn } = require("node:child_process");
 const { promisify } = require("node:util");
+const { beta } = require("./release-version.cjs");
 const semver = require("semver");
 const YAML = require("yaml");
 const { macUpdateArch } = require("./update-architecture.cjs");
@@ -40,9 +41,9 @@ async function spawnInstallHelper(args) {
   child.unref();
 }
 
-function parseManifest(text, currentVersion, feedUrl, arch) {
-  const info = YAML.parse(text);
-  if (!semver.valid(info?.version) || semver.prerelease(info.version))
+function parseManifest(text, currentVersion, feedUrl, arch, betaUrl) {
+  const info = typeof text === "string" ? YAML.parse(text) : text;
+  if (!semver.valid(info?.version) || (semver.prerelease(info.version) && !(betaUrl && beta.test(info.version))))
     throw uiError("Invalid stable update version");
   if (!semver.gt(info.version, currentVersion)) return null;
   const file = info.files?.find(
@@ -58,22 +59,23 @@ function parseManifest(text, currentVersion, feedUrl, arch) {
     throw uiError("Invalid macOS update artifact");
   if (arch && file.url !== `Plasmic-${info.version}-mac-${arch}.zip`)
     throw uiError("Update artifact architecture or version mismatch");
-  return { ...info, file: { ...file, url: new URL(file.url, feedUrl).href } };
+  return { ...info, file: { ...file, url: new URL(file.url, beta.test(info.version) ? betaUrl(info.version) : feedUrl).href } };
 }
 
 class MacUpdater extends EventEmitter {
-  constructor({ app, feedUrl, fetch }) {
+  constructor({ app, feedUrl, betaUrl, latest, fetch }) {
     super();
     if (new URL(feedUrl).protocol !== "https:")
       throw uiError("Updates require HTTPS");
     this.app = app;
     this.arch = macUpdateArch(app);
     this.feedUrl = feedUrl;
+    this.betaUrl = betaUrl;
+    this.latest = latest;
     this.fetch = fetch;
     this.cache = path.join(app.getPath("userData"), "updates");
   }
-  async checkForUpdates() {
-    this.emit("checking-for-update");
+  async readStableManifest() {
     const response = await this.fetch(this.feedUrl + "latest-mac.yml", {
       cache: "no-store",
       signal: AbortSignal.timeout(30000),
@@ -83,20 +85,25 @@ class MacUpdater extends EventEmitter {
       throw uiError("NAS update check failed (HTTP {status})", {
         status: response.status,
       });
-    const text = await response.text();
+    return YAML.parse(await response.text());
+  }
+  async checkForUpdates() {
+    this.emit("checking-for-update");
+    const manifest = await (this.latest ? this.latest() : this.readStableManifest());
     this.info = parseManifest(
-      text,
+      manifest,
       this.app.getVersion(),
       this.feedUrl,
       this.arch,
+      this.betaUrl,
     );
-    if (!this.info && YAML.parse(text)?.version === this.app.getVersion()) {
+    if (!this.info && manifest?.version === this.app.getVersion()) {
       // Cache seeding is optional maintenance, never a reason to reject an
       // otherwise valid "already current" response from an existing feed.
       try {
         const archive = path.join(this.cache, `Plasmic-${this.app.getVersion()}.zip`);
         if (await fs.stat(archive).then((entry) => entry.isFile(), () => false)) {
-          const installed = parseManifest(text, "0.0.0", this.feedUrl, this.arch);
+          const installed = parseManifest(manifest, "0.0.0", this.feedUrl, this.arch, this.betaUrl);
           if (installed) await seedArchive({ fetch: this.fetch, info: installed, arch: this.arch, archive });
         }
       } catch (error) {
@@ -105,7 +112,7 @@ class MacUpdater extends EventEmitter {
     }
     this.emit(
       this.info ? "update-available" : "update-not-available",
-      this.info || {},
+      this.info || manifest,
     );
   }
   async downloadUpdate() {
@@ -130,8 +137,9 @@ class MacUpdater extends EventEmitter {
     this.app.quit();
   }
 
-  prepareInstallOnQuit() {
-    return this.#prepareInstall(false);
+  async prepareInstallOnQuit(version) {
+    if (version && this.downloaded?.info.version !== version) return;
+    await this.#prepareInstall(false);
   }
 
   async #prepareInstall(restart) {
@@ -223,7 +231,7 @@ async function acknowledgeMacUpdate(app, ready = true) {
       if (ready) {
         for (const entry of await fs.readdir(cache, { withFileTypes: true })) {
           // Retain only the installed version as the next differential base.
-          if (entry.isFile() && /^Plasmic-\d+\.\d+\.\d+\.zip(?:\.(?:json|blockmap|partial(?:\.json)?))?$/.test(entry.name) &&
+          if (entry.isFile() && /^Plasmic-\d+\.\d+\.\d+(?:-beta\.\d+)?\.zip(?:\.(?:json|blockmap|partial(?:\.json)?))?$/.test(entry.name) &&
               !["", ".json", ".blockmap"].some((suffix) => entry.name === `Plasmic-${transaction.version}.zip${suffix}`)) {
             await fs.rm(path.join(cache, entry.name), { force: true });
           }

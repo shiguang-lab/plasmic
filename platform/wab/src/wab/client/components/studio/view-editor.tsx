@@ -1194,7 +1194,7 @@ private async handleMouseDown(
         sc.setStudioFocusOnFrame({
           frame: artboard,
           autoZoom: false,
-          appendToMultiSelection: !sc.isPublishedTemplate && e.shiftKey,
+          appendToMultiSelection: e.shiftKey,
         }),
       );
       return;
@@ -1209,27 +1209,6 @@ private async handleMouseDown(
       ].includes(eventTarget) ||
       eventTarget.classList.contains("canvas-editor__canvas-clipper-grid")
     );
-
-    if (sc.isPublishedTemplate) {
-      const hit = this.extractEventTarget(e, focusedVc);
-      if (!hit && !isBackground) {
-        // Studio overlays (including comment pins) own their pointer input.
-        return;
-      }
-      const view = hit?.[1];
-      const element = view && hit && closestTaggedNonTextDomElt(hit[0], view, {
-        excludeNonSelectable: true,
-      });
-      this.canvasClipper?.focus({ preventScroll: true });
-      if (view && element?.length) {
-        view.getViewOps().tryFocusDomElt(element, { exact: false, deepSelect: isCanvasModifierPressed(e) });
-      } else {
-        sc.changeSelection(() => sc.setStudioFocusOnFrame({ frame: view?.arenaFrame(), autoZoom: false }));
-      }
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      return;
-    }
 
     if (isBackground) {
       this.startMarquee(e, undefined, () => {
@@ -1565,6 +1544,10 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
       !s.isDragging &&
       Math.hypot(e.screenX - s.initScreenX, e.screenY - s.initScreenY) >= minDragPx
     ) {
+      if (sc.blockChanges) {
+        this.cancelCanvasGesture();
+        return;
+      }
       if (s.artboard) {
         const { frame, selectOnDrag } = s.artboard;
         if (
@@ -1823,15 +1806,15 @@ private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
         !click.viewCtx.viewOps.isEditing(e.target as HTMLElement)
       ) {
         if (click.componentPart) {
-          if (click.viewCtx.focusedComponentPart?.text) {
+          const part = click.viewCtx.focusedComponentPart;
+          const hit = click.viewCtx.dom2focusObj(click.target);
+          if (part?.text && hit instanceof ValComponent && hit.tpl === part.tpl) {
             click.viewCtx.change(() => click.viewCtx.viewOps.tryEditText());
-          } else {
-            click.viewCtx.setFocusedComponentPart(undefined);
-            click.viewCtx.viewOps.deepFocusElement(click.target);
+            return;
           }
-        } else {
-          click.viewCtx.viewOps.deepFocusElement(click.target);
+          click.viewCtx.setFocusedComponentPart(undefined);
         }
+        click.viewCtx.viewOps.deepFocusElement(click.target);
       }
     };
     if (this.marquee) {
@@ -2004,7 +1987,7 @@ private cancelMarquee = () => {
   };
 private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
     const sc = this.props.studioCtx;
-    if (sc.isPublishedTemplate || sc.isLiveMode || sc.isInteractiveMode) {
+    if (sc.isLiveMode || sc.isInteractiveMode) {
       return;
     }
     const frame = this.getArtboardTitleFrame(e);
@@ -2016,7 +1999,7 @@ private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
         }
         e.preventDefault();
         e.stopPropagation();
-        maybeShowContextMenu(e, makeFrameMenu({ viewCtx, frame }));
+        if (!sc.blockChanges) { maybeShowContextMenu(e, makeFrameMenu({ viewCtx, frame })); }
       }
       return;
     }
@@ -2052,6 +2035,11 @@ private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
       }
     });
 
+    if (sc.blockChanges) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     targetVc.tryBlurEditingText();
     const menu = getContextMenuForFocusedTpl(targetVc);
 
@@ -2411,7 +2399,7 @@ export function ViewEditor_(props: ViewEditorProps) {
         {draggingObject &&
           !hasDrag &&
           createPortal(<div className="drag-guard" />, document.body)}
-        {!publishedTemplate && <PageSettingsDialogHost studioCtx={studioCtx} />}
+        <PageSettingsDialogHost studioCtx={studioCtx} />
         <BottomModals
           onFocusedIndexChange={(newIndex) =>
             studioCtx.setFocusedBottomModalIndex(newIndex)

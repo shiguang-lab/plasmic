@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import paintStyles from "@/wab/client/components/style-controls/PaintRows.module.scss";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { instUtil } from "@/wab/shared/model/InstUtil";
@@ -125,6 +126,7 @@ function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorPr
     defaultValue = valueEditorCtx.defaultValue ?? {};
   }
 
+  const inspecting = React.useContext(InspectorReadOnly);
   const [showModal, setShowModal] = React.useState(false);
   const [buttonElement, setButtonElement] = React.useState<HTMLButtonElement | null>(null);
   const shouldShowModal = showModal || !!defaultShowModal;
@@ -257,13 +259,13 @@ function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorPr
     const enabled = compositeValue != null;
     return (
       <>
-        <BoolPropEditor
+        {inspecting ? <span>{String(enabled)}</span> : <BoolPropEditor
           value={enabled}
           disabled={disabled}
           aria-label={props.label}
           data-plasmic-prop={props["data-plasmic-prop"]}
           onChange={(checked) => onChange(checked ? uncheckedCast(defaultValue) : undefined)}
-        />
+        />}
         {enabled && (
           <div className="pt-sm">
             {Object.entries(fields).map(([fieldName, fieldPropType]) =>
@@ -287,7 +289,7 @@ function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorPr
       const triggerProps = {
         ref: setButtonElement,
         onClick: () => setShowModal(true),
-        disabled,
+        disabled: !inspecting && disabled,
         "data-plasmic-prop": props["data-plasmic-prop"],
       };
       return (

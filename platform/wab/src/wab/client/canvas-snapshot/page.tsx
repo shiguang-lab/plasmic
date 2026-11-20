@@ -12,7 +12,7 @@ import { Router } from "@/wab/client/cli-routes";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { CanvasFrameHash } from "@/wab/client/components/canvas/canvas-frame-hash-observer";
 import { DeviceFrame } from "@/wab/client/components/device-frame/DeviceFrame";
-import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
+import { deviceViewportStyle, getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import { App } from "@/wab/client/components/top-view";
 import { DbCtx } from "@/wab/client/db";
 import { initRootCanvasPkgs } from "@/wab/client/frame-ctx/windows";
@@ -250,8 +250,11 @@ async function render() {
       const iframe = document.createElement("iframe");
       iframe.width = String(board.width);
       iframe.height = String(board.height);
-      if (board.deviceFrame)
-        iframe.style.borderRadius = board.deviceFrame.viewportRadius + "px";
+      if (board.deviceFrame) {
+        wrapper.style.backgroundColor = "white";
+        wrapper.style.borderRadius = board.deviceFrame.screenRadius + "px";
+        Object.assign(iframe.style, deviceViewportStyle(board.deviceFrame));
+      }
       const hash = new CanvasFrameHash(
         studio,
         frame,

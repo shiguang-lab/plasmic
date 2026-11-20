@@ -41,6 +41,16 @@ test(
         });
         res.end();
       };
+      if (url.pathname === "/api/v1/desktop-updates/latest") {
+        if (req.headers.cookie === "__Secure-sg_session=tester") {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ version: "1.2.3-beta.2" }));
+        } else {
+          res.writeHead(401);
+          res.end();
+        }
+        return;
+      }
       const latest = url.pathname.match(
         /^\/shiguang-lab\/plasmic\/releases\/latest\/download\/([^/]+)$/,
       );
@@ -109,6 +119,7 @@ test(
     const port = server.address().port;
     upstream = `http://host.docker.internal:${port}`;
     const block = renderDownloadProxy()
+      .replaceAll("http://100.87.115.78:3600", upstream)
       .replaceAll("https://github.com", upstream)
       .replaceAll(
         "https://github[.]com",
@@ -236,6 +247,11 @@ test(
       }
       await publish({ studio: true }, "1.2.3");
       await verifyFeeds("1.2.2", "1.2.2");
+      for (const [session, expected] of [["expired", "1.2.2"], ["tester", "1.2.3-beta.2"]]) {
+        const result = await get("/desktop-updates/latest.json", { headers: { Cookie: "__Secure-sg_session=" + session } });
+        successful(result, "no-store");
+        assert.equal(JSON.parse(result.bytes).version, expected);
+      }
       await verifyResources("1.2.2");
       await publish({ resources: true }, "1.2.4");
       await verifyFeeds("1.2.2", "1.2.4");

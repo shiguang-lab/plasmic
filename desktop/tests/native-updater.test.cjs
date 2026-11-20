@@ -51,16 +51,18 @@ async function fixture(t, platform) {
     t.after(() => { if (originalAppImage === undefined) delete process.env.APPIMAGE; else process.env.APPIMAGE = originalAppImage; });
   }
   const cache = path.join(root, "profile/updates", platform, process.arch);
-  function make(version) {
+  function make(version, feed) {
     const app = Object.assign(new EventEmitter(), { isPackaged: true, getVersion: () => version, getName: () => "Plasmic", getPath: () => path.join(root, "profile") });
     const load = Module._load;
     Module._load = function (id, ...args) { return id === "electron" ? { app } : load.call(this, id, ...args); };
     let updater;
-    try { updater = createNativeUpdater({ platform, feedUrl }); }
+    try { updater = createNativeUpdater({ platform, feedUrl, feed }); }
     finally { Module._load = load; }
     updater.logger = null; updater.autoDownload = false;
-    updater.updateConfigPath = config;
-    updater.setFeedURL({ provider: "generic", url: feedUrl, useMultipleRangeRequest: false });
+    if (!feed) {
+      updater.updateConfigPath = config;
+      updater.setFeedURL({ provider: "generic", url: feedUrl, useMultipleRangeRequest: false });
+    }
     updater.downloadedUpdateHelper = new DownloadedUpdateHelper(path.join(root, "sdk-cache"));
     Object.defineProperty(updater, "netSession", { value: { fetch: (url, options) => {
       assert.equal(options.bypassCustomProtocolHandlers, true);
@@ -92,7 +94,7 @@ async function fixture(t, platform) {
       disableDifferentialDownload: false, disableWebInstaller: true,
     });
   }
-  return { root, state, make: (version) => make(version).updater, makeWithApp: make, release, run, installed, archive: (version) => path.join(cache, `Plasmic-${version}${extension}`) };
+  return { root, state, make: (version, feed) => make(version, feed).updater, makeWithApp: make, release, run, installed, archive: (version) => path.join(cache, `Plasmic-${version}${extension}`) };
 }
 
 test("Linux replaces the versioned AppImage in place only on successful quit", { skip: process.platform === "win32" }, async (t) => {
@@ -126,6 +128,18 @@ test("Windows starts the verified NSIS installer silently on quit without relaun
 });
 
 for (const platform of ["win32", "linux"]) {
+  test(`${platform}: the account-selected beta manifest resolves to the private download path`, async (t) => {
+    const f = await fixture(t, platform);
+    const version = "1.1.0-beta.10";
+    await f.release(version, Buffer.from("beta installer"));
+    const betaUrl = v => `https://updates.test/api/v1/desktop-beta/${v}/${platform}/x64/`;
+    const updater = f.make("1.0.0", { latest: async () => f.state.info, betaUrl });
+    const provider = await updater.clientPromise;
+    const info = await provider.getLatestVersion();
+    assert.equal(await updater.isUpdateAvailable(info), true);
+    assert.equal(provider.resolveFiles(info)[0].url.href, betaUrl(version) + info.files[0].url);
+  });
+
   test(`${platform}: full downloads survive SDK cleanup and resume after restart`, async (t) => {
     const f = await fixture(t, platform), bytes = await f.release("1.0.0", randomBytes(128 * 1024));
     f.state.interrupt = true;

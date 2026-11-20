@@ -51,6 +51,7 @@ playwright-report/
 
 # NAS deployment credentials
 /deploy/secrets/
+/deploy/desktop-beta/
 /deploy/.rollout.lock
 /deploy/.env.pending
 /deploy/edge/default.conf

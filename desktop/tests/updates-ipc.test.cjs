@@ -28,6 +28,11 @@ test("update IPC accepts only the main Studio frame and bypasses the bundled pro
   let requests = 0;
   let opened = 0;
   const manager = await createUpdates({ config, getStudio: () => ({window, webContents}), showUpdateDialog: () => opened++, beforeInstall: async () => {}, session: { fetch: async (url, options) => {
+    if (url === config.updateUrl + "/latest.json") {
+      assert.equal(options.credentials, "omit", "Never send Studio credentials to an external feed");
+      return new Response(null, { status: 401 });
+    }
+    assert.equal(options.credentials, "omit");
     requests++;
     assert.equal(url, `https://updates.example/desktop-updates/darwin/${process.arch}/latest-mac.yml`);
     assert.equal(options.bypassCustomProtocolHandlers, true);

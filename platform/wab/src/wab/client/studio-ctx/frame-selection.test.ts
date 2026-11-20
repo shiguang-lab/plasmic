@@ -1,3 +1,6 @@
+import { buildValTree } from "@/wab/__testonly__/tpls";
+import { $$$ } from "@/wab/shared/TplQuery";
+import { ValState } from "@/wab/shared/eval/val-state";
 import { waitFor } from "@testing-library/react";
 import { DragMoveFrameManager } from "@/wab/client/FreestyleManipulator";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
@@ -11,9 +14,9 @@ import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { ViewEditorController } from "@/wab/client/components/studio/view-editor";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
-import { ensure } from "@/wab/shared/common";
+import { ensure, ensureInstance } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
-import { mkTplTag } from "@/wab/shared/core/tpls";
+import { mkTplTag, mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
 import { Box, Pt } from "@/wab/shared/geom";
 import { ensureKnownTplTag } from "@/wab/shared/model/classes";
@@ -447,5 +450,48 @@ it("moves the full selection from a member's body and still selects and drills i
   } finally {
     hitTest.mockRestore();
     await f.dispose();
+  }
+});
+
+it.each([false, true])("selects successive layout children on double-click (published=%s)", async (published) => {
+  const f = await setupArtboardGestures();
+  const { studioCtx } = f;
+  const { view, container } = f.views[0];
+  try {
+    const frame = f.frames[0];
+    const component = frame.container.component;
+    const baseVariant = component.variants[0];
+    const leaf = mkTplTagX("span", { baseVariant });
+    const row = mkTplTagX("div", { baseVariant }, [leaf]);
+    const section = mkTplTagX("section", { baseVariant }, [row]);
+    await studioCtx.changeUnsafe(() => $$$(component.tplTree).append(section));
+    const runtime = buildValTree(frame.container);
+    const root = ensureInstance(runtime.contents?.[0], ValTag);
+    const sectionVal = ensureInstance(root.children.find((child) => child.tpl === section), ValTag);
+    const rowVal = ensureInstance(sectionVal.children[0], ValTag);
+    const leafVal = ensureInstance(rowVal.children[0], ValTag);
+
+    const sectionDom = container.appendChild(document.createElement("section"));
+    const rowDom = sectionDom.appendChild(document.createElement("div"));
+    const leafDom = rowDom.appendChild(document.createElement("span"));
+    const elements = new Map([[sectionVal.tpl, sectionDom], [rowVal.tpl, rowDom], [leafVal.tpl, leafDom]]);
+    vi.spyOn(studioCtx, "isPublishedTemplate", "get").mockReturnValue(published);
+    vi.spyOn(view, "valState").mockReturnValue(new ValState({ sysRoot: runtime, globalRoot: runtime }));
+    vi.spyOn(view, "dom2focusObj").mockReturnValue(leafVal);
+    vi.spyOn(view.renderState, "tpl2bestVal").mockImplementation((tpl) => [root, sectionVal, rowVal, leafVal].find((val) => val.tpl === tpl));
+    vi.spyOn(view, "selectionDom").mockImplementation((target) => $(ensure(elements.get(ensureKnownTplTag(target.tpl)), "Selected layer DOM")));
+    vi.spyOn(canvasUtil, "closestTaggedNonTextDomElt").mockReturnValue($(leafDom));
+    view.canvasCtx.doc = () => document;
+
+    for (const expected of [sectionVal, rowVal, rowVal, leafVal]) {
+      await f.emit("Down", leafDom, view, 20, 20);
+      await f.emit("Up", leafDom, view, 20, 20);
+      await studioCtx.changeUnsafe(() => undefined);
+      expect(ensureKnownTplTag(view.focusedTpl()).tag).toBe(expected.tpl.tag);
+      expect(view.focusedDomElt()?.[0]).toBe(elements.get(expected.tpl));
+    }
+  } finally {
+    await f.dispose();
+    vi.restoreAllMocks();
   }
 });

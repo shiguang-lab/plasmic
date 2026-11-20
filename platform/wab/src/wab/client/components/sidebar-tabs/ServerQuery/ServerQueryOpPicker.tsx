@@ -1,3 +1,4 @@
+import { InspectorReadOnly, InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { useServerFunctionCatalog, useServerFunctionMetadata, useServerFunctionRegistration, useQueryDataTokenNames, useQueryPickerComponentInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
 import { useStore } from "zustand";
@@ -435,6 +436,7 @@ export const ServerQueryOpDraftForm = React.memo(function ServerQueryOpDraftForm
       [onChange, value],
     );
 
+    const inspecting = React.useContext(InspectorReadOnly);
     const handlePropEditorRowChange = React.useCallback(
       (param: ArgType, newExpr: Expr) =>
         commitFnExprArgs((args) => {
@@ -606,7 +608,7 @@ export const ServerQueryOpDraftForm = React.memo(function ServerQueryOpDraftForm
             </StyleSelect.OptionGroup>
           </StyleSelect>
         </LabeledItemRow>
-        {isCustomCodeMode ? (
+        {isCustomCodeMode ? inspecting ? <pre>{stripParens(value.codeExpr?.code ?? "")}</pre> : (
           <DataQueryCodeEditorLayout
             data={cleanedEnvData}
             defaultValue={stripParens(value.codeExpr?.code ?? "")}
@@ -908,22 +910,22 @@ export const ServerQueryOpExprFormAndPreview = React.memo(function ServerQueryOp
               />
             </Scrollbar>
             <BottomModalButtons>
-              <Button
+              <InspectorEdit><Button
                 id="data-source-modal-save-btn"
                 type="primary"
                 disabled={!saveOp}
                 onClick={saveOp}
               >
                 <UiText message={"Save"} />
-              </Button>
-              <Button
+              </Button></InspectorEdit>
+              <InspectorEdit><Button
                 onClick={executeOp}
                 withIcons={"startIcon"}
                 disabled={!validDraft}
                 startIcon={<Icon icon={SearchIcon} />}
               >
                 <UiText message={"Execute"} />
-              </Button>
+              </Button></InspectorEdit>
               <Button onClick={onCancel}>
                 <UiText message={"Cancel"} />
               </Button>

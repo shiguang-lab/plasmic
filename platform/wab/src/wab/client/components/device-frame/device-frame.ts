@@ -9,7 +9,7 @@ function matches(width: number, height: number, size: { width: number; height: n
     (size.height === width && size.width === height);
 }
 
-/** The authored viewport fills the display beneath the shell's system chrome. */
+/** The preset describes the entire display, including its system UI. */
 export function getDeviceFrame(width: number, height: number, device?: DeviceKind | "custom") {
   if (!Number.isFinite(width) || !Number.isFinite(height) || Math.min(width, height) < 240) {
     return undefined;
@@ -28,7 +28,15 @@ export function getDeviceFrame(width: number, height: number, device?: DeviceKin
   const hardwareEnd = hardware === "home-button" ? 54 : 0;
   const statusBarHeight = kind === "tablet" ? 24 : landscape ? 0 :
     hardware === "home-button" ? 20 : hardware === "notch" ? 47 : 59;
+  const safeSide = landscape && kind === "phone" && hardware !== "home-button"
+    ? hardware === "notch" ? 47 : 59
+    : 0;
+  const safeBottom = hardware === "home-button" ? 0 : kind === "tablet" ? 20 : landscape ? 21 : 34;
   return {
+    safeSide,
+    safeTop: statusBarHeight,
+    safeBottom,
+    contentHeight: height - statusBarHeight - safeBottom,
     kind,
     landscape,
     hardware,
@@ -43,3 +51,16 @@ export function getDeviceFrame(width: number, height: number, device?: DeviceKin
 }
 
 export type DeviceFrameGeometry = NonNullable<ReturnType<typeof getDeviceFrame>>;
+
+/** Give fixed elements and viewport units the same usable screen as normal content. */
+export function deviceViewportStyle(frame: DeviceFrameGeometry) {
+  return {
+    position: "absolute" as const,
+    left: `${frame.safeSide}px`,
+    top: `${frame.safeTop}px`,
+    width: `calc(100% - ${2 * frame.safeSide}px)`,
+    height: `${frame.contentHeight}px`,
+    borderRadius: "0",
+    clipPath: `inset(${-frame.safeTop}px ${-frame.safeSide}px ${-frame.safeBottom}px round ${frame.screenRadius}px)`,
+  };
+}

@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { isTplCodeComponentStyleable } from "@/wab/client/code-components/code-components";
 import { RepeatingElementControl } from "@/wab/client/components/sidebar-tabs/RepeatingElementControl";
 import { COMMANDS } from "@/wab/client/commands/command";
@@ -214,6 +215,7 @@ const VariantStateSwitcher = React.memo(function VariantStateSwitcher(props: {
   tpl: TplNode;
 }) {
   const { studioCtx, viewCtx, tpl } = props;
+  const inspecting = React.useContext(InspectorReadOnly);
   const { t: uiT } = useI18n();
   // Thread the variant snapshots directly into controller creation so React
   // Compiler tracks them as dependencies of `targetedVariants` and `activeLabel`.
@@ -259,7 +261,7 @@ const VariantStateSwitcher = React.memo(function VariantStateSwitcher(props: {
   const privateVariants = availableVariants
     .filter(isPrivateStyleVariant)
     .filter((v) => v.forTpl === tpl);
-  const applicableSelectors = isKnownTplTag(tpl)
+  const applicableSelectors = !inspecting && isKnownTplTag(tpl)
     ? getApplicableSelectors(tpl.tag, true, tpl === component.tplTree).filter(
         (s) => !s.displayName.toLowerCase().startsWith("not "),
       )
@@ -526,6 +528,7 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
     studioCtx.uiEnvironment?.store ?? FALLBACK_PERMISSIONS_STORE,
     (state) => state.componentSectionPermissions,
   );
+  const inspection = React.useContext(InspectorReadOnly);
   const repetitionAllowed = useStore(
     studioCtx.uiEnvironment?.store ?? FALLBACK_PERMISSIONS_STORE,
     (state) => canEditStyleSection(
@@ -693,7 +696,7 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
   );
 
   const canShowVisibilityToggle =
-    !contentOnly && !partDisplayName && canToggleVisibility(tpl, viewCtx);
+    !inspection && !contentOnly && !partDisplayName && canToggleVisibility(tpl, viewCtx);
 
   const { componentLabel, description } = getHeaderSubtitleMeta(
     tpl,
@@ -705,7 +708,7 @@ export const RightInspectorHeader = React.memo(function RightInspectorHeader(pro
     viewCtx.tplMgr().isOwnedBySite(tpl.component) &&
     !isCodeComponent(tpl.component) &&
     studioCtx.canEditComponent(tpl.component);
-  const canExtractComponent =
+  const canExtractComponent = !inspection &&
     !contentOnly &&
     !isTplComponent(tpl) &&
     viewCtx.tplMgr().canExtractComponent(tpl);

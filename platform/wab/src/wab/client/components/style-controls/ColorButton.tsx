@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { PropValuePath } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import {
   PopoverFrame,
@@ -64,7 +65,7 @@ function ColorButtonContent(props: ColorButtonProps) {
     hideTokenPicker,
     popupTitle,
     valueSetState,
-    isDisabled,
+    isDisabled: disabled,
     className,
     leadingIcon,
     floatingPicker,
@@ -72,6 +73,8 @@ function ColorButtonContent(props: ColorButtonProps) {
     vsh,
     valuePath,
   } = props;
+  const inspecting = React.useContext(InspectorReadOnly);
+  const isDisabled = disabled && !inspecting;
   const [buttonElement, setButtonElement] = useState<HTMLElement | null>(null);
   const [show, setShow] = useState(false);
   const popoverFrameContext = useMaybePopoverFrameContext();
@@ -145,7 +148,7 @@ function ColorButtonContent(props: ColorButtonProps) {
         </Popover>
         {props.showValue && (
           <Tooltip title={tokenRef ? studioUiT("Opacity is controlled by the color token") : studioUiT("Opacity")}>
-            <InputNumber
+            {inspecting ? <span>{validColor ? Math.round(Chroma(realColor).alpha() * 100) + "%" : "—"}</span> : <InputNumber
               aria-label={studioUiT("Opacity")}
               className={paintStyles.fillOpacity}
               value={validColor ? Math.round(Chroma(realColor).alpha() * 100) : null}
@@ -156,7 +159,7 @@ function ColorButtonContent(props: ColorButtonProps) {
                   onChange(Chroma(realColor).alpha(value / 100).hex());
                 }
               }}
-            />
+            />}
           </Tooltip>
         )}
       </div>

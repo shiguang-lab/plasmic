@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { useServerQueryInputs, useServerQueryList, useServerFunctionMetadata, useServerFunctionRegistration } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
@@ -306,7 +307,7 @@ function ServerQueriesSection_(props: {
       emptyBody={snapshot.queries.length === 0}
       emptyDescription={uiT("Fetch data from external sources.")}
       zeroBodyPadding
-      controls={
+      controls={<InspectorEdit>{
         otherComponentsWithQueries.length > 0 ? (
           <IFrameAwareDropdownMenu menu={addMenu}>
             <Tooltip
@@ -341,7 +342,7 @@ function ServerQueriesSection_(props: {
             />
           </Tooltip>
         )
-      }
+      }</InspectorEdit>}
     >
       {snapshot.queries.map((queryRef) => (
         <ServerQueryRow

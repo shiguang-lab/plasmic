@@ -302,6 +302,7 @@ describe("AI prototype editor tools", () => {
     const { studioCtx, call } = fixture();
     await call("createCanvas", { name: "信贷" });
     await call("createCanvas", { name: "健身", description: "训练流程" });
+    expect(studioCtx.copilotActivity.store.getState().regions).toHaveLength(0);
     const result = await call("createComponent", { type: "page", name: "力量训练", path: "/strength", canvasName: "健身" });
     const componentUuid = result.created.find(item => item.kind === "Component").uuid;
     const frameUuid = result.created.find(item => item.kind === "Artboard").uuid;
@@ -317,6 +318,7 @@ describe("AI prototype editor tools", () => {
     expect([page.name, page.pageMeta?.path]).toEqual(["健身-力量训练", "/strength"]);
     await call("updatePageSettings", { componentUuid, title: "训练", description: "课程", path: "/plan" });
     await call("updateArtboard", { canvasName: "健身", frameUuid, targetCanvasName: "信贷" });
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.targets).toEqual([{ frameUuid }]);
     expect(credit.children[0].uuid).toBe(frameUuid);
     expect(fitness.children).toHaveLength(0);
     await call("removeArtboard", { canvasName: "信贷", frameUuid });
@@ -422,6 +424,7 @@ describe("AI prototype editor tools", () => {
     const refs = [{ componentUuid: source.uuid, elementUuid: links[0].uuid }];
     expect((await call("readPageReferences", { componentUuid: oldPage.uuid })).references).toEqual(refs);
     await call("replacePageLinks", { componentUuid: oldPage.uuid, targetPageUuid: newPage.uuid });
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.targets).toEqual(refs);
     expect((await call("readPageReferences", { componentUuid: newPage.uuid })).references).toEqual(refs);
     expect((await call("readPageReferences", { componentUuid: oldPage.uuid })).references).toEqual([]);
     expect(tryExtractJson(links[1].vsettings[0].attrs.href)).toBe("/before");
@@ -644,6 +647,9 @@ describe("AI prototype editor tools", () => {
       { name: "changeElement", input: { componentUuid: "$page", elementUuid: "$page.root", name: "Root" } },
     ] });
     const page = result.operations[0].created[0];
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.targets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ componentUuid: page.uuid, elementUuid: page.rootElementUuid }),
+    ]));
     const model = (await call("read", { componentUuids: [page.uuid], view: "full" })).results[0];
     expect(model.baseVariantTplTree).toContain("New content");
     expect(model.states[0].initialValue).toBe(true);
@@ -671,7 +677,7 @@ describe("AI prototype editor tools", () => {
     expect(await call("read", { componentUuids: [page.uuid], view: "full" })).toEqual(before);
   });
   it("uses bindings within local canvas scope and preserves literal business text", async () => {
-    const { call, createPage } = fixture();
+    const { studioCtx, call, createPage } = fixture();
     const page = await createPage();
     const context = await call("getEditorContext");
     const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId,
@@ -682,6 +688,7 @@ describe("AI prototype editor tools", () => {
     ] } });
     const receipts = JSON.parse(result.result).operations;
     expect(receipts[0].created[0].kind).toBe("Element");
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.targets.map(target => target.elementUuid)).toContain(receipts[0].created[0].uuid);
     expect(receipts[1].elementUuid).toBe(receipts[0].created[0].uuid);
     expect(result.result).not.toContain("baseVariantTplTree");
     expect(result.after).toContain("$button");
@@ -1034,6 +1041,7 @@ describe("AI prototype editor tools", () => {
       "New page missing",
     );
     expect(created.changed).toBe(true);
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.targets).toEqual([{ componentUuid: page.uuid }]);
     await expect(
       edit("createComponent", {
         name: "Another",
@@ -1943,6 +1951,75 @@ describe("AI prototype editor tools", () => {
       beginActivity.mockRestore();
     },
   );
+  it("starts a targeted model read before registration finishes", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    studioCtx.studioIsVisible = true;
+    studioCtx.copilotActivity.dispose();
+    let resume = () => {};
+    const gate = vi.spyOn(studioCtx, "ensureCodeComponentRegistrations").mockImplementationOnce(
+      () => new Promise<void>(resolve => { resume = resolve; })
+    );
+    const pending = call("read", { componentUuids: [page.uuid], fields: ["props"] });
+    try {
+      await vi.waitFor(() => expect(gate).toHaveBeenCalledOnce());
+      expect(studioCtx.copilotActivity.store.getState().requests[0]).toMatchObject({
+        status: "running", kind: "inspection", targets: [{ componentUuid: page.uuid }],
+      });
+    } finally { resume(); }
+    await pending;
+    expect(studioCtx.copilotActivity.store.getState().requests[0].status).toBe("success");
+    studioCtx.copilotActivity.dispose();
+  });
+
+  it.each(["copyElement", "moveElement"])("tracks both ends of a local %s", async name => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    const insert = (html: string) => call("insertHtml", { componentUuid: page.uuid, html });
+    const source = (await insert("<button>OK</button>")).created[0].uuid;
+    const dest = (await insert('<section data-plasmic-name="Destination"><div>Destination</div></section>')).created[0].uuid;
+    const context = await call("getEditorContext");
+    const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId,
+      changeCounter: context.changeCounter, componentUuid: page.uuid, elementUuids: [] };
+    await call("executeLocalEdit", { binding, name, input: {
+      componentUuid: page.uuid, elementUuid: source, targetUuid: dest, location: "append",
+    } });
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.targets.map(target => target.elementUuid)).toEqual([source, dest]);
+    studioCtx.copilotActivity.dispose();
+  });
+
+  it.each(["createComponent", "duplicateComponent"])("scans the newly created page for %s in a batch", async name => {
+    const { studioCtx, call, createPage } = fixture();
+    const source = await createPage("Original");
+    studioCtx.copilotActivity.dispose();
+    const input = name === "duplicateComponent" ? { name: "Copy", componentUuid: source.uuid } : { name: "New", type: "page" };
+    const result = await call("executeBatch", { operations: [{ name, input }] });
+    const created = result.operations[0].created.find((item: {kind: string}) => item.kind === "Component");
+    const targets = studioCtx.copilotActivity.store.getState().requests[0].targets;
+    expect(targets).toContainEqual({ componentUuid: created.uuid });
+    expect(targets).not.toContainEqual({});
+    studioCtx.copilotActivity.dispose();
+  });
+
+  it.each([false, true])("scans only the newly created artboard (batch=%s)", async batch => {
+    const { studioCtx, call, createPage } = fixture();
+    const page = await createPage();
+    await call("createCanvas", { name: "Group" });
+    const input = { canvasName: "Group", componentUuid: page.uuid, width: 600, height: 400 };
+    await call("createArtboard", input);
+    studioCtx.copilotActivity.dispose();
+    studioCtx.studioIsVisible = true;
+    const operation = { name: "createArtboard", input };
+    const result = batch ? await call("executeBatch", { operations: [operation] }) : await call(operation.name, input);
+    const receipt = batch ? result.operations[0] : result;
+    const frame = receipt.created.find((item: { kind: string }) => item.kind === "Artboard");
+    expect(result.presentation).toMatchObject({ frameUuid: frame.uuid });
+    expect(studioCtx.copilotActivity.store.getState().requests[0].targets).toEqual([
+      { componentUuid: page.uuid, canvasName: "Group", frameUuid: frame.uuid },
+    ]);
+    studioCtx.copilotActivity.dispose();
+  });
+
   it("tracks actual edits and returns failures to the agent without retaining failure feedback", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("Scan");
@@ -2544,17 +2621,15 @@ describe("AI prototype editor tools", () => {
     asset.dataUri = "https://plasmic-studio.shiguanglab.com/assets/fixture.svg";
     const fetcher = vi.spyOn(globalThis, "fetch");
     try {
-      fetcher.mockResolvedValueOnce(
-        new Response(xml, { headers: { "content-type": "image/svg+xml" } }),
-      );
-      expect(
-        (
-          await call("readVector", {
-            componentUuid: page.uuid,
-            elementUuid: tpl.uuid,
-          })
-        ).svg,
-      ).toBe(xml);
+      let release: (response: Response) => void = () => {};
+      fetcher.mockImplementationOnce(() => new Promise(resolve => { release = resolve; }));
+      const pending = call("readVector", { componentUuid: page.uuid, elementUuid: tpl.uuid });
+      await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
+      expect(studioCtx.copilotActivity.store.getState().requests.at(-1)).toMatchObject({
+        status: "running", kind: "inspection", targets: [{ elementUuid: tpl.uuid }],
+      });
+      release(new Response(xml, { headers: { "content-type": "image/svg+xml" } }));
+      expect((await pending).svg).toBe(xml);
       expect(fetcher).toHaveBeenCalledWith(
         asset.dataUri,
         expect.objectContaining({ credentials: "include" }),
@@ -2565,7 +2640,7 @@ describe("AI prototype editor tools", () => {
       await expect(
         call("readVector", { componentUuid: page.uuid, elementUuid: tpl.uuid }),
       ).rejects.toThrow("not SVG");
-      expect(beginActivity).toHaveBeenCalledTimes(2);
+      expect(beginActivity).toHaveBeenCalledTimes(3);
       expect(studioCtx.copilotActivity.store.getState().requests).toMatchObject(
         Array.from({ length: 2 }, () => ({
           kind: "inspection",

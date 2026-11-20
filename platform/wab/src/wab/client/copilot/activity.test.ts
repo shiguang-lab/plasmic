@@ -165,6 +165,20 @@ it("keeps long operations active and cancels pending cleanup when Studio closes"
   expect(vi.getTimerCount()).toBe(0);
 });
 
+it("counts the minimum scan time from receipt of a late target", () => {
+  vi.useFakeTimers();
+  const activity = new CopilotActivity();
+  const finish = activity.begin([]);
+  vi.advanceTimersByTime(5000);
+  finish.addTargets([{ frameUuid: "new" }]);
+  finish("success");
+  vi.advanceTimersByTime(1599);
+  expect(activity.store.getState().regions[0]?.scanning).toBe(true);
+  vi.advanceTimersByTime(1);
+  expect(activity.store.getState().regions[0]?.scanning).toBe(false);
+  activity.dispose();
+});
+
 it("keeps successful edit scans moving for at least 1.6 seconds", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
@@ -234,6 +248,12 @@ it("resolves both source and destination of batched moves", () => {
     { componentUuid: "page", elementUuid: "source" },
     { componentUuid: "page", elementUuid: "dest" },
     { canvasName: "Draft", frameUuid: "frame" },
+  ]);
+});
+
+it("limits a targeted viewport edit to its page frame", () => {
+  expect(activityTargets("setPageViewport", { componentUuid: "page", frameUuid: "mobile" })).toEqual([
+    { componentUuid: "page", frameUuid: "mobile" },
   ]);
 });
 

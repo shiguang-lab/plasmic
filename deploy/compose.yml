@@ -16,6 +16,7 @@ x-server: &server
     SG_IDENTITY_API_URL: ${SG_IDENTITY_API_URL:?set SG_IDENTITY_API_URL}
     SG_IDENTITY_API_TOKEN: ${SG_IDENTITY_API_TOKEN:?set SG_IDENTITY_API_TOKEN}
     SG_IDENTITY_JWKS_URL: ${SG_IDENTITY_JWKS_URL}
+    DESKTOP_BETA_USER_IDS: ${DESKTOP_BETA_USER_IDS:-}
     SG_BOOTSTRAP_SUB: ${SG_BOOTSTRAP_SUB}
     SG_LEGACY_USER_MAPPING: ${SG_LEGACY_USER_MAPPING}
     PREVIEW_ORIGIN: ${PREVIEW_ORIGIN:-https://plasmic-preview.shiguanglab.com}
@@ -41,6 +42,7 @@ x-server: &server
     DISABLE_BWRAP: "1"
     BACKEND_PORT: "3004"
   volumes:
+    - ./desktop-beta:/plasmic/desktop-beta:ro
     - component-vectors:/home/node/.cache/plasmic/component-vectors
     - ./secrets/plasmic.json:/run/secrets/plasmic.json:ro
   depends_on:

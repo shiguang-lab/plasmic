@@ -261,6 +261,17 @@ it("reveals a nested component in the host artboard without opening its dedicate
   expect(f.parent.scrollTop).toBe(420);
 });
 
+it("keeps automatic positioning on the specified artboard", async () => {
+  const f = await visibleEditorFixture();
+  const page = f.frame.container.component;
+  const reveal = vi.spyOn(f.vc.canvasRenderOwner, "revealTarget");
+  expect(await presentToolTarget(f.studioCtx, page, page.tplTree, undefined, "off-canvas-frame"))
+    .toMatchObject({ visible: false, reason: "target-not-on-canvas" });
+  expect(reveal).not.toHaveBeenCalled();
+  expect(await presentToolTarget(f.studioCtx, page, page.tplTree, undefined, f.frame.uuid))
+    .toMatchObject({ visible: true, frameUuid: f.frame.uuid });
+});
+
 it("does not reveal or scroll a late target after the user changes canvas", async () => {
   const f = await visibleEditorFixture();
   let release = () => {};

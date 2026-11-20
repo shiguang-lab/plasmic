@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useTargetedStylePanelInputs, useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { collectPropExpressionFields } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
@@ -604,6 +605,7 @@ const TextEditor = React.memo(function TextEditor_(props: {
   isDisabled: boolean | undefined;
 }) {
   const { viewCtx, tpl, text, setState, isDisabled } = props;
+  const inspecting = React.useContext(InspectorReadOnly);
   const editingText = useEditingTextContext(viewCtx);
   const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => collectPropExpressionFields(text, field), [text]);
   const readContent = React.useCallback(() => text ? getRichTextContent(text, viewCtx) : undefined, [text, viewCtx]);
@@ -613,6 +615,7 @@ const TextEditor = React.memo(function TextEditor_(props: {
     editingText?.val.tpl === tpl && editingText.draftText !== undefined
       ? editingText.draftText.text
       : committedContent;
+  if (inspecting) { return <span>{content ?? "—"}</span>; }
   if (isKnownRawText(text) && text.markers.length === 0 && !content?.includes("\n")) {
     return (
       <Input

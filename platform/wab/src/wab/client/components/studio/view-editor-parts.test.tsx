@@ -7,8 +7,8 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { mkBaseVariant } from "@/wab/shared/Variants";
-import { mkTplComponent } from "@/wab/shared/core/tpls";
-import { ValComponent } from "@/wab/shared/core/val-nodes";
+import { mkTplComponent, mkTplTag } from "@/wab/shared/core/tpls";
+import { ValComponent, ValTag } from "@/wab/shared/core/val-nodes";
 import $ from "jquery";
 import { mock } from "vitest-mock-extended";
 
@@ -19,7 +19,9 @@ vi.mock("@/wab/client/components/canvas/studio-canvas-util", async (original) =>
 
 afterEach(() => { document.body.innerHTML = ""; vi.restoreAllMocks(); });
 
-it.each([[true, false], [false, false], [false, true]])("handles part selection and double-clicks (text contract=%s, published=%s)", async (hasTextContract, published) => {
+it.each([false, true].flatMap((published) =>
+  [[true, false], [false, false], [true, true]].map(([hasTextContract, hasChild]) => ({ published, hasTextContract, hasChild }))
+))("handles part selection and double-clicks (text contract=$hasTextContract, published=$published, authored child=$hasChild)", async ({ hasTextContract, published, hasChild }) => {
   const { studioCtx } = fakeStudioCtx({ siteInfo: published ? { publishedTemplateVersion: "1.0.0" } : undefined });
   const source = mock<ViewCtx>();
   const canvas = mock<CanvasCtx>();
@@ -34,7 +36,8 @@ it.each([[true, false], [false, false], [false, true]])("handles part selection 
   root.dataset.owner = "";
   root.innerHTML = '<button data-part="ok"><span data-content>Next</span></button>';
   source.getViewOps.mockReturnValue(viewOps);
-  source.dom2focusObj.mockReturnValue(owner);
+  const child = new ValTag({ tpl: mkTplTag("span") } as any);
+  source.dom2focusObj.mockImplementation(($elt) => hasChild && $elt.is("[data-content]") ? child : owner);
   source.sel2cloneKey.mockReturnValue("instance[1]");
   source.getCodeComponentMeta.mockReturnValue({ canvasParts: { ok: { selector: '[data-part="ok"]', displayName: "Confirm button", props: ["okText", "onOk"], ...(hasTextContract ? { text: { prop: "okText", selector: '[data-part="ok"]' } } : {}) } } } as any);
   let focusedPart: unknown;
@@ -55,18 +58,6 @@ it.each([[true, false], [false, false], [false, true]])("handles part selection 
   root.querySelector("span")!.dispatchEvent(event);
   try {
     await Reflect.get(editor, "handleMouseDown").call(editor, event, source);
-    if (published) {
-      expect(viewOps.tryFocusDomElt).toHaveBeenCalledWith(expect.objectContaining({ 0: root.querySelector("span") }), { exact: false, deepSelect: false });
-      expect(Reflect.get(editor, "dragState")).toBeUndefined();
-      expect(Reflect.get(editor, "pendingCanvasClick")).toBeUndefined();
-      const release = new MouseEvent("pointerup", { button: 0 });
-      await Reflect.get(editor, "handleMouseUp").call(editor, release, source);
-      await Reflect.get(editor, "handleMouseDown").call(editor, event, source);
-      await Reflect.get(editor, "handleMouseUp").call(editor, release, source);
-      expect(viewOps.tryEditText).not.toHaveBeenCalled();
-      expect(viewOps.deepFocusElement).not.toHaveBeenCalled();
-      return;
-    }
     expect(viewOps.tryFocusObj).toHaveBeenCalledWith(owner, { exact: true, anchorCloneKey: "instance[1]" });
     expect(source.setFocusedComponentPart).toHaveBeenLastCalledWith(expect.objectContaining({ tpl, name: "ok", element: root.querySelector("button") }));
     expect(tab).toHaveBeenCalledWith(RightTabKey.style);
@@ -90,7 +81,7 @@ it.each([[true, false], [false, false], [false, true]])("handles part selection 
     const secondRelease = new MouseEvent("pointerup", { bubbles: true, button: 0 });
     root.querySelector("span")!.dispatchEvent(secondRelease);
     await Reflect.get(editor, "handleMouseUp").call(editor, secondRelease, source);
-    if (hasTextContract) {
+    if (hasTextContract && !hasChild) {
       expect(viewOps.tryEditText).toHaveBeenCalledOnce();
       expect(viewOps.deepFocusElement).not.toHaveBeenCalled();
     } else {

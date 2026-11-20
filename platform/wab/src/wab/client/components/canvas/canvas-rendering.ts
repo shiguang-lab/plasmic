@@ -3113,6 +3113,7 @@ function createPlasmicElementProxy(
 }
 
 export interface CanvasFrameInfo {
+  readonly deviceContentHeight?: number;
   // Using constants to avoid pulling in Arenas.ts
   viewMode: "stretch" | "centered";
   height: number;

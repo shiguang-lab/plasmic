@@ -146,6 +146,21 @@ ${rows}
 \t\t\trespond @plasmic_write 405
 \t\t\t@plasmic_options method OPTIONS
 \t\t\trespond @plasmic_options 204
+\t\t\t@plasmic_session_index {
+\t\t\t\tpath /desktop-updates/latest.json
+\t\t\t\theader Cookie *__Secure-sg_session=*
+\t\t\t}
+\t\t\treverse_proxy @plasmic_session_index http://100.87.115.78:3600 {
+\t\t\t\theader_up Host {host}
+\t\t\t\theader_up -Authorization
+\t\t\t\theader_up -X-SG-*
+\t\t\t\trewrite /api/v1/desktop-updates/latest?
+\t\t\t\t@plasmic_public_fallback status 3xx 4xx 5xx
+\t\t\t\thandle_response @plasmic_public_fallback {
+\t\t\t\t\t# Continue into the anonymous GitHub release proxy below.
+\t\t\t\t\tvars plasmic_response_cache no-store
+\t\t\t\t}
+\t\t\t}
 \t\t\trewrite {plasmic_target}?plasmic_proxy={http.request.uuid}
 ${indent(indent(indent(githubProxy(true))))}
 \t\t}

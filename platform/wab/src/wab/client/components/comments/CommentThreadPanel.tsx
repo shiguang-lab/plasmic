@@ -74,7 +74,7 @@ export const useCommentPanelStyles = createStyles(({ token }) => ({
   },
   resolve: { flexShrink: 0 },
   secondary: { fontSize: 11, color: token.colorTextSecondary },
-  content: { padding: "24px 16px 16px" },
+  content: { padding: "4px 16px 16px" },
   composer: {
     padding: "12px 14px 8px",
     borderTop: `1px solid ${token.colorBorderSecondary}`,

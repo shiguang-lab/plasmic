@@ -19,10 +19,11 @@ import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getArenaFrames, getFrameHeight } from "@/wab/shared/Arenas";
+import { componentToDeepReferenced, flattenComponent } from "@/wab/shared/cached-selectors";
 import { ensure } from "@/wab/shared/common";
-import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
 import { Box } from "@/wab/shared/geom";
-import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
+import type { ValNode } from "@/wab/shared/core/val-nodes";
+import { ArenaFrame, Component, TplNode } from "@/wab/shared/model/classes";
 import { createStyles } from "antd-style";
 import classNames from "classnames";
 import { findLast, groupBy } from "lodash";
@@ -65,10 +66,17 @@ export function activityBounds(
 interface RegionLayout {
   /** The Tpl whose DOM is drawn, which may be an ancestor of the target. */
   drawnUuid: string;
-  /** Ancestors of the drawn Tpl, nearest first, excluding itself. */
-  drawnAncestorUuids: string[];
-  /** Undefined when the drawn Tpl is entirely clipped. */
+  /** Include the instance identity for nodes defined inside a reusable component. */
+  drawnKey: string;
+  ancestorKeys: string[];
   bounds?: Bounds;
+}
+
+function targetComponent(frame: ArenaFrame, target: ActivityTarget, studio: StudioCtx) {
+  const root = frame.container.component;
+  if (!target.componentUuid || root.uuid === target.componentUuid) { return root; }
+  const component = studio.site.components.find(candidate => candidate.uuid === target.componentUuid);
+  return component && componentToDeepReferenced(root).has(component) ? component : undefined;
 }
 
 function measureRegion(
@@ -76,37 +84,45 @@ function measureRegion(
   frame: ArenaFrame,
   tpls: Map<string, TplNode>,
   target: ActivityTarget,
-): RegionLayout | undefined {
+): RegionLayout[] {
   const height = getFrameHeight(frame);
   const root = frame.container.component.tplTree;
   if (!target.elementUuid) {
-    return {
+    return [{
       drawnUuid: root.uuid,
-      drawnAncestorUuids: [],
+      drawnKey: root.uuid,
+      ancestorKeys: [],
       bounds: { left: 0, top: 0, width: frame.width, height },
-    };
+    }];
   }
-  // Removed targets use their nearest surviving ancestor.
   let tpl: TplNode | null | undefined =
     tpls.get(target.elementUuid) ??
     target.ancestorUuids?.map((uuid) => tpls.get(uuid)).find(Boolean);
-  // Slots, nonvisual code components and unrendered content use their nearest
-  // rendered ancestor.
   while (tpl) {
-    const val = viewCtx.renderState.tpl2bestVal(tpl, undefined);
-    const doms = val && viewCtx.renderState.sel2dom(val, viewCtx.canvasCtx);
-    if (doms?.length) {
-      return {
+    const state = viewCtx.renderState;
+    const layouts: RegionLayout[] = [];
+    for (const fullKey of state.tpl2fullKeys(tpl)) {
+      const val = state.fullKey2val(fullKey);
+      if (!val) { continue; }
+      const doms = state.sel2dom(val, viewCtx.canvasCtx);
+      if (!doms?.length) { continue; }
+      // The synthetic whole-artboard region uses the frame root UUID. All
+      // other ancestry follows rendered instances, including repeated rows.
+      const ancestorKeys = tpl === root ? [] : [root.uuid];
+      for (let parent: ValNode | undefined = val.parent; parent; parent = parent.parent) {
+        ancestorKeys.push(parent.fullKey);
+      }
+      layouts.push({
         drawnUuid: tpl.uuid,
-        drawnAncestorUuids: ancestorsUp(tpl, true).map(
-          (ancestor) => ancestor.uuid,
-        ),
+        drawnKey: tpl === root ? root.uuid : fullKey,
+        ancestorKeys,
         bounds: activityBounds(doms, frame.width, height),
-      };
+      });
     }
+    if (layouts.length) { return layouts; }
     tpl = tpl.parent;
   }
-  return undefined;
+  return [];
 }
 
 const ActivityRegion = function ActivityRegion({
@@ -176,30 +192,35 @@ interface PresentedRegion {
 }
 
 /** Requests may finish before paint; only the rendered scan owns its exit. */
-function ActivityRegions({ viewCtx, regions, scope }: {
+function ActivityRegions({ viewCtx, regions, trackedKeys, scope }: {
   viewCtx: ViewCtx;
   regions: PresentedRegion[];
+  trackedKeys: string[];
   scope: unknown;
 }) {
   const [shown, setShown] = React.useState<PresentedRegion[]>([]);
   const completed = React.useRef(new Map<string, number>());
   const owner = React.useRef({ viewCtx, scope });
-  const getRegions = useCommittedValue(regions);
-  const signature = JSON.stringify(regions);
+  const getPresentation = useCommittedValue({ regions, trackedKeys });
+  const signature = JSON.stringify([regions, trackedKeys]);
   React.useLayoutEffect(() => {
     const reset = owner.current.viewCtx !== viewCtx || owner.current.scope !== scope;
     owner.current = { viewCtx, scope };
     if (reset) { completed.current.clear(); }
-    const next = getRegions();
+    const { regions: next, trackedKeys: tracked } = getPresentation();
     const keys = new Set(next.map(region => region.key));
     for (const key of completed.current.keys()) {
       if (!keys.has(key)) { completed.current.delete(key); }
     }
+    // A tracked request can lose a box through scrolling or ancestor suppression.
+    // Only released requests should finish their last cycle at the previous box.
+    const activeKeys = new Set(tracked);
+    const frameRoot = viewCtx.arenaFrame().container.component.tplTree.uuid;
     setShown(previous => [
       ...next.filter(region => region.scanning || completed.current.get(region.key) !== region.request.id),
-      ...(reset ? [] : previous.filter(region => !keys.has(region.key)).map(region => ({ ...region, scanning: false }))),
+      ...(reset ? [] : previous.filter(region => !keys.has(region.key) && !activeKeys.has(region.target.elementUuid ?? frameRoot)).map(region => ({ ...region, scanning: false }))),
     ]);
-  }, [viewCtx, scope, signature, getRegions]);
+  }, [viewCtx, scope, signature, getPresentation]);
   return <>{shown.map(({ key, request, target, scanning, bounds }) => <ActivityRegion
     key={key}
     viewCtx={viewCtx}
@@ -231,17 +252,12 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
   const frameRefs = useStudioArena(studioCtx, (state) => state.frames);
   const scopeFrames = React.useMemo(() => current ? getArenaFrames(studioCtx.currentArena) : [frame], [studioCtx, current, frameRefs, frame]);
   useCopilotActivityInputs(studioCtx, scopeFrames);
-  const componentUuid = frame.container.component.uuid;
-  const frameUuid = frame.uuid;
   const matchesFrame = (target: ActivityTarget, candidate: ArenaFrame) =>
-    (!target.componentUuid || target.componentUuid === candidate.container.component.uuid) &&
     (!target.canvasName || arenaName === target.canvasName) &&
-    (!target.frameUuid || target.frameUuid === candidate.uuid);
+    (!target.frameUuid || target.frameUuid === candidate.uuid) &&
+    !!targetComponent(candidate, target, studioCtx);
   const matchingRegions = useStore(studioCtx.copilotActivity.store, useShallow(state =>
-    state.regions.filter(({ target }) =>
-      (!target.componentUuid || target.componentUuid === componentUuid) &&
-      (!target.canvasName || arenaName === target.canvasName) &&
-      (!target.frameUuid || target.frameUuid === frameUuid))));
+    state.regions.filter(({ target }) => matchesFrame(target, frame))));
   const frames = scopeFrames;
   const cursorRequest = useStore(studioCtx.copilotActivity.cursorStore, state => {
     const request = state.current;
@@ -269,7 +285,14 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
   // A whole-component request and its root Tpl also address the same region.
   const regions = Object.entries(
     groupBy(
-      matchingRegions,
+      matchingRegions.map(region => {
+        const { target } = region;
+        if (target.elementUuid || !target.componentUuid || target.componentUuid === frame.container.component.uuid) {
+          return region;
+        }
+        const definition = targetComponent(frame, target, studioCtx);
+        return definition ? { ...region, target: { ...target, elementUuid: definition.tplTree.uuid } } : region;
+      }),
       ({ target }) =>
         target.elementUuid ?? frame.container.component.tplTree.uuid,
     ),
@@ -287,11 +310,12 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
   // Render state is not observable, so follow the canvas DOM every frame.
   // Every region is measured, including suppressed ones, because suppression
   // depends on where each scan would be drawn.
-  const [layouts, setLayouts] = React.useState<Record<string, RegionLayout>>(
+  const [layouts, setLayouts] = React.useState<Record<string, RegionLayout[]>>(
     {},
   );
   const getRegions = useCommittedValue(regions);
-  const regionKeys = JSON.stringify(regions.map(({ key }) => key));
+  const trackedKeys = regions.map(({ key }) => key);
+  const regionKeys = JSON.stringify(trackedKeys);
   React.useEffect(() => {
     if (!viewCtx || !getRegions().length) {
       // Idle frames don't poll the canvas DOM.
@@ -303,20 +327,17 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
     let animation: number;
     const update = () => {
       const arenaFrame = viewCtx.arenaFrame();
-      const tpls = new Map(
-        getRegions().some(({ target }) => target.elementUuid)
-          ? flattenTpls(arenaFrame.container.component.tplTree).map((tpl) => [
-              tpl.uuid,
-              tpl,
-            ])
-          : [],
-      );
-      const next: Record<string, RegionLayout> = {};
+      const trees = new Map<Component, Map<string, TplNode>>();
+      const next: Record<string, RegionLayout[]> = {};
       for (const { key, target } of getRegions()) {
-        const layout = measureRegion(viewCtx, arenaFrame, tpls, target);
-        if (layout) {
-          next[key] = layout;
+        const component = targetComponent(arenaFrame, target, studioCtx);
+        if (!component) { continue; }
+        let tpls = trees.get(component);
+        if (!tpls) {
+          tpls = new Map(target.elementUuid ? flattenComponent(component).map(tpl => [tpl.uuid, tpl]) : []);
+          if (target.elementUuid) { trees.set(component, tpls); }
         }
+        next[key] = measureRegion(viewCtx, arenaFrame, tpls, target);
       }
       setLayouts((previous) =>
         JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
@@ -325,19 +346,22 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
     };
     update();
     return () => cancelAnimationFrame(animation);
-  }, [viewCtx, regionKeys, getRegions]);
-  const placedRegions = regions.flatMap((region) => {
-    const layout = layouts[region.key];
-    return layout ? [{ ...region, layout }] : [];
-  });
+  }, [viewCtx, regionKeys, getRegions, studioCtx]);
+  const placedRegions = regions.flatMap(region =>
+    (layouts[region.key] ?? []).map(layout => ({
+      ...region,
+      key: layout.drawnKey !== layout.drawnUuid ? JSON.stringify([region.key, layout.drawnKey]) : region.key,
+      layout,
+    })),
+  );
   // Targets drawn on the same element (e.g. an unrendered child and its
   // rendered parent) form one scan per kind.
   const drawnRegions = Object.values(
     groupBy(placedRegions, ({ layout, request }) =>
-      JSON.stringify([layout.drawnUuid, request.kind]),
+      JSON.stringify([layout.drawnKey, request.kind]),
     ),
   ).map((matches) => ({
-    ...(matches.find(({ key, layout }) => key === layout.drawnUuid) ??
+    ...(matches.find(({ target, layout }) => target.elementUuid === layout.drawnUuid) ??
       matches[0]),
     request: ensure(
       currentActivity(
@@ -354,9 +378,9 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
     (region) =>
       !drawnRegions.some(
         (parent) =>
-          parent !== region &&
+          parent !== region && !!parent.layout.bounds &&
           parent.request.kind === region.request.kind &&
-          region.layout.drawnAncestorUuids.includes(parent.layout.drawnUuid),
+          region.layout.ancestorKeys.includes(parent.layout.drawnKey),
       ),
   );
   const visibleRegions = outermostRegions.filter(
@@ -365,10 +389,11 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
   // A clipped cursor region clears the cursor rather than leaving it behind.
   const cursorRegion =
     findLast(
-      outermostRegions,
+      visibleRegions,
       (region) => region.request.id === cursorRequest?.id,
     ) ??
-    findLast(outermostRegions, (region) => region.request.kind === "edit");
+    findLast(outermostRegions, (region) => region.request.id === cursorRequest?.id) ??
+    findLast(visibleRegions, (region) => region.request.kind === "edit");
   const cursorBounds = cursorRegion?.layout.bounds;
   const cursorBoundsKey = JSON.stringify(cursorBounds);
   const cursorName = cursorRequest?.caller?.name ?? t("AI assistant");
@@ -400,7 +425,7 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
         className={classNames(styles.cursorHost, themeStyles.root)}
       />}
       <div className={styles.screenClip}>
-      <ActivityRegions viewCtx={viewCtx} scope={current} regions={visibleRegions.map(({ key, request, target, scanning, layout }) => ({
+      <ActivityRegions viewCtx={viewCtx} scope={current} trackedKeys={trackedKeys} regions={visibleRegions.map(({ key, request, target, scanning, layout }) => ({
         key, request, target, scanning, bounds: ensure(layout.bounds, "Visible activity region has bounds"),
       }))} />
       </div>

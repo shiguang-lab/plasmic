@@ -22,6 +22,7 @@ const { createServer } = require("node:http");
 const { createDeviceCredentials } = require("./src/device-credentials.cjs");
 const { DesktopUnifiedLogin, AUTH_ORIGIN } = require("./src/unified-login.cjs");
 const { MacUpdater, acknowledgeMacUpdate } = require("./src/mac-updater.cjs");
+const { createUpdateFeed } = require("./src/update-feed.cjs");
 const { UpdateManager } = require("./src/update-manager.cjs");
 const profile = process.env.PLASMIC_DESKTOP_PROFILE;
 assert(profile, "Acceptance requires an isolated profile");
@@ -44,18 +45,28 @@ async function finish(extra = {}) {
 app.whenReady().then(async () => {
   await acknowledgeMacUpdate(app, false);
   let origin;
+  const betaVersion = "1.0.2-beta.1";
+  const partition = `darwin/${process.arch}`;
+  const betaPath = `/api/v1/desktop-beta/${betaVersion}/${partition}/`;
+  const archiveName = `Plasmic-${betaVersion}-mac-${process.arch}.zip`;
   server = createServer((req, res) => {
     if (req.url === "/ticket") {
       res.writeHead(302, { "Set-Cookie": "fixture_session=owned-authenticated; Path=/; HttpOnly; Max-Age=3600; SameSite=Lax", Location: origin + (phase === "login" ? "/studio" : "/") });
       res.end();
     } else if (req.url === "/cookie-check") {
       res.end(req.headers.cookie?.includes("fixture_session=owned-authenticated") ? "authenticated" : "unauthenticated");
-    } else if (req.url === "/updates/latest-mac.yml") {
+    } else if (req.url === "/desktop-updates/latest.json") {
+      res.end(JSON.stringify({ version: req.headers.cookie?.includes("fixture_session=owned-authenticated") ? betaVersion : "1.0.1" }));
+    } else if (req.url === `/desktop-updates/${partition}/latest-mac.yml`) {
+      res.end(JSON.stringify({ version: "1.0.1" }));
+    } else if (req.url.startsWith(betaPath) && !req.headers.cookie?.includes("fixture_session=owned-authenticated")) {
+      res.writeHead(404).end();
+    } else if (req.url === betaPath + "latest-mac.yml") {
       const archive = fs.readFileSync(path.join(profile, "upgrade.zip"));
-      res.end(JSON.stringify({ version: "1.0.2", files: [{ url: `Plasmic-1.0.2-mac-${process.arch}.zip`, size: archive.length, sha512: createHash("sha512").update(archive).digest("base64") }] }));
-    } else if (req.url === `/updates/Plasmic-1.0.2-mac-${process.arch}.zip`) {
+      res.end(JSON.stringify({ version: betaVersion, files: [{ url: archiveName, size: archive.length, sha512: createHash("sha512").update(archive).digest("base64") }] }));
+    } else if (req.url === betaPath + archiveName) {
       fs.createReadStream(path.join(profile, "upgrade.zip")).pipe(res);
-    } else if (req.url.startsWith("/updates/")) {
+    } else if (req.url.startsWith(betaPath)) {
       res.writeHead(404).end();
     } else {
       res.setHeader("Content-Type", "text/html");
@@ -114,8 +125,12 @@ app.whenReady().then(async () => {
   assert.equal(fs.statSync(credentialFile).mode & 0o777, 0o600);
   await ses.cookies.flushStore();
   if (installingUpdate) {
-    const updater = new MacUpdater({ app, feedUrl: "https://owned-update.fixture/updates/", fetch: (url, init) => nativeFetch(origin + new URL(url).pathname, init) });
-    const updates = new UpdateManager({ updater, version: app.getVersion(), enabled: true, beforeInstall: async () => {} });
+    const studioOrigin = "https://owned-update.fixture";
+    const feedUrl = studioOrigin + "/desktop-updates/" + partition + "/";
+    const feed = createUpdateFeed({ studioOrigin, partition, feedUrl, manifestName: "latest-mac.yml",
+      session: { fetch: (url, init) => nativeFetch(origin + new URL(url).pathname, init) } });
+    const updater = new MacUpdater({ app, feedUrl, betaUrl: feed.betaUrl, latest: feed.latest, fetch: feed.fetchFile });
+    const updates = new UpdateManager({ updater, version: app.getVersion(), enabled: true, canInstallBeta: feed.canInstallBeta, beforeInstall: async () => {} });
     assert.equal((await updates.command("check")).phase, "downloaded");
     fs.writeFileSync(path.join(profile, "control.json"), JSON.stringify({ phase: "upgraded_startup" }));
     fs.writeFileSync(path.join(profile, `${phase}.json`), JSON.stringify({ status: "PASS", downloadedAndVerified: true, version: app.getVersion() }));

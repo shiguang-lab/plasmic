@@ -1,4 +1,5 @@
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import type { CopilotCaller } from "@/wab/shared/copilot/copilot-tool-types";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { assert, mkShortId } from "@/wab/shared/common";
 import { getSiteArenas } from "@/wab/shared/core/sites";
@@ -14,6 +15,8 @@ export function beginCanvasInspection(
   studio: StudioCtx,
   component?: Component,
   options: { frameUuid?: string; forExport?: boolean } = {},
+  caller?: CopilotCaller,
+  signal?: AbortSignal,
 ) {
   const target =
     component ??
@@ -28,9 +31,11 @@ export function beginCanvasInspection(
   }
   const active = leases;
   const inspectionId = mkShortId();
+  const lifetime = studio.arenaState.lifetime();
+  const inspectionSignal = signal ? AbortSignal.any([signal, lifetime]) : lifetime;
   const finish = studio.copilotActivity.begin(
-    [{ componentUuid: target.uuid }],
-    "inspection",
+    options.frameUuid ? [{ componentUuid: target.uuid, frameUuid: options.frameUuid }] : [],
+    "inspection", caller, inspectionSignal,
   );
   return new Promise<{
     inspectionId: string;
@@ -38,17 +43,29 @@ export function beginCanvasInspection(
     frameUuid: string;
   }>((resolve, reject) => {
     let prepared = false;
+    let notifyCancelled: () => void;
+    const cancelled = new Promise<void>(done => { notifyCancelled = done; });
+    const cancel = () => {
+      notifyCancelled();
+      reject(inspectionSignal.reason);
+    };
+    inspectionSignal.addEventListener("abort", cancel, { once: true });
     const finished = Promise.resolve().then(() =>
       studio.withBackgroundViewCtxForComponent(
         target,
         async (viewCtx) => {
+          inspectionSignal.throwIfAborted();
+          if (!options.frameUuid) {
+            finish.addTargets([{ componentUuid: target.uuid, frameUuid: viewCtx.arenaFrame().uuid }]);
+          }
           const previousExporting = viewCtx.canvasExporting;
           try {
             if (options.forExport) {
               viewCtx.setCanvasExporting(true);
               viewCtx.scheduleSync({ eval: true, styles: false, asap: true });
             }
-            await viewCtx.awaitSync();
+            await Promise.race([viewCtx.awaitSync(), cancelled]);
+            inspectionSignal.throwIfAborted();
             const loadError = studio.canvasFrameError(viewCtx.arenaFrame());
             if (loadError) { throw new Error(loadError); }
             const root = viewCtx.canvasCtx.doc().documentElement;
@@ -73,7 +90,7 @@ export function beginCanvasInspection(
               frameUuid: viewCtx.arenaFrame().uuid,
             });
             try {
-              await released;
+              await Promise.race([released, cancelled]);
               finish(expired ? "error" : "success");
             } finally {
               clearTimeout(timer);
@@ -89,14 +106,14 @@ export function beginCanvasInspection(
             if (options.forExport) {
               viewCtx.setCanvasExporting(previousExporting);
               viewCtx.scheduleSync({ eval: true, styles: false, asap: true });
-              await viewCtx.awaitSync();
+              await Promise.race([viewCtx.awaitSync(), cancelled]);
             }
           }
         },
         { frameUuid: options.frameUuid, timeoutMs: 600000 },
       ),
     );
-    finished.then(() => {
+    finished.finally(() => inspectionSignal.removeEventListener("abort", cancel)).then(() => {
       if (!prepared) {
         finish("error");
         reject(new Error("No canvas renders this component"));

@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import sty from "@/wab/client/components/BottomModal.module.sass";
 import { useTrackOpenModal } from "@/wab/client/components/widgets/open-modals";
 import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
@@ -92,6 +93,7 @@ function useBottomModalsContext() {
 
 export function useBottomModalActions() {
   const ctx = useBottomModalsContext();
+  const inspecting = React.useContext(InspectorReadOnly);
   const actions = React.useMemo(
     () => ({
       open(id: string, props: BottomModalProps) {
@@ -100,6 +102,7 @@ export function useBottomModalActions() {
           id,
           config: {
             ...props,
+            inspecting,
             buttonsTunnel: tunnel(),
           },
         });
@@ -111,7 +114,7 @@ export function useBottomModalActions() {
         });
       },
     }),
-    [ctx],
+    [ctx, inspecting],
   );
   return actions;
 }
@@ -137,6 +140,7 @@ interface BottomModalProps {
 }
 
 interface BottomModalConfig extends BottomModalProps {
+  inspecting: boolean;
   buttonsTunnel: ReturnType<typeof tunnel>;
 }
 
@@ -149,6 +153,7 @@ export function BottomModal(props: BottomModalProps & { modalKey: string }) {
     "data-test-id": dataTestId,
   } = props;
   const { dispatch } = useBottomModalsContext();
+  const inspecting = React.useContext(InspectorReadOnly);
   const buttonsTunnel = React.useMemo(() => tunnel(), []);
   React.useEffect(() => {
     dispatch({
@@ -159,10 +164,11 @@ export function BottomModal(props: BottomModalProps & { modalKey: string }) {
         title,
         onEscape,
         buttonsTunnel,
+        inspecting,
         "data-test-id": dataTestId,
       },
     });
-  }, [modalKey, children, title, onEscape, buttonsTunnel, dataTestId]);
+  }, [modalKey, children, title, onEscape, buttonsTunnel, dataTestId, inspecting]);
   React.useEffect(() => {
     return () => dispatch({ type: "pop", id: modalKey });
   }, [modalKey]);
@@ -265,7 +271,7 @@ function BottomModalInternal(props: {
   });
 
   return (
-    <FocusScope contain={isFocused} restoreFocus>
+    <InspectorReadOnly.Provider value={config.inspecting}><FocusScope contain={isFocused} restoreFocus>
       <animated.div
         ref={root}
         className={sty.ModalRoot}
@@ -295,7 +301,7 @@ function BottomModalInternal(props: {
           </BottomModalContext.Provider>
         </div>
       </animated.div>
-    </FocusScope>
+    </FocusScope></InspectorReadOnly.Provider>
   );
 }
 

@@ -208,7 +208,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
         },
         clippedSides: { ...NO_CLIPPED_SIDES },
         targetUid: target.uid,
-        deviceFrame: isPageComponent(component)
+        deviceFrame: isPageComponent(component) && !vc.isFullContentView()
           ? getDeviceFrame(target.width, target.height)
           : undefined,
         tagName: studioCtx.tplMgr().describeArenaFrame(target),

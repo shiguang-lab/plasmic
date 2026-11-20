@@ -1,3 +1,5 @@
+import { useInspectorReadOnly } from "@/wab/client/studio-ctx/save-state";
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useInspectorTitle } from "@/wab/client/components/studio/inspector-title-inputs";
 import PageSettings from "@/wab/client/components/PageSettings";
 import styles from "@/wab/client/components/PageSettings.module.css";
@@ -23,6 +25,7 @@ export const PageSettingsDialog = React.memo(function PageSettingsDialog({
 }) {
   const { t } = useI18n();
   const studioCtx = useStudioCtx();
+  const readOnly = useInspectorReadOnly(studioCtx);
   const pageName = useInspectorTitle(studioCtx, undefined, page);
   const viewCtx = useViewEntryForComponent(studioCtx, page)?.view;
   return (
@@ -39,9 +42,9 @@ export const PageSettingsDialog = React.memo(function PageSettingsDialog({
       styles={{ body: { overflow: "hidden" } }}
       footer={
         <div className={styles.dialogFooter}>
-          <Typography.Text type="secondary">
+          {!readOnly && <Typography.Text type="secondary">
             {t("Changes are saved automatically.")}
-          </Typography.Text>
+          </Typography.Text>}
           <Button className={styles.doneButton} type="primary" onClick={onClose}>
             {t("Done")}
           </Button>
@@ -54,7 +57,7 @@ export const PageSettingsDialog = React.memo(function PageSettingsDialog({
           className={cx("studio-scrollbar", styles.dialogScroll)}
         >
           {page && (
-            <PageSettings key={page.uuid} page={page} viewCtx={viewCtx} />
+            <InspectorReadOnly.Provider value={readOnly}><PageSettings key={page.uuid} page={page} viewCtx={viewCtx} /></InspectorReadOnly.Provider>
           )}
         </Scrollbar>
       </PopoverFrameProvider>

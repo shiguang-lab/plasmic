@@ -1,3 +1,4 @@
+import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import type { CanvasFrameInfo } from "@/wab/client/components/canvas/canvas-rendering";
 import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -87,7 +88,7 @@ export class CanvasFrameInfoOwner {
       const next = this.capture(input);
       this.viewInputs = input;
       const equal = (left: CanvasFrameInfo, right: CanvasFrameInfo) => left.viewMode === right.viewMode && left.height === right.height &&
-        left.isHeightAutoDerived === right.isHeightAutoDerived && left.fullPageHeight === right.fullPageHeight && left.bgColor === right.bgColor && left.exporting === right.exporting;
+        left.deviceContentHeight === right.deviceContentHeight && left.isHeightAutoDerived === right.isHeightAutoDerived && left.fullPageHeight === right.fullPageHeight && left.bgColor === right.bgColor && left.exporting === right.exporting;
       const published = this.state.getState();
       if (equal(published, next)) { this.current = published; }
       else if (!equal(this.current, next)) { this.current = next; }
@@ -113,6 +114,7 @@ export class CanvasFrameInfoOwner {
     const container = this.models.resolve(read(frame, "container"));
     const component = this.models.resolve(read(container, "component"));
     const componentType = read(component, "type");
+    const device = componentType === "page" ? getDeviceFrame(read(frame, "width"), height) : undefined;
     const derived = componentType === "page" || (componentType === "plain" && viewMode === "stretch");
     const background = read(frame, "bgColor");
     let bgColor: string | undefined = background || undefined;
@@ -161,6 +163,7 @@ export class CanvasFrameInfoOwner {
     }
     this.dirty = false;
     return Object.freeze({
+      deviceContentHeight: device?.contentHeight,
       viewMode, height, isHeightAutoDerived: derived, exporting: input.exporting,
       fullPageHeight: input.fullPageHeight && derived && !input.interactive && !input.exporting,
       bgColor,

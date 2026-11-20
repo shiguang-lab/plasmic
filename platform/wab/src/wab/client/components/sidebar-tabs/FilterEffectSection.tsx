@@ -1,3 +1,4 @@
+import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { FilterEffectIcon } from "@/wab/client/components/style-controls/FilterEffectIcon";
 import { FilterEffectPanel } from "@/wab/client/components/style-controls/FilterEffectPanel";
@@ -55,7 +56,7 @@ function FilterEffectsContent({ expsProvider }: { expsProvider: ExpsProvider }) 
     expsProvider.mergedExp().set(prop, filters.length ? joinCssValues(prop, filters.map(fromFilterObjToString)) : "none");
   });
   return <StylePanelSection expsProvider={expsProvider} title={t("Effects")} styleProps={[...properties]} headerMenuOnRightClickOnly
-    controls={<Dropdown trigger={["click"]} open={adding} onOpenChange={setAdding} menu={{
+    controls={<InspectorEdit>{<Dropdown trigger={["click"]} open={adding} onOpenChange={setAdding} menu={{
       items: additions.map((item, index) => ({ key: String(index), label: t(item.label), disabled: chains.some(chain => chain.prop === item.prop && (chain.none || chain.disabled)) })),
       onClick: ({ key }) => {
         const item = additions[Number(key)];
@@ -65,7 +66,7 @@ function FilterEffectsContent({ expsProvider }: { expsProvider: ExpsProvider }) 
         setInspected({ prop: item.prop, index: chain.filters.length });
         setAdding(false);
       },
-    }}><IconButton size="small" aria-label={t("Add effect")} tooltip={t("Add effect")}><Icon icon={PlusIcon} /></IconButton></Dropdown>}>
+    }}><IconButton size="small" aria-label={t("Add effect")} tooltip={t("Add effect")}><Icon icon={PlusIcon} /></IconButton></Dropdown>}</InspectorEdit>}>
     {chains.some(chain => chain.none || chain.filters.length > 0) && <div className={styles.list}>
       {chains.map(({ prop, filters, none, disabled }) => {
         const rows: (FilterEffect | null)[] = none ? [null] : filters;

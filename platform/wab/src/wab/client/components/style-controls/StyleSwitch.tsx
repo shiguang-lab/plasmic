@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
@@ -29,6 +30,9 @@ function StyleSwitch_(
     ref,
   );
 
+  if (React.useContext(InspectorReadOnly)) {
+    return <span>{String(!!props.isChecked)}</span>;
+  }
   let content = (
     <PlasmicStyleSwitch
       {...plasmicProps}

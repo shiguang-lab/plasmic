@@ -144,3 +144,7 @@ export class StudioSaveState {
 export function useStudioSaveState<Selected>(studio: StudioCtx, selector: (state: StudioSaveSnapshot) => Selected): Selected {
   return useStore(studio.saveState.store, selector);
 }
+
+export function useInspectorReadOnly(studio: StudioCtx) {
+  return useStudioSaveState(studio, (state) => state.blockChanges || !state.canSave);
+}

@@ -1,3 +1,4 @@
+import { InspectorReadOnly, InspectorEdit, InspectorChoice } from "@/wab/client/components/studio/inspector-access";
 import { StyleOverrideControl } from "@/wab/client/components/style-controls/StyleOverrideMenu";
 import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import {
@@ -291,8 +292,8 @@ function BorderStrokeSection({ expsProvider, vsh, hasDefaultBorder }: {
   });
   return <StylePanelSection title={t("Stroke")} expsProvider={expsProvider}
     styleProps={borderStyleProps} headerMenuOnRightClickOnly controls={<>
-      <IconButton size="small" aria-label={t("Add stroke")} tooltip={t(canAdd ? "Add stroke" : "All border sides are assigned")}
-        disabled={isDisabled || !canAdd} onClick={add}><Icon icon={PlusIcon} /></IconButton>
+      <InspectorEdit><IconButton size="small" aria-label={t("Add stroke")} tooltip={t(canAdd ? "Add stroke" : "All border sides are assigned")}
+        disabled={isDisabled || !canAdd} onClick={add}><Icon icon={PlusIcon} /></IconButton></InspectorEdit>
     </>}>
     {groups.length > 0 && <ListBox onReorder={isDisabled ? undefined : (from, to) =>
       setPresentation({ signature, groups: arrayMoveIndex(groups, from, to) })}>
@@ -357,6 +358,7 @@ function StrokeRow({ expsProvider, vsh, sides, value, occupied, disabled, onSide
 }) {
   const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
+  const inspecting = React.useContext(InspectorReadOnly);
   const trigger = useRef<HTMLButtonElement>(null), popup = useRef<HTMLDivElement>(null);
   const { selected, lifetime } = useStyleTokenRefs(expsProvider.studioCtx, [value.color], vsh, "Color", (snapshot) => snapshot.rows[0]);
   const resolved = selected?.resolved;
@@ -368,7 +370,7 @@ function StrokeRow({ expsProvider, vsh, sides, value, occupied, disabled, onSide
   const lineStyles = { none: t("None"), solid: t("Solid line"), dashed: t("Dashed"), dotted: t("Dotted"), double: t("Double") };
   const label = `${sides.length === 4 ? t("All borders") : sides.map((side) => sideLabels[side]).join(", ")} · ${lineStyles[value.style as keyof typeof lineStyles] ?? value.style}`;
   return <div className={strokeStyles.row} data-test-id="stroke-row" data-stroke-sides={sides.join(" ")}>
-    <Popover trigger="click" open={open && !disabled} onOpenChange={setOpen} placement="leftTop" arrow={false} destroyOnHidden
+    <Popover trigger="click" open={open && (inspecting || !disabled)} onOpenChange={setOpen} placement="leftTop" arrow={false} destroyOnHidden
       content={<div className={strokeStyles.popover} ref={popup} role="group" aria-label={t("Stroke settings")}>
         <div className={strokeStyles.heading}>{t("Direction")}
           <IconButton size="small" className={strokeStyles.help} tooltip={t("Assigned sides cannot be selected. You can select multiple available sides.")} aria-label={t("Border direction help")}>
@@ -381,13 +383,13 @@ function StrokeRow({ expsProvider, vsh, sides, value, occupied, disabled, onSide
             const unavailable = disabled || (side ? occupied.includes(side) : occupied.length > 0);
             const text = side ? sideLabels[side] : t("All borders");
             return <Tooltip key={side ?? "all"} title={unavailable ? t("This direction is assigned to another stroke") : text}>
-              <button type="button" aria-label={text} aria-pressed={active} disabled={unavailable}
+              <InspectorChoice type="button" aria-label={text} aria-pressed={active} disabled={unavailable}
                 aria-disabled={unavailable || (active && sides.length === 1)}
                 onClick={() => {
                   if (!side) { onSidesChange([...standardSides]); }
                   else if (!active) { onSidesChange(standardSides.filter((s) => s === side || sides.includes(s))); }
                   else if (sides.length > 1) { onSidesChange(sides.filter((s) => s !== side)); }
-                }}><StrokePreview sides={side ? [side] : standardSides} /></button>
+                }}><StrokePreview sides={side ? [side] : standardSides} /></InspectorChoice>
             </Tooltip>;
           })}
         </div>
@@ -402,7 +404,7 @@ function StrokeRow({ expsProvider, vsh, sides, value, occupied, disabled, onSide
           </div>
         </div>
       </div>}>
-      <Tooltip title={open ? null : label}><TriggerTarget><button type="button" className={cn(strokeStyles.settings, isNone && strokeStyles.none)} ref={trigger} disabled={disabled}
+      <Tooltip title={open ? null : label}><TriggerTarget><button type="button" className={cn(strokeStyles.settings, isNone && strokeStyles.none)} ref={trigger} disabled={!inspecting && disabled}
         aria-label={label} aria-expanded={open} data-test-id="stroke-settings">
         <StrokePreview sides={sides} lineStyle={isNone ? "solid" : value.style} color={isNone ? undefined : color} />
         {isNone && <span>{t("None")}</span>}

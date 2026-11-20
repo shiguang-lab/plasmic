@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import { useCurrentModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -170,6 +171,14 @@ function getEvalExprCtx(
     : exprCtx!;
 }
 
+// These controls own nested fields, value labels, or a details popup.
+const inspectionControls = new Set([
+  "array", "object", "eventHandler", "interaction", "color", "functionArgs",
+  "controlMode", "exprEditor", "function", "dataSelector", "interactionExprValue",
+  "dynamic", "formValidationRules", "imageUrl", "cardPicker", "choice", "code",
+  "customFunctionOp", "dataSourceOp",
+]);
+
 const PropValueEditor_ = (
   props: {
     propType: StudioPropType<any>;
@@ -237,6 +246,7 @@ const PropValueEditor_ = (
     [componentPropValues, ccContextData, controlExtras],
   );
 
+  const inspecting = React.useContext(InspectorReadOnly);
   const targetTpl = viewCtx && isPlainObjectPropType(propType) && propType.type === "functionArgs" && propType.targetTpl ? _getContextDependentValue(propType.targetTpl) : undefined;
   const targetContext = useInspectorComponentEvalContext(targetTpl ? viewCtx : undefined, targetTpl);
   let defaultValueHint;
@@ -273,6 +283,27 @@ const PropValueEditor_ = (
     const plainObjectPropType = propType;
     defaultValueHint = _getContextDependentValue(
       plainObjectPropType.defaultValueHint,
+    );
+  }
+
+  const type = getPropTypeType(propType);
+  const useRegisteredEditor = inspectionControls.has(type ?? "") ||
+    (isPlainObjectPropType(propType) && propType.type === "string" && propType.control === "large");
+
+  if (inspecting && !useRegisteredEditor) {
+    let display = litValue;
+    if (display == null) {
+      display = isKnownTemplatedString(value)
+        ? flattenTemplatedStringToString(value)
+        : isKnownExpr(value)
+          ? getRawCode(value, getEvalExprCtx(viewCtx, exprCtx))
+          : value;
+    }
+    const current = display ?? defaultValueHint;
+    return (
+      <span data-plasmic-prop={attr}>
+        {current == null ? "—" : typeof current === "object" ? JSON.stringify(current) : String(current)}
+      </span>
     );
   }
 

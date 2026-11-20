@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { usePropExpressionInputs, usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import { useQueryInteractionInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
 import { useCurrentModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
@@ -858,7 +859,8 @@ function getArgLabel(argMeta: ArgMeta, codeName: string) {
 const DataSourceOpExprFormAndPreview = React.memo(function DataSourceOpExprFormAndPreview(props: React.ComponentProps<typeof DataSourceOpExprFormAndPreviewContent>) {
   const studio = useStudioCtx(), live = useCurrentModelWorld(studio);
   const world = useVariantModelWorld(studio, props.parent ?? props.exprCtx.component ?? props.interaction ?? props.value ?? live);
-  return world.alive ? <DataSourceOpExprFormAndPreviewContent {...props} /> : null;
+  const inspecting = React.useContext(InspectorReadOnly);
+  return world.alive ? <DataSourceOpExprFormAndPreviewContent {...props} readOnly={inspecting || props.readOnly} /> : null;
 });
 const DataSourceOpExprFormAndPreviewContent = React.memo(
   function DataSourceOpExprFormAndPreview_(props: {
@@ -1118,7 +1120,7 @@ const DataSourceOpExprFormAndPreviewContent = React.memo(
                 exprCtx={exprCtx}
               />
             </Scrollbar>
-            {!isRowSelector ? (
+            {!isRowSelector && !readOnly ? (
               <BottomModalButtons>
                 <Button
                   id="data-source-modal-save-btn"

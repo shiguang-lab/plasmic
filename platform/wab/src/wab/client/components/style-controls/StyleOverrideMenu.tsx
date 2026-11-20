@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { changeStyle, ExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import styles from "@/wab/client/components/style-controls/PaintRows.module.scss";
@@ -19,7 +20,9 @@ export function StyleOverrideMenu({ label, hasOverride, isNone, disabled, noneLa
   const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const none = noneLabel ?? t("None");
+  const inspecting = React.useContext(InspectorReadOnly);
   const status = isNone ? none : t(hasOverride ? "Custom" : "Default");
+  if (inspecting) { return <span className={styles.fillStatus}>{status}</span>; }
   return (
     <Dropdown
       trigger={["click"]}

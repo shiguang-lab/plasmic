@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useElementPropInputs, useElementPropValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
@@ -222,6 +223,7 @@ const ComponentPropsSectionContent = React.memo(
     tab: "settings" | "style";
   }) {
     const { t: uiT } = useI18n();
+    const inspecting = React.useContext(InspectorReadOnly);
     const { viewCtx, tpl, expsProvider, tab, includeVariants } = props;
     const world = useVariantModelWorld(viewCtx.studioCtx, tpl, viewCtx);
     const { componentPropValues, ccContextData } =
@@ -322,7 +324,7 @@ const ComponentPropsSectionContent = React.memo(
 
     return (
       <>
-        {(tree.length > 0 || actions.length > 0) && (
+        {(tree.length > 0 || (!inspecting && actions.length > 0)) && (
           <SidebarSection
             id="component-props-section"
             title={
@@ -333,7 +335,7 @@ const ComponentPropsSectionContent = React.memo(
             }
             key={`main.${tpl.uid}`}
           >
-            {tab === "settings" && actions.length > 0 && (
+            {!inspecting && tab === "settings" && actions.length > 0 && (
               <ComponentActionsSection
                 viewCtx={viewCtx}
                 tpl={tpl as TplComponent}

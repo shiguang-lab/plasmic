@@ -1,3 +1,4 @@
+import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import {
@@ -213,6 +214,7 @@ export function FormValidationRulesEditor(
       }),
     });
   }
+  const inspecting = React.useContext(InspectorReadOnly);
   const rules = clonedExpr.exprs;
   const [showModal, setShowModal] = React.useState(false);
 
@@ -265,7 +267,7 @@ export function FormValidationRulesEditor(
                   </div>
                 );
               })}
-              <Button
+              {!inspecting && <Button
                 startIcon={<Icon icon={PlusIcon} />}
                 onClick={() => {
                   const newExpr = cloneExpr(clonedExpr);
@@ -281,7 +283,7 @@ export function FormValidationRulesEditor(
                 type={"primary"}
               >
                 <UiText message={"Add new rule"} />
-              </Button>
+              </Button>}
             </div>
           </div>
         </SidebarModal>
