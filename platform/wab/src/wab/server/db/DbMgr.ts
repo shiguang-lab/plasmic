@@ -1,3 +1,4 @@
+import { publishedCommentLocations } from "@/wab/server/db/published-template-comments";
 import { sequentially } from "@/wab/commons/asyncutil";
 import * as semver from "@/wab/commons/semver";
 import { toOpaque } from "@/wab/commons/types";
@@ -9933,26 +9934,40 @@ export class DbMgr implements MigrationDbMgr {
     return commentThread;
   }
 
+  private async checkPublishedCommentLocation(projectId: string, branchId: BranchId | undefined, version: string, location: CommentLocation) {
+    if (!this.tryGetNormalActorId() || branchId) {
+      throw new ForbiddenError("Published template comments require a signed-in user and the main branch");
+    }
+    await this.entMgr.query("SELECT pg_advisory_xact_lock_shared(hashtext($1))", [`template:${projectId}`]);
+    const visible = await publishedCommentLocations(this.sudo(), projectId, version);
+    if (!await visible(location)) {
+      throw new BadRequestError("Comment target is outside the published template");
+    }
+  }
+
   async postCommentInThread(
     { projectId, branchId }: ProjectAndBranchId,
     data: { id: CommentId; threadId: CommentThreadId; body: string },
+    publishedVersion?: string,
   ): Promise<Comment> {
-    await this.checkProjectBranchPerms(
-      { projectId, branchId },
-      "commenter",
-      "post comment",
-    );
+    if (!publishedVersion) {
+      await this.checkProjectBranchPerms({ projectId, branchId }, "commenter", "post comment");
+    }
     const { id, body, threadId } = data;
-    ensureFound<CommentThread>(
+    const thread = ensureFound<CommentThread>(
       await this.commentThreads().findOne({
         where: {
           id: threadId,
+          ...(publishedVersion && excludeDeleted()),
           projectId,
           branchId: branchId ?? IsNull(),
         },
       }),
       `Comment thread with id ${threadId}`,
     );
+    if (publishedVersion) {
+      await this.checkPublishedCommentLocation(projectId, branchId, publishedVersion, thread.location);
+    }
     if (!isUuidV4(id) && !isShortUuidV4(id)) {
       throw new BadRequestError(
         "Invalid UUID format: 'id' must be a valid UUID.",
@@ -9963,15 +9978,14 @@ export class DbMgr implements MigrationDbMgr {
       commentThreadId: threadId,
       body: body,
     });
-    await this.entMgr.save(comment);
+    await this.comments().insert(comment);
     await this.commentThreads().update(
       {
         id: comment.commentThreadId,
       },
       {
         ...this.stampUpdate(),
-        deletedAt: null,
-        deletedById: null,
+        ...(!publishedVersion && { deletedAt: null, deletedById: null }),
       },
     );
 
@@ -9986,12 +10000,13 @@ export class DbMgr implements MigrationDbMgr {
       location: CommentLocation;
       body: string;
     },
+    publishedVersion?: string,
   ): Promise<Comment> {
-    await this.checkProjectBranchPerms(
-      { projectId, branchId },
-      "commenter",
-      "post comment",
-    );
+    if (publishedVersion) {
+      await this.checkPublishedCommentLocation(projectId, branchId, publishedVersion, data.location);
+    } else {
+      await this.checkProjectBranchPerms({ projectId, branchId }, "commenter", "post comment");
+    }
     const { commentThreadId, commentId, location, body } = data;
     if (!isUuidV4(commentThreadId) && !isShortUuidV4(commentThreadId)) {
       throw new BadRequestError(
@@ -10014,7 +10029,10 @@ export class DbMgr implements MigrationDbMgr {
       commentThreadId: commentThread.id,
       body,
     });
-    await this.entMgr.save([commentThread, comment]);
+    await this.entMgr.transaction(async em => {
+      await em.insert(CommentThread, commentThread);
+      await em.insert(Comment, comment);
+    });
     return comment;
   }
 

@@ -73,6 +73,8 @@ export function NewCommentPanel({
           defaultValue={ctx.getArenaDraft(arena)}
           onChange={(value) => ctx.setArenaDraft(arena, value)}
           onSubmit={async (value) => {
+            await ctx.waitForInitialCommentsLoad();
+            assert(ctx.hasLoaded, "Comments data not loaded");
             let address = ctx.bundler().addrOf(subject);
             if (studio.needsSaving() && !address) {
               await studio.save();

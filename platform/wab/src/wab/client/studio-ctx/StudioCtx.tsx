@@ -3987,6 +3987,9 @@ export class StudioCtx extends WithDbCtx {
       }
       this.overlayState.commentsPanel = open;
     });
+    if (open && this.isPublishedTemplate) {
+      spawn(this.commentsCtx.fetchComments());
+    }
   });
 
   readonly leftPanelState = new StudioLeftPanelState();
@@ -4536,7 +4539,7 @@ export class StudioCtx extends WithDbCtx {
   //
   showComments() {
     if (this.siteInfo.publishedTemplateVersion) {
-      return false;
+      return !!this.appCtx.selfInfo;
     }
     const accessLevel = getAccessLevelToResource(
       { type: "project", resource: this.siteInfo },
@@ -5500,6 +5503,9 @@ export class StudioCtx extends WithDbCtx {
   }
 
   tryZoomToFitFrame(frame: ArenaFrame, maxZoom?: number) {
+    if (this.canvasLoadingDisposed) {
+      return;
+    }
     const viewportCtx = this.viewportCtx;
     const scalerRect = this.getArenaFrameScalerRect(frame);
     if (viewportCtx && scalerRect) {
@@ -9546,6 +9552,7 @@ export function canUpdateHistory(
   studioCtx: StudioCtx,
   thread: TplCommentThread,
 ): boolean {
+  if (studioCtx.isPublishedTemplate) { return false; }
   const appCtx = studioCtx.appCtx;
   const isProjectContentEditor = isUserProjectContentEditor(
     appCtx.selfInfo,

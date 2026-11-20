@@ -1,6 +1,10 @@
+import { getMigratedBundle } from "@/wab/server/db/BundleMigrator";
+import { loadDepPackages } from "@/wab/server/db/DbBundleLoader";
+import { ForbiddenError } from "@/wab/server/db/DbMgr";
+import { getPublishedTemplateVersion } from "@/wab/server/db/published-template";
 import { DependencyModelResource } from "@/wab/server/entities/CustomEntities";
 import { PkgVersion } from "@/wab/server/entities/Entities";
-import { userDbMgr, withNext } from "@/wab/server/routes/util";
+import { getUser, superDbMgr, userDbMgr, withNext } from "@/wab/server/routes/util";
 import { NotFoundError } from "@/wab/shared/ApiErrors/errors";
 import { ensure } from "@/wab/shared/common";
 import { createHash, randomUUID } from "crypto";
@@ -95,9 +99,32 @@ export function withDependencyModelResources(handler: (req: Request, res: Respon
 export async function getDependencyModelResource(req: Request, res: Response) {
   const mgr = userDbMgr(req);
   const repository = mgr.getEntMgr().getRepository(DependencyModelResource);
-  const resource = await repository.findOne(req.params.resourceId, { select: ["id", "pkgId", "digest"] });
+  const resource = await repository.findOne(req.params.resourceId, { select: ["id", "pkgId", "pkgVersionId", "digest"] });
   if (!resource) { throw new NotFoundError("Dependency model resource not found"); }
-  await mgr.getPkgById(resource.pkgId);
+  try {
+    await mgr.getPkgById(resource.pkgId);
+  } catch (error) {
+    if (!(error instanceof ForbiddenError)) {
+      throw error;
+    }
+    const templateId = req.headers["x-plasmic-published-template"];
+    if (typeof templateId !== "string") {
+      throw error;
+    }
+    getUser(req);
+    // A template reader can fetch the same bytes that the current publication exposes.
+    const sudo = superDbMgr(req);
+    const { version } = await getPublishedTemplateVersion(sudo, templateId);
+    const deps = await loadDepPackages(sudo, await getMigratedBundle(version));
+    const dep = deps.find(pkg => pkg.id === resource.pkgVersionId);
+    if (!dep) {
+      throw error;
+    }
+    const canonical = JSON.stringify(JSON.parse(dep.model));
+    if (createHash("sha256").update(canonical).digest("hex") !== resource.digest) {
+      throw error;
+    }
+  }
   const body = ensure(await repository.findOne(resource.id, { select: ["model"] }), "Dependency model resource disappeared").model;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Cache-Control", "private, max-age=31536000, immutable");

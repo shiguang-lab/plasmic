@@ -6,7 +6,7 @@ import {
   DesignTemplate,
   PreviewPublication,
 } from "@/wab/server/entities/CustomEntities";
-import { Project } from "@/wab/server/entities/Entities";
+import { PkgVersion, Project } from "@/wab/server/entities/Entities";
 import { AddTemplateCenter1794873600000 } from "@/wab/server/migrations/1794873600000-AddTemplateCenter";
 import { SeparateTemplateMetadata1794960000000 } from "@/wab/server/migrations/1794960000000-SeparateTemplateMetadata";
 import {
@@ -18,7 +18,11 @@ import {
   unpublishDesignTemplate,
   updateDesignTemplate,
 } from "@/wab/server/routes/template-center";
+import { dependencyModelResources, getDependencyModelResource } from "@/wab/server/routes/dependency-model-resources";
 import { Bundler, FastBundler } from "@/wab/shared/bundler";
+import type { CommentId, CommentThreadId } from "@/wab/shared/ApiSchema";
+import { getPublishedComments } from "@/wab/server/routes/comments";
+import { assert, ensure, mkShortUuid } from "@/wab/shared/common";
 import { getBundle } from "@/wab/shared/bundles";
 import { unbundleSite } from "@/wab/shared/core/tagged-unbundle";
 import { ComponentType } from "@/wab/shared/core/components";
@@ -140,6 +144,27 @@ it("persists isolated template canvases and atomic publications in PostgreSQL", 
     expect(snapshot).toMatchObject({ name: "新模板名称", publishedTemplateVersion: initial.published?.version, projectApiToken: null });
     const { site } = unbundleSite(new FastBundler(), id, getBundle(rev, bundleVersion), depPkgs);
     expect(site.components.map((page) => page.pageMeta?.path)).toEqual(["/", "/calculator"]);
+    const publishedVersion = ensure(initial.published, "Published template").version;
+    const addresses = new Bundler();
+    const draft = await unbundleProjectFromData(sudo, addresses, draftRev);
+    const commentOn = (name: string) => ({
+      commentThreadId: mkShortUuid<CommentThreadId>(), commentId: mkShortUuid<CommentId>(), body: name,
+      location: { subject: ensure(addresses.addrOf(ensure(draft.components.find(c => c.name === name), name).tplTree), "Saved target"), variants: [] },
+    });
+    const visible = commentOn("Standalone calculator");
+    const draftOnly = commentOn("Draft only");
+    await admin.postRootCommentInProject({ projectId: id }, draftOnly);
+    await expect(reader.postRootCommentInProject({ projectId: id }, commentOn("Draft only"), publishedVersion)).rejects.toThrow("outside the published template");
+    await reader.postRootCommentInProject({ projectId: id }, visible, publishedVersion);
+    const reply = { id: mkShortUuid<CommentId>(), threadId: visible.commentThreadId, body: "Reply" };
+    await reader.postCommentInThread({ projectId: id }, reply, publishedVersion);
+    await expect(reader.postCommentInThread({ projectId: id }, { ...reply, threadId: draftOnly.commentThreadId }, publishedVersion)).rejects.toThrow("outside the published template");
+    await expect(reader.postRootCommentInProject({ projectId: id }, visible, "stale")).rejects.toThrow("published template changed");
+    const comments = response();
+    await getPublishedComments({ ...readerReq, params: { projectBranchId: id, publishedVersion } }, comments);
+    expect(comments.json.mock.calls[0][0].threads).toMatchObject([{
+      id: visible.commentThreadId, comments: [{ body: visible.body, createdById: user.id }, { body: "Reply", createdById: user.id }],
+    }]);
     const listing = response();
     await listDesignTemplates(
       { ...req, shiguangIdentity: { roles: [] } },
@@ -160,7 +185,32 @@ it("persists isolated template canvases and atomic publications in PostgreSQL", 
     const republished = await em.findOneOrFail(DesignTemplate, { projectId: id });
     expect(republished.metadata).toEqual(req.body);
     expect(republished.published?.version).not.toBe(initial.published?.version);
+    // Use another private package snapshot as a dependency of the current publication.
+    const pkg = ensure(await sudo.getPkgByProjectId(id), "Missing template package");
+    const dependency = await sudo.getPkgVersion(pkg.id, ensure(initial.published, "Missing initial publication").version);
+    const publication = await sudo.getPkgVersion(pkg.id, ensure(republished.published, "Missing current publication").version);
+    const currentBundle = JSON.parse(publication.model);
+    currentBundle.deps.push(dependency.id);
+    await em.update(PkgVersion, publication.id, { model: JSON.stringify(currentBundle) });
+    const payload = response();
+    await getPublishedDesignTemplateStudio(readerReq, payload);
+    const { depPkgs: references } = await dependencyModelResources(readerReq, payload.json.mock.calls[0][0]);
+    const current = ensure(references, "Missing dependencies")[0];
+    expect(current).not.toHaveProperty("model");
+    const { pkg: ordinary } = await dependencyModelResources(req, { pkg: dependency });
+    expect(ordinary).toMatchObject({ id: dependency.id, modelResourceId: current.modelResourceId });
+    const download = { ...readerReq, params: { resourceId: current.modelResourceId } };
+    const file = { ...response(), send: vi.fn() };
+    await expect(getDependencyModelResource(download, file)).rejects.toMatchObject({ name: "ForbiddenError" });
+    download.headers = { "x-plasmic-published-template": id };
+    await getDependencyModelResource(download, file);
+    expect(JSON.parse(file.send.mock.calls[0][0])).toEqual(JSON.parse(dependency.model));
+    const old = await dependencyModelResources(req, { pkg: { ...dependency, model: { ...JSON.parse(dependency.model), version: "old-schema" } } });
+    assert("modelResourceId" in old.pkg && typeof old.pkg.modelResourceId === "string", "Missing historical resource ID");
+    await expect(getDependencyModelResource({ ...download, params: { resourceId: old.pkg.modelResourceId } }, file))
+      .rejects.toMatchObject({ name: "ForbiddenError" });
     await unpublishDesignTemplate(req, response());
+    await expect(getDependencyModelResource(download, file)).rejects.toMatchObject({ name: "NotFoundError" });
     await expect(getPublishedDesignTemplateStudio(readerReq, response()))
       .rejects.toMatchObject({ name: "NotFoundError" });
     expect(

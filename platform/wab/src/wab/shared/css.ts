@@ -339,10 +339,7 @@ export function getCssRulesFromRs(
   }
 }
 
-// We shouldn't quote font family keywords
-const FONT_FAMILY_KEYWORDS = [
-  "initial",
-  "inherit",
+export const GENERIC_FONT_FAMILIES = [
   "serif",
   "sans-serif",
   "cursive",
@@ -355,8 +352,20 @@ const FONT_FAMILY_KEYWORDS = [
   "ui-rounded",
 ];
 
+/** Resolve platform-specific system UI aliases when emitting browser CSS. */
+export function resolveSystemFontFamily(fontFamily: string) {
+  return /^(?:-apple-system|BlinkMacSystemFont)$/i.test(fontFamily.trim())
+    ? "system-ui"
+    : fontFamily;
+}
+
 export function isFontFamilyKeyword(fontFamily: string) {
-  return FONT_FAMILY_KEYWORDS.includes(fontFamily.trim().toLowerCase());
+  const family = resolveSystemFontFamily(fontFamily).trim().toLowerCase();
+  return (
+    family === "initial" ||
+    family === "inherit" ||
+    GENERIC_FONT_FAMILIES.includes(family)
+  );
 }
 
 export const showCssValues = (name: string, vals: /*TWZ*/ string[]) => {
@@ -365,7 +374,7 @@ export const showCssValues = (name: string, vals: /*TWZ*/ string[]) => {
     return vals
       .map((val) => {
         if (isFontFamilyKeyword(val)) {
-          return val;
+          return resolveSystemFontFamily(val);
         }
         return val.startsWith("var(") ? val : `"${val}"`;
       })

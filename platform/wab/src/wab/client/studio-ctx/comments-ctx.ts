@@ -859,6 +859,10 @@ export class CommentsCtx {
       (async () => {
         try {
           await promise;
+          // Published sessions do not subscribe to the draft project's socket.
+          if (!this.stopped && this.studioCtx.isPublishedTemplate) {
+            await this.refreshComments();
+          }
         } catch (err) {
           if (this.stopped || branchId !== this.branchId()) {
             return;

@@ -404,7 +404,13 @@ export abstract class SharedApi {
       if (!pkg.modelResourceId) { return; }
       const id = pkg.modelResourceId;
       let read = reads.get(id);
-      if (!read) { read = this.get(`/dependency-models/${encodeURIComponent(id)}`); reads.set(id, read); }
+      if (!read) {
+        const headers = response.project?.publishedTemplateVersion
+          ? { "X-Plasmic-Published-Template": response.project.id }
+          : undefined;
+        read = this.get(`/dependency-models/${encodeURIComponent(id)}`, undefined, headers);
+        reads.set(id, read);
+      }
       pkg.model = await read;
       delete pkg.modelResourceId;
     }));
@@ -1842,12 +1848,19 @@ export abstract class SharedApi {
     return this.updatePlasmicHostingSettings(projectId, { textFiles });
   }
 
+  private commentPath(projectId: ProjectId, branchId?: BranchId, publishedVersion?: string) {
+    return publishedVersion
+      ? `/template-center/${projectId}/versions/${encodeURIComponent(publishedVersion)}/comments`
+      : `/comments/${showProjectBranchId(toOpaque(projectId), branchId)}`;
+  }
+
   async getComments(
     projectId: ProjectId,
     branchId?: BranchId,
+    publishedVersion?: string,
   ): Promise<GetCommentsResponse> {
-    const projectBranchId = showProjectBranchId(toOpaque(projectId), branchId);
-    return this.get(`/comments/${projectBranchId}`);
+    const path = this.commentPath(projectId, branchId, publishedVersion);
+    return this.get(path);
   }
 
   async postThreadComment(
@@ -1855,10 +1868,11 @@ export abstract class SharedApi {
     branchId: BranchId | undefined,
     threadId: CommentThreadId,
     data: ThreadCommentData,
+    publishedVersion?: string,
   ): Promise<PostCommentResponse> {
-    const projectBranchId = showProjectBranchId(toOpaque(projectId), branchId);
+    const path = this.commentPath(projectId, branchId, publishedVersion);
     return this.post(
-      `/comments/${projectBranchId}/thread/${threadId}`,
+      `${path}/thread/${threadId}`,
       ensureType<ThreadCommentData>(data),
     );
   }
@@ -1867,10 +1881,11 @@ export abstract class SharedApi {
     projectId: ProjectId,
     branchId: BranchId | undefined,
     data: RootCommentData,
+    publishedVersion?: string,
   ): Promise<PostCommentResponse> {
-    const projectBranchId = showProjectBranchId(toOpaque(projectId), branchId);
+    const path = this.commentPath(projectId, branchId, publishedVersion);
     return this.post(
-      `/comments/${projectBranchId}`,
+      path,
       ensureType<RootCommentData>(data),
     );
   }

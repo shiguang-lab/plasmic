@@ -1,7 +1,7 @@
 import { Api, filteredApi } from "@/wab/client/api";
 import { restrictPublishedTemplateFrameApi } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
-import { ProjectId } from "@/wab/shared/ApiSchema";
+import { CommentThreadId, ProjectId, RootCommentData, ThreadCommentData } from "@/wab/shared/ApiSchema";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { createMemoryHistory } from "history";
 import { mock } from "vitest-mock-extended";
@@ -40,13 +40,24 @@ it("limits the published frame to read capabilities and published navigation", a
     initialEntries: ["/projects/template?publishedTemplate=true"],
   });
   const api = mock<Parameters<typeof restrictPublishedTemplateFrameApi>[0]>();
-  const publishedApi = restrictPublishedTemplateFrameApi(api, history, "template");
+  const publishedApi = restrictPublishedTemplateFrameApi(api, history, "template", "2.0.0");
   for (const method of [
     "saveProjectRevChanges", "publishDesignTemplate", "getModelUpdates",
-    "listProjectBranches", "getPkgVersion", "postRootComment", "openDesktopBrowser",
+    "listProjectBranches", "getPkgVersion", "editComment", "deleteThread", "openDesktopBrowser",
   ]) {
     expect(publishedApi).not.toHaveProperty(method);
   }
+  const projectId = "template" as ProjectId;
+  await publishedApi.getComments(projectId, undefined);
+  expect(api.getComments).toHaveBeenCalledExactlyOnceWith(projectId, undefined, "2.0.0");
+  const root = mock<RootCommentData>();
+  const reply = mock<ThreadCommentData>();
+  const threadId = "thread" as CommentThreadId;
+  await publishedApi.postRootComment(projectId, undefined, root);
+  await publishedApi.postThreadComment(projectId, undefined, threadId, reply);
+  expect(api.postRootComment).toHaveBeenCalledExactlyOnceWith(projectId, undefined, root, "2.0.0");
+  expect(api.postThreadComment).toHaveBeenCalledExactlyOnceWith(projectId, undefined, threadId, reply, "2.0.0");
+  expect(() => publishedApi.getComments("other" as ProjectId, undefined)).toThrow("published template");
   expect(() => publishedApi.pushLocation("/projects/template")).toThrow("published view");
   expect(() => publishedApi.replaceLocation("/projects/other", "?publishedTemplate=true")).toThrow("published view");
   expect(api.pushLocation).not.toHaveBeenCalled();

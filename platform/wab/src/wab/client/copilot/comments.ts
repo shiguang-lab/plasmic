@@ -9,9 +9,9 @@ import { allComponentVariants } from "@/wab/shared/core/components";
 import { allGlobalVariants } from "@/wab/shared/core/sites";
 import { flattenTpls, isTplNamable } from "@/wab/shared/core/tpls";
 
-function scope(studio: StudioCtx, signal?: AbortSignal) {
-  if (studio.isPublishedTemplate) {
-    throw Object.assign(new Error("Comments are unavailable in published templates."), {
+function scope(studio: StudioCtx, signal?: AbortSignal, allowPublished = false) {
+  if (studio.isPublishedTemplate && !allowPublished) {
+    throw Object.assign(new Error("This comment action is unavailable in published templates."), {
       operationExecuted: false,
     });
   }
@@ -47,7 +47,7 @@ const identity = (value: { createdAt: Date | string; updatedAt: Date | string; c
 export const COMMENT_TOOLS = {
   readComments: defineCopilotTool(meta.readComments, async (studio, input, _caller, signal) => {
     assert(!input.elementUuid || input.componentUuid, "elementUuid requires componentUuid");
-    const ctx = scope(studio, signal);
+    const ctx = scope(studio, signal, true);
     const owner = input.componentUuid ? component(studio, input.componentUuid) : undefined;
     const nodes = owner ? flattenTpls(owner.tplTree) : undefined;
     if (input.elementUuid) { assert(nodes?.some(node => node.uuid === input.elementUuid), "Comment element not found in component"); }
@@ -64,7 +64,7 @@ export const COMMENT_TOOLS = {
     })) };
   }),
   addComment: defineCopilotTool(meta.addComment, async (studio, input, _caller, signal) => {
-    const ctx = scope(studio, signal);
+    const ctx = scope(studio, signal, true);
     await ctx.read(); // Enforce native comment access before any required design save.
     const owner = component(studio, input.componentUuid);
     const subject = input.elementUuid ? ensure(flattenTpls(owner.tplTree).find(node => node.uuid === input.elementUuid), "Comment element not found in component") : owner.tplTree;
@@ -73,6 +73,7 @@ export const COMMENT_TOOLS = {
     const variants = input.variantUuids.map(uuid => ensure(available.find(variant => variant.uuid === uuid), `Comment variant ${uuid} not found`));
     const bundler = studio.bundler();
     if ([subject, ...variants].some(node => !bundler.addrOf(node))) {
+      assert(!studio.isPublishedTemplate, "Comment target is outside the published template");
       await studio.save({ noErrorNotification: true });
       assert(!studio.hasUnsavedChanges(), "Comment subject could not be saved; no comment was posted");
       ctx.check();
@@ -86,7 +87,7 @@ export const COMMENT_TOOLS = {
     return { ...ctx.receipt, threadId, commentId };
   }),
   replyToComment: defineCopilotTool(meta.replyToComment, async (studio, input, _caller, signal) => {
-    const ctx = scope(studio, signal);
+    const ctx = scope(studio, signal, true);
     const thread = ensure((await ctx.read()).threads.find(candidate => candidate.id === input.threadId), "Comment thread not found in current project/branch");
     const commentId = mkShortUuid<CommentId>();
     ctx.check();

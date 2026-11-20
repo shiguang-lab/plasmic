@@ -5,7 +5,7 @@ const editableContext = { surface: "editor", previewKind: [null, "interactive"],
 function requiredContext(method, input = {}) {
   if (method === "browser" && input.action === "close") return null;
   if (method === "execute") {
-    if (input.name === "setInteractiveMode") return { surface: "editor", previewKind: [null, "interactive"] };
+    if (["readComments", "addComment", "replyToComment", "setInteractiveMode"].includes(input.name)) return { surface: "editor", previewKind: [null, "interactive"] };
     if (["preview", "executeBatch"].includes(input.name)) return null;
     if (modelReads.has(input.name) || input.name === "endCanvasInspection") return { surface: "editor" };
     if (input.name === "beginCanvasInspection") return { surface: "editor", ...(input.input?.componentUuid || input.input?.frameUuid ? {} : { previewKind: [null, "interactive"] }) };

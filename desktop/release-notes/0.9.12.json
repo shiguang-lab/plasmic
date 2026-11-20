@@ -1,0 +1,7 @@
+{
+  "en": "- Fixed missing artboard content when zooming a canvas with many connected artboards.\n- Inspect element properties and styles in published templates, and leave comments or replies.\n- Improved model caching for published templates and system font handling.",
+  "zh-CN": "- 修复在多画板、多连线的画布上缩放时，画板内容短暂缺失的问题。\n- 已发布模板支持查看元素属性和样式，以及发表评论和回复。\n- 改进已发布模板的模型缓存和系统字体处理。",
+  "zh-TW": "- 修正多個畫板與連線的畫布在縮放時，畫板內容短暫消失的問題。\n- 已發佈的範本支援查看元素屬性與樣式，以及發表留言和回覆。\n- 改善已發佈範本的模型快取與系統字型處理。",
+  "ja": "- 多数のアートボードが接続されたキャンバスをズームすると、内容の一部が一時的に消える問題を修正しました。\n- 公開済みテンプレートで要素のプロパティやスタイルを確認し、コメントや返信を投稿できるようになりました。\n- 公開済みテンプレートのモデルキャッシュとシステムフォントの処理を改善しました。",
+  "ko": "- 연결된 아트보드가 많은 캔버스를 확대하거나 축소할 때 콘텐츠 일부가 잠시 사라지는 문제를 수정했습니다.\n- 게시된 템플릿에서 요소의 속성과 스타일을 확인하고 댓글과 답글을 작성할 수 있습니다.\n- 게시된 템플릿의 모델 캐시와 시스템 글꼴 처리를 개선했습니다."
+}

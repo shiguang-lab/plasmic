@@ -40,7 +40,7 @@ export function parseProjectLocation(
   const arenaType = isArenaType(arenaTypeString) ? arenaTypeString : undefined;
   const arenaUuidOrNameOrPath =
     searchParams.get(SEARCH_PARAM_ARENA) || undefined;
-  const threadId = (!publishedTemplate && searchParams.get(SEARCH_PARAM_COMMENT)) || undefined;
+  const threadId = searchParams.get(SEARCH_PARAM_COMMENT) || undefined;
 
   const pageOverview = !arenaType && !arenaUuidOrNameOrPath && !threadId && searchParams.get(SEARCH_PARAM_OVERVIEW) === "pages";
   const matchProject = APP_ROUTES.project.parse(location.pathname);

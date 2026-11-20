@@ -12,6 +12,13 @@ it("keeps generic font families unquoted while quoting named fonts", () => {
   );
 });
 
+it.each(["-apple-system", "BlinkMacSystemFont"])(
+  "renders %s using the device UI font",
+  (alias) => {
+    expect(showCssValues("font-family", [alias])).toBe("system-ui");
+  },
+);
+
 describe("parseCss", () => {
   it("parse box-shadow string properly into the 4 lengths + color format", () => {
     expect(

@@ -517,7 +517,7 @@ function TopBarContent({ preview }: TopBarProps) {
               children
             ) : (
               <div className="editor-primary-actions">
-                {!publishedTemplate && <Tooltip
+                <Tooltip
                   trigger={["hover", "focus"]}
                   title={
                     studioCtx.showComments()
@@ -537,7 +537,7 @@ function TopBarContent({ preview }: TopBarProps) {
                     data-test-id="top-comment-icon"
                     onClick={() => studioCtx.toggleCommentsPanel()}
                   />
-                </Tooltip>}
+                </Tooltip>
                 <Tooltip
                   trigger={["hover", "focus"]}
                   title={

@@ -32,6 +32,23 @@ it("loads model JSON through the unified resource cache without invoking jQuery"
   expect(calls.fetch).toHaveBeenCalledWith("/api/v1/dependency-models/resource", expect.any(Object));
   expect(calls.ajax).not.toHaveBeenCalled();
 });
+it("hydrates a published template through the ordinary model URL with its publication context", async () => {
+  const dep = { id: "release", modelResourceId: "resource" };
+  const transport = {
+    done(callback: Function) {
+      callback({ project: { id: "template", publishedTemplateVersion: "2.0.0" }, depPkgs: [dep] });
+      return transport;
+    },
+    fail: vi.fn(),
+  };
+  calls.ajax.mockReturnValue(transport);
+  calls.fetch.mockResolvedValue(new Response('{"version":"schema"}'));
+  const result = await new Api().getSiteInfo("template", { publishedTemplate: true });
+  expect(calls.fetch).toHaveBeenCalledExactlyOnceWith("/api/v1/dependency-models/resource", {
+    headers: { "X-Plasmic-Published-Template": "template" },
+  });
+  expect(result.depPkgs).toEqual([{ id: "release", model: { version: "schema" } }]);
+});
 it("prefetches shared startup dependencies as bytes through the resource cache", async () => {
   const response = new Response(JSON.stringify({ name: "按钮" }));
   const parse = vi.spyOn(response, "json");

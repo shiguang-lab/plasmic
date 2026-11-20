@@ -111,6 +111,7 @@ export function ReactionsByEmoji(props: {
             <TriggerTarget>
 <PlasmicReactionButton includesSelf={!!currentUsersReaction} emoji={<Emoji size={20} unified={emojiName} />} count={<>{reactions.length}</>} onClick={e => {
   e.stopPropagation();
+  if (studioCtx.isPublishedTemplate) { return; }
   if (currentUsersReaction) {
     commentsCtx.removeReactionFromComment(currentUsersReaction.id);
   } else {
@@ -123,7 +124,7 @@ export function ReactionsByEmoji(props: {
           </Tooltip>
         );
       })}
-      <ReactionsPopover commentId={commentId} />
+      {!studioCtx.isPublishedTemplate && <ReactionsPopover commentId={commentId} />}
     </>
   );
 }

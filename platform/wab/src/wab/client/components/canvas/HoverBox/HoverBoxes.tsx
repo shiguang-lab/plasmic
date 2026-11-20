@@ -428,6 +428,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   // and for component artboard when their viewmode is set to FrameViewMode.Centered.
   const canShowCornerResizers = false;
 
+  if (studioCtx.isPublishedTemplate) {
+    return <div className="hoverbox" style={{ ...cssProps, top: visibleBox?.top, left: visibleBox?.left,
+      display: viewProps.display, pointerEvents: "none" }}>
+      {clipToScreen(<div className="HoverBox__Border" />)}
+    </div>;
+  }
+
   const showingMeasurements = !!viewCtx?.$measureToolDomElt() && !spacingDragState;
   return (
           <div

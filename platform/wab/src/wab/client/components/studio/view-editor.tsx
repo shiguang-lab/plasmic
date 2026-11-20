@@ -574,15 +574,6 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
         canvasClipper.scrollTop,
       ),
     });
-    // Reuse the painted canvas while its scale is changing, then let the
-    // browser rasterize at the settled scale for crisp text and images.
-    this.listeners.push(viewportCtx.store.subscribe((next, previous) => {
-      if (next.scale !== previous.scale) {
-        canvasScaler.style.willChange = "transform";
-      } else if (previous.isTransforming && !next.isTransforming) {
-        canvasScaler.style.removeProperty("will-change");
-      }
-    }));
     this.props.studioCtx.viewportCtx = viewportCtx;
 
     if (initArena && !this.props.studioCtx.hasInitialEditorView) {
@@ -1203,28 +1194,44 @@ private async handleMouseDown(
         sc.setStudioFocusOnFrame({
           frame: artboard,
           autoZoom: false,
-          appendToMultiSelection: e.shiftKey,
+          appendToMultiSelection: !sc.isPublishedTemplate && e.shiftKey,
         }),
       );
       return;
     }
 
-    if (sc.isPublishedTemplate) {
-      const frame = this.extractEventTarget(e, focusedVc)?.[1]?.arenaFrame();
-      sc.changeSelection(() => sc.setStudioFocusOnFrame({ frame, autoZoom: false }));
-      e.preventDefault();
-      return;
-    }
-
     const eventTarget = e.target as HTMLElement;
-    if (
+    const isBackground = (
       [
         this.canvasClipper,
         this.canvas.current,
         this.canvasScaler.current,
       ].includes(eventTarget) ||
       eventTarget.classList.contains("canvas-editor__canvas-clipper-grid")
-    ) {
+    );
+
+    if (sc.isPublishedTemplate) {
+      const hit = this.extractEventTarget(e, focusedVc);
+      if (!hit && !isBackground) {
+        // Studio overlays (including comment pins) own their pointer input.
+        return;
+      }
+      const view = hit?.[1];
+      const element = view && hit && closestTaggedNonTextDomElt(hit[0], view, {
+        excludeNonSelectable: true,
+      });
+      this.canvasClipper?.focus({ preventScroll: true });
+      if (view && element?.length) {
+        view.getViewOps().tryFocusDomElt(element, { exact: false, deepSelect: isCanvasModifierPressed(e) });
+      } else {
+        sc.changeSelection(() => sc.setStudioFocusOnFrame({ frame: view?.arenaFrame(), autoZoom: false }));
+      }
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return;
+    }
+
+    if (isBackground) {
       this.startMarquee(e, undefined, () => {
         this.props.studioCtx.changeSelection(() => {
           this.props.studioCtx.setStudioFocusOnFrame({
@@ -2329,7 +2336,7 @@ export function ViewEditor_(props: ViewEditorProps) {
                         )}
                         {!props.renderInteractive && <CloneBoxes />}
                         {!props.renderInteractive && <PreselectBoxes />}
-                        {!publishedTemplate && !props.renderInteractive && (
+                        {!props.renderInteractive && (
                           <HoverBoxes studioCtx={studioCtx} />
                         )}
                         <MeasureTool />
@@ -2389,7 +2396,7 @@ export function ViewEditor_(props: ViewEditorProps) {
                 </>
               )}
             </div>
-            {!overview && !publishedTemplate && <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />}
+            {!overview && <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />}
           </div>
 
           <DevContainer

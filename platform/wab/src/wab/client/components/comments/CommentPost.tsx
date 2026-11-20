@@ -125,7 +125,7 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
               >
                 <UiText message={"Copy text"} />
               </Menu.Item>
-              {appCtx.selfInfo?.id === comment.createdById && (
+              {!studioCtx.isPublishedTemplate && appCtx.selfInfo?.id === comment.createdById && (
                 <>
                   <Menu.Item
                     key="edit"

@@ -23,7 +23,7 @@ function ThreadHistoryStatus_(
   const studioCtx = useStudioCtx();
   const commentsCtx = studioCtx.commentsCtx;
 
-  if (!commentThread) {
+  if (!commentThread || studioCtx.isPublishedTemplate) {
     return null;
   }
 

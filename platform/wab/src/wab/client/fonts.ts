@@ -7,7 +7,7 @@ import { assertNever, spawn } from "@/wab/shared/common";
 import type { ModelChange } from "@/wab/shared/core/observable-model";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
-import { isFontFamilyKeyword } from "@/wab/shared/css";
+import { GENERIC_FONT_FAMILIES, isFontFamilyKeyword } from "@/wab/shared/css";
 import {
   FontInstallSpec,
   getFontSpec,
@@ -39,12 +39,18 @@ Futura
 Futura PT Web
 Futura PT Web Light
 Georgia
+Helvetica
+Helvetica Neue
+Hiragino Sans GB
 Impact
 Lucida Console
 Lucida Sans Unicode
 Meta Serif Pro
+Microsoft YaHei
 Palatino Linotype
 Book Antiqua
+PingFang SC
+Segoe UI
 Tahoma
 Times New Roman
 Trebuchet MS
@@ -59,11 +65,11 @@ SF Pro Text
 Symbol
 Webdings
 Wingdings
-MS Sans Serif
-system-ui\
+MS Sans Serif\
 `.trim(),
   ) as string[],
 )
+  .concat(GENERIC_FONT_FAMILIES)
   .uniq()
   .sort()
   .value();

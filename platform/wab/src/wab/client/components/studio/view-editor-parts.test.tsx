@@ -19,8 +19,8 @@ vi.mock("@/wab/client/components/canvas/studio-canvas-util", async (original) =>
 
 afterEach(() => { document.body.innerHTML = ""; vi.restoreAllMocks(); });
 
-it.each([true, false])("selects a protected part and double-clicks into its %s text contract or slot content", async (hasTextContract) => {
-  const { studioCtx } = fakeStudioCtx();
+it.each([[true, false], [false, false], [false, true]])("handles part selection and double-clicks (text contract=%s, published=%s)", async (hasTextContract, published) => {
+  const { studioCtx } = fakeStudioCtx({ siteInfo: published ? { publishedTemplateVersion: "1.0.0" } : undefined });
   const source = mock<ViewCtx>();
   const canvas = mock<CanvasCtx>();
   const viewOps = mock<ViewOps>();
@@ -55,6 +55,18 @@ it.each([true, false])("selects a protected part and double-clicks into its %s t
   root.querySelector("span")!.dispatchEvent(event);
   try {
     await Reflect.get(editor, "handleMouseDown").call(editor, event, source);
+    if (published) {
+      expect(viewOps.tryFocusDomElt).toHaveBeenCalledWith(expect.objectContaining({ 0: root.querySelector("span") }), { exact: false, deepSelect: false });
+      expect(Reflect.get(editor, "dragState")).toBeUndefined();
+      expect(Reflect.get(editor, "pendingCanvasClick")).toBeUndefined();
+      const release = new MouseEvent("pointerup", { button: 0 });
+      await Reflect.get(editor, "handleMouseUp").call(editor, release, source);
+      await Reflect.get(editor, "handleMouseDown").call(editor, event, source);
+      await Reflect.get(editor, "handleMouseUp").call(editor, release, source);
+      expect(viewOps.tryEditText).not.toHaveBeenCalled();
+      expect(viewOps.deepFocusElement).not.toHaveBeenCalled();
+      return;
+    }
     expect(viewOps.tryFocusObj).toHaveBeenCalledWith(owner, { exact: true, anchorCloneKey: "instance[1]" });
     expect(source.setFocusedComponentPart).toHaveBeenLastCalledWith(expect.objectContaining({ tpl, name: "ok", element: root.querySelector("button") }));
     expect(tab).toHaveBeenCalledWith(RightTabKey.style);

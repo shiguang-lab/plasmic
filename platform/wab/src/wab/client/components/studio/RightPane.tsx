@@ -1,3 +1,4 @@
+import { PublishedElementProperties } from "@/wab/client/components/studio/PublishedElementProperties";
 import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
@@ -65,7 +66,7 @@ export const RightPane = React.memo(function RightPane({
   }, [focusedComponent]);
 
   const selectionTitle = useInspectorTitle(studioCtx,
-    rightTabKey === RightTabKey.component ? undefined : selectedTpl, focusedComponent);
+    !studioCtx.isPublishedTemplate && rightTabKey === RightTabKey.component ? undefined : selectedTpl, focusedComponent);
   const partTitle = selection.part?.displayName;
   const inspectorTitle = rightTabKey !== RightTabKey.component && partTitle
     ? `${selectionTitle} › ${partTitle}` : selectionTitle;
@@ -168,7 +169,7 @@ export const RightPane = React.memo(function RightPane({
     !canvasLoading &&
     devMode &&
     !panelsHidden &&
-    (tabs.length > 0 || showCommentsPanel || isFrameSelection);
+    (showCommentsPanel || (studioCtx.isPublishedTemplate ? !!selectedTpl && !selectedFrames.length : tabs.length > 0 || isFrameSelection));
 
   return providesSidebarPopupSetting({ left: false })(
     <>
@@ -186,6 +187,15 @@ export const RightPane = React.memo(function RightPane({
       >
         {showCommentsPanel ? (
           <CommentsTab />
+        ) : studioCtx.isPublishedTemplate ? (
+          <>
+            <div className="editor-panel-header">
+              <strong className="editor-panel-title">{selectionTitle}</strong>
+              <UiText message="Read-only" />
+              <PanelCloseButton onClick={() => studioCtx.collapseRightPanel()} />
+            </div>
+            {focusedViewCtx && selectedTpl && <PublishedElementProperties view={focusedViewCtx} tpl={selectedTpl} />}
+          </>
         ) : (
           <>
             <RightInspectorHeader

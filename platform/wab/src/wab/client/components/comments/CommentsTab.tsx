@@ -290,7 +290,7 @@ export const CommentsTab = React.memo(function CommentsTab(
                 {uiT("Comments")}{" "}
                 <span className={styles.emptyHint}>{threads.length}</span>
               </Typography.Text>
-              <Dropdown
+              {!studioCtx.isPublishedTemplate && <Dropdown
                 trigger={["click"]}
                 placement="bottomLeft"
                 menu={{
@@ -339,7 +339,7 @@ export const CommentsTab = React.memo(function CommentsTab(
                     disabled={savingNotification}
                   />
                 </Tooltip>
-              </Dropdown>
+              </Dropdown>}
             </Flex>
             <PanelCloseButton onClick={() => studioCtx.collapseRightPanel()} />
           </Flex>

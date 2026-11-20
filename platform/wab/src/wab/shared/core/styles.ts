@@ -2237,18 +2237,19 @@ export const genTokenVarDataWithVariants = (
   token: FinalToken<StyleToken>,
   site: Site,
 ): TokenVarData[] => {
-  const genData = (vsh = new VariantedStylesHelper()) => ({
-    varRule: `${getTokenVarName(token.base)}: ${vsh.getActiveTokenValue(
-      token,
-    )}`,
-    plasmicExternalVarRule: `${getPlasmicExternalTokenVarName(
-      token.base,
-    )}: ${mkTokenRef(token.base)}`,
-    userExternalVarRule: isTokenNameValidCssVariable(token.base)
-      ? `${token.name}: ${mkTokenRef(token.base)}`
-      : undefined,
-    vsh,
-  });
+  const genData = (vsh = new VariantedStylesHelper()) => {
+    const value = vsh.getActiveTokenValue(token);
+    return {
+      varRule: `${getTokenVarName(token.base)}: ${token.base.type === "FontFamily" ? css.resolveSystemFontFamily(value) : value}`,
+      plasmicExternalVarRule: `${getPlasmicExternalTokenVarName(
+        token.base,
+      )}: ${mkTokenRef(token.base)}`,
+      userExternalVarRule: isTokenNameValidCssVariable(token.base)
+        ? `${token.name}: ${mkTokenRef(token.base)}`
+        : undefined,
+      vsh,
+    };
+  };
   return [
     genData(),
     ...token.variantedValues.map((v) =>

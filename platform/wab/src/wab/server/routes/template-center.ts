@@ -5,21 +5,21 @@ import {
 } from "@/wab/server/db/DbBundleLoader";
 import { DbMgr, SUPER_USER } from "@/wab/server/db/DbMgr";
 import {
+  findTemplate,
+  getPublishedTemplateVersion,
+} from "@/wab/server/db/published-template";
+import {
   DesignTemplate,
   PreviewPublication,
 } from "@/wab/server/entities/CustomEntities";
-import { Project } from "@/wab/server/entities/Entities";
+import { type PkgVersion, Project } from "@/wab/server/entities/Entities";
 import {
   publishWebsiteSnapshot,
   serializePreviewPublication,
 } from "@/wab/server/routes/preview-publications";
 import { getCurrentModelVersion } from "@/wab/server/routes/projects";
 import { getUser, superDbMgr } from "@/wab/server/routes/util";
-import {
-  BadRequestError,
-  ForbiddenError,
-  NotFoundError,
-} from "@/wab/shared/ApiErrors/errors";
+import { BadRequestError, ForbiddenError } from "@/wab/shared/ApiErrors/errors";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { Bundler } from "@/wab/shared/bundler";
@@ -87,20 +87,6 @@ function serialize(
   };
 }
 
-async function findTemplate(em: EntityManager, id: string) {
-  const record = await em
-    .getRepository(DesignTemplate)
-    .createQueryBuilder("template")
-    .innerJoin(Project, "project", 'project.id = template."projectId"')
-    .where('template."projectId" = :id', { id })
-    .andWhere('project."deletedAt" IS NULL AND project."isTemplate" = true')
-    .getOne();
-  if (!record) {
-    throw new NotFoundError("Template not found");
-  }
-  return record;
-}
-
 export async function listDesignTemplates(req: Request, res: Response) {
   getUser(req);
   const canManage =
@@ -129,31 +115,22 @@ export async function getPublishedDesignTemplateStudio(
 ) {
   getUser(req);
   const mgr = superDbMgr(req);
-  const record = await findTemplate(mgr.getEntMgr(), req.params.templateId);
-  const published = record.published;
-  if (!published) {
-    throw new NotFoundError("Template is not published");
-  }
-
+  const { record, published, version } = await getPublishedTemplateVersion(
+    mgr,
+    req.params.templateId,
+  );
   const projectId = record.projectId;
-  const pkg = await mgr.getPkgByProjectId(projectId);
-  const version = pkg && await mgr.tryGetPkgVersion(pkg.id, published.version);
-  if (!version || version.version !== published.version || version.branchId) {
-    throw new NotFoundError("Published template version not found");
-  }
   const [bundle, modelVersion, hostlessVersion] = await Promise.all([
     getMigratedBundle(version),
     getCurrentModelVersion(mgr.getEntMgr()),
     mgr.getHostlessVersion(),
   ]);
-  const dependencies = await loadDepPackages(mgr, bundle);
-  const depPkgs = dependencies.map((dep) => ({
-    ...dep,
-    model: JSON.parse(dep.model),
-  }));
+  const depPkgs = await loadDepPackages(mgr, bundle);
 
   // Combine current catalog metadata with the published model and its host.
-  const response: GetProjectResponse = {
+  const response: Omit<GetProjectResponse, "depPkgs"> & {
+    depPkgs: PkgVersion[];
+  } = {
     project: {
       id: projectId,
       isTemplate: true,
@@ -198,7 +175,6 @@ export async function getPublishedDesignTemplateStudio(
     hasAppAuth: false,
     isMainBranchProtected: true,
   };
-  res.setHeader("Cache-Control", "no-store");
   res.json(response);
 }
 

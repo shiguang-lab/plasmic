@@ -92,7 +92,7 @@ function fixture(site = createSite()) {
 }
 
 describe("AI prototype editor tools", () => {
-  it("rejects edits and comments from MCP in an administrator's published template session", async () => {
+  it("allows comment reads and rejects design edits from MCP in an administrator's published template session", async () => {
     const site = createSite();
     const page = new TplMgr({ site }).addComponent({
       name: "Published page",
@@ -129,11 +129,11 @@ describe("AI prototype editor tools", () => {
     })).rejects.toMatchObject(readOnly);
     await expect(call("save")).rejects.toMatchObject(readOnly);
     await expect(call("undo")).rejects.toMatchObject(readOnly);
-    await expect(call("addComment", {
-      componentUuid: page.uuid,
-      body: "A comment on the published page",
-    })).rejects.toMatchObject({ message: "Comments are unavailable in published templates.", operationExecuted: false });
-    expect(api.getComments).not.toHaveBeenCalled();
+    api.getComments.mockResolvedValue({ threads: [], users: [], reactions: [] });
+    expect(JSON.parse(await call("readComments"))).toMatchObject({ threads: [] });
+    await expect(call("deleteComment", { commentId: "comment" })).rejects.toMatchObject({
+      operationExecuted: false,
+    });
     expect(api.postRootComment).not.toHaveBeenCalled();
     expect(api.saveProjectRevChanges).not.toHaveBeenCalled();
     expect(studioCtx.hasUnsavedChanges()).toBe(false);

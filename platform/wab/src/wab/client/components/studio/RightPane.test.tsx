@@ -126,7 +126,7 @@ it("keeps the active page editor and valid tabs as the selection changes", async
   const span = mkTplTag("span");
   selection.setTpls([span]);
   const leftPanelState = new StudioLeftPanelState();
-  const sc = mock<StudioCtx>();
+  const sc = mock<StudioCtx>({ isPublishedTemplate: false });
   const vc = mock<ViewCtx>({ component });
   vc.focusedTpl.mockReturnValue(null);
   vc.focusedSelectables.mockReturnValue([]);

@@ -25,6 +25,8 @@ it.each([
   "cursive",
   "fantasy",
   "system-ui",
+  "-apple-system",
+  "BlinkMacSystemFont",
   "ui-serif",
   "ui-sans-serif",
   "ui-monospace",
@@ -46,6 +48,23 @@ it.each([
   expect(manager.isUserManagedFontInstalled(family)).toBe(true);
   expect(manager.missingUsedFonts()).not.toContain(family);
   expect(warn).not.toHaveBeenCalled();
+});
+
+it("offers generic families and detected common local fonts in the picker", async () => {
+  vi.mocked($.fn.width).mockImplementation(function (this: JQuery) {
+    return this.css("font-family").includes("PingFang SC") ? 200 : 100;
+  } as any);
+  const manager = new FontManager(createSite());
+  await Promise.resolve();
+
+  const families = manager.availFonts().map((font) => font.fontFamily);
+  expect(families).toEqual(
+    expect.arrayContaining([
+      "system-ui", "serif", "sans-serif", "monospace", "PingFang SC",
+    ]),
+  );
+  expect(families).not.toContain("Microsoft YaHei");
+  manager.dispose();
 });
 
 it("does not warn when switching to a generic family after opening", async () => {

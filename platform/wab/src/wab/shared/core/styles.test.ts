@@ -1,4 +1,22 @@
-import { preferShorthand } from "@/wab/shared/core/styles";
+import { getTokenVarName, mkStyleToken } from "@/wab/commons/StyleToken";
+import { createSite } from "@/wab/shared/core/sites";
+import {
+  genTokenVarDataWithVariants,
+  preferShorthand,
+} from "@/wab/shared/core/styles";
+import { toFinalToken } from "@/wab/shared/core/tokens";
+
+it("emits system-ui for a font token with a platform alias", () => {
+  const token = mkStyleToken({
+    name: "Body",
+    type: "FontFamily",
+    value: "-apple-system",
+  });
+  const site = createSite({ styleTokens: [token] });
+  const [base] = genTokenVarDataWithVariants(toFinalToken(token, site), site);
+  expect(base.varRule).toBe(`${getTokenVarName(token)}: system-ui`);
+  expect(token.value).toBe("-apple-system");
+});
 
 describe("preferShorthand", () => {
   it("should output shorthand notation", () => {

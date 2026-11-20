@@ -2,6 +2,7 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { ViewEditorController } from "@/wab/client/components/studio/view-editor";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ensure } from "@/wab/shared/common";
 import { Pt } from "@/wab/shared/geom";
 import { inverseZoom } from "@/wab/styles/css-variables";
 import { fireEvent, waitFor } from "@testing-library/react";
@@ -71,16 +72,15 @@ it("keeps artboard outlines sized in screen pixels as the canvas zoom changes", 
   } finally { f.dispose(); }
 });
 
-it("reuses the painted canvas during zoom and releases it at the final scale", async () => {
+it("scales the canvas directly without promoting the entire arena during a gesture", async () => {
   const f = await fixture();
   try {
-    f.studioCtx.viewportCtx?.enqueueTransform(1.25, Pt.zero(), false);
-    expect(f.scaler.style.willChange).toBe("transform");
-    f.studioCtx.viewportCtx?.enqueueTransform(1.5, Pt.zero(), false);
-    await waitFor(() => expect(f.scaler.style.willChange).toBe(""));
-    expect(f.scaler.style.transform).toBe("scale(1.5)");
-    f.studioCtx.viewportCtx?.scrollBy(new Pt(80, 0));
-    expect(f.scaler.style.willChange).toBe("");
+    const viewport = ensure(f.studioCtx.viewportCtx, "Canvas viewport");
+    for (const scale of [0.47, 0.28, 0.18, 0.47, 1.5]) {
+      viewport.scaleAtMidPt(scale);
+      expect(f.scaler.style.transform).toBe(`scale(${scale})`);
+      expect(f.scaler.style.willChange).toBe("");
+    }
   } finally { f.dispose(); }
 });
 

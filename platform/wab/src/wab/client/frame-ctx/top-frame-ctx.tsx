@@ -18,7 +18,7 @@ import { getUiAppearance, subscribeUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { bindMethods } from "@/wab/commons/proxies";
 import { BranchId, GetProjectResponse } from "@/wab/shared/ApiSchema";
-import { assert, spawn } from "@/wab/shared/common";
+import { assert, ensure, spawn } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import * as Comlink from "comlink";
 import type { History } from "history";
@@ -49,7 +49,12 @@ export function restrictPublishedTemplateFrameApi(
   api: TopFrameWireApi,
   history: History,
   projectId: string,
+  version: string,
 ) {
+  const checkedProject = (id: Parameters<TopFrameWireApi["getComments"]>[0], branch: string | undefined) => {
+    assert(id === projectId && !branch, "Comments must belong to the published template.");
+    return id;
+  };
   const restrictNavigation = (navigate: TopFrameApi["pushLocation"]) =>
     (path?: string, query?: string, hash?: string) => {
       const target = {
@@ -77,9 +82,12 @@ export function restrictPublishedTemplateFrameApi(
       "getHostlessLibraryCanvas", "getStorageItem", "addStorageItem", "removeStorageItem",
       "addStorageListener", "addEventListener", "removeEventListener",
     ]),
+    getComments: (id, branch) => api.getComments(checkedProject(id, branch), undefined, version),
+    postRootComment: (id, branch, data) => api.postRootComment(checkedProject(id, branch), undefined, data, version),
+    postThreadComment: (id, branch, thread, data) => api.postThreadComment(checkedProject(id, branch), undefined, thread, data, version),
     pushLocation: restrictNavigation(api.pushLocation),
     replaceLocation: restrictNavigation(api.replaceLocation),
-  };
+  } satisfies Partial<TopFrameWireApi>;
 }
 
 /** Transfers ownership of the one-shot bootstrap request to the host session. */
@@ -253,7 +261,7 @@ export function TopFrameCtxProvider({
         },
       } as TopFrameWireApi;
       const exposedApi = publishedSiteInfo
-        ? restrictPublishedTemplateFrameApi(topFrameCtxApi, appCtx.history, projectId)
+        ? restrictPublishedTemplateFrameApi(topFrameCtxApi, appCtx.history, projectId, ensure(publishedSiteInfo.project.publishedTemplateVersion, "Expected a published template version"))
         : topFrameCtxApi;
       Comlink.expose(exposedApi, {
         ...hostFrameEndpoint,
