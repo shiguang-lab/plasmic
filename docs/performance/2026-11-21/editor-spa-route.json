@@ -4812,5 +4812,466 @@
         }
       ]
     }
+  },
+  "isolatedStartupCandidates": {
+    "renderer-0": {
+      "cpuRate": 1,
+      "latencyAddedMs": 0,
+      "opens": [
+        {
+          "requestStartMs": 259,
+          "requestDurationMs": 7,
+          "firstMs": 1130,
+          "allMs": 2452
+        },
+        {
+          "requestStartMs": 273,
+          "requestDurationMs": 6,
+          "firstMs": 1132,
+          "allMs": 2514
+        },
+        {
+          "requestStartMs": 256,
+          "requestDurationMs": 6,
+          "firstMs": 1117,
+          "allMs": 2471
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 264,
+        "requestDurationMs": 6,
+        "firstMs": 1124,
+        "allMs": 2492
+      },
+      "oldEditorsExited": 3
+    },
+    "click-0": {
+      "cpuRate": 1,
+      "latencyAddedMs": 0,
+      "opens": [
+        {
+          "requestStartMs": 2,
+          "requestDurationMs": 17,
+          "firstMs": 1213,
+          "allMs": 2618
+        },
+        {
+          "requestStartMs": 1,
+          "requestDurationMs": 16,
+          "firstMs": 1165,
+          "allMs": 2567
+        },
+        {
+          "requestStartMs": 1,
+          "requestDurationMs": 17,
+          "firstMs": 1146,
+          "allMs": 2507
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 1,
+        "requestDurationMs": 16,
+        "firstMs": 1156,
+        "allMs": 2537
+      },
+      "oldEditorsExited": 3
+    },
+    "reuse-dashboard-0": {
+      "cpuRate": 1,
+      "latencyAddedMs": 0,
+      "opens": [
+        {
+          "requestStartMs": 141,
+          "requestDurationMs": 7,
+          "firstMs": 1056,
+          "allMs": 2408
+        },
+        {
+          "requestStartMs": 110,
+          "requestDurationMs": 6,
+          "firstMs": 1029,
+          "allMs": 2376
+        },
+        {
+          "requestStartMs": 81,
+          "requestDurationMs": 6,
+          "firstMs": 988,
+          "allMs": 2342
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 96,
+        "requestDurationMs": 6,
+        "firstMs": 1008,
+        "allMs": 2359
+      },
+      "oldEditorsExited": 3,
+      "nextListReadyMs": [
+        1728,
+        1401,
+        2033
+      ]
+    },
+    "spa-0": {
+      "cpuRate": 1,
+      "latencyAddedMs": 0,
+      "opens": [
+        {
+          "requestStartMs": 105,
+          "requestDurationMs": 7,
+          "firstMs": 981,
+          "allMs": 2416
+        },
+        {
+          "requestStartMs": 65,
+          "requestDurationMs": 7,
+          "firstMs": 748,
+          "allMs": 2007
+        },
+        {
+          "requestStartMs": 61,
+          "requestDurationMs": 7,
+          "firstMs": 791,
+          "allMs": 1932
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 63,
+        "requestDurationMs": 7,
+        "firstMs": 770,
+        "allMs": 1970
+      },
+      "oldEditorsExited": null
+    },
+    "renderer-1000": {
+      "cpuRate": 1,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 255,
+          "requestDurationMs": 1017,
+          "firstMs": 2167,
+          "allMs": 3621
+        },
+        {
+          "requestStartMs": 299,
+          "requestDurationMs": 1017,
+          "firstMs": 2280,
+          "allMs": 3944
+        },
+        {
+          "requestStartMs": 294,
+          "requestDurationMs": 1011,
+          "firstMs": 2318,
+          "allMs": 3800
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 296,
+        "requestDurationMs": 1014,
+        "firstMs": 2299,
+        "allMs": 3872
+      },
+      "oldEditorsExited": 3,
+      "privateFootprint": {
+        "cold-dashboard": {
+          "appMiB": 472,
+          "foregroundMiB": 140
+        },
+        "canvas-2": {
+          "appMiB": 1126,
+          "foregroundMiB": 635
+        },
+        "returned-2": {
+          "appMiB": 528,
+          "foregroundMiB": 105
+        },
+        "settled-30s": {
+          "appMiB": 310,
+          "foregroundMiB": 114
+        }
+      }
+    },
+    "click-1000": {
+      "cpuRate": 1,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 1,
+          "requestDurationMs": 1018,
+          "firstMs": 1890,
+          "allMs": 3266
+        },
+        {
+          "requestStartMs": 1,
+          "requestDurationMs": 1009,
+          "firstMs": 1931,
+          "allMs": 3286
+        },
+        {
+          "requestStartMs": 1,
+          "requestDurationMs": 1019,
+          "firstMs": 1893,
+          "allMs": 3297
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 1,
+        "requestDurationMs": 1014,
+        "firstMs": 1912,
+        "allMs": 3292
+      },
+      "oldEditorsExited": 3,
+      "privateFootprint": {
+        "cold-dashboard": {
+          "appMiB": 487,
+          "foregroundMiB": 146
+        },
+        "canvas-2": {
+          "appMiB": 1152,
+          "foregroundMiB": 635
+        },
+        "returned-2": {
+          "appMiB": 553,
+          "foregroundMiB": 109
+        },
+        "settled-30s": {
+          "appMiB": 323,
+          "foregroundMiB": 107
+        }
+      }
+    },
+    "reuse-dashboard-1000": {
+      "cpuRate": 1,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 74,
+          "requestDurationMs": 1018,
+          "firstMs": 1789,
+          "allMs": 3261
+        },
+        {
+          "requestStartMs": 108,
+          "requestDurationMs": 1018,
+          "firstMs": 1814,
+          "allMs": 3206
+        },
+        {
+          "requestStartMs": 107,
+          "requestDurationMs": 1017,
+          "firstMs": 1792,
+          "allMs": 3185
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 108,
+        "requestDurationMs": 1018,
+        "firstMs": 1803,
+        "allMs": 3196
+      },
+      "oldEditorsExited": 3,
+      "nextListReadyMs": [
+        2218,
+        2117,
+        1809
+      ],
+      "privateFootprint": {
+        "cold-dashboard": {
+          "appMiB": 501,
+          "foregroundMiB": 155
+        },
+        "canvas-2": {
+          "appMiB": 1149,
+          "foregroundMiB": 672
+        },
+        "returned-2": {
+          "appMiB": 516,
+          "foregroundMiB": 133
+        },
+        "settled-30s": {
+          "appMiB": 279,
+          "foregroundMiB": 107
+        }
+      }
+    },
+    "spa-1000": {
+      "cpuRate": 1,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 76,
+          "requestDurationMs": 1017,
+          "firstMs": 1763,
+          "allMs": 3201
+        },
+        {
+          "requestStartMs": 62,
+          "requestDurationMs": 1017,
+          "firstMs": 1569,
+          "allMs": 2846
+        },
+        {
+          "requestStartMs": 61,
+          "requestDurationMs": 1019,
+          "firstMs": 1614,
+          "allMs": 2802
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 62,
+        "requestDurationMs": 1018,
+        "firstMs": 1592,
+        "allMs": 2824
+      },
+      "oldEditorsExited": null,
+      "privateFootprint": {
+        "cold-dashboard": {
+          "appMiB": 378,
+          "foregroundMiB": 139
+        },
+        "canvas-2": {
+          "appMiB": 1259,
+          "foregroundMiB": 850
+        },
+        "returned-2": {
+          "appMiB": 1326,
+          "foregroundMiB": 845
+        },
+        "settled-30s": {
+          "appMiB": 348,
+          "foregroundMiB": 177
+        }
+      }
+    },
+    "cpu-renderer-1000": {
+      "cpuRate": 4,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 830,
+          "requestDurationMs": 1008,
+          "firstMs": 4967,
+          "allMs": 10528
+        },
+        {
+          "requestStartMs": 798,
+          "requestDurationMs": 1007,
+          "firstMs": 5011,
+          "allMs": 10659
+        },
+        {
+          "requestStartMs": 799,
+          "requestDurationMs": 1007,
+          "firstMs": 4972,
+          "allMs": 10351
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 798,
+        "requestDurationMs": 1007,
+        "firstMs": 4992,
+        "allMs": 10505
+      },
+      "oldEditorsExited": 3
+    },
+    "cpu-click-1000": {
+      "cpuRate": 4,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 2,
+          "requestDurationMs": 1006,
+          "firstMs": 4157,
+          "allMs": 9617
+        },
+        {
+          "requestStartMs": 1,
+          "requestDurationMs": 1007,
+          "firstMs": 4194,
+          "allMs": 9571
+        },
+        {
+          "requestStartMs": 1,
+          "requestDurationMs": 1008,
+          "firstMs": 4219,
+          "allMs": 9612
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 1,
+        "requestDurationMs": 1008,
+        "firstMs": 4206,
+        "allMs": 9592
+      },
+      "oldEditorsExited": 3
+    },
+    "reuse-dashboard-cpu-1000": {
+      "cpuRate": 4,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 310,
+          "requestDurationMs": 1007,
+          "firstMs": 4000,
+          "allMs": 9244
+        },
+        {
+          "requestStartMs": 365,
+          "requestDurationMs": 1006,
+          "firstMs": 3903,
+          "allMs": 9292
+        },
+        {
+          "requestStartMs": 328,
+          "requestDurationMs": 1008,
+          "firstMs": 3869,
+          "allMs": 9208
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 346,
+        "requestDurationMs": 1007,
+        "firstMs": 3886,
+        "allMs": 9250
+      },
+      "oldEditorsExited": 3,
+      "nextListReadyMs": [
+        5162,
+        4745,
+        4623
+      ]
+    },
+    "cpu-spa-1000": {
+      "cpuRate": 4,
+      "latencyAddedMs": 1000,
+      "opens": [
+        {
+          "requestStartMs": 312,
+          "requestDurationMs": 1007,
+          "firstMs": 4000,
+          "allMs": 9437
+        },
+        {
+          "requestStartMs": 136,
+          "requestDurationMs": 1007,
+          "firstMs": 3220,
+          "allMs": 7566
+        },
+        {
+          "requestStartMs": 142,
+          "requestDurationMs": 1008,
+          "firstMs": 3170,
+          "allMs": 7802
+        }
+      ],
+      "warmMedian": {
+        "requestStartMs": 139,
+        "requestDurationMs": 1008,
+        "firstMs": 3195,
+        "allMs": 7684
+      },
+      "oldEditorsExited": null
+    }
   }
 }

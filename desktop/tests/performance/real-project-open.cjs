@@ -18,6 +18,14 @@ const pacedVisits = pacedRoute || mode === "paced-desktop";
 const groupEditorDwell = new Map([[2, 30], [5, 60], [7, 90]]);
 const studyHeap = routeStudy && process.env.PERF_ROUTE_HEAP === "1";
 const studyEdit = routeStudy && process.env.PERF_ROUTE_EDIT === "1";
+const projectRead = process.env.PERF_PROJECT_READ;
+const projectReadDelayMs = Number(process.env.PERF_PROJECT_READ_DELAY_MS || 0);
+const reuseDashboard = mode.startsWith("reuse-dashboard-");
+if (reuseDashboard && (!isolatedSessions || projectRead !== "renderer")) throw Error("Dashboard handoff requires isolated views and a renderer read");
+if (projectRead && (!routeStudy || !["click", "renderer"].includes(projectRead) ||
+    (projectRead === "click" && !isolatedSessions) || !Number.isFinite(projectReadDelayMs) || projectReadDelayMs < 0)) {
+  throw Error("Invalid project read timing scenario");
+}
 const cleanupPolicy = process.env.PERF_ROUTE_CLEANUP;
 if (cleanupPolicy && (!routeStudy || isolatedSessions || !["idle", "open-and-idle", "after-artboards"].includes(cleanupPolicy))) {
   throw Error("PERF_ROUTE_CLEANUP requires an SPA route study and idle, open-and-idle or after-artboards");
@@ -76,7 +84,8 @@ if (routeStudy) {
     route: isolatedSessions ? "desktop" : "spa",
     rendererCpuRate: routeCpuRate,
     cleanupPolicy,
-    cleanupDelayMs: cleanupPolicy ? (pacedRoute ? 10000 : 3000) : undefined,
+    cleanupDelayMs: cleanupPolicy ? (pacedRoute || projectRead ? 10000 : 3000) : undefined,
+    projectRead, projectReadDelayMs: projectRead ? projectReadDelayMs : undefined,
     counters: process.env.PERF_ROUTE_COUNTERS === "1",
     snapshots: studyHeap,
     settle: process.env.PERF_ROUTE_SETTLE || null,
@@ -297,8 +306,8 @@ async function routeSnapshot(label) {
     if (!attached) debug.detach();
   }
 }
-async function dashboard() {
-  return until(() => win.webContents.executeJavaScript(`(()=>{const e=[...document.querySelectorAll('[role="link"][aria-label]')].find(e=>e.getAttribute('aria-label').endsWith(${JSON.stringify(": " + opening.project.name)}));return e && {label:e.getAttribute('aria-label'),rect:JSON.stringify(e.getBoundingClientRect())}})()`), "real dashboard card");
+async function dashboard(contents) {
+  return until(() => (contents || win.webContents).executeJavaScript(`(()=>{const e=[...document.querySelectorAll('[role="link"][aria-label]')].find(e=>e.getAttribute('aria-label').endsWith(${JSON.stringify(": " + opening.project.name)}));return e && {label:e.getAttribute('aria-label'),rect:JSON.stringify(e.getBoundingClientRect())}})()`), "real dashboard card");
 }
 async function ready({ previousTimeOrigin } = {}) {
   return until(async () => {
@@ -329,13 +338,26 @@ app.whenReady().then(async () => {
     return result;
   };
   const remoteFetch = async request => {
-    const start = now(), currentPhase = phase, response = await cache.fetch(request);
+    const start = now(), currentPhase = phase;
+    if (projectRead && projectReadDelayMs && new URL(request.url).pathname === "/api/v1/projects/" + startup.projectId) {
+      await sleep(projectReadDelayMs);
+    }
+    const response = await cache.fetch(request);
     report.requests.push({phase:currentPhase,path:canonical(request.url),start,duration:now()-start,hit:response.headers.get("X-Plasmic-Resource-Cache"),status:response.status});
     return response;
   };
   ses.protocol.handle("http", remoteFetch);
   const assets=createAssetHandler({root:buildRoot,studioOrigin:origin,canvasOrigin,remoteFetch});
+  // Offline replay only. Hand the normal renderer GET its pending fixture response once.
+  let pendingOpening;
   ses.protocol.handle("https",async request=>{
+    if (pendingOpening && request.method === "GET" && new URL(request.url).origin === origin &&
+        canonical(request.url) === pendingOpening.path) {
+      const {response} = pendingOpening;
+      pendingOpening = undefined;
+      report.openingReadHits = (report.openingReadHits || 0) + 1;
+      return response;
+    }
     if (routeStudy) {
       const url = new URL(request.url);
       if (url.origin === origin && url.pathname === "/api/v1/project-covers/events") {
@@ -414,6 +436,24 @@ app.whenReady().then(async () => {
   }):nativeWindow;
   if(isolatedSessions) ipcMain.handle("desktop:navigate",(event,url)=>{
     if(event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame)throw Error("Stale renderer navigation");
+    if (reuseDashboard && win.view === win.dashboard &&
+        new URL(url).origin === origin && new URL(url).pathname === "/projects/" + startup.projectId) {
+      win.editor = win.view;
+      win.dashboard = undefined;
+      win.dashboardLoad = undefined;
+      // The installed Desktop navigation listener changes the current React route.
+      win.activate(win.editor, url);
+      return;
+    }
+    if (projectRead === "click") {
+      const next = new URL(url);
+      if (next.origin === origin && next.pathname === "/projects/" + startup.projectId) {
+        const api = new URL("/api/v1" + next.pathname, origin);
+        api.searchParams.set("includeStartup", "true");
+        api.searchParams.set("branchName", JSON.stringify(next.searchParams.get("branch") || "main"));
+        pendingOpening = {path:canonical(api.href), response:remoteFetch(new Request(api))};
+      }
+    }
     return win.loadURL(url);
   });
   await win.loadURL(origin+"/projects");
@@ -537,8 +577,8 @@ app.whenReady().then(async () => {
     report.samples.push(sample);
     console.log(JSON.stringify({phase,detectedReadyMs:sample.detectedReadyMs,studio:probes.find(p=>p.studio)?.studio}));
     if (routeStudy) {
-      sample.documentReused = topPaint.timeOrigin === documentOrigin;
-      if (sample.documentReused === isolatedSessions) throw Error("Unexpected top document ownership");
+      sample.documentReused = topPaint.timeOrigin === (reuseDashboard ? click.timeOrigin : documentOrigin);
+      if (sample.documentReused !== (!isolatedSessions || reuseDashboard)) throw Error("Unexpected top document ownership");
       if (!revealed || atFirstReady.rendered < 1) throw Error("Target artboard did not render");
       if (studyEdit && i === 0) {
         savedPage = await frame.executeJavaScript(`(async () => {
@@ -601,6 +641,16 @@ app.whenReady().then(async () => {
       break;
     }
     if (nativeBridge?.reload) continue;
+    if (projectRead) {
+      const reading = sleep(5000);
+      if (reuseDashboard) {
+        const started = now();
+        await win.prepareDashboard();
+        await dashboard(win.dashboard.webContents);
+        sample.nextListReadyMs = now() - started;
+      }
+      await reading;
+    }
     if (pacedVisits) {
       await sleep(5000);
       await frame.executeJavaScript(`(async () => {
@@ -650,7 +700,9 @@ app.whenReady().then(async () => {
     if (routeStudy) {
       if (!isolatedSessions) await memoryPoint("returned-" + i);
       const top = await win.webContents.executeJavaScript("performance.timeOrigin");
-      if (top !== documentOrigin) throw Error("Dashboard top document was replaced");
+      if (reuseDashboard) {
+        if (top === click.timeOrigin || win.webContents !== win.dashboard.webContents) throw Error("Did not activate the replacement list");
+      } else if (top !== documentOrigin) throw Error("Dashboard top document was replaced");
       if (win.webContents.mainFrame.framesInSubtree.length !== 1) throw Error("Editor frame still attached");
       if (pacedVisits) {
         if (groupEditorDwell.has(i + 1)) {
@@ -672,6 +724,7 @@ app.whenReady().then(async () => {
       }
       if (studyHeap && i === opens - 1) await routeSnapshot("returned");
     }
+    if (projectRead && i + 1 < opens) await sleep(5000);
     if(sparePolicy && process.env.PERF_SPARE_MEMORY === "1") {
       await sleep(500);
       await memoryPoint("returned-"+i+"-1s",retiredPid,retiredFramePids);
@@ -695,6 +748,7 @@ app.whenReady().then(async () => {
     }
   }
   if (pacedRoute) report.idleVisits = await win.webContents.executeJavaScript("routeCleanupProbe.visits()");
+  if (projectRead === "click" && (pendingOpening || report.openingReadHits !== opens)) throw Error("Expected one pending opening read per navigation");
   if (cleanupPolicy) report.cleanupCalls = await win.webContents.executeJavaScript("routeCleanupProbe.counts()");
   if (routeStudy && (report.errors.length || report.blocked.length)) {
     throw Error("Route study recorded renderer errors or blocked requests; inspect the private report");

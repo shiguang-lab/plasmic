@@ -63,6 +63,36 @@ CPU 降速单独执行，每侧 1 个进程，排除首次后各 2 个样本，�
 
 本次普通路由在三组列表停满 60 秒后的私有占用为 422、384、421 MiB，未出现逐组累积。相比独立编辑器，清理前刚返回时多占 423–520 MiB，列表停满 60 秒后多占 88–127 MiB。快速重开时首画布和全部画板分别快 316、501 ms；上一轮清理已完成时，首画布快 104 ms，全部画板慢 17 ms（仅两次）。就这一使用节奏，独立编辑器的可测收益集中在退出后的内存释放速度和列表驻留。是否值得支付重开成本，还取决于低配真机上这部分内存是否会引发换页或交互卡顿。
 
+### 独立视图的两种打开提速实验
+
+使用同一份 33 页真实项目和 0.9.13 发布渲染资源。每个场景分别用新的测试进程，连续开 3 次，每次查看约 5 秒，前两次返回列表后约 5 秒再开。表中是后两次打开的中位数，单位 ms，每格为首画布 / 全部 9 张画板就绪。1,000 ms 是仅对项目 GET 注入的固定等待，本机已安装客户端的两条普通项目 GET 日志分别耗时 1,024、1,444 ms；回放没有连接线上服务。CPU 降速只施加于渲染目标。
+
+- **现有独立视图**。保留现有列表；点击后创建编辑器 WebContents，编辑器按原流程请求数据。
+- **点击即读**。保持独立视图的生命周期，从列表收到导航 IPC 时发起同一份合并读取，让新编辑器按原 URL 请求时一次性取得这个进行中的响应。只在离线协议处理器里验证；默认分支测试中，项目、branchName、includeStartup 参数与基线一致，每次仅一次项目 GET，返回时无待消费任务。没有改线上 API、生产 main 或 preload。
+- **列表进入编辑器，返回时销毁**。用现有 Desktop 激活通知在当前列表文档内切换 React 路由。9 张画板全部就绪后，在用户查看画板期间准备新的列表 WebContents；点击真实返回链接时，使用原有 StudioWindow 切换视图并关闭旧编辑器。每次核对打开时文档复用、新列表卡片已就绪、返回时文档更换、旧编辑器 PID 退出。新列表是重新挂载的实例。项目 GET 走前端路由的现有读取流程。
+- **普通路由**。始终复用同一顶层文档，返回列表 10 秒后清理；快速重开时取消。
+
+| 场景 | 现有独立视图 | 点击即读 | 列表进入编辑器，返回时销毁 | 普通路由 |
+| --- | ---: | ---: | ---: | ---: |
+| 本地回放，未额外延时 | 1,124 / 2,492 | 1,156 / 2,537 | 1,008 / 2,359 | 770 / 1,970 |
+| 项目 GET 加 1,000 ms | 2,299 / 3,872 | 1,912 / 3,292 | 1,803 / 3,196 | 1,592 / 2,824 |
+| 项目 GET 加 1,000 ms，4 倍 CPU 降速 | 4,992 / 10,505 | 4,206 / 9,592 | 3,886 / 9,250 | 3,195 / 7,684 |
+
+常速加 1,000 ms 的独立测量中，项目 GET 开始距点击分别为 296 / 1 / 108 / 62 ms（顺序同表）。所有进程均无渲染错误及阻止的写入。每项仅两次暖开，跨进程波动会影响耗时差值，不能把整个差额归因于请求提前。
+
+| 整应用私有内存（MiB） | 现有独立视图 | 点击即读 | 列表进入编辑器，返回时销毁 | 普通路由 |
+| --- | ---: | ---: | ---: | ---: |
+| 初始列表 | 472 | 487 | 501 | 378 |
+| 第 3 次退出前 | 1,126 | 1,152 | 1,149 | 1,259 |
+| 第 3 次返回约半秒 | 528 | 553 | 516 | 1,326 |
+| 最后静置 30 秒 | 310 | 323 | 279 | 348 |
+
+常速加延时组里，点击即读让项目请求提前了 295 ms，首画布快了 387 ms。没有注入延时时，项目 GET 只需几毫秒，提前读没有观察到提速。列表就地进入编辑器后，常速加延时组首次打开的首画布为 1,789 ms，同组普通路由首次为 1,763 ms；再次打开的中位数仍相差 211 ms。4 倍 CPU 降速下，再次打开的差距扩大到 691 ms。完整普通路由允许同一文档继续使用已经加载的编辑器代码；销毁旧编辑器的方案每次从新的列表文档开始。
+
+新列表在每次 9 张画板就绪后准备，常速加延时组 3 次从开始准备到读到项目卡片分别用时 2,218、2,117、1,809 ms。这段工作发生在编辑期间。本实验未测量此时的键鼠延迟、提前退出时的返回延迟、列表滚动和筛选状态恢复或低内存机器上的换页情况。各组内存只代表给定采样时点。
+
+另用 `PERF_ROUTE_EDIT=1 PERF_OPENS=2` 在该原型上完成页面改名、撤销、重做和一次离线保存。返回后再次点击项目，读回的页面名称和修订号均匹配，两次退出后均确认旧编辑器进程已结束。测试限于普通可编辑项目的默认分支。
+
 ## 对象是否释放
 
 在单独的普通路由进程里连续进出 4 次。每次给该会话的 StudioCtx、Site、编辑器 Document 和 9 个 ViewCtx 加上独有的诊断属性，核对编辑器与顶部文档位于同一渲染进程。堆快照按对象的属性边计数，避开标记字符串自身带来的误报。
@@ -237,6 +267,18 @@ runner=desktop/tests/performance/real-project-open.cjs
 electron=desktop/node_modules/.bin/electron
 fixture=/path/to/private-fixture
 
+# 普通项目点击与编辑器请求的重叠实验，每个进程只打开 3 次。
+for timing in renderer click; do
+  PERF_OPEN_SESSIONS=1 PERF_OPENS=3 PERF_ROUTE_CLEAN=1 PERF_ROUTE_MEMORY_DUMP=1 \
+    PERF_ROUTE_SETTLE=1 PERF_PROJECT_READ="$timing" PERF_PROJECT_READ_DELAY_MS=1000 \
+    "$electron" "$runner" "$fixture" "$timing-1000"
+done
+PERF_OPEN_SESSIONS=1 PERF_OPENS=3 PERF_ROUTE_CLEAN=1 PERF_ROUTE_MEMORY_DUMP=1 \
+  PERF_ROUTE_SETTLE=1 PERF_PROJECT_READ=renderer PERF_PROJECT_READ_DELAY_MS=1000 \
+  "$electron" "$runner" "$fixture" reuse-dashboard-1000
+PERF_OPEN_SESSIONS=0 PERF_OPENS=3 PERF_ROUTE_CLEAN=1 PERF_ROUTE_MEMORY_DUMP=1 \
+  PERF_ROUTE_SETTLE=1 PERF_PROJECT_READ=renderer PERF_PROJECT_READ_DELAY_MS=1000 \
+  PERF_ROUTE_CLEANUP=idle "$electron" "$runner" "$fixture" spa-1000
 PERF_OPEN_SESSIONS=1 PERF_OPENS=7 PERF_ROUTE_CLEAN=1 PERF_ROUTE_MEMORY_DUMP=1 \
   "$electron" "$runner" "$fixture" paced-desktop
 PERF_OPEN_SESSIONS=0 PERF_OPENS=7 PERF_ROUTE_CLEAN=1 PERF_ROUTE_MEMORY_DUMP=1 \
