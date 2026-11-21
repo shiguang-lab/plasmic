@@ -15,8 +15,8 @@ const routeStudy = process.env.PERF_ROUTE_STUDY === "1";
 const studyHeap = routeStudy && process.env.PERF_ROUTE_HEAP === "1";
 const studyEdit = routeStudy && process.env.PERF_ROUTE_EDIT === "1";
 const cleanupPolicy = process.env.PERF_ROUTE_CLEANUP;
-if (cleanupPolicy && (!routeStudy || isolatedSessions || !["idle", "open-and-idle"].includes(cleanupPolicy))) {
-  throw Error("PERF_ROUTE_CLEANUP requires an SPA route study and either idle or open-and-idle");
+if (cleanupPolicy && (!routeStudy || isolatedSessions || !["idle", "open-and-idle", "after-artboards"].includes(cleanupPolicy))) {
+  throw Error("PERF_ROUTE_CLEANUP requires an SPA route study and idle, open-and-idle or after-artboards");
 }
 const routeCpuRate = routeStudy && Number(process.env.PERF_ROUTE_CPU_RATE || 1);
 const opens = Number(process.env.PERF_OPENS || 4);
@@ -479,7 +479,18 @@ app.whenReady().then(async () => {
     progress("await-initial-studio-ready");
     await frame.executeJavaScript("studioCtx.awaitStudioReady()");
     await until(() => frame.executeJavaScript("studioCtx.loadTimings.has('all-frames-rendered')"), "all initial artboards rendered");
-    await sleep(300);
+    const canvasSettle = sleep(300);
+    if (cleanupPolicy === "after-artboards") {
+      const allRendered = await frame.executeJavaScript("studioCtx.viewCtxs.filter(v => v.initialRenderReady).length");
+      if (allRendered !== atFirstReady.initialFrames || frame.osProcessId !== win.webContents.getOSProcessId()) {
+        throw Error("Idle cleanup requires all initial artboards in the active renderer");
+      }
+      const clearedAt = await win.webContents.executeJavaScript(
+        "new Promise(resolve => requestIdleCallback(() => resolve(routeCleanupProbe.opened())))"
+      );
+      (report.openCleanupMs ??= []).push(clearedAt - click.at);
+    }
+    await canvasSettle;
     const probes = [];
     for (const f of win.webContents.mainFrame.framesInSubtree) {
       try { probes.push(await f.executeJavaScript(`({url:location.href,timeOrigin:performance.timeOrigin,marks:performance.getEntriesByType('mark').map(e=>({name:e.name,start:e.startTime})),longTasks:window.__openProbe?.longTasks,computedStyles:window.__openProbe?.computedStyles,blockedInputEvents:window.__openProbe?.blockedInputEvents,studio:window.studioCtx?{ready:studioCtx.activeCanvasReady,viewportReady:studioCtx.initialViewportReady,timings:studioCtx.loadTimings.snapshot(),project:studioCtx.site.name,revision:studioCtx.dbCtx().revisionNum,changes:studioCtx._changeCounter,components:studioCtx.site.components.length,views:studioCtx.viewCtxs.length,arenas:studioCtx.site.arenas.map(a=>({name:a.name,frames:a.children.length})),pageArenas:studioCtx.site.pageArenas.length,componentArenas:studioCtx.site.componentArenas.length}:null})`)); } catch {}

@@ -2356,5 +2356,295 @@
       },
       "medianClearAfterRevealMs": 64
     }
+  },
+  "afterArtboardsIdleComparison": {
+    "open-and-idle": {
+      "opens": 20,
+      "warmMedianMs": {
+        "canvasRevealedMs": 1073,
+        "firstCanvasReadyMs": 1102,
+        "allFramesRenderedMs": 2673
+      },
+      "cleanupCalls": {
+        "opened": 20,
+        "idle": 1,
+        "cancelled": 19
+      },
+      "warmMedianClickToClearCallMs": 1126,
+      "coldFirstBoardMs": 1088,
+      "warmFirstBoardMs": [
+        1069,
+        1077,
+        1046,
+        1057,
+        1123,
+        1077,
+        1080,
+        1061,
+        1073,
+        1075,
+        1058,
+        1090,
+        1102,
+        1079,
+        1065,
+        1072,
+        1082,
+        1055,
+        1073
+      ],
+      "warmAllBoardsMs": [
+        2676,
+        2694,
+        2578,
+        2601,
+        2781,
+        2708,
+        2665,
+        2680,
+        2652,
+        2632,
+        2634,
+        2673,
+        2682,
+        2709,
+        2724,
+        2664,
+        2707,
+        2617,
+        2616
+      ],
+      "returnedRendererWorkingSetMiB": [
+        788,
+        870,
+        901,
+        922,
+        920,
+        968,
+        970,
+        928,
+        939,
+        934,
+        941,
+        941,
+        939,
+        946,
+        950,
+        989,
+        943,
+        975,
+        936,
+        967
+      ],
+      "memoryMiB": {
+        "cold-dashboard": {
+          "rendererPrivate": 147,
+          "appPrivateSum": 455,
+          "usedJsHeap": 29,
+          "documents": 2
+        },
+        "canvas-19": {
+          "rendererPrivate": 576,
+          "appPrivateSum": 1513,
+          "usedJsHeap": 243,
+          "documents": 29
+        },
+        "returned-19": {
+          "rendererPrivate": 588,
+          "appPrivateSum": 1446,
+          "usedJsHeap": 236,
+          "documents": 31
+        },
+        "settled-30s": {
+          "rendererPrivate": 214,
+          "appPrivateSum": 492,
+          "usedJsHeap": 35,
+          "documents": 2
+        }
+      }
+    },
+    "after-artboards": {
+      "opens": 20,
+      "warmMedianMs": {
+        "canvasRevealedMs": 1118,
+        "firstCanvasReadyMs": 1151,
+        "allFramesRenderedMs": 2579
+      },
+      "cleanupCalls": {
+        "opened": 20,
+        "idle": 1,
+        "cancelled": 19
+      },
+      "clearAfterAllBoardsMs": [
+        81.8,
+        30,
+        88.5,
+        83.6,
+        29.7,
+        93.3,
+        80.1,
+        76.6,
+        31.8,
+        99.7,
+        74.1,
+        99.6,
+        72.8,
+        82.8,
+        82.6,
+        25.2,
+        80.7,
+        90.3,
+        23.7,
+        75.0
+      ],
+      "warmMedianClickToClearCallMs": 2652,
+      "coldFirstBoardMs": 1053,
+      "warmFirstBoardMs": [
+        1078,
+        1092,
+        1098,
+        1105,
+        1069,
+        1099,
+        1139,
+        1086,
+        1102,
+        1114,
+        1124,
+        1130,
+        1180,
+        1124,
+        1143,
+        1187,
+        1172,
+        1118,
+        1142
+      ],
+      "warmAllBoardsMs": [
+        2431,
+        2511,
+        2471,
+        2518,
+        2530,
+        2539,
+        2619,
+        2491,
+        2579,
+        2577,
+        2597,
+        2624,
+        2664,
+        2579,
+        2598,
+        2662,
+        2678,
+        2588,
+        2632
+      ],
+      "returnedRendererWorkingSetMiB": [
+        704,
+        768,
+        976,
+        845,
+        846,
+        834,
+        848,
+        999,
+        862,
+        844,
+        859,
+        859,
+        1005,
+        1009,
+        869,
+        1012,
+        1018,
+        1018,
+        878,
+        893
+      ],
+      "memoryMiB": {
+        "cold-dashboard": {
+          "rendererPrivate": 137,
+          "appPrivateSum": 470,
+          "usedJsHeap": 29,
+          "documents": 2
+        },
+        "canvas-19": {
+          "rendererPrivate": 505,
+          "appPrivateSum": 1499,
+          "usedJsHeap": 188,
+          "documents": 15
+        },
+        "returned-19": {
+          "rendererPrivate": 495,
+          "appPrivateSum": 1413,
+          "usedJsHeap": 198,
+          "documents": 17
+        },
+        "settled-30s": {
+          "rendererPrivate": 193,
+          "appPrivateSum": 438,
+          "usedJsHeap": 35,
+          "documents": 2
+        }
+      }
+    },
+    "cpu-open-and-idle": {
+      "opens": 4,
+      "warmMedianMs": {
+        "canvasRevealedMs": 3585,
+        "firstCanvasReadyMs": 4210,
+        "allFramesRenderedMs": 9157
+      },
+      "cleanupCalls": {
+        "opened": 4,
+        "idle": 0,
+        "cancelled": 3
+      },
+      "warmMedianClickToClearCallMs": 4211,
+      "coldFirstBoardMs": 4209,
+      "warmFirstBoardMs": [
+        4259,
+        3585,
+        3530
+      ],
+      "warmAllBoardsMs": [
+        9658,
+        9157,
+        9092
+      ]
+    },
+    "cpu-after-artboards": {
+      "opens": 4,
+      "warmMedianMs": {
+        "canvasRevealedMs": 3799,
+        "firstCanvasReadyMs": 4196,
+        "allFramesRenderedMs": 8826
+      },
+      "cleanupCalls": {
+        "opened": 4,
+        "idle": 0,
+        "cancelled": 3
+      },
+      "clearAfterAllBoardsMs": [
+        77.6,
+        48.9,
+        81.7,
+        40.5
+      ],
+      "warmMedianClickToClearCallMs": 8875,
+      "coldFirstBoardMs": 3546,
+      "warmFirstBoardMs": [
+        3799,
+        3862,
+        3621
+      ],
+      "warmAllBoardsMs": [
+        8826,
+        8898,
+        8791
+      ]
+    }
   }
 }

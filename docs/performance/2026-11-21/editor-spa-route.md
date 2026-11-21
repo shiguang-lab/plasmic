@@ -136,6 +136,23 @@ CPU 降速单独执行，每侧 1 个进程，排除首次后各 2 个样本，�
 
 打开时清理压低了快速切换时的内存占用，代价体现在后续重开及剩余画板的渲染时间。两组静置 30 秒后都剩 2 个文档，JS 已用堆均为 35 MiB。常速统计各取 19 次暖开，4 倍 CPU 降速独立运行各取 3 次暖开；内存是指定时点的单次取样。实验组单独通过离线重命名、撤销/重做、完整保存、重新打开后核对名称及修订号的回归。测试仅覆盖上述清理时机，未测真实键鼠输入延迟或低内存机器。
 
+### 全部画板渲染后在空闲回调中清理
+
+两组均在返回列表 3 秒后清理，期间重新打开项目就取消计时器。实验组等待编辑器记录 `all-frames-rendered`，核对 9 张画板均就绪，并在同一渲染进程的 `requestIdleCallback` 里调用 `webFrame.clearCache()`，未设置强制执行超时。早清理对照组仍在首张画板和视口就绪时调用。两组使用独立的新 profile 和同一发布资源，常速各进出 20 次。两组都执行 20 次编辑器清理和 1 次列表清理，取消 19 次列表计时器。实验组 20 次的清理调用全部在第 9 张画板就绪之后返回，间隔中位数 80 ms（范围 24–100 ms，含测试器检测就绪和等待空闲回调的时间）。
+
+| 指标 | 首张画板后清理 | 全部画板后空闲清理 |
+| --- | ---: | ---: |
+| 暖开首张画板（ms） | 1,073 | 1,118 |
+| 暖开至 9 张画板就绪（ms） | 2,673 | 2,579 |
+| 4 倍 CPU 降速，暖开首张画板（ms） | 3,585 | 3,799 |
+| 4 倍 CPU 降速，暖开至 9 张画板就绪（ms） | 9,157 | 8,826 |
+| 初始列表，整应用私有占用（MiB） | 455 | 470 |
+| 第 20 次编辑器清理后、退出前，整应用私有占用（MiB） | 1,513 | 1,499 |
+| 第 20 次返回后约半秒，整应用私有占用（MiB） | 1,446 | 1,413 |
+| 最后在列表静置 30 秒，整应用私有占用（MiB） | 492 | 438 |
+
+实验组在第 1、10、20 次返回列表时，渲染进程工作集分别为 704、844、893 MiB。工作集与表中的整应用私有占用分别统计。[原始逐轮读数](editor-spa-route.json)收录了 20 次的返回工作集、暖开计时和回调相对画板就绪的时间。每组常速取 19 次暖开中位数，4 倍 CPU 降速独立运行各取 3 次暖开中位数。内存转储为指定时点的取样。测试没有测量画板就绪后首次输入的延迟或真实低内存硬件表现。
+
 ## 编辑与恢复检查
 
 另起普通路由运行，使用 `PERF_ROUTE_EDIT=1 PERF_OPENS=2`。第一次打开后，重命名页面、撤销、重做，执行完整保存（离线回放接收一次）。通过编辑器返回链接回到列表，再点项目卡片，核对保存的页面名和修订号一致，顶层文档保持同一个。另以 `PERF_OPEN_NATIVE=empty PERF_OPENS=2` 检查真实本地草稿 IPC 和保存视口，空草稿目录初始化成功，第二次打开的视口偏差为 0。两组均无渲染错误和意外写入。这些回归不覆盖未保存草稿离开保护或真实服务端保存。
@@ -160,7 +177,7 @@ PERF_OPEN_SESSIONS=1 PERF_OPENS=5 "$electron" "$runner" "$fixture" desktop-a2
 
 PERF_OPEN_SESSIONS=0 PERF_OPENS=20 PERF_ROUTE_CLEAN=1 PERF_ROUTE_SETTLE=1 \
   "$electron" "$runner" "$fixture" spa-memory
-for policy in open-and-idle idle; do
+for policy in after-artboards open-and-idle idle; do
   PERF_OPEN_SESSIONS=0 PERF_OPENS=20 PERF_ROUTE_CLEAN=1 PERF_ROUTE_SETTLE=1 \
     PERF_ROUTE_COUNTERS=1 PERF_ROUTE_MEMORY_DUMP=1 PERF_ROUTE_CLEANUP="$policy" \
     "$electron" "$runner" "$fixture" "cleanup-$policy"
