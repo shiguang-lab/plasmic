@@ -12,6 +12,9 @@ const task = path.resolve(process.argv[2]);
 const mode = process.argv[3] || "timing";
 const buildRoot = process.env.PERF_BUILD_ROOT || path.join(task,"build-installed");
 const routeStudy = process.env.PERF_ROUTE_STUDY === "1";
+const pacedDesktop = mode === "paced-desktop";
+// Seconds spent in the last editor of each group, after switching artboards.
+const groupEditorDwell = new Map([[2, 30], [5, 60], [7, 90]]);
 const studyHeap = routeStudy && process.env.PERF_ROUTE_HEAP === "1";
 const studyEdit = routeStudy && process.env.PERF_ROUTE_EDIT === "1";
 const cleanupPolicy = process.env.PERF_ROUTE_CLEANUP;
@@ -22,6 +25,9 @@ const routeCpuRate = routeStudy && Number(process.env.PERF_ROUTE_CPU_RATE || 1);
 const opens = Number(process.env.PERF_OPENS || 4);
 const profileKey=process.env.PERF_PROFILE_KEY || mode;
 const debuggerEnabled=process.env.PERF_NO_DEBUG!=="1";
+if (pacedDesktop && (!isolatedSessions || !routeStudy || opens !== 7 || process.env.PERF_ROUTE_MEMORY_DUMP !== "1")) {
+  throw Error("paced-desktop requires seven opens, isolated Desktop sessions, route study and memory dumps");
+}
 if (routeStudy && debuggerEnabled) throw Error("Route comparisons require PERF_NO_DEBUG=1");
 const sparePolicy = process.env.PERF_SPARE_POLICY;
 const spareArguments = process.env.PERF_SPARE_ARGUMENTS || "compatible";
@@ -237,7 +243,7 @@ async function memoryPoint(label, retiredPid, retiredFramePids = []) {
     }
   }
   if (routeStudy && process.env.PERF_ROUTE_MEMORY_DUMP === "1" &&
-      ["cold-dashboard", "canvas-" + (opens - 1), "returned-" + (opens - 1), "settled-30s"].includes(label)) {
+      (pacedDesktop || ["cold-dashboard", "canvas-" + (opens - 1), "returned-" + (opens - 1), "settled-30s"].includes(label))) {
     const debug = win.webContents.debugger;
     const attached = debug.isAttached();
     if (!attached) debug.attach("1.3");
@@ -247,7 +253,7 @@ async function memoryPoint(label, retiredPid, retiredFramePids = []) {
       });
       try {
         const dump = await debug.sendCommand("Tracing.requestMemoryDump", {
-          levelOfDetail: "detailed", deterministic: false,
+          levelOfDetail: pacedDesktop ? "light" : "detailed", deterministic: false,
         });
         if (!dump.success) throw Error("Chromium memory dump failed");
       } finally {
@@ -417,6 +423,10 @@ app.whenReady().then(async () => {
     tracing = true;
   }
   if (isolatedSessions || routeStudy) await memoryPoint("cold-dashboard");
+  if (pacedDesktop) {
+    await sleep(30000);
+    await memoryPoint("initial-list-30s");
+  }
   let savedPage;
   const documentOrigin = routeStudy && await initialDashboard.executeJavaScript("performance.timeOrigin");
   for (let i=0;i<opens;i++) {
@@ -582,6 +592,27 @@ app.whenReady().then(async () => {
       break;
     }
     if (nativeBridge?.reload) continue;
+    if (pacedDesktop) {
+      await sleep(5000);
+      await frame.executeJavaScript(`(async () => {
+        const s = studioCtx;
+        const target = s.currentArena.children[${i + 1}];
+        s.changeSelection(() => s.setStudioFocusOnFrame({frame:target, autoZoom:true}));
+        await s.awaitEval();
+        await s.awaitStudioReady();
+        if (!s.tryGetViewCtxForFrame(target)?.initialRenderReady) throw Error("Selected artboard did not render");
+      })()`);
+      const dwell = groupEditorDwell.get(i + 1);
+      if (dwell) {
+        await memoryPoint("editor-" + (i + 1) + "-selected");
+        for (let seconds = 30; seconds <= dwell; seconds += 30) {
+          await sleep(30000);
+          await memoryPoint("editor-" + (i + 1) + "-" + seconds + "s");
+        }
+      } else {
+        await sleep(5000);
+      }
+    }
     setPhase("return-list-"+i);
     if(process.env.PERF_RETURN_TIMING === "1") {app.focus({steal:true});nativeWindow.show();nativeWindow.focus();win.webContents.focus();}
     const returnStartedAt=now();activatedAt=undefined;
@@ -612,6 +643,17 @@ app.whenReady().then(async () => {
       const top = await win.webContents.executeJavaScript("performance.timeOrigin");
       if (top !== documentOrigin) throw Error("Dashboard top document was replaced");
       if (win.webContents.mainFrame.framesInSubtree.length !== 1) throw Error("Editor frame still attached");
+      if (pacedDesktop) {
+        if (groupEditorDwell.has(i + 1)) {
+          const dwell = i + 1 === opens ? 120 : 60;
+          for (let seconds = 30; seconds <= dwell; seconds += 30) {
+            await sleep(30000);
+            await memoryPoint("list-" + (i + 1) + "-" + seconds + "s", retiredPid);
+          }
+        } else {
+          await sleep(5000);
+        }
+      }
       const settle = process.env.PERF_ROUTE_SETTLE;
       if (settle === "each" || (i === opens - 1 && settle === "1")) {
         for (const seconds of [5, 30]) {
@@ -654,10 +696,11 @@ app.whenReady().then(async () => {
   for (const w of BrowserWindow.getAllWindows()) w.destroy();
   app.exit(process.exitCode||0);
 });
+const timeoutMs = pacedDesktop ? 720000 : 240000;
 setTimeout(()=>{
-  report.timedOut = { timeoutMs: 240000, phase, currentStep: report.currentStep };
-  report.error ??= "Harness deadline exceeded (240000 ms); phase=" + phase + "; currentStep=" + JSON.stringify(report.currentStep);
+  report.timedOut = { timeoutMs, phase, currentStep: report.currentStep };
+  report.error ??= "Harness deadline exceeded (" + timeoutMs + " ms); phase=" + phase + "; currentStep=" + JSON.stringify(report.currentStep);
   console.error(report.error);
   fs.writeFileSync(path.join(task,"list-open-"+mode+".json"),JSON.stringify(report,null,2),{mode:0o600});
   app.exit(2);
-},240000);
+},timeoutMs);

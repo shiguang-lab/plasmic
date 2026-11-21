@@ -22,6 +22,22 @@
 
 CPU 降速单独执行，每侧 1 个进程，排除首次后各 2 个样本，仅用于看方向。该设置作用于 Chromium 渲染目标，不能模拟低内存或整台低配电脑。首画布揭示也不等于真实键鼠输入延迟。
 
+## 现有独立 WebContents，按使用节奏打开项目
+
+同一应用会话内把打开分成 2、3、2 次三组，总时长约 9 分 12 秒。使用当前 0.9.13 的发布渲染资源和实际 `StudioWindow`，离线回放同一个 33 页、首屏 9 张画板的项目。每次点列表卡片打开，等画板渲染后阅读 5 秒，再通过编辑器的选择和缩放操作切换画板。短查看继续阅读 5 秒后返回，组内在列表至少停 5 秒。每组最后一次留在编辑器 30、60、90 秒，回列表后分别停 60、60、120 秒；同一个列表进程贯穿三组。这是自动化浏览回放，覆盖打开、切换画板和停留，未执行持续模型编辑或线上保存。
+
+刚启动时整应用为 472 MiB，列表静置 30 秒后为 235 MiB。下表为各组最后一次打开的整应用私有内存（MiB），取 Chromium 轻量内存转储中各进程的 private footprint 之和，含 GPU。每个等待段按实际时间执行，回放未显式触发 GC 或清缓存。
+
+| 本组打开次数 | 切到画板 | 编辑器停留结束 | 返回列表约半秒 | 列表 30 秒 | 列表 60 秒 | 列表 120 秒 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2 | 1,110 | 874（30 秒） | 465 | 296 | 295 | — |
+| 3 | 1,121 | 838（60 秒） | 432 | 299 | 296 | — |
+| 2 | 1,096 | 842（90 秒） | 428 | 300 | 299 | 299 |
+
+7 次退出后均验证当次旧编辑器 PID 消失，列表 PID 始终一致。另用 macOS 的 `proc_pid_rusage` 每约 2 秒采样测试应用及子进程的物理内存足迹，从首次打开前覆盖至最后一次列表停留结束，共 261 点，采到的最高值为 1,516 MiB。这是离散采样的最高值，独立于上表的转储。逐次打开时间和完整停留采样见 [测量数据](editor-spa-route.json)。
+
+首次从卡片点击到首张 / 全部画板为 1,137 / 2,443 ms，后续 6 次的中位数为 1,128 / 2,438 ms。本机已安装客户端的日志中，截至本轮开始，有 3 次可匹配到 0.9.13 进程并完成打开的记录，来自 2 个项目。导航开始至首画布的中位数为 2,844 ms，至 Studio 就绪为 2,902 ms。日志计时起点和项目与离线回放不同，无法直接相减推算网络耗时。
+
 ## 对象是否释放
 
 在单独的普通路由进程里连续进出 4 次。每次给该会话的 StudioCtx、Site、编辑器 Document 和 9 个 ViewCtx 加上独有的诊断属性，核对编辑器与顶部文档位于同一渲染进程。堆快照按对象的属性边计数，避开标记字符串自身带来的误报。
@@ -196,6 +212,8 @@ runner=desktop/tests/performance/real-project-open.cjs
 electron=desktop/node_modules/.bin/electron
 fixture=/path/to/private-fixture
 
+PERF_OPEN_SESSIONS=1 PERF_OPENS=7 PERF_ROUTE_CLEAN=1 PERF_ROUTE_MEMORY_DUMP=1 \
+  "$electron" "$runner" "$fixture" paced-desktop
 PERF_OPEN_SESSIONS=1 PERF_OPENS=5 "$electron" "$runner" "$fixture" desktop-a1
 PERF_OPEN_SESSIONS=0 PERF_OPENS=5 "$electron" "$runner" "$fixture" spa-b1
 PERF_OPEN_SESSIONS=0 PERF_OPENS=5 "$electron" "$runner" "$fixture" spa-b2
