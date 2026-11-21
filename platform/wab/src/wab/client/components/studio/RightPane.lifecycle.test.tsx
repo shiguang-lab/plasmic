@@ -5,6 +5,7 @@ import type { DesktopDraft } from "@/wab/shared/desktop-drafts";
 import { mock } from "vitest-mock-extended";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { RightPane } from "@/wab/client/components/studio/RightPane";
+import { SIDE_PANEL_TRANSITION_MS } from "@/wab/client/components/studio/SidePanelShell";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -81,7 +82,10 @@ it("collapses only the right pane, retains selection and tab, and reopens throug
     expect(studio.rightTabKey).toBe(RightTabKey.component);
     expect(studio.selectionStore.getState()).toBe(selection);
     expect(studio.leftPanelState.store.getState()).toBe(leftPanel);
-    await waitFor(() => expect(released).toHaveBeenCalledTimes(connections.mock.calls.length));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, SIDE_PANEL_TRANSITION_MS));
+    });
+    expect(released).toHaveBeenCalledTimes(connections.mock.calls.length);
     expect(contents).not.toBeVisible();
     expect(container.querySelector('[data-test-id="page-panel"]')).toBe(contents);
     fireEvent.click(ensure(container.querySelector<HTMLButtonElement>('.editor-inspector-reopen button'), "Inspector expand button"));

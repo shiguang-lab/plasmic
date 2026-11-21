@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-material-ui",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Material UI mobile-first components for Plasmic",
   "license": "MIT",
   "main": "dist/index.js",
@@ -31,6 +31,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
+    "@mui/icons-material": "9.5.0",
     "@mui/material": "9.5.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1"

@@ -205,9 +205,16 @@ it("does not restore the AI panel on reentry, even with an old URL flag", async 
   }
 });
 
-it.each(["ai", "tab", "insert", "inline insert", "group", "comments"])(
-  "closes the %s panel when entering preview and keeps it closed on return",
-  async (panel) => {
+it.each([
+  ["AI", leftPanels.AI, { ai: true }],
+  ["components", (ctx: StudioCtx) => ctx.switchLeftTab("components"), { tab: "components" }],
+  ["insert", leftPanels.insert, { insert: true, inlineInsert: false }],
+  ["inline insert", leftPanels["inline insert"], { insert: true, inlineInsert: true }],
+  ["more", leftPanels.menu, { group: "more" }],
+  ["comments", (ctx: StudioCtx) => ctx.toggleCommentsPanel(), { comments: true }],
+] as const)(
+  "preserves the open %s panel through preview and back to the editor",
+  async (_panel, openPanel, expectedOpen) => {
     const { studioCtx, history } = await readyStudioCtx();
     const preview = new PreviewCtx(
       {
@@ -219,36 +226,24 @@ it.each(["ai", "tab", "insert", "inline insert", "group", "comments"])(
       studioCtx,
     );
     try {
-      if (panel === "ai") {
-        studioCtx.setCopilotChatOpen(true);
-      }
-      if (panel === "tab") {
-        studioCtx.switchLeftTab("components");
-      }
-      if (panel === "insert") {
-        studioCtx.setShowAddDrawer(true);
-      }
-      if (panel === "inline insert") {
-        studioCtx.setShowInlineAddDrawer(true);
-      }
-      if (panel === "group") {
-        studioCtx.setLeftTabGroup("more");
-      }
-      if (panel === "comments") {
-        studioCtx.toggleCommentsPanel();
-      }
-      history.push(`${APP_ROUTES.projectPreview.fill({ projectId: studioCtx.siteInfo.id })}#/example`);
+      const panelState = () => ({
+        ...leftPanelState(studioCtx),
+        comments: studioCtx.showCommentsPanel,
+      });
+      openPanel(studioCtx);
+      const beforePreview = panelState();
+      expect(beforePreview).toMatchObject(expectedOpen);
+
+      const projectId = studioCtx.siteInfo.id;
+      history.push(`${APP_ROUTES.projectPreview.fill({ projectId })}#/example`);
+      await waitFor(() => expect(preview.previewData).toBeDefined());
       expect(preview.isLive).toBe(true);
-      expect(studioCtx.isCopilotChatOpen).toBe(false);
-      expect(studioCtx.leftTabKey).toBeUndefined();
-      expect(studioCtx.leftTabGroup).toBeUndefined();
-      expect(studioCtx.showAddDrawer()).toBe(false);
-      expect(studioCtx.showInlineAddDrawer()).toBe(false);
-      expect(studioCtx.showCommentsPanel).toBe(false);
-      history.push(`/projects/${studioCtx.siteInfo.id}`);
+      expect(panelState()).toEqual(beforePreview);
+
+      history.push(APP_ROUTES.project.fill({ projectId }));
+      await waitFor(() => expect(preview.previewData).toBeUndefined());
       expect(preview.isLive).toBe(false);
-      expect(studioCtx.isCopilotChatOpen).toBe(false);
-      expect(studioCtx.leftTabKey).toBeUndefined();
+      expect(panelState()).toEqual(beforePreview);
     } finally {
       preview.dispose();
       studioCtx.dispose();

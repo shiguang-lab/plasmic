@@ -1,5 +1,6 @@
 import registerComponent from "@plasmicapp/host/registerComponent";
 import registerGlobalContext from "@plasmicapp/host/registerGlobalContext";
+import { iconNames } from "./MIcon";
 import * as components from "./components";
 import { componentMeta, componentName, componentNames } from "./metadata";
 export * from "./components";
@@ -27,6 +28,41 @@ export function registerAll(loader?: Registerable) {
       label: "string",
       disabled: "boolean",
       children: { type: "slot", defaultValue: "选项", hidePlaceholder: true },
+    },
+  });
+  (loader?.registerComponent ?? registerComponent)(components.MIcon, {
+    name: "plasmic-material-ui-m-icon",
+    displayName: "MIcon",
+    section: "Data display",
+    description:
+      "Display an official Material icon by its @mui/icons-material export name.",
+    importPath: "@shiguang-lab/plasmic-material-ui/components",
+    importName: "MIcon",
+    props: {
+      name: { type: "choice", options: iconNames, defaultValue: "Search" },
+      fontSize: {
+        type: "choice",
+        options: ["inherit", "small", "medium", "large"],
+        defaultValueHint: "medium",
+      },
+      color: {
+        type: "choice",
+        options: [
+          "inherit",
+          "action",
+          "disabled",
+          "primary",
+          "secondary",
+          "error",
+          "info",
+          "success",
+          "warning",
+        ],
+        defaultValueHint: "inherit",
+      },
+      htmlColor: { type: "color" },
+      titleAccess: "string",
+      sx: "object",
     },
   });
   (loader?.registerGlobalContext ?? registerGlobalContext)(

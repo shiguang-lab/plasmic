@@ -4,7 +4,7 @@ Scope: `@shiguang-lab/plasmic-material-ui`, registrations `plasmic-material-ui-*
 
 ## Read only the selected usage
 
-Use the [catalog](catalog.md) to find a registration's short usage group. [rules.json](rules.json) routes actual registrations to these documents for compose/accept reading; it adds no mandatory property decisions or admin compositions. Props, Slots, defaults, supported values and events come from the live registration, not a copied API manual. The library includes Material UI Core, NativeOption and a Theme global context; it does not include MUI X Data Grid/date pickers, Lab or the separate Material Icons package.
+Use the [catalog](catalog.md) to find a registration's short usage group. [rules.json](rules.json) routes actual registrations to these documents for compose/accept reading; it adds no mandatory property decisions or admin compositions. Props, Slots, defaults, supported values and events come from the live registration, not a copied API manual. The library includes Material UI Core, MIcon, NativeOption and a Theme global context. MIcon selects an official Material icon by export name.
 
 This scope supplies component usage guidance, not a PC or mobile page-design standard. Choose page purpose and target devices from the requirement. Do not apply Antd/Overseas admin templates, size/density defaults, Form ownership or structural gates to MUI. On mixed-library pages, read each component's own scope; an Antd participant does not turn a MUI region into an Antd composition. Shared source, naming, accessibility, layout, interaction and persistence checks still apply.
 

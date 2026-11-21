@@ -1,0 +1,7 @@
+{
+  "en": "- Clicking the space between artboards clears the selection and closes the node inspector. Layer names now follow the editor theme.\n- Material UI’s MIcon component lets you choose official Material icons by name.",
+  "zh-CN": "- 点击画板之间的空白区域会取消选择并关闭节点配置面板。图层名称会随编辑器主题切换颜色。\n- Material UI 组件库新增 MIcon，可按名称选择官方 Material 图标。",
+  "zh-TW": "- 點選畫板之間的空白處會取消選取並關閉節點設定面板。圖層名稱的顏色會隨編輯器佈景主題切換。\n- Material UI 元件庫新增 MIcon，可依名稱選取官方 Material 圖示。",
+  "ja": "- アートボード間の余白をクリックすると、選択が解除され、ノードの設定パネルが閉じます。レイヤー名の色はエディターのテーマに合わせて変わります。\n- Material UI の MIcon コンポーネントで、公式の Material アイコンを名前から選べるようになりました。",
+  "ko": "- 아트보드 사이의 빈 공간을 클릭하면 선택이 해제되고 노드 설정 패널이 닫힙니다. 레이어 이름 색상은 편집기 테마에 맞춰 바뀝니다.\n- Material UI의 MIcon 컴포넌트에서 이름으로 공식 Material 아이콘을 선택할 수 있습니다."
+}

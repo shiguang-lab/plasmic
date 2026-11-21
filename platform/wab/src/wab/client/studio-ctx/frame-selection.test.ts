@@ -297,6 +297,27 @@ async function setupArtboardGestures() {
   };
 }
 
+it.each(["canvas-editor__free-frames", "canvas-editor__frames"])(
+  "clears the selected node and inspector target when clicking the empty %s surface",
+  async (surfaceClass) => {
+    const f = await setupArtboardGestures();
+    const { view, container } = f.views[0];
+    const surface = ensure(container.parentElement, "Expected the canvas surface");
+    surface.className = surfaceClass;
+    try {
+      view.changeSelection(() => view.setStudioFocusByTpl(view.component.tplTree));
+      expect(f.studioCtx.focusedViewCtx()).toBe(view);
+      await f.emit("Down", surface, view, 110, 50);
+      await f.emit("Up", surface, view, 110, 50);
+      expect(view.focusedTpls()).toEqual([]);
+      expect(f.studioCtx.focusedOrFirstViewCtx()).toBeUndefined();
+      expect(f.studioCtx.focusedFrames()).toEqual([]);
+    } finally {
+      await f.dispose();
+    }
+  },
+);
+
 it("selects by title, moves a single artboard from its body, and adds another by Shift-clicking its title", async () => {
   const f = await setupArtboardGestures();
   const { view, container } = f.views[0];

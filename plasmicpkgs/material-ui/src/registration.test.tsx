@@ -1,3 +1,5 @@
+import ArrowBackOutlined from "@mui/icons-material/ArrowBackOutlined";
+import Search from "@mui/icons-material/Search";
 import { useTheme } from "@mui/material/styles";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
@@ -22,7 +24,7 @@ it("registers the complete catalog, valid exports, native API props and state he
   const registerComponent = vi.fn();
   const registerGlobalContext = vi.fn();
   registerAll({ registerComponent, registerGlobalContext });
-  expect(registerComponent).toHaveBeenCalledTimes(104);
+  expect(registerComponent).toHaveBeenCalledTimes(105);
   expect(registerGlobalContext).toHaveBeenCalledTimes(1);
   const names = new Set(
     registerComponent.mock.calls.map(([, meta]) => meta.name),
@@ -72,6 +74,24 @@ it("registers the complete catalog, valid exports, native API props and state he
       }
     }
   }
+});
+
+it("selects the native Material icon by export name on the same instance", () => {
+  const view = render(
+    <C.MIcon name="Search" fontSize="small" titleAccess="Search orders" />,
+  );
+  const reference = render(<Search fontSize="small" />);
+  expect(view.container.querySelector("path")?.getAttribute("d")).toBe(
+    reference.container.querySelector("path")?.getAttribute("d"),
+  );
+  expect(
+    screen
+      .getByRole("img", { name: "Search orders" })
+      .classList.contains("MuiSvgIcon-fontSizeSmall"),
+  ).toBe(true);
+  view.rerender(<C.MIcon name="ArrowBackOutlined" />);
+  reference.rerender(<ArrowBackOutlined />);
+  expect(view.container.innerHTML).toBe(reference.container.innerHTML);
 });
 
 it("preserves numeric/boolean choices, responsive styles and native event arguments", () => {

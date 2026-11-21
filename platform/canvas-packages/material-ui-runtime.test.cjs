@@ -41,7 +41,7 @@ for (const suffix of ["", "-v2"]) {
     const registrations = win.__PlasmicComponentRegistry.filter((r) =>
       r.meta.name.startsWith("plasmic-material-ui-"),
     );
-    assert.equal(registrations.length, 104);
+    assert.equal(registrations.length, 105);
     const get = (name) =>
       registrations.find((r) => r.meta.importName === name).component;
     const meta = (name) =>
@@ -99,6 +99,7 @@ for (const suffix of ["", "-v2"]) {
               id: "ribbon",
               sx: { backgroundImage: 'url("ribbon.png")' },
             }),
+            h(get("MIcon"), { name: "Search", titleAccess: "Search orders" }),
             h(get("Divider"), { id: "divider" }),
             h(
               get("Stepper"),
@@ -144,6 +145,7 @@ for (const suffix of ["", "-v2"]) {
       assert.deepEqual(errors, []);
       assert.equal(win.document.getElementById("ribbon").childElementCount, 0);
       assert.equal(win.document.getElementById("divider").tagName, "HR");
+      assert.equal(win.document.querySelector("svg[role=img] title")?.textContent, "Search orders");
       assert.equal(
         win.document.querySelectorAll(".MuiStepLabel-label").length,
         0,

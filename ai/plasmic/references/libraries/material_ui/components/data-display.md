@@ -16,6 +16,7 @@ Library: [Material UI](../index.md).
 | ListItemIcon | `plasmic-material-ui-list-item-icon` |
 | ListItemText | `plasmic-material-ui-list-item-text` |
 | ListSubheader | `plasmic-material-ui-list-subheader` |
+| MIcon | `plasmic-material-ui-m-icon` |
 | SvgIcon | `plasmic-material-ui-svg-icon` |
 | Typography | `plasmic-material-ui-typography` |
 
@@ -23,7 +24,7 @@ Library: [Material UI](../index.md).
 
 Choose Typography for themed text, List and its children for repeated information, Avatar/AvatarGroup for identities, Badge for attached counts/indicators and Chip for compact labels or choices. Set interactive Chip/ListItemButton behavior only when the requirement calls for it. Use primary/secondary and icon/avatar Slots on their actual owners.
 
-SvgIcon is an SVG container, not an installed Material Icons catalog. Discover available icons separately; do not assume a MUI X or icon package is included. Typography's visual variant and rendered component should preserve the intended semantic hierarchy.
+Use MIcon with its name prop for official Material icons, such as Search or ArrowBack. SvgIcon accepts custom SVG content. Typography's visual variant and rendered component should preserve the intended semantic hierarchy.
 
 ## Acceptance checks
 

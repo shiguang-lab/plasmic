@@ -38,6 +38,7 @@ function FreeFramesLayoutContent(props: FreeFramesLayoutProps & { frames: NonNul
   // doesn't matter.
   return (
     <div
+      className="canvas-editor__free-frames"
       style={{
         width: `${Math.max(arenaScalerSize.x, contentSize && contentPosition ? contentPosition.left + contentSize.width : 0)}px`,
         height: `${Math.max(arenaScalerSize.y, contentSize && contentPosition ? contentPosition.top + contentSize.height : 0)}px`,

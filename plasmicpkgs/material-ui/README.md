@@ -1,7 +1,7 @@
 # Material UI for Plasmic
 
 `@shiguang-lab/plasmic-material-ui` registers 103 Material UI 9.5.0 components,
-NativeOption for native select options, and a Material UI Theme global context.
+MIcon for Material icons, NativeOption for native select options, and a Material UI Theme global context.
 The library targets mobile-first React web pages. It uses the host's React and
 Emotion for styles; installing it does not apply a global CSS reset or locale.
 
@@ -75,8 +75,9 @@ server registration bundles. The component library is independent of Ant Design.
   navigation; Select/NativeSelect retain MUI's FormControl identity for SSR.
 
 The catalog covers Inputs, Navigation, Data display, Feedback, Surfaces and
-Layout. MUI X (date/time pickers and Data Grid), Lab components and the separate
-Material Icons package are not included in this Material UI Core registration.
+Layout. MIcon selects an official `@mui/icons-material` component by export name,
+including themed variants. For example, use `<MIcon name="Search" fontSize="small" />`
+inside an input adornment. MUI X and Lab are outside this package.
 
 ## Build and validation
 

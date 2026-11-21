@@ -1223,7 +1223,9 @@ private async handleMouseDown(
         this.canvas.current,
         this.canvasScaler.current,
       ].includes(eventTarget) ||
-      eventTarget.classList.contains("canvas-editor__canvas-clipper-grid")
+      eventTarget.matches(
+        ".canvas-editor__canvas-clipper-grid, .canvas-editor__frames, .canvas-editor__free-frames"
+      )
     );
 
     if (isBackground) {

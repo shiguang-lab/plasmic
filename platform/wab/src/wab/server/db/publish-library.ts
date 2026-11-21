@@ -114,10 +114,10 @@ async function main() {
         await db.updateProject({ id: dependency.projectId, readableByPublic: true });
         flags.hostLessComponents = [
           ...catalog.filter((entry) => entry.codeName !== config.name),
-          { type: "hostless-package", name: config.displayName ?? config.name,
+          { ...existing, type: "hostless-package", name: config.displayName ?? existing?.name ?? config.name,
             codeName: config.name, projectId: [dependency.projectId], hasCodeArtifacts: true,
-            sectionLabel: config.sectionLabel ?? "Business components", isInstallOnly: true, isHeaderLess: true,
-            items: [{ type: "hostless-component", componentName: `${config.name}-library`, displayName: config.displayName ?? config.name }],
+            sectionLabel: config.sectionLabel ?? existing?.sectionLabel ?? "Business components", isInstallOnly: true, isHeaderLess: true,
+            items: existing?.items ?? [{ type: "hostless-component", componentName: `${config.name}-library`, displayName: config.displayName ?? config.name }],
           },
         ];
         await db.setDevFlagOverrides(JSON.stringify(flags));

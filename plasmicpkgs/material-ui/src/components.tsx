@@ -21,6 +21,7 @@ import {
   usePlasmicCanvasContext,
 } from "@plasmicapp/host";
 import React from "react";
+export { MIcon } from "./MIcon";
 export * from "./native";
 export * from "./stateHelpers";
 

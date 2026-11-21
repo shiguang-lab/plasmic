@@ -22,7 +22,7 @@ it("imports Material UI props, slots, states and defaults into a serializable St
   );
   expect(
     site.components.filter((c) => !c.codeComponentMeta?.isContext),
-  ).toHaveLength(104);
+  ).toHaveLength(105);
   expect(
     site.components.find((c) => c.name === "plasmic-material-ui-theme-provider")
       ?.codeComponentMeta?.isContext,

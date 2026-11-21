@@ -6,6 +6,7 @@ import {
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { syncCodeComponentsAndHandleErrors } from "@/wab/client/code-components/code-components";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
+import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
 import { StudioInitializer } from "@/wab/client/components/studio/studio-initializer";
 import * as studioBundles from "@/wab/client/components/studio/studio-bundles";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -17,6 +18,7 @@ import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { ProjectId } from "@/wab/shared/ApiSchema";
+import "@testing-library/jest-dom/vitest";
 import {
   act,
   cleanup,
@@ -68,20 +70,24 @@ vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
 vi.mock("@/wab/client/components/studio/studio", () => ({
   Studio: ({
     studioCtx,
+    hiddenForPreview,
     children,
   }: {
     studioCtx: { siteInfo: { name: string } };
+    hiddenForPreview: boolean;
     children: React.ReactNode;
   }) => {
     const [open, setOpen] = React.useState(false);
     return (
-      <div data-testid="editor-shell">
-        <button onClick={() => setOpen(!open)}>
-          {studioCtx.siteInfo.name}
-        </button>
-        {open && <span>Project menu open</span>}
-        {children}
-      </div>
+      <StudioLayout hiddenForPreview={hiddenForPreview}>
+        <div data-testid="editor-shell">
+          <button onClick={() => setOpen(!open)}>
+            {studioCtx.siteInfo.name}
+          </button>
+          {open && <span>Project menu open</span>}
+          {children}
+        </div>
+      </StudioLayout>
     );
   },
 }));
@@ -205,6 +211,16 @@ it("shows shared editor controls before project data, then preserves the project
     expect(screen.getByTestId("editor-shell")).toBe(shell);
     expect(screen.getByText("Project menu open")).toBeTruthy();
     const preview = ensure(studioCtx.previewCtx, "Initialized native preview owner");
+    const menuButton = screen.getByRole("button", { name: studioCtx.siteInfo.name });
+    act(() => preview.store.setState({ isLive: true }));
+    expect(menuButton).toBeInTheDocument();
+    expect(menuButton).not.toBeVisible();
+    expect(menuButton.closest("[inert]")).not.toBeNull();
+    act(() => preview.store.setState({ isLive: false }));
+    expect(menuButton).toBeVisible();
+    expect(menuButton.closest("[inert]")).toBeNull();
+    expect(screen.getByText("Project menu open")).toBeVisible();
+
     const full = mock<NonNullable<ReturnType<typeof preview.store.getState>["previewData"]>>({ full: true });
     act(() => preview.store.setState({ isLive: true, previewData: full }));
     expect(screen.queryByTestId("editor-shell")).toBeNull();
