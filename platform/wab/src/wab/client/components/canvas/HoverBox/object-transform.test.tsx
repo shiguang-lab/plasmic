@@ -5,6 +5,12 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { FrameSelectionBox } from "@/wab/client/components/canvas/HoverBox/FrameSelectionBox";
 import { MultiSelectionBox } from "@/wab/client/components/canvas/HoverBox/MultiSelectionBox";
+import edgeStyles from "@/wab/client/components/canvas/HoverBox/draggable-edge.module.sass";
+import { HoverBox, HoverBoxes } from "@/wab/client/components/canvas/HoverBox/HoverBoxes";
+import { AppContext } from "@/wab/client/components/top-view";
+import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
+import { ValTag } from "@/wab/shared/core/val-nodes";
+import { ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { ensure } from "@/wab/shared/common";
@@ -25,26 +31,144 @@ function element(left: number) {
   return node;
 }
 
-async function fixture() {
+async function fixture(type = ComponentType.Plain) {
   const site = createSite(), base = mkBaseVariant();
   const nested = mkComponent({ name: "Nested", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
   const slot = mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() });
   nested.params.push(slot);
   const first = mkTplComponent(nested, base, []), second = mkTplComponent(nested, base, []);
-  const component = mkComponent({ name: "Page", type: ComponentType.Plain, variants: [base], tplTree: mkTplTagX("div", { baseVariant: base }, [first, second]) });
+  const component = mkComponent({ name: "Page", type, variants: [base], tplTree: mkTplTagX("div", { baseVariant: base }, [first, second]) });
   site.components.push(nested, component);
   const arena = mkMixedArena("Selection");
-  const frame = mkArenaFrame({ site, component, name: "First", width: 400, height: 300, left: 0, top: 0 });
+  const size = type === ComponentType.Page ? { width: 390, height: 844 } : { width: 400, height: 300 };
+  const frame = mkArenaFrame({ site, component, name: "First", ...size, left: 0, top: 0 });
   const other = mkArenaFrame({ site, component, name: "Second", width: 400, height: 300, left: 500, top: 0 });
   arena.children.push(frame, other); site.arenas.push(arena);
   const { studioCtx: studio } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Selection" });
-  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  // Finish the initial route's deferred zoom-to-fit before testing an explicit
+  // zoom or layer selection on this artboard.
+  const initialFit = vi.spyOn(studio, "tryZoomToFitArena");
+  studio.viewportCtx = createViewportFixture().viewportCtx;
+  await waitFor(() => {
+    expect(studio.initialRouteReady).toBe(true);
+    expect(initialFit).toHaveBeenCalled();
+  });
   return { studio, frame, other, first, second, slot };
 }
 
 beforeEach(() => { vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false); });
 
 afterEach(() => { cleanup(); document.body.innerHTML = ""; vi.restoreAllMocks(); });
+
+it.each([0.5, 1, 2])("clips root spacing while keeping drag targets on the actual phone edges at zoom %s", async (zoom) => {
+  const { studio, frame } = await fixture(ComponentType.Page);
+  const view = ensure(studio.tryGetViewCtxForFrame(frame), "Phone view");
+  const viewport = document.body.appendChild(document.createElement("iframe"));
+  const root = document.body.appendChild(document.createElement("div"));
+  root.style.padding = "40px 0 0";
+  Object.assign(view.canvasCtx, {
+    viewport: () => viewport, $doc: () => $(document), doc: () => document,
+    viewportContainerOffset: () => ({ left: 0, top: 0 }),
+  });
+  const tpl = ensureKnownTplTag(frame.container.component.tplTree);
+  const val = new ValTag({ tpl, children: [], className: "", key: tpl.uuid, fullKey: tpl.uuid,
+    frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
+  const valState = view.valState();
+  vi.spyOn(valState, "maybeValUserRoot").mockReturnValue(val);
+  vi.spyOn(view, "valState").mockReturnValue(valState);
+  vi.spyOn(view.renderState, "sel2dom").mockReturnValue([root]);
+  await act(async () => {
+    await studio.changeUnsafe(() => {
+      studio.selection.set(view, []);
+    });
+    studio.viewportCtx = createViewportFixture(zoom).viewportCtx;
+  });
+  const mounted = render(
+    <AppContext.Provider value={studio.app}>
+      <StudioCtxContext.Provider value={studio}>
+        <HoverBox viewCtx={view} target={frame} />
+      </StudioCtxContext.Provider>
+    </AppContext.Provider>
+  );
+  const border = ensure(mounted.container.querySelector<HTMLElement>(".HoverBox__Border--screen"), "Screen outline");
+  const mask = ensure(mounted.container.querySelector<HTMLElement>('[style*="polygon"]')?.closest<HTMLElement>('[style*="clip-path: inset"]'), "Spacing mask");
+  expect(border.parentElement?.className).toBe("hoverbox");
+  expect(border.style.clipPath).toBe(`inset(0px 0px 0px 0px round ${44 * zoom}px)`);
+  expect(mask.style.clipPath).toBe(`inset(0px 0px 0px 0px round ${44 * zoom}px)`);
+  expect(mask.querySelector('[style*="polygon"]')).toBeTruthy();
+  const controls = ensure(mounted.container.querySelector(".HoverBox__Resizers"), "Edge controls");
+  expect(mask.contains(controls)).toBe(false);
+  const bottom = ensure(controls.querySelector<HTMLElement>(
+    `.${edgeStyles.bottom} .${edgeStyles.padding} .${edgeStyles.edgeHandle}`
+  ), "Bottom padding drag target");
+  expect(bottom.style.bottom).toBe("0px");
+  expect(bottom.closest('[style*="clip-path"]')).toBeNull();
+  expect(controls.querySelector<HTMLElement>(`.${edgeStyles.top} .${edgeStyles.edgeAreaFill}`)?.style.clipPath)
+    .toBe(`inset(0px 0px ${(40 - 844) * zoom}px 0px round ${44 * zoom}px)`);
+  const right = ensure(controls.querySelector<HTMLElement>(
+    `.${edgeStyles.right} .${edgeStyles.size}`
+  ), "Width drag target");
+  expect(parseFloat(right.style.right)).toBe(-parseFloat(right.style.width) / 2);
+  const label = ensure(mounted.container.querySelector(".node-outline-tag"), "Artboard label");
+  expect(mask.contains(label)).toBe(false);
+});
+
+it("keeps a read-only full-width selection visible as the iframe changes position", async () => {
+  const { studio, frame, first, slot } = await fixture(ComponentType.Page);
+  const view = ensure(studio.tryGetViewCtxForFrame(frame), "Phone view");
+  const hero = document.body.appendChild(document.createElement("div"));
+  Object.defineProperties(hero, { offsetWidth: { value: 390 }, offsetHeight: { value: 328 } });
+  vi.spyOn(hero, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 158, 390, 328));
+  const viewport = document.body.appendChild(document.createElement("iframe"));
+  let offsetTop = 47;
+  Object.assign(view.canvasCtx, {
+    viewport: () => viewport, $doc: () => $(document), doc: () => document,
+    viewportContainerOffset: () => ({ left: 1260, top: offsetTop }),
+  });
+  const target = { node: $(hero), focusObj: new SlotSelection({ tpl: first, slotParam: slot }) };
+  await act(async () => {
+    await studio.changeUnsafe(() => {
+      studio.selection.set(view, []);
+      view.selection.setTargets([target.focusObj]);
+      view.selection.setDoms([target.node]);
+    });
+    studio.viewportCtx = createViewportFixture(0.71152).viewportCtx;
+    studio.setBlockChanges(true);
+  });
+  const mounted = render(
+    <AppContext.Provider value={studio.app}>
+      <StudioCtxContext.Provider value={studio}>
+        <HoverBox viewCtx={view} target={target} />
+      </StudioCtxContext.Provider>
+    </AppContext.Provider>
+  );
+  try {
+    const border = ensure(mounted.container.querySelector<HTMLElement>(".HoverBox__Border--screen"), "Selected border");
+    const box = ensure(border.parentElement, "Selection overlay");
+    expect(box.className).toBe("hoverbox");
+    expect(border.closest('[style*="clip-path"]')).toBeNull();
+    expect(box.style.top).toBe("205px");
+    expect(box.textContent).toContain("390 × 328");
+    act(() => { offsetTop = 0; studio.framesChanged.dispatch(); });
+    await waitFor(() => expect(box.style.top).toBe("158px"));
+    expect(mounted.container.querySelector(".HoverBox__Border")).toBe(border);
+  } finally { mounted.unmount(); studio.dispose(); }
+});
+
+it("restores selection outlines when the initial viewport transform settles", async () => {
+  const { studio, frame, other } = await fixture();
+  const viewport = ensure(createViewportFixture().viewportCtx, "Viewport");
+  await act(async () => {
+    await studio.changeUnsafe(() => studio.selection.set(undefined, [frame, other]));
+    studio.viewportCtx = viewport;
+    viewport.enqueueTransform(0.71152, Pt.zero(), false);
+  });
+  const mounted = render(<HoverBoxes studioCtx={studio} />);
+  try {
+    expect(screen.queryByText("2 artboards selected")).toBeNull();
+    await waitFor(() => expect(screen.getByText("2 artboards selected")).toBeTruthy());
+  } finally { mounted.unmount(); studio.dispose(); }
+});
 
 it("hides and restores the actual artboard selection from the real transform command without another input change", async () => {
   const f = await fixture();
@@ -67,7 +191,7 @@ it("hides and restores the actual artboard selection from the real transform com
 });
 
 it("updates real layer selection UI and detaches the native source on unmount", async () => {
-  const f = await fixture(), view = ensure(f.studio.tryGetViewCtxForFrame(f.frame), "Missing view owner");
+  const f = await fixture(ComponentType.Page), view = ensure(f.studio.tryGetViewCtxForFrame(f.frame), "Missing view owner");
   const first = element(20), second = element(150);
   Object.assign(view.canvasCtx, {
     $userBody: () => $(document.body), doc: () => document,
@@ -83,7 +207,9 @@ it("updates real layer selection UI and detaches the native source on unmount", 
   });
   const label = render(<MultiSelectionBox viewCtx={view} />);
   try {
-    expect(screen.getByText("2 layers selected")).toBeTruthy();
+    const border = ensure(label.container.querySelector<HTMLElement>(".canvas-editor__multi-selection-border"), "Layer selection border");
+    expect(border.style.clipPath).toBe("");
+    expect(border.contains(screen.getByText("2 layers selected"))).toBe(false);
     act(() => f.studio.setIsTransformingObject(true));
     expect(screen.queryByText("2 layers selected")).toBeNull();
     act(() => f.studio.setIsTransformingObject(false));

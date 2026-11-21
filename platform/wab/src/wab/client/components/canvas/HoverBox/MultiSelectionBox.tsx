@@ -2,6 +2,7 @@ import { useStore } from "zustand";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
+import { getCanvasScreen, screenBorderClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import {
   getVisibleSelectionBounds,
   useSelectionBounds,
@@ -17,6 +18,8 @@ export function MultiSelectionBox({
 }: {
   viewCtx: ViewCtx;
 }) {
+  "use no memo";
+  // Scroll and frame changes move the visible bounds without replacing the selection.
   useViewSelection(viewCtx, useShallow((state) => [state.doms, state.targets]));
   const draggingObject = useStore(viewCtx.studioCtx.draggingObjectStore);
   const transformingObject = useStore(viewCtx.studioCtx.transformingObjectStore);
@@ -43,6 +46,10 @@ export function MultiSelectionBox({
         ...cssPropsForInvertTransform(viewportZoom, rect),
       }}
     >
+      <div
+        className="canvas-editor__multi-selection-border"
+        style={screenBorderClipStyle(getCanvasScreen(viewCtx), rect, viewportZoom)}
+      />
       <div className="canvas-editor__multi-selection-label">
         <UiText
           message="{count} layers selected"

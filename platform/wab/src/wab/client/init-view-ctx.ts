@@ -5,6 +5,7 @@ import {
   PlasmicWindowInternals,
 } from "@/wab/client/frame-ctx/windows";
 import { checkDepPkgHosts, loadSiteDbCtx } from "@/wab/client/init-ctx";
+import { readInitialRoutePreferences } from "@/wab/client/studio-ctx/startup-state";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ProjectId } from "@/wab/shared/ApiSchema";
@@ -60,6 +61,7 @@ export async function initStudioCtx(
   onRefreshUi,
   loadTimings = new StudioLoadTimings(),
 ) {
+  const preferences = readInitialRoutePreferences(appCtx, siteId);
   const { dbCtx, depPkgVersions } = await loadSiteDbCtx(appCtx, onRefreshUi, siteId, loadTimings);
   const { siteInfo } = dbCtx;
 
@@ -70,6 +72,6 @@ export async function initStudioCtx(
     loadTimings,
   });
   await studioCtx.initializeDesktopDrafts();
-  studioCtx.startInitialRoute();
+  spawn(studioCtx.startInitialRoute(preferences));
   return studioCtx;
 }

@@ -1,3 +1,7 @@
+import type { AppCtx } from "@/wab/client/app-ctx";
+import { parseProjectLocation } from "@/wab/client/cli-routes";
+import { focusPreferenceKey, fullPageHeightKey } from "@/wab/client/LocalStorageKey";
+import type { ProjectId } from "@/wab/shared/ApiSchema";
 import { createStudioStore } from "@/wab/client/stores/store-kit";
 
 /**
@@ -22,3 +26,29 @@ export function createStartupStore() {
 }
 
 export type StartupStore = ReturnType<typeof createStartupStore>;
+
+export function readInitialRoutePreferences(appCtx: AppCtx, projectId: ProjectId) {
+  const restoreViewport = !!appCtx.topFrameApi &&
+    navigator.userAgent.includes("PlasmicDesktop/") &&
+    !parseProjectLocation(appCtx.history.location)?.publishedTemplate;
+
+  const readViewport = async () => {
+    if (restoreViewport) {
+      try {
+        return await appCtx.topFrameApi?.getSavedEditorView(projectId);
+      } catch (error) {
+        console.warn("Cannot read saved editor viewport", error);
+      }
+    }
+    return null;
+  };
+
+  const values = Promise.all([
+    appCtx.api.getStorageItem(focusPreferenceKey(projectId)),
+    appCtx.api.getStorageItem(fullPageHeightKey(projectId)),
+    readViewport(),
+  ]);
+  // Model loading can fail or finish after these reads. The route awaits the original promise.
+  void values.catch(() => undefined);
+  return { restoreViewport, values };
+}

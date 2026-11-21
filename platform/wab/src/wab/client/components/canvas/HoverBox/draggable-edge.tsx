@@ -12,6 +12,9 @@ import { clamp, isNil } from "lodash";
 import * as React from "react";
 
 export type SpaceEdgeType = "padding" | "margin" | "size";
+// The coloured strip can be screen-clipped independently of its draggable handle.
+type ClipEdgePaint = (kind: SpaceEdgeType, inset: number, thickness: number) => React.CSSProperties | undefined;
+
 export type EdgeDragMode = "single" | "symmetric" | "all";
 
 export function getAffectedSides(side: Side, mode: EdgeDragMode) {
@@ -57,6 +60,7 @@ interface DragState {
  * @param props.draggedEdge currently-dragged edge type, if any
  */
 export function SpaceEdgeControls(props: {
+  clipPaint?: ClipEdgePaint;
   side: Side;
   paddingLabel?: React.ReactNode;
   marginLabel?: React.ReactNode;
@@ -141,6 +145,7 @@ export function SpaceEdgeControls(props: {
     >
       {marginPxValue != null && (
         <SpaceEdgeArea
+          clipPaint={props.clipPaint}
           side={side}
           edgeType="margin"
           label={
@@ -169,6 +174,7 @@ export function SpaceEdgeControls(props: {
       )}
       {paddingPxValue != null && (
         <SpaceEdgeArea
+          clipPaint={props.clipPaint}
           side={side}
           edgeType="padding"
           label={
@@ -212,6 +218,7 @@ export function SpaceEdgeControls(props: {
           );
           return (
             <DraggableEdge
+              clipPaint={props.clipPaint}
               className={sty.size}
               edgeType="size"
               side={side}
@@ -308,6 +315,7 @@ function getEdgeHandleCursor(
  * and maybe a knob, for margin or padding.
  */
 export function SpaceEdgeArea(props: {
+  clipPaint?: ClipEdgePaint;
   side: Side;
   edgeType: SpaceEdgeType;
   label?: React.ReactNode;
@@ -387,6 +395,7 @@ return (
     >
       {!disabledDnd && (
         <DraggableEdge
+          clipPaint={props.clipPaint}
           showArea={true}
           edgeType={edgeType}
           side={side}
@@ -506,6 +515,7 @@ const labelStyles: React.CSSProperties = {
  *   within the DOM offset parent for this edge.
  */
 export function DraggableEdge(props: {
+  clipPaint?: ClipEdgePaint;
   className?: string;
   edgeType: SpaceEdgeType;
   side: Side;
@@ -604,7 +614,10 @@ return (
         onMouseEnter={() => onHover?.(true)}
         onMouseLeave={() => onHover?.(false)}
       >
-        {showArea && <div className={cx(sty.edgeAreaFill, sty.interactive)} />}
+        {showArea && <div
+          className={cx(sty.edgeAreaFill, sty.interactive)}
+          style={props.clipPaint?.(edgeType, edgeType === "margin" ? -valuePositionOffset : 0, valuePositionOffset)}
+        />}
 
         <div
           className={cx(sty.edgeHandle, className, {
@@ -652,6 +665,10 @@ return (
               [sty.edgeHorizontal]: orientation === "horiz",
             })}
             style={{
+              ...props.clipPaint?.(edgeType, isFlush
+                ? (placement === "outside" ? -EDGE_WIDTH : 0)
+                : (placement === "outside" ? -valuePositionOffset : valuePositionOffset) - EDGE_WIDTH / 2,
+                EDGE_WIDTH),
               [edgeDimension]: EDGE_WIDTH,
               transformOrigin: getEdgeTransformOrigin(
                 side,

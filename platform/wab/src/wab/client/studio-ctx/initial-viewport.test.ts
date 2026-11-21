@@ -1,7 +1,9 @@
-import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { readInitialRoutePreferences } from "@/wab/client/studio-ctx/startup-state";
+import { fakeAppCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import type { AppCtx } from "@/wab/client/app-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import type { UserId } from "@/wab/shared/ApiSchema";
+import { initStudioCtx } from "@/wab/client/init-view-ctx";
+import type { ProjectId, UserId } from "@/wab/shared/ApiSchema";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplTag } from "@/wab/shared/core/tpls";
@@ -15,6 +17,31 @@ import { waitFor } from "@testing-library/react";
 import { mock } from "vitest-mock-extended";
 
 afterEach(() => vi.unstubAllGlobals());
+
+it.each([
+  { desktop: true, published: false, readViewport: true },
+  { desktop: true, published: true, readViewport: false },
+  { desktop: false, published: false, readViewport: false },
+])("starts applicable preference reads alongside the model (desktop=$desktop, published=$published)", async ({ desktop, published, readViewport }) => {
+  vi.stubGlobal("navigator", { userAgent: desktop ? "PlasmicDesktop/darwin" : "Mozilla/5.0" });
+  const { appCtx, history, api } = fakeAppCtx();
+  const projectId = "project" as ProjectId;
+  history.replace(`/projects/${projectId}${published ? "?publishedTemplate=true" : ""}`);
+  appCtx.selfInfo = mock<NonNullable<AppCtx["selfInfo"]>>();
+  const bridge = mock<TopFrameApi>();
+  bridge.getSavedEditorView.mockResolvedValue(null);
+  appCtx.topFrameApi = bridge;
+  const error = new Error("Model unavailable");
+  api.getSiteInfo.mockRejectedValue(error);
+
+  const opening = initStudioCtx(appCtx, projectId, vi.fn());
+  expect(api.getSiteInfo).toHaveBeenCalledTimes(1);
+  expect(api.getStorageItem.mock.calls).toEqual([
+    [`plasmic.focused.${projectId}`], [`plasmic.full-page-height.${projectId}`],
+  ]);
+  expect(bridge.getSavedEditorView.mock.calls).toEqual(readViewport ? [[projectId]] : []);
+  await expect(opening).rejects.toBe(error);
+});
 
 it.each(["saved", "hidden-clipper", "missing-frame", "missing-padding", "invalid"])("initializes %s viewport before releasing loading", async (mode) => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
@@ -119,10 +146,11 @@ it("restores the saved viewport against the recovered draft model on startup", a
     scale: 0.5, scroll: { x: 240, y: 360 }, canvasPadding: { x: 0, y: 0 },
   });
   appCtx.topFrameApi = topFrameApi;
+  const preferences = readInitialRoutePreferences(appCtx, dbCtx.siteInfo.id);
   const studio = new StudioCtx({ dbCtx, autoSave: false });
   let viewport: ViewportCtx | undefined;
   try {
-    expect(topFrameApi.getSavedEditorView).not.toHaveBeenCalled();
+    expect(topFrameApi.getSavedEditorView).toHaveBeenCalledExactlyOnceWith(dbCtx.siteInfo.id);
     await studio.initializeDesktopDrafts();
     expect(studio.site).not.toBe(site);
     expect(studio.site.components.find(c => c.uuid === component.uuid)?.name).toBe("RecoveredComponent");
@@ -133,10 +161,11 @@ it("restores the saved viewport against the recovered draft model on startup", a
       initialClipperBox: new Box(0, 0, 1000, 800), initialClipperScroll: new Pt(0, 0),
     });
     studio.viewportCtx = viewport;
-    studio.startInitialRoute();
+    void studio.startInitialRoute(preferences);
     await waitFor(() => expect(studio.initialRouteReady).toBe(true));
     studio.applyInitialViewportLayout(viewport.clipperBox(), new Pt(1000, 800));
     expect(studio.initialViewportReady).toBe(true);
+    expect(topFrameApi.getSavedEditorView).toHaveBeenCalledTimes(1);
     expect(studio.loadTimings.has("initial-viewport-commit")).toBe(true);
     expect(studio.currentArena).toBe(studio.site.arenas.find(arena => arena.name === "Overview"));
     expect(viewport.scale()).toBe(0.5);

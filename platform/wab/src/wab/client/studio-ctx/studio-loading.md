@@ -27,7 +27,9 @@ task boundary retains promise ownership through completion. Idle-task and
 evaluation failures release their queues, report the original canvas error and
 reject tool readiness instead of leaving startup waiting for a success marker.
 Canvas errors retain their stack in Desktop's existing error log.
-The initial route resolves the saved target before mounting artboards. On the
+Focus mode, full-page height and the applicable Desktop viewport are read alongside
+the project model. The initial route applies them after local draft recovery and
+resolves the saved target before mounting artboards. On the
 first measurable canvas layout, the editor measures the clipper and unscaled
 arena, then applies the saved scale and scroll in one viewport transaction.
 Reopening a valid saved view releases the top-level and canvas-wide loading

@@ -363,7 +363,7 @@ import { createFindReferencesStore } from "@/wab/client/studio-ctx/find-referenc
 import { createPageSettingsStore } from "@/wab/client/studio-ctx/page-settings-state";
 import { createPresetsStore } from "@/wab/client/studio-ctx/presets-state";
 import { createCopilotStore } from "@/wab/client/studio-ctx/copilot-state";
-import { createStartupStore } from "@/wab/client/studio-ctx/startup-state";
+import { createStartupStore, type readInitialRoutePreferences } from "@/wab/client/studio-ctx/startup-state";
 import { createCursorStore, setCursorLocation } from "@/wab/client/studio-ctx/cursor-state";
 import { createCanvasLoadStore } from "@/wab/client/studio-ctx/canvas-load-state";
 import { createRightPanelStore } from "@/wab/client/studio-ctx/right-panel-state";
@@ -3000,36 +3000,19 @@ export class StudioCtx extends WithDbCtx {
   }
 
   /** Start routing after local draft recovery has installed the startup model. */
-  startInitialRoute() {
-    spawn(this.handleInitialRoute());
-  }
-
-  private async handleInitialRoute() {
+  async startInitialRoute(preferences: ReturnType<typeof readInitialRoutePreferences>) {
     let lifetime = this.arenaState.lifetime();
     const routeDone = this.loadTimings.begin("initial-route");
     const viewportDone = this.loadTimings.begin("initial-viewport");
-    const desktop = navigator.userAgent.includes("PlasmicDesktop/");
-    const [focusPreference, fullPageHeightPreference] = await Promise.all([
-      this.appCtx.api.getStorageItem(this.mkFocusPreferenceKey()),
-      this.appCtx.api.getStorageItem(this.mkFullPageHeightKey()),
-      (async () => {
-        if (desktop && this.appCtx.topFrameApi && !this.siteInfo.publishedTemplateVersion) {
-          this.startupStore.setState({ viewportLoaded: false });
-          try {
-            const saved = await this.appCtx.topFrameApi.getSavedEditorView(
-              this.siteInfo.id,
-            );
-            if (this.canvasLoadingDisposed) { return; }
-            const parsed =
-              prototypeToolMeta.restoreEditorView.inputSchema.safeParse(saved);
-            this.initialEditorView = parsed.success ? parsed.data : null;
-          } catch (error) {
-            console.warn("Cannot read saved editor viewport", error);
-          }
-        }
-      })(),
-    ]);
+    if (preferences.restoreViewport) {
+      this.startupStore.setState({ viewportLoaded: false });
+    }
+    const [focusPreference, fullPageHeightPreference, savedView] = await preferences.values;
     if (this.canvasLoadingDisposed) { return; }
+    if (savedView && !this.siteInfo.publishedTemplateVersion) {
+      const parsed = prototypeToolMeta.restoreEditorView.inputSchema.safeParse(savedView);
+      this.initialEditorView = parsed.success ? parsed.data : null;
+    }
     // Initialize the focus preference before handleRouteChange reads it.
     if (!isNil(focusPreference)) {
       this.focusPreference = focusPreference === "true";

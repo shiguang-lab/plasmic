@@ -3,7 +3,8 @@ import { useEditingTextContext } from "@/wab/client/studio-ctx/editing-text-stat
 import { useAutoOpenedUuid } from "@/wab/client/studio-ctx/auto-open-state";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
-import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
+import { screenClipStyle } from "@/wab/client/components/device-frame/screen-clip";
+import { getCanvasScreen, screenBorderClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { observeCanvasSelectionDom } from "@/wab/client/components/canvas/HoverBox/canvas-selection-dom-observer";
 import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
@@ -95,7 +96,9 @@ import {
 } from "@/wab/shared/core/val-nodes";
 import { createNumericSize, showSizeCss, Unit } from "@/wab/shared/css-size";
 import {
+  Box,
   Corner,
+  oppSide,
   isAxisSide,
   Side,
   sideOrCornerToSides,
@@ -339,10 +342,9 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       : undefined;
 
   const cssProps = cssPropsForInvertTransform(viewportZoom, visibleBox);
-  // Keep labels and toolbars outside the screen mask; only content feedback
-  // and its edge controls belong to the device's visible surface.
-  const screenClip = viewCtx && visibleBox && !state?.deviceFrame
-    ? canvasScreenClipStyle(viewCtx, visibleBox, viewportZoom) : undefined;
+  // Clip content feedback to the screen. Drag handles straddle the real edge.
+  const deviceScreen = viewCtx && visibleBox ? getCanvasScreen(viewCtx) : undefined;
+  const screenClip = deviceScreen && visibleBox && screenClipStyle(deviceScreen, visibleBox, viewportZoom);
   const clipToScreen = (children: React.ReactNode) => screenClip
     ? <div style={{ position: "absolute", inset: 0, ...screenClip }}>{children}</div>
     : children;
@@ -452,425 +454,414 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
             }}
             onPointerDown={(e) => e.stopPropagation()}
           >
-            {
-              <>
-                {shouldShowSideControls &&
-                  (() => {
-                    const anyEdge = state?.edgeControls.top;
-                    const allowPadding = anyEdge?.includes("padding") ?? false;
-                    const allowMargin = anyEdge?.includes("margin") ?? false;
-
-                    return (
-                      clipToScreen(<div style={geometryLayer(-1)}>
-                        <SpacingVisualizer
-                          allowPadding={allowPadding}
-                          allowMargin={allowMargin}
-                          paddingPx={state?.paddingPx}
-                          marginPx={state?.marginPx}
-                          zoom={viewportZoom}
-                        />
-                      </div>)
-                    );
-                  })()}
-
-                {showFrameTag && viewCtx && (
-                  <div
-                    className={styles.hoverBoxTagContainer}
-                    style={tagPlacement}
-                  >
-                    <div ref={frameTagRef} className="node-outline-tag">
-                      {state?.tagName && (canManipulate ? (
-                        <EditableNodeLabel
-                          studioCtx={studioCtx}
-                          viewCtx={viewCtx}
-                          displayName={state.tagName}
-                          icon={state?.tagIcon}
-                          nameable={controlledObj}
-                        />
-                      ) : state.tagName)}
-                    </div>
-                  </div>
-                )}
-                {clipToScreen(<><div
-                  style={state?.deviceFrame ? {
-                    borderRadius: state.deviceFrame.viewportRadius * viewportZoom + 1,
-                  } : screenClip ? { width: "100%", height: "100%" } : undefined}
-                  className={cn({
-                    HoverBox__Border: true,
-                    "HoverBox__Border--autoWidth": state && state.autoWidth,
-                    "HoverBox__Border--autoHeight": state && state.autoHeight,
-                    "HoverBox__Border--dashed": state && state.dashedBorder,
-                  })}
+            <div
+              style={deviceScreen && visibleBox ? {
+                ...screenBorderClipStyle(deviceScreen, visibleBox, viewportZoom),
+                borderRadius: state?.deviceFrame && state.deviceFrame.viewportRadius * viewportZoom,
+              } : undefined}
+              className={cn({
+                HoverBox__Border: true,
+                "HoverBox__Border--screen": !!screenClip,
+                "HoverBox__Border--autoWidth": state && state.autoWidth,
+                "HoverBox__Border--autoHeight": state && state.autoHeight,
+                "HoverBox__Border--dashed": state && state.dashedBorder,
+              })}
+            />
+            {shouldShowSideControls && clipToScreen(
+              <div style={geometryLayer(-1)}>
+                <SpacingVisualizer
+                  allowPadding={state?.edgeControls.top.includes("padding") ?? false}
+                  allowMargin={state?.edgeControls.top.includes("margin") ?? false}
+                  paddingPx={state?.paddingPx}
+                  marginPx={state?.marginPx}
+                  zoom={viewportZoom}
                 />
-                <div className={"HoverBox__Controls"}>
-                  <div
-                    className="HoverBox__Resizers"
-                    style={
-                      // Edges extend across neighbouring margins; a clipped
-                      // side's margin is not on screen, so don't extend into it.
-                      Object.fromEntries(
-                        (["top", "bottom", "left", "right"] as const).map(
-                          (s) => [
-                            `--selected-element-margin-${s}`,
-                            `${
-                              clippedSides[s]
-                                ? 0
-                                : (state?.marginPx?.[s] ?? 0) * viewportZoom
-                            }px`,
-                          ],
-                        ),
-                      ) as React.CSSProperties
-                    }
-                  >
-                    {shouldShowSideControls &&
-                      sidesAndCorners({
-                        ...(canShowCornerResizers
-                          ? {
-                              corner: (corner) =>
-                                !sideOrCornerToSides(corner).some(
-                                  (s) => clippedSides[s],
-                                ) &&
-                                state?.edgeControls["top"].includes("size") &&
-                                state?.edgeControls["bottom"].includes(
-                                  "size",
-                                ) &&
-                                state?.edgeControls["left"].includes("size") &&
-                                state?.edgeControls["right"].includes("size") &&
-                                resizable.width &&
-                                resizable.height && (
-                                  <XDraggable
-                                    key={corner}
-                                    onStart={(_e) => startResize(corner)}
-                                    onDrag={(e) => dragResize(corner, e)}
-                                    onStop={() => stopResize()}
-                                  >
-                                    <div
-                                      onDoubleClick={() => clearSize(corner)}
-                                      className={cn("HoverBox__Resizer", `HoverBox__Resizer__${styleCase(corner)}`)}
-                                    />
-                                  </XDraggable>
-                                ),
+              </div>
+            )}
+            <div className={"HoverBox__Controls"}>
+              <div
+                className="HoverBox__Resizers"
+                style={
+                  // Edges extend across neighbouring margins; a clipped
+                  // side's margin is not on screen, so don't extend into it.
+                  Object.fromEntries(
+                    (["top", "bottom", "left", "right"] as const).map(
+                      (s) => [
+                        `--selected-element-margin-${s}`,
+                        `${
+                          clippedSides[s]
+                            ? 0
+                            : (state?.marginPx?.[s] ?? 0) * viewportZoom
+                        }px`,
+                      ],
+                    ),
+                  ) as React.CSSProperties
+                }
+              >
+                {shouldShowSideControls &&
+                  sidesAndCorners({
+                    ...(canShowCornerResizers
+                      ? {
+                          corner: (corner) =>
+                            !sideOrCornerToSides(corner).some(
+                              (s) => clippedSides[s],
+                            ) &&
+                            state?.edgeControls["top"].includes("size") &&
+                            state?.edgeControls["bottom"].includes(
+                              "size",
+                            ) &&
+                            state?.edgeControls["left"].includes("size") &&
+                            state?.edgeControls["right"].includes("size") &&
+                            resizable.width &&
+                            resizable.height && (
+                              <XDraggable
+                                key={corner}
+                                onStart={(_e) => startResize(corner)}
+                                onDrag={(e) => dragResize(corner, e)}
+                                onStop={() => stopResize()}
+                              >
+                                <div
+                                  onDoubleClick={() => clearSize(corner)}
+                                  className={cn("HoverBox__Resizer", `HoverBox__Resizer__${styleCase(corner)}`)}
+                                />
+                              </XDraggable>
+                            ),
+                        }
+                      : undefined),
+                    side: (side) => {
+                      if (clippedSides[side]) {
+                        // The real edge is not visible; a handle on the
+                        // visible box would move an edge the user can't see.
+                        return null;
+                      }
+                      const isVertical = isAxisSide(side, "width");
+                      const isHorizontal = isAxisSide(side, "height");
+                      const allowPadding =
+                        state?.edgeControls[side].includes("padding");
+                      const allowMargin =
+                        state?.edgeControls[side].includes("margin");
+                      const allowSizing =
+                        state?.edgeControls[side].includes("size") &&
+                        ((isVertical && resizable.width) ||
+                          (isHorizontal && resizable.height));
+                      const disabledDnd = !canEditSection(
+                        studioCtx,
+                        Section.Spacing,
+                      );
+                      return (
+                        <SpaceEdgeControls
+                          side={side}
+                          clipPaint={deviceScreen && visibleBox ? (kind, inset, thickness) => {
+                            // Margin strips extend across the adjacent margins, just as in the resizer CSS.
+                            const rect = Box.fromRect(visibleBox).rect();
+                            const bounds = { top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom };
+                            const direction = side === "top" || side === "left" ? 1 : -1;
+                            bounds[side] += direction * inset / viewportZoom;
+                            bounds[oppSide(side)] = bounds[side] + direction * thickness / viewportZoom;
+                            if (kind === "margin") {
+                              const [start, end] = isVertical ? ["top", "bottom"] as const : ["left", "right"] as const;
+                              bounds[start] -= clippedSides[start] ? 0 : state?.marginPx?.[start] ?? 0;
+                              bounds[end] += clippedSides[end] ? 0 : state?.marginPx?.[end] ?? 0;
                             }
-                          : undefined),
-                        side: (side) => {
-                          if (clippedSides[side]) {
-                            // The real edge is not visible; a handle on the
-                            // visible box would move an edge the user can't see.
-                            return null;
+                            return screenClipStyle(deviceScreen, Box.fromRectSides(bounds).rect(), viewportZoom);
+                          } : undefined}
+                          paddingLabel={
+                            allowPadding
+                              ? maybe(
+                                  state?.padding?.[side],
+                                  (size) => `${showSizeCss(size)}`,
+                                )
+                              : null
                           }
-                          const isVertical = isAxisSide(side, "width");
-                          const isHorizontal = isAxisSide(side, "height");
-                          const allowPadding =
-                            state?.edgeControls[side].includes("padding");
-                          const allowMargin =
-                            state?.edgeControls[side].includes("margin");
-                          const allowSizing =
-                            state?.edgeControls[side].includes("size") &&
-                            ((isVertical && resizable.width) ||
-                              (isHorizontal && resizable.height));
-                          const disabledDnd = !canEditSection(
-                            studioCtx,
-                            Section.Spacing,
-                          );
-                          return (
-                            <SpaceEdgeControls
-                              side={side}
-                              paddingLabel={
-                                allowPadding
-                                  ? maybe(
-                                      state?.padding?.[side],
-                                      (size) => `${showSizeCss(size)}`,
-                                    )
-                                  : null
-                              }
-                              marginLabel={
-                                allowMargin
-                                  ? maybe(
-                                      state?.margin?.[side],
-                                      (size) => `${showSizeCss(size)}`,
-                                    )
-                                  : null
-                              }
-                              paddingPxValue={
-                                allowPadding
-                                  ? (state?.paddingPx?.[side] ?? 0)
-                                  : null
-                              }
-                              disabledPaddingDragging={
-                                state?.padding?.[side]?.type === "FunctionSize"
-                              }
-                              disabledMarginDragging={
-                                state?.margin?.[side]?.type === "FunctionSize"
-                              }
-                              marginPxValue={
-                                allowMargin
-                                  ? (state?.marginPx?.[side] ?? 0)
-                                  : null
-                              }
-                              sizePxValue={
-                                allowSizing ? (state?.[side] ?? 0) : null
-                              }
-                              draggedSide={spacingDragState?.side}
-                              draggedEdgeType={spacingDragState?.edgeType}
-                              zoom={viewportZoom}
-                              isAutoSized={
-                                sideToOrient(side) === "horiz"
-                                  ? state?.autoWidth
-                                  : state?.autoHeight
-                              }
-                              childAlign={
-                                state?.containerChildAlignment[
-                                  sideToOrient(side)
-                                ]
-                              }
-                              showMeasurements={showingMeasurements}
-                              // Edge controls span the visible edge, so size
-                              // their labels/thickness by its on-screen length.
-                              focusedHeight={visibleBox?.height}
-                              focusedWidth={visibleBox?.width}
-                              onDragStart={async (side2, edgeType) => {
-                                await studioCtx.change(() => {
-                                  if (edgeType === "size") {
-                                    startResize(side2);
-                                    return ok();
-                                  } else {
-                                    if (!viewCtx || !controlledSpacingObj) {
-                                      return ok();
-                                    }
-                                    const val = maybe(
-                                      controlledSpacingObj,
-                                      (focused) =>
-                                        ensureInstance(
-                                          focused,
-                                          ValTag,
-                                          ValComponent,
-                                        ),
-                                    );
-                                    if (!val) {
-                                      return ok();
-                                    }
-                                    const domElt = ensureArray(
-                                      viewCtx.renderState.sel2dom(
-                                        val,
-                                        viewCtx.canvasCtx,
-                                      ),
-                                    )[0] as HTMLElement;
-                                    studioCtx.startUnlogged();
-                                    studioCtx.isResizeDragging = true;
-                                    const initValue =
-                                      state?.[`${edgeType}Px`]?.[side2] ?? 0;
-                                    const edgeSide = state?.[edgeType]?.[side2];
-                                    setSpacingDragState({
-                                      side: side2,
-                                      edgeType,
-                                      mode: "single",
-                                      domElt,
-                                      unit:
-                                        edgeSide?.type === "NumericSize"
-                                          ? edgeSide.unit
-                                          : "px",
-                                      tpl: val.tpl,
-                                      initValue,
-                                      dragDirectionFromZero: undefined,
-                                    });
-                                    if (!showedToast && !suppressSpacingToast) {
-                                      showedToast = true;
-                                      toast(
-                                        <div>
-                                          <UiText
-                                            message="Hold down {alt} or {shift} to update more than one side at a time"
-                                            values={{
-                                              alt: (
-                                                <OneShortcutCombo combo="alt" />
-                                              ),
-                                              shift: (
-                                                <OneShortcutCombo combo="shift" />
-                                              ),
-                                            }}
-                                          />
-                                          <br />(
-                                          <LinkButton
-                                            onClick={() => {
-                                              setSuppressSpacingToast(true);
-                                              notification.destroy("spacing");
-                                            }}
-                                          >
-                                            <UiText
-                                              message={"never show again"}
-                                            />
-                                          </LinkButton>
-                                          )
-                                        </div>,
-                                        {
-                                          duration: 999,
-                                          key: "spacing",
-                                        },
-                                      );
-                                    }
-                                    return ok();
-                                  }
-                                });
-                              }}
-                              onDrag={async (side2, edgeType, delta, mode) => {
-                                if (edgeType === "size") {
-                                  if (!manipState) {
-                                    return;
-                                  }
-                                  const maybeAborted =
-                                    await studioCtx.change<ManipulatorAbortedError>(
-                                      () =>
-                                        mkFreestyleManip().andThen((manipulator) => {
-                                          const isVertical2 =
-                                            side2 === "left" ||
-                                            side2 === "right";
-                                          setManipState(
-                                            manipulator.resize(
-                                              manipState,
-                                              side2,
-                                              {
-                                                deltaFrameX: isVertical2
-                                                  ? (side2 === "left"
-                                                      ? -1
-                                                      : 1) * Math.round(delta)
-                                                  : 0,
-                                                deltaFrameY: isVertical2
-                                                  ? 0
-                                                  : (side2 === "top" ? -1 : 1) *
-                                                    Math.round(delta),
-                                                shiftKey: mode === "all",
-                                                altKey: mode === "symmetric",
-                                                metaKey: false,
-                                                ctrlKey: false,
-                                              },
-                                            ),
-                                          );
-                                          return ok();
-                                        }),
-                                    );
-                                  if (maybeAborted.isErr()) {
-                                    await stopResize();
-                                  }
-                                } else {
-                                  if (!spacingDragState) {
-                                    return;
-                                  }
-                                  await studioCtx.changeUnsafe(() => {
-                                    const { initValue, dragDirectionFromZero } =
-                                      spacingDragState;
-                                    const newValue =
-                                      initValue === 0 &&
-                                      dragDirectionFromZero === undefined &&
-                                      edgeType === "padding"
-                                        ? Math.abs(delta)
-                                        : initValue +
-                                          (dragDirectionFromZero ?? 1) * delta;
-                                    const frameOffset = Math.max(0, newValue);
-                                    const newNumericValue = offsetPxAsUnits(
-                                      spacingDragState.domElt,
-                                      spacingDragState.unit,
-                                      frameOffset,
-                                      "width",
-                                      0,
-                                    );
-                                    const newUnitValue = showSizeCss(
-                                      createNumericSize(
-                                        newNumericValue,
-                                        spacingDragState.unit,
-                                      ),
-                                    );
-                                    const vtm = ensure(
-                                      viewCtx,
-                                      () =>
-                                        `Only possible to resize if there's a focused viewCtx`,
-                                    ).variantTplMgr();
-                                    const expr = vtm.targetRshForNode(
-                                      spacingDragState.tpl,
-                                    );
-                                    for (const s of getAffectedSides(
-                                      side2,
-                                      mode,
-                                    )) {
-                                      expr.set(
-                                        `${edgeType}-${s}`,
-                                        newUnitValue,
-                                      );
-                                    }
-
-                                    if (spacingDragState.mode !== mode) {
-                                      setSpacingDragState({
-                                        ...spacingDragState,
-                                        mode,
-                                      });
-                                    }
-                                    if (
-                                      initValue === 0 &&
-                                      dragDirectionFromZero === undefined &&
-                                      edgeType === "padding" &&
-                                      delta !== 0
-                                    ) {
-                                      setSpacingDragState({
-                                        ...spacingDragState,
-                                        dragDirectionFromZero:
-                                          delta > 0 ? 1 : -1,
-                                      });
-                                    }
-                                  });
+                          marginLabel={
+                            allowMargin
+                              ? maybe(
+                                  state?.margin?.[side],
+                                  (size) => `${showSizeCss(size)}`,
+                                )
+                              : null
+                          }
+                          paddingPxValue={
+                            allowPadding
+                              ? (state?.paddingPx?.[side] ?? 0)
+                              : null
+                          }
+                          disabledPaddingDragging={
+                            state?.padding?.[side]?.type === "FunctionSize"
+                          }
+                          disabledMarginDragging={
+                            state?.margin?.[side]?.type === "FunctionSize"
+                          }
+                          marginPxValue={
+                            allowMargin
+                              ? (state?.marginPx?.[side] ?? 0)
+                              : null
+                          }
+                          sizePxValue={
+                            allowSizing ? (state?.[side] ?? 0) : null
+                          }
+                          draggedSide={spacingDragState?.side}
+                          draggedEdgeType={spacingDragState?.edgeType}
+                          zoom={viewportZoom}
+                          isAutoSized={
+                            sideToOrient(side) === "horiz"
+                              ? state?.autoWidth
+                              : state?.autoHeight
+                          }
+                          childAlign={
+                            state?.containerChildAlignment[
+                              sideToOrient(side)
+                            ]
+                          }
+                          showMeasurements={showingMeasurements}
+                          // Edge controls span the visible edge, so size
+                          // their labels/thickness by its on-screen length.
+                          focusedHeight={visibleBox?.height}
+                          focusedWidth={visibleBox?.width}
+                          onDragStart={async (side2, edgeType) => {
+                            await studioCtx.change(() => {
+                              if (edgeType === "size") {
+                                startResize(side2);
+                                return ok();
+                              } else {
+                                if (!viewCtx || !controlledSpacingObj) {
+                                  return ok();
                                 }
-                              }}
-                              onDragStop={async (side2, edgeType) => {
-                                if (edgeType === "size") {
-                                  await stopResize();
-                                } else {
-                                  await studioCtx.change(() => {
-                                    setSpacingDragState(undefined);
-                                    studioCtx.stopUnlogged();
-                                    studioCtx.isResizeDragging = false;
-                                    return ok();
-                                  });
-                                  setTimeout(
-                                    () => notification.destroy("spacing"),
-                                    3000,
-                                  );
-                                }
-                              }}
-                              onHover={() => { /* This spacing control does not track hover state. */ }}
-                              onDoubleClick={async (side2, edgeType) => {
-                                if (edgeType === "size") {
-                                  clearSize(side2);
-                                } else {
-                                  if (!viewCtx || !controlledSpacingObj) {
-                                    return;
-                                  }
-                                  await studioCtx.changeUnsafe(() => {
-                                    const val = ensureInstance(
-                                      controlledSpacingObj,
+                                const val = maybe(
+                                  controlledSpacingObj,
+                                  (focused) =>
+                                    ensureInstance(
+                                      focused,
                                       ValTag,
                                       ValComponent,
-                                    );
-                                    const vtm = ensure(
-                                      viewCtx,
-                                      () =>
-                                        `Only possible to resize when there's a focused viewCtx`,
-                                    ).variantTplMgr();
-                                    const expr = vtm.targetRshForNode(val.tpl);
-                                    if (expr.has(`${edgeType}-${side2}`)) {
-                                      expr.clear(`${edgeType}-${side2}`);
-                                    } else {
-                                      expr.set(`${edgeType}-${side2}`, "0px");
-                                    }
+                                    ),
+                                );
+                                if (!val) {
+                                  return ok();
+                                }
+                                const domElt = ensureArray(
+                                  viewCtx.renderState.sel2dom(
+                                    val,
+                                    viewCtx.canvasCtx,
+                                  ),
+                                )[0] as HTMLElement;
+                                studioCtx.startUnlogged();
+                                studioCtx.isResizeDragging = true;
+                                const initValue =
+                                  state?.[`${edgeType}Px`]?.[side2] ?? 0;
+                                const edgeSide = state?.[edgeType]?.[side2];
+                                setSpacingDragState({
+                                  side: side2,
+                                  edgeType,
+                                  mode: "single",
+                                  domElt,
+                                  unit:
+                                    edgeSide?.type === "NumericSize"
+                                      ? edgeSide.unit
+                                      : "px",
+                                  tpl: val.tpl,
+                                  initValue,
+                                  dragDirectionFromZero: undefined,
+                                });
+                                if (!showedToast && !suppressSpacingToast) {
+                                  showedToast = true;
+                                  toast(
+                                    <div>
+                                      <UiText
+                                        message="Hold down {alt} or {shift} to update more than one side at a time"
+                                        values={{
+                                          alt: (
+                                            <OneShortcutCombo combo="alt" />
+                                          ),
+                                          shift: (
+                                            <OneShortcutCombo combo="shift" />
+                                          ),
+                                        }}
+                                      />
+                                      <br />(
+                                      <LinkButton
+                                        onClick={() => {
+                                          setSuppressSpacingToast(true);
+                                          notification.destroy("spacing");
+                                        }}
+                                      >
+                                        <UiText
+                                          message={"never show again"}
+                                        />
+                                      </LinkButton>
+                                      )
+                                    </div>,
+                                    {
+                                      duration: 999,
+                                      key: "spacing",
+                                    },
+                                  );
+                                }
+                                return ok();
+                              }
+                            });
+                          }}
+                          onDrag={async (side2, edgeType, delta, mode) => {
+                            if (edgeType === "size") {
+                              if (!manipState) {
+                                return;
+                              }
+                              const maybeAborted =
+                                await studioCtx.change<ManipulatorAbortedError>(
+                                  () =>
+                                    mkFreestyleManip().andThen((manipulator) => {
+                                      const isVertical2 =
+                                        side2 === "left" ||
+                                        side2 === "right";
+                                      setManipState(
+                                        manipulator.resize(
+                                          manipState,
+                                          side2,
+                                          {
+                                            deltaFrameX: isVertical2
+                                              ? (side2 === "left"
+                                                  ? -1
+                                                  : 1) * Math.round(delta)
+                                              : 0,
+                                            deltaFrameY: isVertical2
+                                              ? 0
+                                              : (side2 === "top" ? -1 : 1) *
+                                                Math.round(delta),
+                                            shiftKey: mode === "all",
+                                            altKey: mode === "symmetric",
+                                            metaKey: false,
+                                            ctrlKey: false,
+                                          },
+                                        ),
+                                      );
+                                      return ok();
+                                    }),
+                                );
+                              if (maybeAborted.isErr()) {
+                                await stopResize();
+                              }
+                            } else {
+                              if (!spacingDragState) {
+                                return;
+                              }
+                              await studioCtx.changeUnsafe(() => {
+                                const { initValue, dragDirectionFromZero } =
+                                  spacingDragState;
+                                const newValue =
+                                  initValue === 0 &&
+                                  dragDirectionFromZero === undefined &&
+                                  edgeType === "padding"
+                                    ? Math.abs(delta)
+                                    : initValue +
+                                      (dragDirectionFromZero ?? 1) * delta;
+                                const frameOffset = Math.max(0, newValue);
+                                const newNumericValue = offsetPxAsUnits(
+                                  spacingDragState.domElt,
+                                  spacingDragState.unit,
+                                  frameOffset,
+                                  "width",
+                                  0,
+                                );
+                                const newUnitValue = showSizeCss(
+                                  createNumericSize(
+                                    newNumericValue,
+                                    spacingDragState.unit,
+                                  ),
+                                );
+                                const vtm = ensure(
+                                  viewCtx,
+                                  () =>
+                                    `Only possible to resize if there's a focused viewCtx`,
+                                ).variantTplMgr();
+                                const expr = vtm.targetRshForNode(
+                                  spacingDragState.tpl,
+                                );
+                                for (const s of getAffectedSides(
+                                  side2,
+                                  mode,
+                                )) {
+                                  expr.set(
+                                    `${edgeType}-${s}`,
+                                    newUnitValue,
+                                  );
+                                }
+
+                                if (spacingDragState.mode !== mode) {
+                                  setSpacingDragState({
+                                    ...spacingDragState,
+                                    mode,
                                   });
                                 }
-                              }}
-                              showSquare={!canShowCornerResizers && allowSizing}
-                              disabledDnd={disabledDnd}
-                            />
-                          );
-                        },
-                      })}
-                  </div>
-                </div>
-                </>)}
-                {focusedElt && viewCtx && clipToScreen(
+                                if (
+                                  initValue === 0 &&
+                                  dragDirectionFromZero === undefined &&
+                                  edgeType === "padding" &&
+                                  delta !== 0
+                                ) {
+                                  setSpacingDragState({
+                                    ...spacingDragState,
+                                    dragDirectionFromZero:
+                                      delta > 0 ? 1 : -1,
+                                  });
+                                }
+                              });
+                            }
+                          }}
+                          onDragStop={async (side2, edgeType) => {
+                            if (edgeType === "size") {
+                              await stopResize();
+                            } else {
+                              await studioCtx.change(() => {
+                                setSpacingDragState(undefined);
+                                studioCtx.stopUnlogged();
+                                studioCtx.isResizeDragging = false;
+                                return ok();
+                              });
+                              setTimeout(
+                                () => notification.destroy("spacing"),
+                                3000,
+                              );
+                            }
+                          }}
+                          onHover={() => { /* This spacing control does not track hover state. */ }}
+                          onDoubleClick={async (side2, edgeType) => {
+                            if (edgeType === "size") {
+                              clearSize(side2);
+                            } else {
+                              if (!viewCtx || !controlledSpacingObj) {
+                                return;
+                              }
+                              await studioCtx.changeUnsafe(() => {
+                                const val = ensureInstance(
+                                  controlledSpacingObj,
+                                  ValTag,
+                                  ValComponent,
+                                );
+                                const vtm = ensure(
+                                  viewCtx,
+                                  () =>
+                                    `Only possible to resize when there's a focused viewCtx`,
+                                ).variantTplMgr();
+                                const expr = vtm.targetRshForNode(val.tpl);
+                                if (expr.has(`${edgeType}-${side2}`)) {
+                                  expr.clear(`${edgeType}-${side2}`);
+                                } else {
+                                  expr.set(`${edgeType}-${side2}`, "0px");
+                                }
+                              });
+                            }
+                          }}
+                          showSquare={!canShowCornerResizers && allowSizing}
+                          disabledDnd={disabledDnd}
+                        />
+                      );
+                    },
+                  })}
+              </div>
+            </div>
+            {clipToScreen(
+              <>
+                {focusedElt && viewCtx && (
                   // The editor scrollbar maps 1:1 onto the element's own
                   // scroll area, so it is laid out on the real box.
                   <div style={geometryLayer()}>
@@ -882,15 +873,17 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   </div>
                 )}
                 {state &&
-                  shouldShowDimBadge &&
-                  !(autoOpenedUuid || revealed) && (
-                    // Real element size, even when the drawn box is clipped.
-                    <div
-                      ref={dimsBoxRef}
-                      className={"HoverBox__Dims"}
-                      style={dimsStyle}
-                    >
-                      {Math.round(state.width)} × {Math.round(state.height)}
+                  viewCtx &&
+                  canManipulate &&
+                  controlledTpl &&
+                  isTplColumns(controlledTpl) && (
+                    // Column dividers are positioned from the element's real
+                    // content box.
+                    <div style={geometryLayer(-1)}>
+                      <ResponsiveColumnsCanvasControls
+                        viewCtx={viewCtx}
+                        tpl={controlledTpl}
+                      />
                     </div>
                   )}
                 {state &&
@@ -908,27 +901,43 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                       zoom={viewportZoom}
                     />
                   )}
-                {resizePart && (
-                  <div
-                    className={cn("HoverBox__DragGuard", `HoverBox__DragGuard__${styleCase(resizePart)}`)}
-                  />
-                )}
-                {state &&
-                  viewCtx &&
-                  canManipulate &&
-                  controlledTpl &&
-                  isTplColumns(controlledTpl) && (
-                    // Column dividers are positioned from the element's real
-                    // content box.
-                    clipToScreen(<div style={geometryLayer(-1)}>
-                      <ResponsiveColumnsCanvasControls
-                        viewCtx={viewCtx}
-                        tpl={controlledTpl}
-                      />
-                    </div>)
-                  )}
               </>
-            }
+            )}
+            {showFrameTag && viewCtx && (
+              <div
+                className={styles.hoverBoxTagContainer}
+                style={tagPlacement}
+              >
+                <div ref={frameTagRef} className="node-outline-tag">
+                  {state?.tagName && (canManipulate ? (
+                    <EditableNodeLabel
+                      studioCtx={studioCtx}
+                      viewCtx={viewCtx}
+                      displayName={state.tagName}
+                      icon={state?.tagIcon}
+                      nameable={controlledObj}
+                    />
+                  ) : state.tagName)}
+                </div>
+              </div>
+            )}
+            {state &&
+              shouldShowDimBadge &&
+              !(autoOpenedUuid || revealed) && (
+                // Real element size, even when the drawn box is clipped.
+                <div
+                  ref={dimsBoxRef}
+                  className={"HoverBox__Dims"}
+                  style={dimsStyle}
+                >
+                  {Math.round(state.width)} × {Math.round(state.height)}
+                </div>
+              )}
+            {resizePart && (
+              <div
+                className={cn("HoverBox__DragGuard", `HoverBox__DragGuard__${styleCase(resizePart)}`)}
+              />
+            )}
             {canManipulate && viewCtx && state && !state.isComponentPart && shouldShowDimBadge && (
               <div
                 className={styles.elementActions}
@@ -1072,7 +1081,8 @@ export const HoverBoxes = memo(HoverBoxes_);
 function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   const { studioCtx } = props;
   useContentEditorScope(studioCtx);
-  useCanvasTransforming(studioCtx);
+  const transforming = useCanvasTransforming(studioCtx);
+  const inserting = useStore(studioCtx.canvasInsertStore, (state) => !!(state.freestyle || state.dragInsert));
   // computeHoverBoxTargets resolves controlled frames through the registry
   // command index; this subscription keeps that result reactive to a roster
   // change without making every unrelated model commit clone the roster.
@@ -1092,9 +1102,10 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
     targets: state.targets, doms: state.doms, tpls: state.tpls, part: state.part,
   })));
 
-  useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
-  useStudioOverlayState(studioCtx, (state) => state.screenshotting);
-  const shouldHideHoverBox = studioCtx.shouldHideUIOverlay(false) || !viewCtx || !scope.alive;
+  const devMode = useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
+  const screenshotting = useStudioOverlayState(studioCtx, (state) => state.screenshotting);
+  const hideOverlays = !devMode || inserting || transforming || screenshotting;
+  const shouldHideHoverBox = hideOverlays || !viewCtx || !scope.alive;
 
   const forceUpdate = useFrameForceUpdate(viewCtx?.disposeSignal);
 
@@ -1136,7 +1147,7 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   }, [viewCtx, canvasBody, forceUpdate]);
 
   if (studioSelection.frames.length > 1) {
-    return studioCtx.shouldHideUIOverlay(false) ? null : (
+    return hideOverlays ? null : (
       <FrameSelectionBox studioCtx={studioCtx} />
     );
   }

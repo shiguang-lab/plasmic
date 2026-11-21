@@ -1,3 +1,4 @@
+import { readInitialRoutePreferences } from "@/wab/client/studio-ctx/startup-state";
 import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
 import { ValState } from "@/wab/shared/eval/val-state";
 import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
@@ -155,7 +156,7 @@ export function fakeStudioCtx(opts?: {
     // Tests never persist anything, the timer would just poll the mocked api.
     autoSave: false,
   });
-  studioCtx.startInitialRoute();
+  void studioCtx.startInitialRoute(readInitialRoutePreferences(studioCtx.appCtx, studioCtx.siteInfo.id));
   undisposedStudioCtxs.push(studioCtx);
 
   studioCtx.tryGetViewCtxForFrame = (frame: ArenaFrame | undefined) => {

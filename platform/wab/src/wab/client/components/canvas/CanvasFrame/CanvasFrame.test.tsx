@@ -5,6 +5,7 @@ import { ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { ensure } from "@/wab/shared/common";
 import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { CanvasArenaShell } from "@/wab/client/components/canvas/canvas-arena";
 import { CanvasFrame } from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame";
 import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
@@ -48,7 +49,7 @@ it("decorates mobile pages outside the viewport and reacts to resizing without c
   await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   vi.spyOn(studioCtx, "queueCanvasFrame").mockImplementation(() => vi.fn());
   const originalTree = component.tplTree;
-  const mounted = render(<AppContext.Provider value={app}><CanvasFrame studioCtx={studioCtx} arena={arena} arenaFrame={frame} isFree onFrameLoad={vi.fn()} /></AppContext.Provider>);
+  const mounted = render(<AppContext.Provider value={app}><CanvasArenaShell studioCtx={studioCtx} arena={arena} onFrameLoad={vi.fn()} /></AppContext.Provider>);
   try {
     const iframe = ensure(mounted.container.querySelector("iframe"), "Page iframe");
     const container = ensure(iframe.parentElement, "Page container");
@@ -62,12 +63,18 @@ it("decorates mobile pages outside the viewport and reacts to resizing without c
     expect(container.style.height).toBe("852px");
     expect(iframe.style.top).toBe("0px");
     expect(iframe.style.height).toBe("852px");
+    const committedViewport = vi.fn(() => iframe.style.height);
+    const subscription = studioCtx.framesChanged.add(committedViewport);
     act(() => studioCtx.setFullPageHeightOverride(true));
+    expect(committedViewport.mock.results.at(-1)?.value).toBe("");
     act(() => updateAutoDerivedFrameHeight(frame, 1231));
     expect(container.style.height).toBe("1231px");
     expect(iframe.style.top).toBe("");
     expect(container.querySelector('[data-test-id="device-frame"]')).toBeNull();
+    committedViewport.mockClear();
     act(() => studioCtx.setFullPageHeightOverride(false));
+    expect(committedViewport.mock.results.at(-1)?.value).toBe("852px");
+    subscription.detach();
     expect(container.style.height).toBe("852px");
     expect(iframe.style.height).toBe("852px");
     expect(container.querySelector("iframe")).toBe(iframe);

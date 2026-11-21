@@ -3979,9 +3979,15 @@ $color-stops-width: 100%
 .canvas-editor__multi-selection
   position: absolute
   transform-origin: top left
-  border: 1px solid $selectionControlsColor
   pointer-events: none
   z-index: 10
+
+  &[data-artboard-selection], &-border
+    border: 1px solid $selectionControlsColor
+
+  &-border
+    position: absolute
+    inset: 0
 
 .canvas-editor__multi-selection-label, .canvas-editor__multi-selection-dimensions
   position: absolute
@@ -4711,6 +4717,12 @@ $resizer_size: 8px
   width: calc(100% + 2px)
   height: calc(100% + 2px)
   border: 1px solid $node-outline-color
+.HoverBox__Border--screen
+  inset: 0
+  width: auto
+  height: auto
+  transform: none
+  box-sizing: border-box
 .HoverBox__Border--autoWidth
   border-left-style: dashed
   border-right-style: dashed

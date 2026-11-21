@@ -1,5 +1,5 @@
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
-import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
+import { getCanvasScreen, screenBorderClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { usePlayerSelectionInputs } from "@/wab/client/components/canvas/Multiplayer/player-selection-inputs";
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
@@ -164,7 +164,7 @@ const PlayerBox = React.memo(function PlayerBox({
         display: "block",
         ...scalerRect,
         ...cssProps,
-        ...canvasScreenClipStyle(viewCtx, scalerRect, viewportZoom),
+        ...screenBorderClipStyle(getCanvasScreen(viewCtx), scalerRect, viewportZoom),
         borderColor: color,
       }}
     />

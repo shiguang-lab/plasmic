@@ -1,3 +1,4 @@
+import { readInitialRoutePreferences } from "@/wab/client/studio-ctx/startup-state";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import {
@@ -404,29 +405,21 @@ it("cancels the actual pending initial-route producer when its Studio is dispose
   const preferences = new Promise<string | null>((resolve) => { resolvePreferences = resolve; });
   fixture.api.getStorageItem.mockReturnValue(preferences);
   fixture.history.replace(`/projects/${fixture.dbCtx.siteInfo.id}`);
-  const original = StudioCtx.prototype["handleInitialRoute"];
-  let routeTask: Promise<void> | undefined;
-  StudioCtx.prototype["handleInitialRoute"] = function(this: StudioCtx) {
-    const task = original.call(this);
-    routeTask = task;
-    return task;
-  };
   let reopened: StudioCtx | undefined;
   try {
     reopened = new StudioCtx({ dbCtx: fixture.dbCtx, autoSave: false });
-    reopened.startInitialRoute();
+    const routeTask = reopened.startInitialRoute(readInitialRoutePreferences(fixture.appCtx, fixture.dbCtx.siteInfo.id));
     const change = vi.spyOn(reopened, "change");
     const snapshots = reopened.modelSnapshots;
     reopened.dispose();
     resolvePreferences("true");
-    await ensure(routeTask, "Initial routing must start its actual route task");
+    await routeTask;
     expect(change).not.toHaveBeenCalled();
     expect(reopened.initialRouteReady).toBe(false);
     expect(reopened.focusedViewCtx()).toBeUndefined();
     expect(reopened.focusedOrFirstViewCtx()).toBeUndefined();
     expect(reopened.modelSnapshots).toBe(snapshots);
   } finally {
-    StudioCtx.prototype["handleInitialRoute"] = original;
     resolvePreferences(null);
     reopened?.dispose();
   }

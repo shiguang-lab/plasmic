@@ -113,6 +113,7 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     styleInputs, site,
     modelLifetime: arenaState.lifetime(),
     canvasCtx: { $doc: () => $(document), viewportContainerOffset: () => ({ left: 0, top: 0 }) },
+    isFullContentView: () => false,
     dom2focusObj: () => undefined,
     getCodeComponentMeta: () => ({ props: { brand: { type: "slot", fixedRoot: true } } }),
     selectionDom: (target: ValTag | SlotSelection) => $(rootsBySelectable.get(target) ?? []),
@@ -192,7 +193,7 @@ it("clips a corner child to the device screen and clears the mask after resizing
     updateAutoDerivedFrameHeight(frame, 852);
     studioCtx.framesChanged.dispatch();
   });
-  await waitFor(() => expect(box?.style.clipPath).toBe("inset(0px -293px -802px 0px round 36px)"));
+  await waitFor(() => expect(box?.style.clipPath).toBe("inset(0px -293px -802px 0px round 44px)"));
   act(() => {
     frame.width = 1440;
     frame.height = 900;

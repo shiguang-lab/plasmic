@@ -1,5 +1,5 @@
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
-import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
+import { getCanvasScreen, screenBorderClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useStore } from "zustand";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
@@ -222,7 +222,7 @@ function PreselectBoxInner(props: {
         display: "block",
         ...scalerRect,
         ...cssProps,
-        ...canvasScreenClipStyle(viewCtx, scalerRect, viewportZoom),
+        ...screenBorderClipStyle(getCanvasScreen(viewCtx), scalerRect, viewportZoom),
       }}
     >
       <div

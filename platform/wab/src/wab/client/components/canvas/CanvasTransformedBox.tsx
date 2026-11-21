@@ -1,5 +1,5 @@
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
-import { canvasScreenClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
+import { getCanvasScreen, screenBorderClipStyle } from "@/wab/client/components/canvas/canvas-screen-clip";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
 import { computeElementVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { frameToScalerRect } from "@/wab/client/coords";
@@ -80,7 +80,7 @@ export function CanvasTransformedBox({
         {
           ...cssPropsForJqElt,
           ...style,
-          ...(clipToScreen && frameRect && canvasScreenClipStyle(viewCtx, frameToScalerRect(frameRect, viewCtx), viewportZoom)),
+          ...(clipToScreen && frameRect && screenBorderClipStyle(getCanvasScreen(viewCtx), frameToScalerRect(frameRect, viewCtx), viewportZoom)),
         },
         keepDims ? ["width", "height", "transform"] : [],
       )}

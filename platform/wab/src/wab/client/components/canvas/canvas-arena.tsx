@@ -25,6 +25,15 @@ export function CanvasArenaShell(props: {
   const { studioCtx, arena, onFrameLoad } = props;
   const docs = useStudioRenderPolicy(studioCtx, (policy) => policy.docs);
   const status = useArenaStatus(studioCtx, arena);
+  const fullHeight = useStudioRenderPolicy(studioCtx, (policy) => policy.fullPageHeight && !policy.interactive);
+
+  // Overlays can measure during render, before React moves the iframe or
+  // reveals a cached arena. Publish committed geometry even if no node resized.
+  React.useLayoutEffect(() => {
+    if (status === "visible") {
+      studioCtx.framesChanged.dispatch();
+    }
+  }, [studioCtx, status, fullHeight]);
 
   return (
     <div
