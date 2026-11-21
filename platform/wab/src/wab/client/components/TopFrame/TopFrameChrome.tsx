@@ -630,7 +630,10 @@ export function useTopFrameState({
           "AI session belongs to the current project",
         );
         const session = getLocalEditSession(projectId);
-        const publish = () => listener(snapshotAiSession(session));
+        const publish = () => listener({
+          ...snapshotAiSession(session),
+          historyLoading: appCtx.appConfig.enableLocalAiEditing && session.panelHistoryLoading,
+        });
         const dispose = session.subscribe(publish);
         activeDisposers.current.add(dispose);
         publish();

@@ -33,7 +33,7 @@ const task: AiTask = {
 };
 const editorContext = {
   ...task.binding, projectName: "Project", projectSummary: {artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0},
-  saveStatus: "saved", canvasName: "Page", browserImportCanvasName: "Browser Import", frameUuid: null,
+  saveStatus: "saved", canvasName: "Page", pageOverview: false, browserImportCanvasName: "Browser Import", frameUuid: null,
   selectedElementUuids: [], instanceIndex: null, mode: "edit", canEdit: true, editorView: null, selectedSlot: null, previewKind: null, previewContext: null, path: [],
 };
 const event = (seq: number): AiEvent => ({
@@ -152,6 +152,37 @@ describe("AI event synchronization", () => {
     request.mockClear();
     await vi.advanceTimersByTimeAsync(60000);
     expect(request).not.toHaveBeenCalled();
+  });
+
+  it("keeps the panel loading while restoring the remembered conversation", async () => {
+    session = new LocalEditSession("project");
+    session.userId = "user";
+    await session.setBranch(null);
+    const saved = {id: "saved", projectId: "project", branchId: null, title: "Saved", createdBy: "user", createdAt: task.createdAt, lastMessageAt: task.createdAt, archivedAt: null, seq: 0};
+    localStorage.setItem("plasmic.ai.thread:user:project:main", saved.id);
+    const page = Promise.withResolvers<ReturnType<typeof success>>();
+    request.mockImplementation((url: string) => url.includes("threadId=saved") ? page.promise : Promise.resolve(success(
+      url.includes("/events?") ? [] : url.includes("/threads?") ? {threads: [saved]} : history)));
+    const readyConversations: string[] = [];
+    const check = () => {
+      if (!session.panelHistoryLoading) { readyConversations.push(session.activeThreadId); }
+    };
+    const unsubscribe = session.subscribe(check);
+    expect(session.panelHistoryLoading).toBe(true);
+    const close = session.retain();
+    try {
+      await vi.advanceTimersByTimeAsync(0);
+      expect(session.activeThreadId).toBe(saved.id);
+      expect(readyConversations).toEqual([]);
+      page.resolve(success({tasks: [{...task, threadId: saved.id, status: "completed"}]}));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(session.panelHistoryLoading).toBe(false);
+      expect(new Set(readyConversations)).toEqual(new Set([saved.id]));
+    } finally {
+      unsubscribe();
+      close();
+      localStorage.removeItem("plasmic.ai.thread:user:project:main");
+    }
   });
 
   it("finishes selecting a conversation after its picker closes", async () => {
@@ -497,7 +528,7 @@ it("pins an in-flight send to its original topic and clears only that topic's su
   const tools = mock<PlasmicAiTools>();
   tools._getLocalContext.mockResolvedValue({success: true, output: JSON.stringify({
     ...task.binding, projectName: "Project", projectSummary: {artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0},
-    saveStatus: "saved", canvasName: "Page", browserImportCanvasName: "Browser Import", frameUuid: null,
+    saveStatus: "saved", canvasName: "Page", pageOverview: false, browserImportCanvasName: "Browser Import", frameUuid: null,
     selectedElementUuids: [], instanceIndex: null, mode: "edit", canEdit: true, editorView: null, selectedSlot: null, previewKind: null, previewContext: null, path: [],
   })});
   const session = new LocalEditSession("project", () => tools);
@@ -639,7 +670,7 @@ it("locates a structured node on its referenced page without editing the design"
   tools._getLocalContext.mockResolvedValue({
     success: true,
     output: JSON.stringify({
-      projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
+      projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page", pageOverview: false,
       projectId: "project",
       branchId: null,
       sessionId: "session",
@@ -682,7 +713,7 @@ it("reports a deleted node and does not try to scroll it into view", async () =>
   tools._getLocalContext.mockResolvedValue({
     success: true,
     output: JSON.stringify({
-      projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
+      projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page", pageOverview: false,
       projectId: "project",
       branchId: null,
       sessionId: "session",
@@ -723,7 +754,7 @@ it.each(["send", "retry"] as const)(
     tools._getLocalContext.mockResolvedValue({
       success: true,
       output: JSON.stringify({
-        projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page",
+        projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page", pageOverview: false,
         projectId: "project",
         branchId: null,
         sessionId: "session",
@@ -797,7 +828,7 @@ it.each(["run", "retry", "locate"] as const)(
     tools._getLocalContext.mockResolvedValue({
       success: true,
       output: JSON.stringify({
-        projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page", projectId: "project", branchId: null,
+        projectName: "Project", projectSummary: { artboards: 1, canvases: 1, images: 0, libraries: 0, pages: 1, components: 0 }, saveStatus: "saved", canvasName: "Page", pageOverview: false, projectId: "project", branchId: null,
         sessionId: "session", changeCounter: 0, componentUuid: "page",
         frameUuid: null, selectedElementUuids: [], instanceIndex: null,
         mode: "edit", canEdit: true, editorView: null,

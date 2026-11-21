@@ -1,0 +1,1206 @@
+{
+  "originalOpens": [
+    {
+      "run": 1,
+      "wallMs": 3018.9,
+      "afterFirstMs": 4879.6,
+      "milestonesFromClickMs": {
+        "response": 1015.2,
+        "hostModuleStart": 1434.1,
+        "hostModuleEnd": 1848.1,
+        "unbundleStart": 1888.1,
+        "unbundleEnd": 2180.1,
+        "syncStart": 2414.1,
+        "syncEnd": 2863.1,
+        "firstFrameStart": 3186.1,
+        "firstViewCtx": 3652.1,
+        "firstRendered": 3962.1,
+        "reveal": 4034.1
+      },
+      "intervalMs": {
+        "hostModuleStart": 418.9,
+        "hostModuleEnd": 414.0,
+        "unbundleStart": 40.0,
+        "unbundleEnd": 292.0,
+        "syncStart": 234.0,
+        "syncEnd": 449.0,
+        "firstFrameStart": 323.0,
+        "firstViewCtx": 466.0,
+        "firstRendered": 310.0,
+        "reveal": 72.0
+      },
+      "measuredStagesMs": {
+        "initial-route": 632,
+        "model-unbundle": 292,
+        "studio-context": 88,
+        "code-component-sync": 449,
+        "frame-host-document": 191,
+        "frame-component-packages": 105
+      }
+    },
+    {
+      "run": 2,
+      "wallMs": 3336.1,
+      "afterFirstMs": 4575.7,
+      "milestonesFromClickMs": {
+        "response": 1024.1,
+        "hostModuleStart": 1445.2,
+        "hostModuleEnd": 1841.2,
+        "unbundleStart": 1879.2,
+        "unbundleEnd": 2149.2,
+        "syncStart": 2384.2,
+        "syncEnd": 2851.2,
+        "firstFrameStart": 3206.2,
+        "firstViewCtx": 3612.2,
+        "firstRendered": 3949.2,
+        "reveal": 4360.2
+      },
+      "intervalMs": {
+        "hostModuleStart": 421.1,
+        "hostModuleEnd": 396.0,
+        "unbundleStart": 38.0,
+        "unbundleEnd": 270.0,
+        "syncStart": 235.0,
+        "syncEnd": 467.0,
+        "firstFrameStart": 355.0,
+        "firstViewCtx": 406.0,
+        "firstRendered": 337.0,
+        "reveal": 411.0
+      },
+      "measuredStagesMs": {
+        "initial-route": 668,
+        "model-unbundle": 270,
+        "studio-context": 92,
+        "code-component-sync": 467,
+        "frame-host-document": 156,
+        "frame-component-packages": 83,
+        "initial-viewport-layout": 169,
+        "initial-viewport-commit": 321
+      }
+    },
+    {
+      "run": 3,
+      "wallMs": 3471.1,
+      "afterFirstMs": 4571.0,
+      "milestonesFromClickMs": {
+        "response": 1025.8,
+        "hostModuleStart": 1467.9,
+        "hostModuleEnd": 1896.9,
+        "unbundleStart": 1941.9,
+        "unbundleEnd": 2293.9,
+        "syncStart": 2555.9,
+        "syncEnd": 3001.9,
+        "firstFrameStart": 3324.9,
+        "firstViewCtx": 3736.9,
+        "firstRendered": 4078.9,
+        "reveal": 4496.9
+      },
+      "intervalMs": {
+        "hostModuleStart": 442.1,
+        "hostModuleEnd": 429.0,
+        "unbundleStart": 45.0,
+        "unbundleEnd": 352.0,
+        "syncStart": 262.0,
+        "syncEnd": 446.0,
+        "firstFrameStart": 323.0,
+        "firstViewCtx": 412.0,
+        "firstRendered": 342.0,
+        "reveal": 418.0
+      },
+      "measuredStagesMs": {
+        "initial-route": 626,
+        "model-unbundle": 352,
+        "studio-context": 100,
+        "code-component-sync": 446,
+        "frame-host-document": 159,
+        "frame-component-packages": 83,
+        "initial-viewport-layout": 171,
+        "initial-viewport-commit": 326
+      }
+    }
+  ],
+  "diagnosticOpens": [
+    {
+      "run": 1,
+      "traced": false,
+      "totalMs": 5972.1,
+      "initTotalMs": 2509.5,
+      "wallByStageMs": {
+        "beforeNextLoad": 1291.3,
+        "initOther": 836.1,
+        "hostDocument": 479.5,
+        "hostReady": 170.8,
+        "runtime": 277.5,
+        "componentPackages": 745.6,
+        "between": 916.5,
+        "firstRender": 1254.8
+      },
+      "perBackgroundFrameMs": [
+        {
+          "frame-initialization": [
+            1291.3,
+            1654.7
+          ],
+          "frame-component-packages": [
+            1518.2,
+            1617.7
+          ],
+          "frame-host-document": [
+            1379.3,
+            1445.1
+          ],
+          "frame-host-ready": [
+            1449.2,
+            1462.4
+          ],
+          "frame-runtime": [
+            1463.3,
+            1497.9
+          ],
+          "frame-first-render": [
+            1702.0,
+            1889.0
+          ],
+          "frame-rendered": [
+            1889.1,
+            1889.1
+          ]
+        },
+        {
+          "frame-initialization": [
+            1936.6,
+            2203.7
+          ],
+          "frame-component-packages": [
+            2069.4,
+            2157.0
+          ],
+          "frame-host-document": [
+            1953.5,
+            2007.3
+          ],
+          "frame-host-ready": [
+            2011.6,
+            2028.3
+          ],
+          "frame-runtime": [
+            2028.9,
+            2064.5
+          ],
+          "frame-first-render": [
+            2247.2,
+            2335.8
+          ],
+          "frame-rendered": [
+            2335.9,
+            2335.9
+          ]
+        },
+        {
+          "frame-initialization": [
+            2373.5,
+            2666.3
+          ],
+          "frame-component-packages": [
+            2530.0,
+            2618.2
+          ],
+          "frame-host-document": [
+            2391.2,
+            2440.9
+          ],
+          "frame-host-ready": [
+            2445.2,
+            2467.0
+          ],
+          "frame-runtime": [
+            2468.0,
+            2501.9
+          ],
+          "frame-first-render": [
+            2722.4,
+            2991.3
+          ],
+          "frame-rendered": [
+            2991.5,
+            2991.5
+          ]
+        },
+        {
+          "frame-initialization": [
+            3032.3,
+            3340.0
+          ],
+          "frame-component-packages": [
+            3179.8,
+            3279.9
+          ],
+          "frame-host-document": [
+            3043.6,
+            3098.6
+          ],
+          "frame-host-ready": [
+            3102.3,
+            3120.7
+          ],
+          "frame-runtime": [
+            3120.8,
+            3154.7
+          ],
+          "frame-first-render": [
+            3406.3,
+            3625.1
+          ],
+          "frame-rendered": [
+            3625.3,
+            3625.3
+          ]
+        },
+        {
+          "frame-initialization": [
+            3669.9,
+            3998.1
+          ],
+          "frame-component-packages": [
+            3835.3,
+            3933.1
+          ],
+          "frame-host-document": [
+            3687.2,
+            3751.7
+          ],
+          "frame-host-ready": [
+            3754.2,
+            3792.6
+          ],
+          "frame-runtime": [
+            3792.7,
+            3828.2
+          ],
+          "frame-first-render": [
+            4075.6,
+            4167.9
+          ],
+          "frame-rendered": [
+            4167.9,
+            4167.9
+          ]
+        },
+        {
+          "frame-initialization": [
+            4203.4,
+            4496.8
+          ],
+          "frame-component-packages": [
+            4338.8,
+            4430.0
+          ],
+          "frame-host-document": [
+            4220.1,
+            4277.2
+          ],
+          "frame-host-ready": [
+            4281.4,
+            4301.6
+          ],
+          "frame-runtime": [
+            4301.6,
+            4336.0
+          ],
+          "frame-first-render": [
+            4571.6,
+            4666.6
+          ],
+          "frame-rendered": [
+            4666.6,
+            4666.6
+          ]
+        },
+        {
+          "frame-initialization": [
+            4702.1,
+            5013.5
+          ],
+          "frame-component-packages": [
+            4851.9,
+            4939.8
+          ],
+          "frame-host-document": [
+            4715.4,
+            4777.7
+          ],
+          "frame-host-ready": [
+            4781.8,
+            4798.8
+          ],
+          "frame-runtime": [
+            4799.0,
+            4833.0
+          ],
+          "frame-first-render": [
+            5093.9,
+            5291.6
+          ],
+          "frame-rendered": [
+            5291.6,
+            5291.6
+          ]
+        },
+        {
+          "frame-initialization": [
+            5436.3,
+            5781.8
+          ],
+          "frame-component-packages": [
+            5597.3,
+            5690.6
+          ],
+          "frame-host-document": [
+            5454.7,
+            5526.0
+          ],
+          "frame-host-ready": [
+            5530.2,
+            5555.3
+          ],
+          "frame-runtime": [
+            5555.4,
+            5591.0
+          ],
+          "frame-first-render": [
+            5865.5,
+            5972.0
+          ],
+          "frame-rendered": [
+            5972.1,
+            5972.1
+          ]
+        }
+      ],
+      "responseToRevealMs": 3632.5,
+      "gapsMs": {
+        "initEndToEvaluationStart": 529.6,
+        "priorRenderToNextInit": 386.2
+      }
+    },
+    {
+      "run": 2,
+      "traced": false,
+      "totalMs": 5601.4,
+      "initTotalMs": 2455.6,
+      "wallByStageMs": {
+        "beforeNextLoad": 1009.7,
+        "initOther": 773.2,
+        "hostDocument": 466.9,
+        "hostReady": 155.8,
+        "runtime": 282.3,
+        "componentPackages": 777.4,
+        "between": 925.5,
+        "firstRender": 1210.6
+      },
+      "perBackgroundFrameMs": [
+        {
+          "frame-initialization": [
+            1009.7,
+            1282.5
+          ],
+          "frame-component-packages": [
+            1149.7,
+            1243.4
+          ],
+          "frame-host-document": [
+            1026.0,
+            1073.8
+          ],
+          "frame-host-ready": [
+            1078.7,
+            1094.6
+          ],
+          "frame-runtime": [
+            1095.1,
+            1130.9
+          ],
+          "frame-first-render": [
+            1325.4,
+            1514.7
+          ],
+          "frame-rendered": [
+            1514.7,
+            1514.7
+          ]
+        },
+        {
+          "frame-initialization": [
+            1561.9,
+            1825.9
+          ],
+          "frame-component-packages": [
+            1695.7,
+            1779.5
+          ],
+          "frame-host-document": [
+            1578.1,
+            1636.9
+          ],
+          "frame-host-ready": [
+            1639.9,
+            1655.8
+          ],
+          "frame-runtime": [
+            1655.8,
+            1688.5
+          ],
+          "frame-first-render": [
+            1860.3,
+            1957.7
+          ],
+          "frame-rendered": [
+            1957.8,
+            1957.8
+          ]
+        },
+        {
+          "frame-initialization": [
+            1995.3,
+            2284.5
+          ],
+          "frame-component-packages": [
+            2143.1,
+            2236.2
+          ],
+          "frame-host-document": [
+            2011.2,
+            2061.3
+          ],
+          "frame-host-ready": [
+            2066.5,
+            2080.5
+          ],
+          "frame-runtime": [
+            2081.2,
+            2116.2
+          ],
+          "frame-first-render": [
+            2341.6,
+            2568.4
+          ],
+          "frame-rendered": [
+            2568.5,
+            2568.5
+          ]
+        },
+        {
+          "frame-initialization": [
+            2611.7,
+            2910.7
+          ],
+          "frame-component-packages": [
+            2757.7,
+            2853.1
+          ],
+          "frame-host-document": [
+            2627.7,
+            2682.0
+          ],
+          "frame-host-ready": [
+            2685.7,
+            2702.5
+          ],
+          "frame-runtime": [
+            2702.6,
+            2736.6
+          ],
+          "frame-first-render": [
+            2974.6,
+            3188.0
+          ],
+          "frame-rendered": [
+            3188.0,
+            3188.0
+          ]
+        },
+        {
+          "frame-initialization": [
+            3245.9,
+            3585.5
+          ],
+          "frame-component-packages": [
+            3398.7,
+            3515.3
+          ],
+          "frame-host-document": [
+            3264.2,
+            3327.1
+          ],
+          "frame-host-ready": [
+            3332.6,
+            3354.7
+          ],
+          "frame-runtime": [
+            3355.3,
+            3390.1
+          ],
+          "frame-first-render": [
+            3657.0,
+            3755.3
+          ],
+          "frame-rendered": [
+            3755.4,
+            3755.4
+          ]
+        },
+        {
+          "frame-initialization": [
+            3790.3,
+            4105.8
+          ],
+          "frame-component-packages": [
+            3940.0,
+            4033.8
+          ],
+          "frame-host-document": [
+            3808.3,
+            3869.3
+          ],
+          "frame-host-ready": [
+            3872.3,
+            3901.7
+          ],
+          "frame-runtime": [
+            3901.8,
+            3936.9
+          ],
+          "frame-first-render": [
+            4175.3,
+            4267.8
+          ],
+          "frame-rendered": [
+            4267.8,
+            4267.8
+          ]
+        },
+        {
+          "frame-initialization": [
+            4304.0,
+            4644.1
+          ],
+          "frame-component-packages": [
+            4462.2,
+            4568.6
+          ],
+          "frame-host-document": [
+            4315.9,
+            4380.9
+          ],
+          "frame-host-ready": [
+            4384.5,
+            4406.6
+          ],
+          "frame-runtime": [
+            4406.7,
+            4444.0
+          ],
+          "frame-first-render": [
+            4732.5,
+            4924.0
+          ],
+          "frame-rendered": [
+            4924.0,
+            4924.0
+          ]
+        },
+        {
+          "frame-initialization": [
+            5074.4,
+            5409.8
+          ],
+          "frame-component-packages": [
+            5225.8,
+            5320.4
+          ],
+          "frame-host-document": [
+            5093.1,
+            5160.1
+          ],
+          "frame-host-ready": [
+            5164.3,
+            5183.9
+          ],
+          "frame-runtime": [
+            5183.9,
+            5221.5
+          ],
+          "frame-first-render": [
+            5499.9,
+            5601.3
+          ],
+          "frame-rendered": [
+            5601.4,
+            5601.4
+          ]
+        }
+      ],
+      "responseToRevealMs": 4159.9,
+      "gapsMs": {
+        "initEndToEvaluationStart": 517.8,
+        "priorRenderToNextInit": 407.3
+      }
+    },
+    {
+      "run": 3,
+      "traced": false,
+      "totalMs": 5596.7,
+      "initTotalMs": 2436.0,
+      "wallByStageMs": {
+        "beforeNextLoad": 1062.9,
+        "initOther": 777.4,
+        "hostDocument": 480.8,
+        "hostReady": 152.7,
+        "runtime": 276.4,
+        "componentPackages": 748.7,
+        "between": 910.0,
+        "firstRender": 1187.8
+      },
+      "perBackgroundFrameMs": [
+        {
+          "frame-initialization": [
+            1062.9,
+            1343.3
+          ],
+          "frame-component-packages": [
+            1209.9,
+            1302.2
+          ],
+          "frame-host-document": [
+            1080.0,
+            1134.3
+          ],
+          "frame-host-ready": [
+            1139.5,
+            1153.9
+          ],
+          "frame-runtime": [
+            1154.3,
+            1190.0
+          ],
+          "frame-first-render": [
+            1389.8,
+            1581.5
+          ],
+          "frame-rendered": [
+            1581.6,
+            1581.6
+          ]
+        },
+        {
+          "frame-initialization": [
+            1633.5,
+            1900.9
+          ],
+          "frame-component-packages": [
+            1763.7,
+            1854.3
+          ],
+          "frame-host-document": [
+            1649.5,
+            1706.3
+          ],
+          "frame-host-ready": [
+            1709.6,
+            1726.0
+          ],
+          "frame-runtime": [
+            1726.4,
+            1758.4
+          ],
+          "frame-first-render": [
+            1935.5,
+            2030.5
+          ],
+          "frame-rendered": [
+            2030.9,
+            2030.9
+          ]
+        },
+        {
+          "frame-initialization": [
+            2067.0,
+            2359.4
+          ],
+          "frame-component-packages": [
+            2221.0,
+            2311.0
+          ],
+          "frame-host-document": [
+            2082.9,
+            2132.4
+          ],
+          "frame-host-ready": [
+            2137.7,
+            2157.8
+          ],
+          "frame-runtime": [
+            2158.1,
+            2192.3
+          ],
+          "frame-first-render": [
+            2415.2,
+            2650.3
+          ],
+          "frame-rendered": [
+            2650.3,
+            2650.3
+          ]
+        },
+        {
+          "frame-initialization": [
+            2689.2,
+            2988.6
+          ],
+          "frame-component-packages": [
+            2828.9,
+            2929.1
+          ],
+          "frame-host-document": [
+            2699.5,
+            2750.9
+          ],
+          "frame-host-ready": [
+            2755.8,
+            2773.0
+          ],
+          "frame-runtime": [
+            2773.1,
+            2808.1
+          ],
+          "frame-first-render": [
+            3056.3,
+            3251.9
+          ],
+          "frame-rendered": [
+            3251.9,
+            3251.9
+          ]
+        },
+        {
+          "frame-initialization": [
+            3293.3,
+            3610.9
+          ],
+          "frame-component-packages": [
+            3436.8,
+            3542.7
+          ],
+          "frame-host-document": [
+            3304.9,
+            3376.0
+          ],
+          "frame-host-ready": [
+            3378.9,
+            3395.5
+          ],
+          "frame-runtime": [
+            3395.6,
+            3429.2
+          ],
+          "frame-first-render": [
+            3685.8,
+            3775.5
+          ],
+          "frame-rendered": [
+            3775.6,
+            3775.6
+          ]
+        },
+        {
+          "frame-initialization": [
+            3812.6,
+            4109.6
+          ],
+          "frame-component-packages": [
+            3952.1,
+            4038.9
+          ],
+          "frame-host-document": [
+            3830.4,
+            3891.5
+          ],
+          "frame-host-ready": [
+            3894.6,
+            3912.7
+          ],
+          "frame-runtime": [
+            3913.4,
+            3947.9
+          ],
+          "frame-first-render": [
+            4187.9,
+            4280.2
+          ],
+          "frame-rendered": [
+            4280.2,
+            4280.2
+          ]
+        },
+        {
+          "frame-initialization": [
+            4314.3,
+            4659.9
+          ],
+          "frame-component-packages": [
+            4485.2,
+            4578.5
+          ],
+          "frame-host-document": [
+            4335.3,
+            4406.2
+          ],
+          "frame-host-ready": [
+            4409.5,
+            4429.2
+          ],
+          "frame-runtime": [
+            4430.1,
+            4465.8
+          ],
+          "frame-first-render": [
+            4745.9,
+            4934.3
+          ],
+          "frame-rendered": [
+            4934.4,
+            4934.4
+          ]
+        },
+        {
+          "frame-initialization": [
+            5078.7,
+            5414.9
+          ],
+          "frame-component-packages": [
+            5237.9,
+            5327.5
+          ],
+          "frame-host-document": [
+            5096.2,
+            5161.9
+          ],
+          "frame-host-ready": [
+            5164.8,
+            5195.0
+          ],
+          "frame-runtime": [
+            5195.1,
+            5230.8
+          ],
+          "frame-first-render": [
+            5496.7,
+            5596.7
+          ],
+          "frame-rendered": [
+            5596.7,
+            5596.7
+          ]
+        }
+      ],
+      "responseToRevealMs": 4095.3,
+      "gapsMs": {
+        "initEndToEvaluationStart": 525.6,
+        "priorRenderToNextInit": 383.7
+      }
+    },
+    {
+      "run": 4,
+      "traced": true,
+      "totalMs": 6727.6,
+      "initTotalMs": 2911.7,
+      "wallByStageMs": {
+        "beforeNextLoad": 1182.7,
+        "initOther": 903.3,
+        "hostDocument": 532.4,
+        "hostReady": 187.2,
+        "runtime": 351.3,
+        "componentPackages": 937.5,
+        "between": 1090.3,
+        "firstRender": 1542.9
+      },
+      "perBackgroundFrameMs": [
+        {
+          "frame-initialization": [
+            1182.7,
+            1491.6
+          ],
+          "frame-component-packages": [
+            1337.1,
+            1447.5
+          ],
+          "frame-host-document": [
+            1197.9,
+            1247.7
+          ],
+          "frame-host-ready": [
+            1251.2,
+            1270.4
+          ],
+          "frame-runtime": [
+            1270.5,
+            1314.3
+          ],
+          "frame-first-render": [
+            1543.8,
+            1778.3
+          ],
+          "frame-rendered": [
+            1779.1,
+            1779.1
+          ]
+        },
+        {
+          "frame-initialization": [
+            1833.3,
+            2148.6
+          ],
+          "frame-component-packages": [
+            1983.9,
+            2089.7
+          ],
+          "frame-host-document": [
+            1847.6,
+            1911.0
+          ],
+          "frame-host-ready": [
+            1915.7,
+            1934.0
+          ],
+          "frame-runtime": [
+            1934.6,
+            1976.7
+          ],
+          "frame-first-render": [
+            2197.2,
+            2304.8
+          ],
+          "frame-rendered": [
+            2304.9,
+            2304.9
+          ]
+        },
+        {
+          "frame-initialization": [
+            2351.3,
+            2706.8
+          ],
+          "frame-component-packages": [
+            2532.4,
+            2651.4
+          ],
+          "frame-host-document": [
+            2370.5,
+            2428.7
+          ],
+          "frame-host-ready": [
+            2433.3,
+            2453.3
+          ],
+          "frame-runtime": [
+            2453.4,
+            2497.7
+          ],
+          "frame-first-render": [
+            2770.3,
+            3072.1
+          ],
+          "frame-rendered": [
+            3072.2,
+            3072.2
+          ]
+        },
+        {
+          "frame-initialization": [
+            3117.4,
+            3489.6
+          ],
+          "frame-component-packages": [
+            3296.4,
+            3421.5
+          ],
+          "frame-host-document": [
+            3130.5,
+            3196.7
+          ],
+          "frame-host-ready": [
+            3200.7,
+            3221.5
+          ],
+          "frame-runtime": [
+            3221.5,
+            3266.1
+          ],
+          "frame-first-render": [
+            3574.4,
+            3859.0
+          ],
+          "frame-rendered": [
+            3859.1,
+            3859.1
+          ]
+        },
+        {
+          "frame-initialization": [
+            3938.6,
+            4342.5
+          ],
+          "frame-component-packages": [
+            4136.0,
+            4258.3
+          ],
+          "frame-host-document": [
+            3959.1,
+            4040.4
+          ],
+          "frame-host-ready": [
+            4045.3,
+            4082.3
+          ],
+          "frame-runtime": [
+            4082.4,
+            4127.4
+          ],
+          "frame-first-render": [
+            4424.2,
+            4545.1
+          ],
+          "frame-rendered": [
+            4545.2,
+            4545.2
+          ]
+        },
+        {
+          "frame-initialization": [
+            4593.0,
+            4960.0
+          ],
+          "frame-component-packages": [
+            4769.5,
+            4878.9
+          ],
+          "frame-host-document": [
+            4614.7,
+            4689.5
+          ],
+          "frame-host-ready": [
+            4692.9,
+            4721.4
+          ],
+          "frame-runtime": [
+            4721.9,
+            4765.3
+          ],
+          "frame-first-render": [
+            5054.6,
+            5170.8
+          ],
+          "frame-rendered": [
+            5170.8,
+            5170.8
+          ]
+        },
+        {
+          "frame-initialization": [
+            5213.7,
+            5601.7
+          ],
+          "frame-component-packages": [
+            5389.8,
+            5514.3
+          ],
+          "frame-host-document": [
+            5233.9,
+            5298.5
+          ],
+          "frame-host-ready": [
+            5302.5,
+            5323.3
+          ],
+          "frame-runtime": [
+            5323.3,
+            5368.5
+          ],
+          "frame-first-render": [
+            5789.4,
+            6040.6
+          ],
+          "frame-rendered": [
+            6040.6,
+            6040.6
+          ]
+        },
+        {
+          "frame-initialization": [
+            6094.7,
+            6495.6
+          ],
+          "frame-component-packages": [
+            6272.7,
+            6393.7
+          ],
+          "frame-host-document": [
+            6117.0,
+            6191.1
+          ],
+          "frame-host-ready": [
+            6194.6,
+            6217.2
+          ],
+          "frame-runtime": [
+            6217.6,
+            6260.5
+          ],
+          "frame-first-render": [
+            6601.4,
+            6727.5
+          ],
+          "frame-rendered": [
+            6727.5,
+            6727.5
+          ]
+        }
+      ],
+      "responseToRevealMs": 5368.5,
+      "gapsMs": {
+        "initEndToEvaluationStart": 718.9,
+        "priorRenderToNextInit": 370.1
+      }
+    }
+  ],
+  "trace": {
+    "open": 4,
+    "markdownChunk": {
+      "file": "4331.885dc15a.js",
+      "startAfterRevealMs": 577.8,
+      "durationMs": 583.7
+    },
+    "selectedInclusiveSamplesMs": {
+      "untilNext": {
+        "phaseMs": 1183,
+        "sourceFrame": "refractor/lib/core.js#aM.register",
+        "inclusiveMs": 510
+      },
+      "sync": {
+        "phaseMs": 652,
+        "sourceFrame": "react-dom/cjs/react-dom-client.production.js#uc",
+        "inclusiveMs": 551
+      },
+      "imports": {
+        "phaseMs": 608,
+        "sourceFrame": "index~6.84c93141.js#l",
+        "inclusiveMs": 488
+      },
+      "eval": {
+        "phaseMs": 1542,
+        "sourceFrame": "client/components/canvas/canvas-rendering.ts#renderTplNode",
+        "inclusiveMs": 410
+      }
+    }
+  }
+}

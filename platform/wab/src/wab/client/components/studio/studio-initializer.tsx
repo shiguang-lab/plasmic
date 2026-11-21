@@ -6,7 +6,6 @@ import { plexusKey, storageViewAsKey } from "@/wab/client/LocalStorageKey";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isHostFrame } from "@/wab/client/cli-routes";
 import { syncCodeComponentsAndHandleErrors } from "@/wab/client/code-components/code-components";
-import { preloadAiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import importAndRetry from "@/wab/client/components/dynamic-import";
 import {
   PreviewCtx,
@@ -33,10 +32,6 @@ import { translate } from "@/wab/client/i18n/locales";
 import { initStudioCtx } from "@/wab/client/init-view-ctx";
 import "@/wab/client/moment-config";
 import "@/wab/client/react-global-hook/globalHook"; // Run once studio loads to inject our hook
-import {
-  clearIdleCallback,
-  requestIdleCallback,
-} from "@/wab/client/requestidlecallback";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { initializePlasmicExtension } from "@/wab/client/screenshot-util";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -185,14 +180,6 @@ init = async () => {
     );
 
     studioCtx.finishedLoading();
-    studioCtx.runAfterInitialCanvasReady(async () => {
-      if (this._disposed || attempt !== this.attempt) { return; }
-      const request = requestIdleCallback(() => {
-        // A failed speculative load is retried by the message's Loadable.
-        void preloadAiMarkdown().catch(() => undefined);
-      });
-      this._cleanups.push(() => clearIdleCallback(request));
-    });
 
     if (!publishedTemplate && !appCtx.appConfig.ccStubs && !isHostLessPackage(studioCtx.site)) {
       // Version metadata and insertable templates are not needed to paint the

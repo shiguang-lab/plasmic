@@ -164,6 +164,10 @@ export class LocalEditSession {
   get historyLoading() {
     return this.booting || this.view().loading;
   }
+  get panelHistoryLoading() {
+    // The host can subscribe before the top frame connects and restores the last thread.
+    return !this.connected || !!this.initializing || this.historyLoading;
+  }
   get scrollTop() {
     return this.view().scrollTop;
   }
@@ -325,9 +329,10 @@ export class LocalEditSession {
     try {
       this.activeThreadId = id;
       this.rememberThread();
-      this.notify();
-      if (!this.view().loaded) {
+      if (!this.view().loaded && !this.view().loading) {
         await this.loadThread(id);
+      } else {
+        this.notify();
       }
     } finally {
       release?.();
@@ -821,6 +826,11 @@ export class LocalEditSession {
       if (generation === this.generation) {
         this.booting = false;
         this.failSync(error);
+      }
+    } finally {
+      if (generation === this.generation) {
+        this.initializing = undefined;
+        this.notify();
       }
     }
   }

@@ -20,7 +20,7 @@ export class RemoteAiSessionView implements AiSessionView {
     threads: [],
     threadFilter: { query: "", archived: false },
     threadListLoading: false,
-    historyLoading: false,
+    historyLoading: true,
     scrollTop: -1,
     selectedModel: undefined,
     draft: { prompt: "", attachments: [] },

@@ -2,12 +2,14 @@ import { useAiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
+import { usePrepareAiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
 import { AiResponse } from "@/wab/client/components/copilot/AiResponse";
 import { AiSyncNotice } from "@/wab/client/components/copilot/AiSyncNotice";
 import { AiRunningNotice, AiThreadPicker } from "@/wab/client/components/copilot/AiThreadPicker";
 import { AiWelcome } from "@/wab/client/components/copilot/AiWelcome";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
+import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { editorPanelHeaderStyle } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
@@ -18,7 +20,7 @@ import type { AiTask } from "@/wab/shared/copilot/ai-chat";
 import type { LocalAiModel, LocalAiStatus } from "@/wab/shared/copilot/local-edit";
 import { getPublicUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Button, Image, Spin, Tag } from "antd";
+import { Alert, Button, Image, Skeleton, Spin, Tag } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
 
@@ -132,6 +134,7 @@ export function CopilotChatDialog({
   const enabled = appCtx.appConfig.enableLocalAiEditing;
   const view = useAiSessionSnapshot(session);
   const tasks = view.visibleTasks;
+  const markdown = usePrepareAiMarkdown();
   const model = view.selectedModel;
   const draft = view.draft.prompt;
   const threadId = view.activeThreadId;
@@ -184,12 +187,18 @@ export function CopilotChatDialog({
   const historyRef = React.useRef<HTMLElement>(null);
   const followLatest = React.useRef(view.scrollTop < 0);
   const previousLastTask = React.useRef(tasks.at(-1)?.id);
-  const previousThread = React.useRef<string | undefined>(undefined);
+  const [displayedThread, setDisplayedThread] = React.useState<string>();
+  // Keep an already displayed conversation mounted while paging through older messages.
+  const historyReady = markdown.ready &&
+    (!view.historyLoading || displayedThread === view.activeThreadId);
   React.useLayoutEffect(() => {
-    const changedThread = previousThread.current !== view.activeThreadId;
+    if (!historyReady) {
+      return;
+    }
+    const changedThread = displayedThread !== view.activeThreadId;
     if (changedThread) {
       followLatest.current = session.scrollTop < 0;
-      previousThread.current = view.activeThreadId;
+      setDisplayedThread(view.activeThreadId);
     } else if (tasks.at(-1)?.id !== previousLastTask.current) {
       followLatest.current = true;
     }
@@ -198,7 +207,7 @@ export function CopilotChatDialog({
     if (viewport && (changedThread || followLatest.current)) {
       viewport.scrollTop = changedThread && session.scrollTop >= 0 ? session.scrollTop : viewport.scrollHeight;
     }
-  }, [tasks, view.activeThreadId]);
+  }, [tasks, view.activeThreadId, historyReady, displayedThread]);
   const lastTask = tasks.at(-1);
   const lastRecord = view.tasks
     .flatMap((task) => task.records)
@@ -249,6 +258,9 @@ export function CopilotChatDialog({
         className={styles.history}
         events={{
           scroll: (instance) => {
+            if (!historyReady) {
+              return;
+            }
             const viewport = instance.elements().viewport;
             followLatest.current =
               viewport.scrollHeight -
@@ -258,6 +270,7 @@ export function CopilotChatDialog({
             session.setThreadScroll(view.activeThreadId, viewport.scrollTop);
           },
           initialized: (instance) => {
+            if (!historyReady) { return; }
             const viewport = instance.elements().viewport;
             viewport.scrollTop = session.scrollTop >= 0 ? session.scrollTop : viewport.scrollHeight;
           },
@@ -286,16 +299,22 @@ export function CopilotChatDialog({
               )}
             />
           )}
-          {view.before && (
+          {historyReady && view.before && (
             <Button onClick={() => void session.loadEarlier()}>
               {t("Load earlier messages")}
             </Button>
           )}
           <AiSyncNotice session={session} />
-          {view.historyLoading && <Spin size="small" />}
-          {!tasks.length && !view.historyLoading && !view.syncError && <AiWelcome pageEnabled={!!pageEnabled} hasWorkspace={!!context?.binding} disabled={!enabled || readOnly || !status?.configured || !!view.activeThread?.archivedAt}
+          {markdown.error ? (
+            <LoadingError onRetry={markdown.retry} />
+          ) : !historyReady ? (
+            <div aria-busy="true">
+              <Skeleton title={false} paragraph={{ rows: 3 }} />
+            </div>
+          ) : view.historyLoading && <Spin size="small" />}
+          {historyReady && !tasks.length && !view.historyLoading && !view.syncError && <AiWelcome pageEnabled={!!pageEnabled} hasWorkspace={!!context?.binding} disabled={!enabled || readOnly || !status?.configured || !!view.activeThread?.archivedAt}
             onChoose={prompt => setDraft(draft ? `${draft}\n${prompt}` : prompt)} />}
-          {tasks.map((task) => (
+          {historyReady && tasks.map((task) => (
             <article
               key={task.id}
               className={styles.task}

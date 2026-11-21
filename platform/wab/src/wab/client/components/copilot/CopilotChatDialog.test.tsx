@@ -6,6 +6,7 @@ vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { CanvasAiComposer } from "@/wab/client/components/copilot/CanvasAiComposer";
+import { preloadAiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { CopilotChatDialog } from "@/wab/client/components/copilot/CopilotChatDialog";
 import {
   LocalEditSession,
@@ -33,6 +34,11 @@ const config = vi.hoisted(() => ({
   enableLocalAiEditing: true,
   enableLocalAiPageGeneration: false,
 }));
+const markdownImport = vi.hoisted(() => ({ wait: undefined as Promise<void> | undefined }));
+vi.mock("./AiMarkdownContent", async (original) => {
+  await markdownImport.wait;
+  return original<typeof import("./AiMarkdownContent")>();
+});
 const state = vi.hoisted(() => ({
   session: undefined as LocalEditSession | undefined,
   configured: true,
@@ -99,6 +105,50 @@ function mount(chatOpenOpts?: CopilotChatOpenOpts) {
     ),
   };
 }
+it("reveals the latest formatted history only when both the renderer and history are ready", async () => {
+  const session = ensure(state.session, "Missing test AI session");
+  const gate = Promise.withResolvers<void>();
+  markdownImport.wait = gate.promise;
+  const history = vi.spyOn(session, "historyLoading", "get").mockReturnValue(false);
+  session.tasks = [{
+    id: "first", threadId: session.activeThreadId, status: "completed",
+    parts: [{ type: "markdown", channel: "answer", step: 0, complete: true, text: "**Answer**" }],
+    messages: [], records: [], operations: [], files: [], prompt: "Question",
+    phase: "Completed", intent: "discuss", authorId: "user", createdAt: "2026-10-29T00:00:00Z",
+    binding: { projectId: "project", branchId: null, sessionId: "session", changeCounter: 0, componentUuid: null, elementUuids: [] },
+  }];
+  const notify = () => act(() => session.setThreadDraft(session.activeThreadId, { ...session.draft }));
+  const { container } = mount();
+  const expectLoading = () => {
+    expect(container.querySelector('[aria-busy="true"]')).toBeTruthy();
+    expect(screen.queryByText("Question")).toBeNull();
+    expect(container.querySelector('[data-test-id="ai-welcome"]')).toBeNull();
+    expect(screen.getByRole("textbox")).toBeTruthy();
+  };
+  try {
+    expectLoading(); // Cached data arrived before the renderer.
+    history.mockReturnValue(true);
+    notify();
+    await act(async () => {
+      gate.resolve();
+      await preloadAiMarkdown();
+    });
+    expectLoading(); // The renderer is ready while the history refresh is pending.
+    history.mockReturnValue(false);
+    notify();
+    expect(await screen.findByText("Question")).toBeTruthy();
+    expect(screen.getByText("Answer").tagName).toBe("STRONG");
+    expect(container.querySelector('[aria-busy="true"]')).toBeNull();
+    const article = container.querySelector("article");
+    history.mockReturnValue(true);
+    notify();
+    expect(container.querySelector("article")).toBe(article);
+  } finally {
+    gate.resolve();
+    markdownImport.wait = undefined;
+    history.mockRestore();
+  }
+});
 it.each([false, true])("shows synchronization failures inside the assistant without a global toast (running=%s)", async (running) => {
   vi.mocked(showError).mockClear();
   const session = ensure(state.session, "Missing test AI session");
