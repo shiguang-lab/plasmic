@@ -1934,5 +1934,191 @@
     "rendererErrors": 0,
     "blockedWrites": 0,
     "passed": true
+  },
+  "spa20Diagnostic": {
+    "opens": 20,
+    "rendererErrors": 0,
+    "blockedWrites": 0,
+    "samples": [
+      {
+        "label": "cold-dashboard",
+        "rendererMiB": 255,
+        "heapUsedMiB": 35,
+        "heapCapacityMiB": 57,
+        "documents": 2,
+        "nodes": 1897,
+        "backingMiB": 13,
+        "privateFootprintMiB": 155,
+        "allocatorObjectMiB": {
+          "malloc": 32,
+          "v8/main/heap/old_space": 21
+        },
+        "allocatorSizeMiB": {
+          "v8/main/heap": 57,
+          "blink_gc": 12,
+          "cc/tile_memory": 100,
+          "malloc": 50,
+          "partition_alloc": 45,
+          "web_cache": 12,
+          "v8/main/heap/old_space": 24,
+          "v8/main/heap/code_space": 4
+        }
+      },
+      {
+        "label": "returned-0",
+        "rendererMiB": 784,
+        "heapUsedMiB": 218,
+        "heapCapacityMiB": 285,
+        "documents": 25,
+        "nodes": 18822,
+        "backingMiB": 52
+      },
+      {
+        "label": "returned-9",
+        "rendererMiB": 2086,
+        "heapUsedMiB": 821,
+        "heapCapacityMiB": 904,
+        "documents": 133,
+        "nodes": 64581,
+        "backingMiB": 152
+      },
+      {
+        "label": "canvas-19",
+        "rendererMiB": 3054,
+        "heapUsedMiB": 1363,
+        "heapCapacityMiB": 1434,
+        "documents": 227,
+        "nodes": 106684,
+        "backingMiB": 217,
+        "privateFootprintMiB": 3048,
+        "allocatorObjectMiB": {
+          "malloc": 332,
+          "v8/main/heap/old_space": 1157
+        },
+        "allocatorSizeMiB": {
+          "v8/main/heap": 1434,
+          "blink_gc": 364,
+          "cc/image_memory": 269,
+          "cc/tile_memory": 174,
+          "malloc": 450,
+          "partition_alloc": 830,
+          "web_cache": 43,
+          "discardable": 8,
+          "v8/main/heap/old_space": 1169,
+          "v8/main/heap/code_space": 55
+        }
+      },
+      {
+        "label": "returned-19",
+        "rendererMiB": 2434,
+        "heapUsedMiB": 1374,
+        "heapCapacityMiB": 1443,
+        "documents": 227,
+        "nodes": 107168,
+        "backingMiB": 217,
+        "privateFootprintMiB": 3039,
+        "allocatorObjectMiB": {
+          "malloc": 330,
+          "v8/main/heap/old_space": 1166
+        },
+        "allocatorSizeMiB": {
+          "v8/main/heap": 1443,
+          "blink_gc": 369,
+          "cc/image_memory": 269,
+          "cc/tile_memory": 174,
+          "malloc": 426,
+          "partition_alloc": 829,
+          "web_cache": 43,
+          "discardable": 8,
+          "v8/main/heap/old_space": 1177,
+          "v8/main/heap/code_space": 55
+        }
+      },
+      {
+        "label": "settled-5s",
+        "rendererMiB": 2490,
+        "heapUsedMiB": 1374,
+        "heapCapacityMiB": 1443,
+        "documents": 227,
+        "nodes": 107168,
+        "backingMiB": 217
+      },
+      {
+        "label": "settled-30s",
+        "rendererMiB": 1161,
+        "heapUsedMiB": 63,
+        "heapCapacityMiB": 193,
+        "documents": 2,
+        "nodes": 2881,
+        "backingMiB": 40,
+        "privateFootprintMiB": 570,
+        "allocatorObjectMiB": {
+          "malloc": 136,
+          "v8/main/heap/old_space": 34
+        },
+        "allocatorSizeMiB": {
+          "v8/main/heap": 107,
+          "blink_gc": 41,
+          "cc/image_memory": 13,
+          "cc/tile_memory": 27,
+          "malloc": 278,
+          "partition_alloc": 103,
+          "web_cache": 1,
+          "discardable": 8,
+          "v8/main/heap/old_space": 75,
+          "v8/main/heap/code_space": 14
+        }
+      },
+      {
+        "label": "settled-90s",
+        "rendererMiB": 1156,
+        "heapUsedMiB": 63,
+        "heapCapacityMiB": 193,
+        "documents": 2,
+        "nodes": 2881,
+        "backingMiB": 40,
+        "privateFootprintMiB": 573,
+        "allocatorObjectMiB": {
+          "malloc": 136,
+          "v8/main/heap/old_space": 34
+        },
+        "allocatorSizeMiB": {
+          "v8/main/heap": 107,
+          "blink_gc": 41,
+          "cc/tile_memory": 27,
+          "malloc": 282,
+          "partition_alloc": 103,
+          "web_cache": 1,
+          "discardable": 2,
+          "v8/main/heap/old_space": 75,
+          "v8/main/heap/code_space": 14
+        }
+      },
+      {
+        "label": "after-diagnostic-gc",
+        "rendererMiB": 990,
+        "heapUsedMiB": 35,
+        "heapCapacityMiB": 38,
+        "documents": 2,
+        "nodes": 2881,
+        "backingMiB": 13,
+        "privateFootprintMiB": 430,
+        "allocatorObjectMiB": {
+          "malloc": 125,
+          "v8/main/heap/old_space": 21
+        },
+        "allocatorSizeMiB": {
+          "v8/main/heap": 38,
+          "blink_gc": 38,
+          "cc/tile_memory": 27,
+          "malloc": 245,
+          "partition_alloc": 63,
+          "web_cache": 1,
+          "discardable": 2,
+          "v8/main/heap/old_space": 22,
+          "v8/main/heap/code_space": 8
+        }
+      }
+    ]
   }
 }
