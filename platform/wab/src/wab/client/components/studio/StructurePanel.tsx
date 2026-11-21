@@ -1,21 +1,11 @@
+import structurePanelContainerStyles from "./StructurePanelContainer.module.less";
 import { NavigationDropdown } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
 import { OutlineTab } from "@/wab/client/components/sidebar-tabs/outline-tab";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { selectLeftTabKey } from "@/wab/client/studio-ctx/left-panel-state";
 import { Splitter } from "antd";
-import { createStyles } from "antd-style";
-
 import * as React from "react";
 import { useStore } from "zustand";
-
-const useStyles = createStyles(() => ({
-  root: { height: "100%", minHeight: 0, overflow: "hidden" },
-  panel: {
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 0,
-  },
-}));
 
 export const StructurePanel = function StructurePanel() {
   const studioCtx = useStudioCtx();
@@ -24,7 +14,7 @@ export const StructurePanel = function StructurePanel() {
     studioCtx.leftPanelState.store,
     selectLeftTabKey,
   );
-  const { styles } = useStyles();
+
   const publishedTemplate = studioCtx.isPublishedTemplate;
   const [directoryExpanded, setDirectoryExpanded] = React.useState(true);
   const [directorySize, setDirectorySize] = React.useState<number | string>(
@@ -42,9 +32,9 @@ export const StructurePanel = function StructurePanel() {
 
   return (
     <Splitter
-      className={styles.root}
+      className={structurePanelContainerStyles.root}
       orientation="vertical"
-      classNames={{ panel: styles.panel }}
+      classNames={{ panel: structurePanelContainerStyles.panel }}
       styles={{ panel: { overflow: "hidden" } }}
       onResize={(sizes) => {
         if (directoryExpanded) {

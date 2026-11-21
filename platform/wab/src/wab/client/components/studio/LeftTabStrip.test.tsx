@@ -36,9 +36,6 @@ vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useTopFrameApi: () => ({ toggleCopilotChat: mocks.toggleAi }),
 }));
 vi.mock("@/wab/client/components/widgets", () => ({}));
-vi.mock("@/wab/client/components/ui/layout-styles", () => ({
-  useEditorPopupStyles: () => ({ styles: { root: "popup" } }),
-}));
 vi.mock(
   "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip",
   () => ({ PlasmicLeftTabStrip: ({ buttons }: any) => <div>{buttons}</div> }),

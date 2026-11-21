@@ -1,3 +1,4 @@
+import styles from "../ui/ResourcePanel.module.less";
 import { useInsertPanelCatalogInputs, useInsertPanelTargetInputs } from "@/wab/client/components/insert-panel/insert-panel-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
@@ -7,7 +8,6 @@ import { useSyntheticSectionShown } from "@/wab/client/studio-ctx/synthetic-sect
 import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { showError } from "@/wab/client/ErrorNotifications";
-
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { useFocusManager } from "@/wab/client/components/aria-utils";
 import {
@@ -61,7 +61,6 @@ import {
   DraggableInsertableProps,
 } from "@/wab/client/components/studio/add-drawer/DraggableInsertable";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
-import { useResourcePanelStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import Button from "@/wab/client/components/widgets/Button";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
@@ -102,7 +101,6 @@ import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { isFlexContainer } from "@/wab/client/utils/tpl-client-utils";
-
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { isBuiltinCodeComponent } from "@/wab/shared/code-components/builtin-code-components";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
@@ -259,7 +257,7 @@ const InsertPanelContent = function InsertPanel_({
   ...props
 }: InsertPanelProps) {
   const studioCtx = useStudioCtx();
-  const { styles } = useResourcePanelStyles();
+
   const [recentItems, setRecentItems] = React.useState<AddTplItem[]>([]);
   const world = useVariantModelWorld(studioCtx, studioCtx.arenaState.lifetime());
 
@@ -712,7 +710,7 @@ const AddDrawerContent = React.memo(function AddDrawerContent(props: {
       } else {
         await onInsert(item);
       }
-    
+
 })()); },
     itemToString: (item) => item?.key ?? "",
     alwaysHighlight: true,
@@ -853,7 +851,7 @@ const AddDrawerContent = React.memo(function AddDrawerContent(props: {
                 return ok();
               });
               if (world.isCurrent()) { serverQueryModals.close(queryRef.uuid); }
-            
+
 })()); },
           onCancel: () => { if (world.isCurrent()) { serverQueryModals.close(queryRef.uuid); } },
           viewCtx: focusedViewCtx,
@@ -897,7 +895,7 @@ const AddDrawerContent = React.memo(function AddDrawerContent(props: {
       if (e.key === "Escape" && query.trim().length === 0) {
         onClose();
       }
-    
+
 })()); },
   });
 

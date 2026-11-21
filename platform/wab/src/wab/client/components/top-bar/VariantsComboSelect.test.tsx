@@ -12,54 +12,6 @@ import { theme as AntdTheme } from "antd";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
-// Match production module scoping so unrelated generated class names cannot collide.
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => "PlasmicVariantsComboSelect_" + String(key) },
-    ),
-  }),
-);
-
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsMenu.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => "PlasmicVariantsMenu_" + String(key) },
-    ),
-  }),
-);
-
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantRow.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => "PlasmicVariantRow_" + String(key) },
-    ),
-  }),
-);
-
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantsGroupLabel.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => "PlasmicVariantsGroupLabel_" + String(key) },
-    ),
-  }),
-);
-
-vi.mock("@/wab/client/plasmic/PlasmicButton.module.css", () => ({
-  default: new Proxy(
-    {},
-    { get: (_target, key) => "PlasmicButton_" + String(key) },
-  ),
-}));
-
 afterEach(cleanup);
 
 it("themes the preview variant trigger and portaled menu through appearance changes", () => {

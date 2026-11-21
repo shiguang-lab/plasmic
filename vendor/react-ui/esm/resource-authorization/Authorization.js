@@ -25,7 +25,7 @@ import { withConfigProvider } from "../config-provider/index.js";
 import { createResourceAuthorizationApi } from "./api.js";
 import { PolicyCategory } from "./constants.js";
 import Record from "./Record.js";
-import { useStyles } from "./style.js";
+import styles from "./ResourceAuthorization.module.less";
 import { flattenDepts, formatUsers, getErrorMessage } from "./utils.js";
 import { jsx as _jsx } from "react/jsx-runtime";
 import { jsxs as _jsxs } from "react/jsx-runtime";
@@ -43,8 +43,6 @@ function AuthorizationCom(_ref) {
     _ref$width = _ref.width,
     width = _ref$width === void 0 ? 500 : _ref$width;
   var isEditing = useContext(ResourceAuthorizationCanvasContext);
-  var _useStyles = useStyles(),
-    styles = _useStyles.styles;
   var _Form$useForm = _Form.useForm(),
     _Form$useForm2 = _slicedToArray(_Form$useForm, 1),
     form = _Form$useForm2[0];

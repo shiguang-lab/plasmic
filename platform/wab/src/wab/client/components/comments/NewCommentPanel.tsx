@@ -1,9 +1,9 @@
+import styles from "./CommentThreadPanel.module.less";
 import CommentPostForm from "@/wab/client/components/comments/CommentPostForm";
 import {
   CommentSubjectName,
   CommentSubjectType,
 } from "@/wab/client/components/comments/CommentSubjectInputs";
-import { useCommentPanelStyles } from "@/wab/client/components/comments/CommentThreadPanel";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { useI18n } from "@/wab/client/i18n";
@@ -23,7 +23,7 @@ export function NewCommentPanel({
   const studio = useStudioCtx();
   useStudioArena(studio, (state) => state.current);
   const { t } = useI18n();
-  const { styles } = useCommentPanelStyles();
+
   const ctx = studio.commentsCtx;
   const arena = studio.currentArena;
   if (!arena) {

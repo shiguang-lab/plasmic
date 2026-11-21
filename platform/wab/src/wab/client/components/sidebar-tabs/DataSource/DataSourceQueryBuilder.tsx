@@ -1,9 +1,9 @@
+import styles from "../../QueryBuilder/QueryBuilder.module.less";
 import { DataPickerWidgetFactory } from "@/wab/client/components/QueryBuilder/Components/DataPickerWidgetFactory";
 import {
   FilterQueryBuilder,
   RenderQueryValue,
 } from "@/wab/client/components/QueryBuilder/FilterQueryBuilder";
-import { useQueryBuilderStyles } from "@/wab/client/components/QueryBuilder/QueryBuilder.styles";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { mkBindingId } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { TemplatedTextWidget } from "@/wab/client/components/sidebar-tabs/DataSource/TemplatedTextWidget";
@@ -45,7 +45,7 @@ function DataSourceQueryBuilder_(
   outerRef: React.Ref<HTMLDivElement>,
 ) {
   const bindings = React.useRef({ ...initialBindings });
-  const { styles } = useQueryBuilderStyles();
+
   const [tree, setTree] = React.useState(
     () => initial ?? getEmptyQuery(config.fields, true),
   );

@@ -1,3 +1,5 @@
+import styles from "./Member.module.less";
+import { cx } from "@/wab/shared/common";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { Matcher } from "@/wab/client/components/view-common";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -9,7 +11,6 @@ import { GrantableAccessLevel, accessLevelRank } from "@/wab/shared/EntUtil";
 import { ensure } from "@/wab/shared/common";
 import { MoreOutlined } from "@ant-design/icons";
 import { Avatar, Button, Dropdown, Flex, Select, Tooltip, Typography } from "antd";
-import { useMemberStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import moment from "moment";
 import * as React from "react";
 
@@ -31,7 +32,6 @@ const roles = [
   { value: "viewer", label: "Viewer" },
 ] as const;
 
-
 const TeamMemberListItem = React.forwardRef<
   HTMLDivElement,
   TeamMemberListItemProps
@@ -44,7 +44,7 @@ const TeamMemberListItem = React.forwardRef<
     "Unexpected undefined selfInfo",
   );
   const { t } = useI18n();
-  const { styles, cx } = useMemberStyles();
+
   const [busy, setBusy] = React.useState(false);
   const selfPerm = perms.find(
     (p) =>

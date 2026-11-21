@@ -22,9 +22,6 @@ vi.mock("@/wab/client/components/insert-panel/InsertPanel", () => ({
 vi.mock("@/wab/client/components/sidebar/ProjectDependencies", () => ({
   ProjectDependenciesPanel: () => <div>Imported dependency list</div>,
 }));
-vi.mock("@/wab/client/components/ui/layout-styles", () => ({
-  useLibraryPanelStyles: () => ({ styles: { root: "libraries" } }),
-}));
 vi.mock("@/wab/client/i18n", () => ({
   useI18n: () => ({ t: (text: string) => text }),
 }));

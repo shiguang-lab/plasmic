@@ -1,7 +1,8 @@
+import styles from "./ShareDialogContent.module.less";
+import { cx } from "@/wab/shared/common";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-
 import { useAppAuthConfig } from "@/wab/client/components/app-auth/app-auth-contexts";
 import PermissionsTab from "@/wab/client/components/app-auth/PermissionsTab";
 import {
@@ -62,94 +63,9 @@ import {
   notification,
   Switch,
 } from "antd";
-import { createStyles } from "antd-style";
 import copy from "copy-to-clipboard";
 import L from "lodash";
 import React, { useEffect, useState } from "react";
-
-const useShareStyles = createStyles(({ token }) => ({
-  root: {
-    display: "flex",
-    flexDirection: "column",
-    minWidth: 0,
-    color: token.colorText,
-  },
-  body: { maxHeight: "calc(100dvh - 250px)", minHeight: 0 },
-  section: {
-    padding: "0 0 20px",
-    h3: { margin: "0 0 12px", fontSize: 14, fontWeight: 500 },
-    "& + section": {
-      paddingTop: 20,
-      borderTop: `1px solid ${token.colorBorderSecondary}`,
-    },
-  },
-  caption: {
-    color: token.colorTextSecondary,
-    fontSize: 12,
-    margin: "10px 0 0",
-    lineHeight: 1.6,
-  },
-  inviteRow: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 120px auto",
-    gap: 8,
-    "@media (max-width: 500px)": {
-      gridTemplateColumns: "minmax(0, 1fr) 110px",
-      button: { gridColumn: "1 / -1" },
-    },
-  },
-  linkRole: {
-    display: "flex",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 12,
-    marginTop: 16,
-    "& .ant-select": { width: 120 },
-  },
-  copySuccess: { color: token.colorSuccess },
-  copyError: { color: token.colorError, margin: "10px 0 0", fontSize: 12 },
-  inherited: {
-    padding: "0 0 20px",
-    color: token.colorTextSecondary,
-    summary: { cursor: "pointer" },
-  },
-  inheritedRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingTop: 12,
-    "& span": { minWidth: 0, overflowWrap: "anywhere" },
-    "& a": {
-      color: token.colorPrimary,
-      "&:hover": { color: token.colorPrimaryHover },
-      "&:active": { color: token.colorPrimaryActive },
-    },
-  },
-  access: {
-    margin: "0 0 20px",
-    padding: 16,
-    background: token.colorFillAlter,
-    border: `1px solid ${token.colorBorderSecondary}`,
-    borderRadius: token.borderRadiusLG,
-  },
-  accessRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    h3: { flex: 1, margin: 0, fontSize: 14, fontWeight: 500 },
-    "& .ant-select": { width: 112, flexShrink: 0 },
-  },
-  footer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: 12,
-    padding: 0,
-    "& > span": { margin: "0 auto 0 0", textAlign: "left" },
-    "& > div": { marginLeft: "auto" },
-  },
-}));
 
 export const personalProjectPaywallMessage = (
   <>
@@ -200,7 +116,7 @@ export interface ShareDialogContentProps {
 
 function ShareDialogContent(props: ShareDialogContentProps) {
   const { t: uiT } = useI18n();
-  const { styles, cx } = useShareStyles();
+
   const [updatingAccess, setUpdatingAccess] = useState(false);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
     "idle",

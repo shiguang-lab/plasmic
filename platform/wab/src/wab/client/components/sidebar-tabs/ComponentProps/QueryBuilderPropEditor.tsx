@@ -1,9 +1,9 @@
+import styles from "../../QueryBuilder/QueryBuilder.module.less";
 import { DataPickerWidgetFactory } from "@/wab/client/components/QueryBuilder/Components/DataPickerWidgetFactory";
 import {
   FilterQueryBuilder,
   RenderQueryValue,
 } from "@/wab/client/components/QueryBuilder/FilterQueryBuilder";
-import { useQueryBuilderStyles } from "@/wab/client/components/QueryBuilder/QueryBuilder.styles";
 import { usePropValueEditorContext } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { ensure } from "@/wab/shared/common";
 import {
@@ -41,7 +41,7 @@ function QueryBuilderPropEditor_(
   outerRef: React.Ref<HTMLDivElement>,
 ) {
   const { env, schema, exprCtx } = usePropValueEditorContext();
-  const { styles } = useQueryBuilderStyles();
+
   const [tree, setTree] = React.useState(() => {
     const logic = isKnownCompositeExpr(value)
       ? deserCompositeExpr(value)

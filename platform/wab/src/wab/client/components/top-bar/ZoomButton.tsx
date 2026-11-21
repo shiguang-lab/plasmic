@@ -1,6 +1,7 @@
+import styles from "./ZoomButton.module.less";
+import popupStyles from "../ui/EditorPopup.module.less";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { MenuItemContent } from "@/wab/client/components/menu-builder";
-import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import {
   ClickStopper,
   IFrameAwareDropdownMenu,
@@ -12,168 +13,14 @@ import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcut
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { Button, InputNumber, Menu } from "antd";
-import { createStyles } from "antd-style";
 import { useStore } from "zustand";
 import * as React from "react";
 import { FiChevronDown } from "react-icons/fi";
-
-const useStyles = createStyles(({ token }) => ({
-  trigger: {
-    "&.ant-btn": {
-      flex: 1,
-      height: 28,
-      minWidth: 0,
-      padding: "0 7px",
-      border: "1px solid transparent",
-      borderRadius: 14,
-      boxShadow: "none",
-      fontSize: 12,
-      fontVariantNumeric: "tabular-nums",
-      gap: 6,
-    },
-    "& svg": { width: 12, height: 12, color: token.colorTextSecondary },
-  },
-  menu: {
-    width: 248,
-    maxWidth: "calc(100vw - 32px)",
-    padding: "4px !important",
-    background: `${token.colorBgElevated} !important`,
-    color: `${token.colorText} !important`,
-    border: `1px solid ${token.colorBorder} !important`,
-    borderRadius: `${token.borderRadiusLG}px !important`,
-    boxShadow: `${token.boxShadowSecondary} !important`,
-    "&.ant-menu": {
-      background: token.colorBgElevated,
-      border: "none",
-      boxShadow: "none",
-    },
-    // The input container item - completely transparent to avoid white outline on focus/active
-    "& .ant-menu-item.ant-dropdown-menu-item--not-selectable, & .ant-dropdown-menu-item--not-selectable":
-      {
-        height: "auto !important",
-        minHeight: "unset !important",
-        lineHeight: "normal !important",
-        background: "transparent !important",
-        padding: "2px 2px 4px 2px !important",
-        margin: "0 0 2px 0 !important",
-        cursor: "default !important",
-        boxShadow: "none !important",
-        "&:hover, &:focus, &:active, &.ant-menu-item-active, &.ant-menu-item-selected":
-          {
-            background: "transparent !important",
-            color: "inherit !important",
-          },
-      },
-    "& .ant-menu-item-divider, & .ant-menu-divider": {
-      margin: "4px 0 !important",
-      borderColor: `${token.colorBorderSecondary} !important`,
-    },
-    // Normal actionable menu items
-    "& .ant-menu-item:not(.ant-dropdown-menu-item--not-selectable), & .ant-dropdown-menu-item:not(.ant-dropdown-menu-item--not-selectable)":
-      {
-        height: "36px !important",
-        minHeight: "36px !important",
-        lineHeight: "24px !important",
-        margin: "2px 0 !important",
-        padding: "6px 10px !important",
-        width: "100% !important",
-        borderRadius: `${token.borderRadius}px !important`,
-        color: `${token.colorText} !important`,
-        fontSize: "13px !important",
-        display: "flex !important",
-        alignItems: "center !important",
-        cursor: "pointer !important",
-        transition: "background 0.15s ease, color 0.15s ease !important",
-        background: "transparent",
-        "&:hover, &.ant-menu-item-active": {
-          background: `${token.colorFillSecondary} !important`,
-          color: `${token.colorText} !important`,
-        },
-        "&.ant-menu-item-disabled, &[aria-disabled=true]": {
-          opacity: "0.4 !important",
-          cursor: "not-allowed !important",
-          "&:hover, &.ant-menu-item-active": {
-            background: "transparent !important",
-          },
-        },
-        "&[aria-checked=true], &.ant-menu-item-selected": {
-          background: `${token.colorPrimaryBg} !important`,
-          color: `${token.colorPrimaryText} !important`,
-        },
-        "&:focus-visible": {
-          outline: `2px solid ${token.colorPrimary} !important`,
-          outlineOffset: "-2px !important",
-        },
-      },
-    "& .ant-menu-item .flex, & .ant-dropdown-menu-item .flex": {
-      width: "100%",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    "& .shortcut-combo": {
-      background: `${token.colorFillTertiary} !important`,
-      color: `${token.colorTextSecondary} !important`,
-      border: `1px solid ${token.colorBorderSecondary} !important`,
-      borderRadius: "4px !important",
-      padding: "1px 6px !important",
-      fontSize: "11px !important",
-      lineHeight: "16px !important",
-      minWidth: "18px !important",
-      textAlign: "center",
-      fontFamily: "inherit !important",
-      boxShadow: "none !important",
-    },
-    "& .ant-menu-item:hover .shortcut-combo, & .ant-dropdown-menu-item:hover .shortcut-combo":
-      {
-        color: `${token.colorText} !important`,
-        borderColor: `${token.colorBorder} !important`,
-      },
-  },
-  input: {
-    width: "100%",
-    height: 36,
-    background: token.colorBgContainer,
-    color: token.colorText,
-    borderRadius: token.borderRadius,
-    border: `1px solid ${token.colorBorder}`,
-    boxShadow: "none",
-    "&:hover": {
-      borderColor: token.colorPrimaryHover,
-    },
-    "&:focus, &-focused": {
-      borderColor: token.colorPrimary,
-      background: token.colorBgContainer,
-      boxShadow: `0 0 0 2px ${token.controlOutline}`,
-    },
-    "& input": {
-      color: token.colorText,
-      height: 34,
-      background: "transparent",
-    },
-    "& input::selection": {
-      background: token.colorPrimary,
-      color: token.colorTextLightSolid,
-    },
-    "& .ant-input-number-handler-wrap": {
-      background: token.colorFillQuaternary,
-      borderLeft: `1px solid ${token.colorBorderSecondary}`,
-      borderRadius: `0 ${token.borderRadius}px ${token.borderRadius}px 0`,
-    },
-    "& .ant-input-number-handler": {
-      borderColor: token.colorBorderSecondary,
-      color: token.colorTextSecondary,
-      "&:hover": {
-        color: token.colorPrimary,
-      },
-    },
-  },
-}));
 function ZoomSpinner() {
   const studioCtx = useStudioCtx();
   const viewportZoom = useCanvasZoom(studioCtx);
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const ref = React.useRef<React.ElementRef<typeof InputNumber>>(null);
   // The dropdown mounts the dropdown content while it is still display:none, so
   // autoFocus alone never fires here.
@@ -208,8 +55,7 @@ export function ZoomButton() {
   const currentArenaEmpty = useStore(studioCtx.uiEnvironment.store, (state) => state.currentArenaEmpty);
   const viewportZoom = useCanvasZoom(studioCtx);
   const [open, setOpen] = React.useState(false);
-  const { styles } = useStyles();
-  const { styles: popupStyles } = useEditorPopupStyles();
+
   const menu = () => (
     <Menu className={`${styles.menu} ${popupStyles.root}`} selectedKeys={[]}>
       <Menu.Item className="ant-dropdown-menu-item--not-selectable">

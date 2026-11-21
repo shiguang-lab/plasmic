@@ -1,0 +1,27 @@
+@value freeBox__uhZsz as refPickerCssFreeBox__uhZsz from "@/wab/client/plasmic/plasmic_kit_pricing/PlasmicPriceTierPicker.module.css";
+@value root as refTierCssRoot from "@/wab/client/plasmic/plasmic_kit_pricing/PlasmicPriceTier.module.css";
+
+.root {
+  padding: 24px;
+  color: var(--ant-color-text);
+  background: var(--ant-color-bg-container);
+  min-width: 0;
+}
+
+.preferences {
+  max-width: 560px;
+}
+
+.plans {
+  & :global(.refPickerCssFreeBox__uhZsz) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    overflow: visible;
+    padding-right: 0;
+  }
+  & :global(.refTierCssRoot) {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+}

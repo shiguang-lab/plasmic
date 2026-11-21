@@ -1,32 +1,35 @@
-import { productPalette } from "@/wab/client/product-ui-theme.styles";
-import { theme as AntdTheme } from "antd";
+import less from "less";
+import fs from "node:fs/promises";
+import path from "node:path";
+import postcss from "postcss";
 
-it("themes antd inputs rendered inside property rows", () => {
-  const token = AntdTheme.getDesignToken({
-    algorithm: AntdTheme.darkAlgorithm,
-    token: { colorBgContainer: "#202128", colorText: "#edeef5" },
+it("scopes Ant input fills, hover and placeholder tokens to property rows outside the query builder", async () => {
+  const filename = path.join(__dirname, "product-ui-theme.module.less");
+  const { css } = await less.render(await fs.readFile(filename, "utf8"), {
+    filename,
   });
-  const palette = productPalette(token) as Record<string, any>;
-  const entry = (selectorPart: string, pseudo = "") =>
-    Object.entries(palette).find(([key]) =>
-      key
-        .split(", ")
-        .includes(
-          `& .labeled-item ${selectorPart}:not(:where(.query-builder *))${pseudo}`,
-        ),
-    )?.[1];
-
-  // Host custom controls (table Pagination/Scroll) use plain antd inputs that
-  // antd-overrides.scss would otherwise paint with a fixed light fill.
-  expect(entry(".ant-input")).toEqual({
-    background: "#202128",
-    color: "#edeef5",
-  });
-  expect(entry(".ant-input-number")).toMatchObject({ background: "#202128" });
-  expect(entry(".ant-input", ":hover")).toEqual({
-    background: token.colorFillTertiary,
-  });
-  expect(entry(".ant-input", "::placeholder")).toEqual({
-    color: token.colorTextPlaceholder,
-  });
+  const rules = postcss.parse(css);
+  function declaration(control: string, state: string, prop: string) {
+    const selector = `.root :global(.labeled-item) :global(.${control}):not(:where(:global(.query-builder) *))${state}`;
+    let result: string | undefined;
+    rules.walkRules((rule) => {
+      if (rule.selectors.includes(selector))
+        rule.walkDecls(prop, (decl) => {
+          result = decl.value;
+        });
+    });
+    return result;
+  }
+  for (const control of ["ant-input", "ant-input-number"]) {
+    expect(declaration(control, "", "background")).toBe(
+      "var(--ant-color-bg-container)",
+    );
+    expect(declaration(control, "", "color")).toBe("var(--ant-color-text)");
+  }
+  expect(declaration("ant-input", ":hover", "background")).toBe(
+    "var(--ant-color-fill-tertiary)",
+  );
+  expect(declaration("ant-input", "::placeholder", "color")).toBe(
+    "var(--ant-color-text-placeholder)",
+  );
 });

@@ -1,0 +1,25 @@
+@value icon as refStylesIcon,
+  offline as refStylesOffline,
+  live as refStylesLive,
+  content as refStylesContent,
+  version as refStylesVersion,
+  description as refStylesDescription from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection.module.scss";
+
+.root {
+  color: var(--ant-color-text);
+  & :global(.refStylesIcon), & :global(.refStylesOffline) {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refStylesLive) {
+    background: var(--ant-color-success-bg);
+    color: var(--ant-color-success-text);
+  }
+  & :global(.refStylesContent), & :global(.refStylesVersion) {
+    border-color: var(--ant-color-border-secondary);
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.refStylesDescription), & :global(.refStylesVersion) {
+    color: var(--ant-color-text-secondary);
+  }
+}

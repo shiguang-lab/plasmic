@@ -1,3 +1,4 @@
+import styles from "./CanvasContentEditorControls.module.less";
 import { useContentEditorControlInputs } from "@/wab/client/components/canvas/content-editor-control-inputs";
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
 import { useStore } from "zustand";
@@ -21,56 +22,8 @@ import {
 } from "@/wab/client/studio-ctx/canvas-content-editor";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { Button } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 import { FiArrowLeft, FiArrowUpRight } from "react-icons/fi";
-
-const useStyles = createStyles(({ token }) => ({
-  preparing: {
-    position: "absolute",
-    inset: 0,
-    zIndex: 31,
-    background: token.colorBgLayout,
-    display: "grid",
-    placeItems: "center",
-    pointerEvents: "auto",
-  },
-  root: {
-    position: "absolute",
-    zIndex: 30,
-    display: "flex",
-    flexWrap: "nowrap",
-    alignItems: "center",
-    gap: 6,
-    height: 28,
-    padding: "2px 4px 2px 8px",
-    width: "max-content",
-    boxSizing: "border-box",
-    borderRadius: token.borderRadiusSM,
-    background: token.colorBgContainer,
-    border: `1px solid ${token.colorBorder}`,
-    boxShadow: token.boxShadowTertiary,
-    color: token.colorText,
-    fontSize: 12,
-    pointerEvents: "auto",
-    "& button": { fontSize: 12, height: 22, padding: "0 6px", flexShrink: 0 },
-    "& svg": { width: 12, height: 12 },
-  },
-  name: {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    maxWidth: 160,
-    color: token.colorTextSecondary,
-  },
-  caption: { color: token.colorTextSecondary, whiteSpace: "nowrap" },
-  shortcut: {
-    color: token.colorTextTertiary,
-    fontSize: 11,
-    fontFamily: "inherit",
-  },
-}));
 
 export const CanvasContentEditorControls = React.memo(function CanvasContentEditorControls({
     studioCtx,
@@ -131,7 +84,7 @@ export const CanvasContentEditorControls = React.memo(function CanvasContentEdit
       };
     }, [vc, focused]);
     const current = active?.contentEditor.target;
-    const { styles } = useStyles();
+
     const { t } = useI18n();
     const candidate = modelReady && vc && getContentEditorTarget(vc);
     const entry =
@@ -190,7 +143,7 @@ const ContentEditorToolbar = React.memo(function ContentEditorToolbar({
   editing: boolean;
 }) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const root = React.useRef<HTMLDivElement>(null);
   const [position, setPosition] = React.useState({
     left: 0,

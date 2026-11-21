@@ -1,3 +1,4 @@
+import styles from "./AiMarkdownContent.module.less";
 import {
   AiNodeReference,
   type AiNode,
@@ -11,131 +12,7 @@ import Highlighter from "@shiguang2/components/esm/x-markdown/components/Highlig
 import type { ComponentProps } from "@shiguang2/components/esm/x-markdown/interface";
 import { copyToClipboard } from "@shiguang2/components/esm/x-markdown/utils/clipboard";
 import { Button, Tooltip, theme as AntdTheme } from "antd";
-import { createStyles } from "antd-style";
 import React from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  compact: {
-    "&&&": {
-      "--font-size": "11px",
-      fontSize: 11,
-      lineHeight: 1.6,
-      color: token.colorTextTertiary,
-    },
-    "&&& p, &&& li, &&& [data-component=paragraph], &&& h1, &&& h2, &&& h3, &&& h4, &&& h5, &&& h6, &&& th, &&& td":
-      {
-        fontSize: "inherit",
-        lineHeight: "inherit",
-        color: "inherit",
-      },
-    "&&& p, &&& [data-component=paragraph]": { marginBottom: 6 },
-    "&&& h1, &&& h2, &&& h3, &&& h4, &&& h5, &&& h6": { margin: "8px 0 4px" },
-    "&&& ul, &&& ol": { margin: "4px 0 6px" },
-    "&&& button[data-node-uuid]": {
-      fontSize: "inherit",
-      lineHeight: "inherit",
-      padding: "0 3px",
-    },
-  },
-  markdown: {
-    "&&": { "--font-size": "13px", fontSize: 13, lineHeight: 1.7 },
-    minWidth: 0,
-    fontSize: 13,
-    fontWeight: 400,
-    lineHeight: 1.7,
-    whiteSpace: "normal",
-    overflowWrap: "anywhere",
-    color: token.colorText,
-    "& > :first-child": { marginTop: 0 },
-    "& > :last-child": { marginBottom: 0 },
-    "&& p, && [data-component=paragraph]": {
-      margin: "0 0 10px",
-      whiteSpace: "normal",
-    },
-    "&& h1, && h2, && h3, && h4, && h5, && h6": {
-      margin: "16px 0 8px",
-      fontWeight: 600,
-      lineHeight: 1.4,
-    },
-    "&& h1": { fontSize: 18 },
-    "&& h2": { fontSize: 16 },
-    "&& h3, && h4, && h5, && h6": { fontSize: 14 },
-    "& strong": { fontWeight: 600 },
-    "&& ul, && ol": { margin: "8px 0 12px", paddingLeft: 22 },
-    "& ul": { listStyleType: "disc" },
-    "& ol": { listStyleType: "decimal" },
-    "&& li": { paddingLeft: 2, margin: "4px 0" },
-    "&& li > p": { marginBottom: 4 },
-    "&& li > ul, && li > ol": { margin: "4px 0" },
-    "&& blockquote": {
-      margin: "12px 0",
-      padding: "4px 12px",
-      borderLeft: `3px solid ${token.colorBorder}`,
-      color: token.colorTextSecondary,
-    },
-    "&& blockquote > p:last-child": { marginBottom: 0 },
-    "&& a": {
-      color: token.colorLink,
-      textDecoration: "underline",
-      textUnderlineOffset: 3,
-    },
-    "&& code": { fontFamily: token.fontFamilyCode, fontSize: 12 },
-    "&& :not(pre) > code": {
-      padding: "2px 5px",
-      borderRadius: 4,
-      background: token.colorFillSecondary,
-    },
-    "&& pre": {
-      margin: 0,
-      padding: 12,
-      whiteSpace: "pre",
-      overflowWrap: "normal",
-      lineHeight: 1.6,
-    },
-    "&& pre code": { padding: 0, background: "transparent" },
-    "&& table": { borderCollapse: "collapse", width: "100%", fontSize: 12 },
-    "&& th, && td": {
-      border: `1px solid ${token.colorBorderSecondary}`,
-      padding: "7px 10px",
-      minWidth: 80,
-    },
-    "&& th": { background: token.colorFillSecondary, fontWeight: 600 },
-    "&& hr": {
-      border: 0,
-      borderTop: `1px solid ${token.colorBorderSecondary}`,
-      margin: "16px 0",
-    },
-  },
-  codeBlock: {
-    margin: "12px 0",
-    minWidth: 0,
-    overflow: "hidden",
-    border: `1px solid ${token.colorBorderSecondary}`,
-    borderRadius: token.borderRadius,
-    background: token.colorFillQuaternary,
-  },
-  codeHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "4px 8px 4px 12px",
-    fontSize: 11,
-    color: token.colorTextSecondary,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-  },
-  codeScroll: {
-    maxHeight: 300,
-    maxWidth: "100%",
-    "& pre": { overflow: "visible" },
-  },
-  codeActions: { display: "flex", alignItems: "center", gap: 4 },
-  fullscreen: {
-    height: "min(70dvh, 800px)",
-    minHeight: 0,
-    "& pre": { overflow: "visible" },
-  },
-  tableScroll: { maxWidth: "100%", margin: "12px 0" },
-}));
 
 const NodeContext = React.createContext<{
   nodes: AiNode[];
@@ -144,7 +21,7 @@ const NodeContext = React.createContext<{
 
 function CodeBlock({ children, block, lang, rawText }: ComponentProps) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const { token } = AntdTheme.useToken();
   const [copied, setCopied] = React.useState(false);
   const [fullscreen, setFullscreen] = React.useState(false);
@@ -273,7 +150,7 @@ function MarkdownLink({ href, children }: ComponentProps<{ href?: string }>) {
   );
 }
 function MarkdownTable({ children }: ComponentProps) {
-  const { styles } = useStyles();
+
   return (
     <Scrollbar className={styles.tableScroll} scrollY={false} defer={false}>
       <table>{children}</table>
@@ -301,7 +178,7 @@ export function AiMarkdown({
   onLocate,
   compact = false,
 }: AiMarkdownProps) {
-  const { styles } = useStyles();
+
   const context = React.useMemo(() => ({ nodes, onLocate }), [nodes, onLocate]);
   return (
     <NodeContext.Provider value={context}>

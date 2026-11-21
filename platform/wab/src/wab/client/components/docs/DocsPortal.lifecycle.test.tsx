@@ -19,7 +19,6 @@ import { useStore } from "zustand";
 const state = { suspend: false, beforeSubscribe: undefined as (() => void) | undefined, renders: 0 };
 const pending = new Promise<never>(() => undefined);
 
-vi.mock("@/wab/client/components/docs/DocsLayout.styles", () => ({ useDocsLayoutStyles: () => ({ styles: { root: "docs" } }) }));
 vi.mock("@/wab/client/components/docs/DocsPortalBranches", () => ({ default: () => null }));
 vi.mock("@/wab/client/components/BottomModal", () => ({ BottomModalsProvider: ({ children }: { children: React.ReactNode }) => children }));
 vi.mock("@/wab/client/components/studio/TopFrameObserver", () => ({ TopFrameObserver: () => null }));

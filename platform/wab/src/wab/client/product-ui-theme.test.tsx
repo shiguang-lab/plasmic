@@ -1,6 +1,7 @@
+import { userEvent as browserUser } from "vitest/browser";
+import styles from "./components/ui/EditorPopup.module.less";
 import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import SearchInput from "@/wab/client/components/sidebar-tabs/ProjectPanel/SearchInput";
-import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import Chip from "@/wab/client/components/widgets/Chip";
@@ -20,101 +21,10 @@ import {
   screen,
 } from "@testing-library/react";
 import { theme as AntdTheme } from "antd";
-import { readFileSync } from "node:fs";
 import * as React from "react";
 
 // Production modules have distinct class names. Vitest's unscoped codegen
 // names otherwise let unrelated controls' slot rules mask theme regressions.
-vi.mock("@/wab/client/plasmic/PlasmicButton.module.css", () => ({
-  default: new Proxy({}, { get: (_target, key) => `action-${String(key)}` }),
-}));
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicChip.module.css",
-  () => ({
-    default: new Proxy({}, { get: (_target, key) => `chip-${String(key)}` }),
-  }),
-);
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css",
-  () => ({
-    default: new Proxy({}, { get: (_target, key) => `search-${String(key)}` }),
-  }),
-);
-
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => `variants-${String(key)}` },
-    ),
-  }),
-);
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicDataSourceOption.module.css",
-  () => ({
-    default: new Proxy({}, { get: (_target, key) => `source-${String(key)}` }),
-  }),
-);
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavWorkspaceButton.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => `workspace-${String(key)}` },
-    ),
-  }),
-);
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicQuickInsertItem.module.css",
-  () => ({
-    default: new Proxy({}, { get: (_target, key) => `insert-${String(key)}` }),
-  }),
-);
-
-const generatedStyles: HTMLStyleElement[] = [];
-function loadGeneratedCss(path: string, prefix: string) {
-  const style = document.createElement("style");
-  style.textContent = readFileSync(new URL(path, import.meta.url), "utf8")
-    .replace(/:global\(([^)]+)\)/g, "$1")
-    .replace(/\.([A-Za-z_][\w-]*)/g, (match, name: string) =>
-      name.startsWith("__") ? match : `.${prefix}-${name}`,
-    );
-  document.head.prepend(style);
-  generatedStyles.push(style);
-}
-
-beforeAll(() => {
-  loadGeneratedCss("./plasmic/PlasmicButton.module.css", "action");
-  loadGeneratedCss(
-    "./plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css",
-    "search",
-  );
-  loadGeneratedCss(
-    "./plasmic/plasmic_kit_design_system/PlasmicChip.module.css",
-    "chip",
-  );
-  loadGeneratedCss(
-    "./plasmic/plasmic_kit_dashboard/PlasmicDataSourceOption.module.css",
-    "source",
-  );
-  loadGeneratedCss(
-    "./plasmic/plasmic_kit_dashboard/PlasmicNavWorkspaceButton.module.css",
-    "workspace",
-  );
-  loadGeneratedCss(
-    "./plasmic/plasmic_kit_insert_panel/PlasmicQuickInsertItem.module.css",
-    "insert",
-  );
-});
-afterAll(() => generatedStyles.forEach((style) => style.remove()));
-
-function hover(element: Element) {
-  fireEvent.mouseOver(element);
-  // jsdom tracks :hover but needs a mutation to invalidate computed styles.
-  element.setAttribute("data-hover-probe", "true");
-}
-
 function expectColor(element: Element, color: string, background = false) {
   const probe = document.createElement("div");
   probe.style.color = color;
@@ -138,7 +48,7 @@ afterEach(() => {
 });
 
 function PopupActions() {
-  const { styles } = useEditorPopupStyles();
+
   return (
     <div className={styles.root}>
       <Button
@@ -154,7 +64,7 @@ function PopupActions() {
   );
 }
 
-it("keeps popup primary labels and icons paired with their fill on hover", () => {
+it("keeps popup primary labels and icons paired with their fill on hover", async () => {
   render(
     <AntdConfigProvider productUI>
       <PopupActions />
@@ -172,15 +82,15 @@ it("keeps popup primary labels and icons paired with their fill on hover", () =>
     act(() => setAppearancePreference(appearance));
     const token = AntdTheme.getDesignToken(productTheme(appearance));
     slots.forEach((slot) => expectColor(slot, token.colorTextLightSolid));
-    hover(action);
+    await browserUser.hover(action);
     slots.forEach((slot) => expectColor(slot, token.colorTextLightSolid));
     const disabled = screen.getByRole("button", { name: "Disabled action" });
-    hover(disabled);
+    await browserUser.hover(disabled);
     expectColor(disabled, token.colorTextDisabled);
   }
 });
 
-it("keeps collapsed search and clear icons readable on hover", () => {
+it("keeps collapsed search and clear icons readable on hover", async () => {
   const onClear = vi.fn();
   const { container } = render(
     <AntdConfigProvider productUI>
@@ -201,20 +111,22 @@ it("keeps collapsed search and clear icons readable on hover", () => {
     "Expected clear icon",
   );
   for (const appearance of ["dark", "light", "dark"] as const) {
-    fireEvent.mouseOut(root);
+    const input = ensure(container.querySelector("input"), "Expected expanded search");
+    fireEvent.change(input, { target: { value: "Project" } });
+    await browserUser.hover(input);
     act(() => setAppearancePreference(appearance));
     const token = AntdTheme.getDesignToken(productTheme(appearance));
     expectColor(icon, token.colorTextSecondary);
-    hover(root);
+    await browserUser.hover(root);
     expectColor(icon, token.colorText);
-    hover(clear);
+    await browserUser.hover(clear);
     expectColor(clear, token.colorText);
   }
   fireEvent.click(clear);
   expect(onClear).toHaveBeenCalledOnce();
 });
 
-it("themes chip removal and the color picker's surrounding surface", () => {
+it("themes chip removal and the color picker's surrounding surface", async () => {
   const onDelete = vi.fn();
   const { container } = render(
     <AntdConfigProvider productUI>
@@ -229,7 +141,7 @@ it("themes chip removal and the color picker's surrounding surface", () => {
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
     const token = AntdTheme.getDesignToken(productTheme(appearance));
-    hover(remove);
+    await browserUser.hover(remove);
     expectColor(remove, token.colorText);
     expectColor(
       screen.getByTestId("color-picker"),
@@ -241,7 +153,7 @@ it("themes chip removal and the color picker's surrounding surface", () => {
   expect(onDelete).toHaveBeenCalledOnce();
 });
 
-it("binds colored action scales through normal, hover and pressed states", () => {
+it("binds colored action scales through normal, hover and pressed states", async () => {
   const { container } = render(
     <AntdConfigProvider productUI>
       <Button color="red">Remove</Button>
@@ -280,7 +192,7 @@ it("binds colored action scales through normal, hover and pressed states", () =>
 
 it.each(["insert", "selected insert", "data source", "workspace"] as const)(
   "themes the %s hover surface instead of restoring a fixed light background",
-  (kind) => {
+  async (kind) => {
     const { container } = render(
       <AntdConfigProvider productUI>
         {kind === "data source" ? (
@@ -301,7 +213,7 @@ it.each(["insert", "selected insert", "data source", "workspace"] as const)(
     for (const appearance of ["dark", "light", "dark"] as const) {
       act(() => setAppearancePreference(appearance));
       const token = AntdTheme.getDesignToken(productTheme(appearance));
-      hover(root);
+      await browserUser.hover(root);
       expectColor(
         root,
         kind === "selected insert"

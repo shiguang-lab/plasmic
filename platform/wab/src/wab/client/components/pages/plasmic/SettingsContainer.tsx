@@ -1,4 +1,5 @@
-import { useSettingsStyles } from "@/wab/client/components/pages/plasmic/SettingsContainer.styles";
+import styles from "./SettingsContainer.module.less";
+import { cx } from "@/wab/shared/common";
 import { useUiAppearance } from "@/wab/client/ui-theme";
 import { AsyncState } from "@/wab/client/hooks/useAsyncStrict";
 import { languageOptions, useI18n } from "@/wab/client/i18n";
@@ -22,7 +23,7 @@ interface SettingsContainerProps {
 }
 
 function SettingsListSkeleton({ tokens = false }: { tokens?: boolean }) {
-  const { styles } = useSettingsStyles();
+
   const { t } = useI18n();
   return (
     <ul className={styles.list} aria-hidden="true">
@@ -43,7 +44,7 @@ function SettingsListSkeleton({ tokens = false }: { tokens?: boolean }) {
 
 export default function SettingsContainer(props: Partial<SettingsContainerProps>) {
   const { t, preference, setLanguagePreference } = useI18n();
-  const { styles, cx } = useSettingsStyles();
+
   const { preference: appearance, setAppearancePreference } = useUiAppearance();
   const [appearanceError, setAppearanceError] = React.useState(false);
   const [languageError, setLanguageError] = React.useState(false);

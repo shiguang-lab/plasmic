@@ -1,3 +1,6 @@
+import $ from "jquery";
+import { $$$ } from "@/wab/shared/TplQuery";
+import styles from "../studio/StructurePanel.module.less";
 import { parentStackStyleProvider } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
 import type { NativeStyleProvider, StyleCellsSnapshot } from "@/wab/client/studio-ctx/style-inputs";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
@@ -117,7 +120,6 @@ import {
   isCodeComponentSlot,
   isPlainTextTplSlot,
 } from "@/wab/shared/SlotUtils";
-import { $$$ } from "@/wab/shared/TplQuery";
 import {
   isBaseVariant,
   isVariantSettingEmptyExcludingDefaultIgnorableStyles,
@@ -126,15 +128,12 @@ import { TplVisibility } from "@/wab/shared/visibility-utils";
 import { selectionControlsColor } from "@/wab/styles/css-variables";
 import { notification, Tooltip } from "antd";
 import cx from "classnames";
-import $ from "jquery";
 import L, { isArray } from "lodash";
 import memoizeOne from "memoize-one";
-
 import * as React from "react";
 import { FixedSizeList } from "react-window";
 import { createStudioStore } from "@/wab/client/stores/store-kit";
 import { useStore } from "zustand";
-
 import { TplClip } from "@/wab/client/clipboard/local";
 import { COMMANDS } from "@/wab/client/commands/command";
 import CommentIndicatorIcon from "@/wab/client/components/comments/CommentIndicatorIcon";
@@ -147,7 +146,6 @@ import {
   OutlineNodeData,
   OutlineNodeKey,
 } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
-import { useStructurePanelStyles } from "@/wab/client/components/studio/StructurePanel.styles";
 import BoltIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Bolt";
 import { transformDataTokensToDisplay } from "@/wab/shared/eval/expression-parser";
 import { INTERACTIVE_CAP, REPEATED_CAP } from "@/wab/shared/Labels";
@@ -213,8 +211,6 @@ function createOutlineNodePresentation(viewCtx: ViewCtx, item: TplNode | SlotSel
       }
       return undefined;
     })();
-
-
 
   const hasRep = (() => {
       if (Tpls.isTplVariantable(item)) {
@@ -305,9 +301,6 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
     parentId,
     isDropParent,
   } = props;
-
-
-
 
   const commentsCtx = useStudioCtx().commentsCtx;
   const commentsPanel = useStudioOverlayState(viewCtx.studioCtx, (state) => state.commentsPanel);
@@ -504,7 +497,6 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
     return null;
   };
 
-
   const renderContent = () => {
     if (item instanceof SlotSelection) {
       return (
@@ -590,7 +582,6 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
     }
   };
 
-
   const getCommentStatsForTpl = () => {
     const commentStatsBySubject = subjectCommentStats;
 
@@ -641,7 +632,6 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
         return node;
       }
     })();
-
 
   const showLockIcon =
     props.ancestorLocked || !L.isNil(props.presentation.locked);
@@ -1719,7 +1709,7 @@ const ArtboardOutlineRow = React.memo(function ArtboardOutlineRow(props: {
 }) {
   const { frame, outlineCtx, studioCtx, style } = props;
   const selectedView = useStudioSelection(studioCtx, (state) => state.view);
-  const { styles } = useStructurePanelStyles();
+
   const arenaRef = useStudioArena(studioCtx, (state) => state.frames.some((ref) => studioCtx.modelSnapshots.resolve(ref) === frame) ? state.current : null);
   const arena = arenaRef ? studioCtx.modelSnapshots.resolve(arenaRef) : null;
   const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => outlineTabFields(studioCtx.site, arena, field), [studioCtx, arena]);

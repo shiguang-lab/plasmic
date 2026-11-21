@@ -1,10 +1,10 @@
+import styles from "./MultiSelectionPanel.module.less";
 import { ModelFieldSelector } from "@/wab/client/stores/model-field-selector";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
 import { useFrameWidth } from "@/wab/client/studio-ctx/frame-width";
 import type { ArenaFrame } from "@/wab/shared/model/classes";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useFrameSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
-import { useMultiSelectionStyles } from "@/wab/client/components/sidebar-tabs/MultiSelectionPanel";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -17,7 +17,7 @@ export const FrameSelectionPanel = React.memo(function FrameSelectionPanel({
 }) {
   useStudioSelection(studioCtx, (state) => state.frames);
   const { t } = useI18n();
-  const { styles } = useMultiSelectionStyles();
+
   const bounds = useFrameSelectionBounds(studioCtx);
   const frames = studioCtx.focusedFrames();
   return (

@@ -1,0 +1,110 @@
+@value dashboardContent as refDashboardDashboardContent from "@/wab/client/components/dashboard/dashboard.module.scss";
+@value root as refWorkspaceSectionRoot,
+  header as refWorkspaceSectionHeader,
+  freeBox__sKiL as refWorkspaceSectionFreeBox__sKiL,
+  actions as refWorkspaceSectionActions,
+  projectsFilter as refWorkspaceSectionProjectsFilter from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicWorkspaceSection.module.css";
+@value root as refTeamPageHeaderRoot,
+  freeBox__nhPk as refTeamPageHeaderFreeBox__nhPk,
+  freeBox__hp5G2 as refTeamPageHeaderFreeBox__hp5G2,
+  filter as refTeamPageHeaderFilter from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamPageHeader.module.css";
+@value header as refTeamSettingsHeader from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamSettings.module.css";
+
+.root {
+  height: 100vh;
+  overflow: hidden;
+  color: var(--ant-color-text);
+  background: var(--ant-color-bg-layout);
+  font-family: var(--ant-font-family);
+  & :global(.refDashboardDashboardContent) :global(.refWorkspaceSectionRoot):last-child {
+    border-bottom: 0;
+  }
+  && :global(.refWorkspaceSectionHeader), && :global(.refTeamPageHeaderRoot), && :global(.refTeamSettingsHeader) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    border-color: var(--ant-color-border-secondary);
+    box-sizing: border-box;
+    min-height: 64px;
+    height: auto;
+    padding: 12px 24px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    top: 0;
+  }
+  & :global(.refTeamPageHeaderFreeBox__nhPk), & :global(.refWorkspaceSectionFreeBox__sKiL) {
+    padding: 0;
+    min-width: 0;
+    flex: 1 1 160px;
+  }
+  & :global(.refTeamPageHeaderFreeBox__hp5G2), & :global(.refWorkspaceSectionActions) {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  & :global(.refTeamPageHeaderFilter), & :global(.refWorkspaceSectionProjectsFilter) {
+    min-width: 0;
+    max-width: 100%;
+    & :global(.ant-space), & :global(.ant-space-item) {
+      max-width: 100%;
+    }
+  }
+  && :global(.refTeamSettingsHeader) {
+    position: relative;
+    top: auto;
+  }
+  @media (max-width: 768px) {
+    && :global(.refWorkspaceSectionHeader), && :global(.refTeamPageHeaderRoot), && :global(.refTeamSettingsHeader) {
+      padding-inline: 16px;
+    }
+    & :global(.refTeamPageHeaderFreeBox__hp5G2) {
+      justify-content: flex-start;
+    }
+  }
+  --ui-surface: var(--ant-color-bg-container);
+  --ui-bg: var(--ant-color-bg-layout);
+  --ui-border: var(--ant-color-border);
+  --ui-text: var(--ant-color-text);
+  --ui-muted: var(--ant-color-text-secondary);
+  --ui-accent: var(--ant-color-primary);
+  --ui-hover: var(--ant-color-fill-secondary);
+  --ui-selected: var(--ant-color-primary-bg);
+}
+
+.header {
+  box-sizing: border-box;
+  background: var(--ant-color-bg-layout);
+  color: var(--ant-color-text);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  box-shadow: none;
+  height: 58px;
+  line-height: normal;
+  padding: 0;
+  && {
+    background: var(--ant-color-bg-layout);
+    height: 58px;
+    padding: 8px;
+  }
+}
+
+.wrapper {
+  background: var(--ant-color-bg-layout);
+  flex-direction: row;
+  min-height: 0;
+}
+
+.headerActions {
+  padding: 0 8px;
+  border: 1px solid var(--ant-color-border);
+  border-radius: var(--ant-border-radius-lg);
+  background: var(--ant-color-bg-container);
+  box-shadow: var(--ant-box-shadow-secondary);
+}
+
+.main {
+  background: var(--ant-color-bg-container);
+  color: var(--ant-color-text);
+}

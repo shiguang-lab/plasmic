@@ -1,3 +1,5 @@
+import styles from "./ViewButton.module.less";
+import popupStyles from "../ui/EditorPopup.module.less";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
@@ -18,7 +20,6 @@ import {
   MenuBuilder,
   TextAndShortcut,
 } from "@/wab/client/components/menu-builder";
-import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
@@ -35,73 +36,9 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import { Menu, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 
 type ViewButtonProps = DefaultViewButtonProps;
-
-const useStyles = createStyles(({ token }) => ({
-  popup: {
-    "& .ant-menu, & .ant-dropdown-menu": {
-      width: 336,
-      maxWidth: "calc(100vw - 32px)",
-      padding: 6,
-      background: token.colorBgElevated,
-      border: `1px solid ${token.colorBorderSecondary}`,
-      borderRadius: token.borderRadiusLG,
-      boxShadow: token.boxShadowSecondary,
-      color: token.colorText,
-    },
-    "& .ant-menu-item, & .ant-dropdown-menu-item": {
-      height: 36,
-      minHeight: 36,
-      lineHeight: "20px",
-      padding: "8px 10px",
-      margin: "2px 0",
-      width: "100%",
-      borderRadius: token.borderRadius,
-      fontSize: 13,
-      color: token.colorText,
-    },
-    "& .ant-menu-title-content, & .ant-dropdown-menu-title-content": {
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-    },
-    "& .ant-menu-title-content > .flex, & .ant-dropdown-menu-title-content > .flex":
-      { flex: 1, minWidth: 0, alignItems: "center" },
-    "& .anticon, & .dimfg": {
-      width: 16,
-      height: 16,
-      fontSize: 16,
-      flexShrink: 0,
-      color: token.colorTextSecondary,
-    },
-    "& .mr-sm": { marginRight: 0 },
-    "& .shortcut-combo": {
-      background: token.colorFillTertiary,
-      color: token.colorTextSecondary,
-      fontSize: 11,
-      lineHeight: "18px",
-      padding: "0 5px",
-      border: `1px solid ${token.colorBorderSecondary}`,
-      borderRadius: 4,
-      boxShadow: "none",
-      marginLeft: 12,
-    },
-    "& .ant-menu-item-divider, & .ant-dropdown-menu-item-divider": {
-      margin: "6px 4px",
-      borderColor: token.colorBorderSecondary,
-    },
-    "& .ant-menu-item:hover, & .ant-dropdown-menu-item:hover": {
-      background: token.colorFillSecondary,
-    },
-    "& .ant-menu-item:focus-visible, & .ant-dropdown-menu-item:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: -2,
-    },
-  },
-}));
 
 const contentCreatorModeHelp = (
   <>
@@ -131,8 +68,7 @@ const contentCreatorModeHelp = (
 
 const ViewButton = React.memo(function ViewButton(props: ViewButtonProps) {
   const { t } = useI18n();
-  const { styles } = useStyles();
-  const { styles: popupStyles } = useEditorPopupStyles();
+
   const studioCtx = useStudioCtx();
   const { kind: arenaKind, focusedMode: isFocusedMode } = useStudioArena(
     studioCtx, useShallow((state) => ({ kind: state.kind, focusedMode: state.focusedMode })),

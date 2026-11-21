@@ -1,5 +1,6 @@
+import styles from "./TeamBilling.module.less";
+import { cx } from "@/wab/shared/common";
 import { showError } from "@/wab/client/ErrorNotifications";
-
 import { AppCtx } from "@/wab/client/app-ctx";
 import FreeTrial from "@/wab/client/components/FreeTrial";
 import {
@@ -15,8 +16,6 @@ import {
 } from "@/wab/client/components/quick-modals";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultTeamBillingProps } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicTeamBilling";
-import tierCss from "@/wab/client/plasmic/plasmic_kit_pricing/PlasmicPriceTier.module.css";
-import pickerCss from "@/wab/client/plasmic/plasmic_kit_pricing/PlasmicPriceTierPicker.module.css";
 import {
   ApiFeatureTier,
   ApiTeam,
@@ -46,7 +45,6 @@ import {
   Typography,
   message,
 } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 
 interface TeamBillingProps extends DefaultTeamBillingProps {
@@ -59,25 +57,6 @@ interface TeamBillingProps extends DefaultTeamBillingProps {
   onChange: () => Promise<void>;
   disabled?: boolean;
 }
-
-const useBillingStyles = createStyles(({ token }) => ({
-  root: {
-    padding: 24,
-    color: token.colorText,
-    background: token.colorBgContainer,
-    minWidth: 0,
-  },
-  preferences: { maxWidth: 560 },
-  plans: {
-    [`& .${pickerCss.freeBox__uhZsz}`]: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))",
-      overflow: "visible",
-      paddingRight: 0,
-    },
-    [`& .${tierCss.root}`]: { minWidth: 0, maxWidth: "100%", width: "100%" },
-  },
-}));
 
 function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
   const {
@@ -92,7 +71,7 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
     ...rest
   } = props;
   const { t } = useI18n();
-  const { styles, cx } = useBillingStyles();
+
   const [form] = Form.useForm<{ billingEmail: string }>();
   const [operation, setOperation] = React.useState<string | null>(null);
   React.useEffect(() => {

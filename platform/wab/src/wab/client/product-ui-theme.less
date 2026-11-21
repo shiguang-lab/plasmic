@@ -1,0 +1,751 @@
+@value fillPopover as refPaintRowsFillPopover,
+  fillPanel as refPaintRowsFillPanel from "@/wab/client/components/style-controls/PaintRows.module.scss";
+@value fields as refTypographyFields,
+  settings as refTypographySettings from "@/wab/client/components/style-controls/Typography.module.scss";
+@value root as refDimTokenSelectorRoot,
+  textboxdisabled as refDimTokenSelectorTextboxdisabled from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicDimTokenSelector.module.css";
+@value trigger as refStyleSelectTrigger from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect.module.css";
+@value trigger as refSelectTrigger,
+  contentContainer as refSelectContentContainer,
+  slotTargetSelectedContent as refSelectSlotTargetSelectedContent,
+  slotTargetSelectedContentshowPlaceholder as refSelectSlotTargetSelectedContentshowPlaceholder from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect.module.css";
+@value root as refTextboxRoot,
+  textbox as refTextboxTextbox,
+  textboxdisabled as refTextboxTextboxdisabled from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css";
+@value root as refStyleToggleRoot from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButton.module.css";
+@value buttonsContainer as refStyleToggleGroupButtonsContainer from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButtonGroup.module.css";
+@value root as refButtonRoot,
+  slotTargetChildren as refButtonSlotTargetChildren,
+  slotTargetEndIcon as refButtonSlotTargetEndIcon,
+  roottype_primary as refButtonRoottype_primary,
+  slotTargetStartIcon as refButtonSlotTargetStartIcon,
+  rootcolor_darkRed as refButtonRootcolor_darkRed from "@/wab/client/plasmic/PlasmicButton.module.css";
+@value main as refStyleSelectOverlayMain from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Overlay.module.css";
+@value main as refSelectOverlayMain from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect__Overlay.module.css";
+@value root as refDropdownOverlayRoot from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicDropdownOverlay.module.css";
+@value root as refStyleSelectOptionRoot,
+  slotTargetChildren as refStyleSelectOptionSlotTargetChildren,
+  rootisSelected as refStyleSelectOptionRootisSelected,
+  slotTargetChildrenisSelected as refStyleSelectOptionSlotTargetChildrenisSelected,
+  rootisHighlighted as refStyleSelectOptionRootisHighlighted,
+  slotTargetChildrenisUnsetOption as refStyleSelectOptionSlotTargetChildrenisUnsetOption from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css";
+@value root as refSelectOptionRoot,
+  slotTargetChildren as refSelectOptionSlotTargetChildren,
+  rootisSelected as refSelectOptionRootisSelected,
+  slotTargetChildrenisSelected as refSelectOptionSlotTargetChildrenisSelected,
+  rootisHighlighted as refSelectOptionRootisHighlighted,
+  slotTargetChildrenisUnsetOption as refSelectOptionSlotTargetChildrenisUnsetOption from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect__Option.module.css";
+@value root as refQuickInsertRoot,
+  rootisSelected as refQuickInsertRootisSelected,
+  slotTargetChildrenisSelected as refQuickInsertSlotTargetChildrenisSelected,
+  slotTargetIconisSelected as refQuickInsertSlotTargetIconisSelected from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicQuickInsertItem.module.css";
+@value root as refDataSourceOptionRoot from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicDataSourceOption.module.css";
+@value root as refNavWorkspaceRoot from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicNavWorkspaceButton.module.css";
+@value root as refMarkdownHintsRoot from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicMarkdownHintsPopoverContent.module.css";
+@value root as refUserMentionsRoot,
+  separator as refUserMentionsSeparator,
+  svg as refUserMentionsSvg from "@/wab/client/plasmic/plasmic_kit_user_mentions/PlasmicUserMentionsPopoverContent.module.css";
+@value root as refFindReferencesRoot from "@/wab/client/plasmic/plasmic_kit_find_references_modal/PlasmicFindReferencesModal.module.css";
+@value root as refVariantsDrawerRoot from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantsDrawer.module.css";
+@value freeBox___5XViU as refMergeFlowFreeBox___5XViU,
+  freeBox___8VwQ3 as refMergeFlowFreeBox___8VwQ3 from "@/wab/client/plasmic/plasmic_kit_merge_flow/PlasmicMergeFlow.module.css";
+@value freeBox__bU0WY as refDiffsFreeBox__bU0WY from "@/wab/client/plasmic/plasmic_kit_merge_flow/PlasmicDiffs.module.css";
+@value root as refPublishFlowRoot,
+  addActionsContainer as refPublishFlowAddActionsContainer,
+  freeBox__uIv1 as refPublishFlowFreeBox__uIv1,
+  addWebsitePanel as refPublishFlowAddWebsitePanel,
+  addGithubPanel as refPublishFlowAddGithubPanel,
+  addWebhooksPanel as refPublishFlowAddWebhooksPanel from "@/wab/client/plasmic/plasmic_kit_continuous_deployment/PlasmicPublishFlowDialog.module.css";
+@value root as refBranchPanelRoot from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicBranchPanel.module.css";
+@value root as refActivitiesPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftActivitiesPanel.module.css";
+@value freeBoxisFocused as refVariantsBarFreeBoxisFocused,
+  dropdownTrigger as refVariantsBarDropdownTrigger,
+  root as refVariantsBarRoot from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantsBar.module.css";
+@value button as refVariantsComboSelectButton from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect.module.css";
+@value root as refVariantsMenuRoot,
+  freeBox as refVariantsMenuFreeBox,
+  svg as refVariantsMenuSvg,
+  searchInput as refVariantsMenuSearchInput from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsMenu.module.css";
+@value slotTargetChildren as refVariantsGroupLabelSlotTargetChildren from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantsGroupLabel.module.css";
+@value slotTargetChildren as refVariantRowSlotTargetChildren,
+  slotTargetChildrenisBase as refVariantRowSlotTargetChildrenisBase,
+  svgisBase as refVariantRowSvgisBase,
+  slotTargetChildrenisRecording as refVariantRowSlotTargetChildrenisRecording,
+  roothighlight as refVariantRowRoothighlight,
+  roothighlight_isBase as refVariantRowRoothighlight_isBase,
+  roothighlight_isRecording as refVariantRowRoothighlight_isRecording from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantRow.module.css";
+@value root as refPresetsRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicPresetsSelector.module.css";
+@value root as refStyleOptionGroupRoot,
+  separator as refStyleOptionGroupSeparator,
+  slotTargetTitle as refStyleOptionGroupSlotTargetTitle from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__OptionGroup.module.css";
+@value promptDialog as refCopilotPromptPromptDialog from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotPromptDialog.module.css";
+@value root as refDataPickerRoot,
+  header as refDataPickerHeader,
+  footer as refDataPickerFooter,
+  freeBox___3RfRi as refDataPickerFreeBox___3RfRi from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPicker.module.css";
+@value envPanelContainer as refDataPickerCodeEnvPanelContainer,
+  envToggleButton as refDataPickerCodeEnvToggleButton,
+  previewPanel as refDataPickerCodePreviewPanel,
+  envLabelText as refDataPickerCodeEnvLabelText,
+  svg__ckpYw as refDataPickerCodeSvg__ckpYw from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPickerCodeEditorLayout.module.css";
+@value DefinedIndicator as refDefinedIndicatorDefinedIndicator,
+  DefinedIndicatorContainer as refDefinedIndicatorDefinedIndicatorContainer from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
+@value root as refLeftSettingsPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSettingsPanel.module.css";
+@value slotTargetChildrentype_primary as refActionMenuSlotTargetChildrentype_primary from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicActionMenuButton.module.css";
+@value slotTargetChildrentype_primary as refIconButtonSlotTargetChildrentype_primary,
+  roottype_primary as refIconButtonRoottype_primary from "@/wab/client/plasmic/PlasmicIconButton.module.css";
+@value freeBox as refTooltipFreeBox,
+  slotTargetContent as refTooltipSlotTargetContent from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTooltip.module.css";
+@value floatingWindow as refStyleTooltipFloatingWindow,
+  slotTargetChildren as refStyleTooltipSlotTargetChildren from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTooltip.module.css";
+@value svg as refAddCommentMarkerSvg from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicAddCommentMarker.module.css";
+@value device as refCanvasFrameDevice from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
+@value searchInputContainer as refSearchInputSearchInputContainer,
+  svg as refSearchInputSvg,
+  clearFieldIcon as refSearchInputClearFieldIcon from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
+@value root as refChipRoot,
+  closeIcon as refChipCloseIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicChip.module.css";
+@value rootwhiteBackground as refTextareaRootwhiteBackground,
+  textarea as refTextareaTextarea,
+  textareadisabled as refTextareaTextareadisabled from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicTextarea.module.css";
+
+.productPalette() {
+  --ui-surface: var(--ant-color-bg-container);
+  --ui-elevated: var(--ant-color-bg-elevated);
+  --ui-bg: var(--ant-color-bg-layout);
+  --ui-border: var(--ant-color-border);
+  --ui-border-subtle: var(--ant-color-border-secondary);
+  --ui-text: var(--ant-color-text);
+  --ui-muted: var(--ant-color-text-secondary);
+  --ui-placeholder: var(--ant-color-text-placeholder);
+  --ui-disabled: var(--ant-color-text-disabled);
+  --token-MJxs_G7Sqa: var(--ant-color-text-disabled);
+  --plasmic-token-textboxdisabled: var(--ant-color-text-disabled);
+  --ui-accent: var(--ant-color-primary);
+  --ui-accent-text: var(--ant-color-primary-text);
+  --ui-hover: var(--ant-color-fill-secondary);
+  --ui-fill: var(--ant-color-fill-tertiary);
+  --ui-selected: var(--ant-color-primary-bg);
+  --ui-on-accent: var(--ant-color-text-light-solid);
+  --ui-error: var(--ant-color-error-text);
+  --ui-error-bg: var(--ant-color-error-bg);
+  --ui-error-border: var(--ant-color-error-border);
+  --ui-success: var(--ant-color-success-text);
+  --ui-success-bg: var(--ant-color-success-bg);
+  --ui-success-hover: var(--ant-color-success-bg-hover);
+  --ui-warning: var(--ant-color-warning-text);
+  --ui-warning-bg: var(--ant-color-warning-bg);
+  --ui-warning-border: var(--ant-color-warning-border);
+  & :is(:global(.style-panel-section), :global(.refPaintRowsFillPopover), :global(.refPaintRowsFillPanel), :global(.refTypographyFields), :global(.refTypographySettings)) {
+    --token-aDa535tnF: 28px;
+    & :global(.plasmic_tokens_tXkSR39sgCDWSitZxC5xFV) {
+      --token-aDa535tnF: 28px;
+    }
+    & :where(:global(.refDimTokenSelectorRoot), :global(.refStyleSelectTrigger)) {
+      padding-block: 4px;
+    }
+    & :global(.refSelectTrigger) {
+      height: 28px;
+      padding-block: 4px;
+    }
+    & :global(.refTextboxRoot) {
+      min-height: 28px;
+    }
+    & :global(.refTextboxTextbox) {
+      padding-block: 6px;
+    }
+    & :global(.ant-select):not(:global(.ant-select-multiple)) {
+      height: 28px;
+      min-height: 28px;
+      font-size: inherit;
+      & :global(.ant-select-selector) {
+        height: 100%;
+        min-height: 0;
+      }
+    }
+    & input:global(.ant-input), & :global(.ant-input-affix-wrapper) {
+      height: 28px;
+      min-height: 28px;
+      padding-block: 3px;
+    }
+    & :global(.ant-input-affix-wrapper) input:global(.ant-input) {
+      height: auto;
+      min-height: 0;
+      padding-block: 0;
+    }
+    & :global(.ant-space-compact) :global(.ant-btn) {
+      height: 28px;
+    }
+    & :global(.refStyleToggleRoot) {
+      height: 28px;
+      padding-block: 0;
+    }
+    & :global(.refStyleToggleGroupButtonsContainer) {
+      box-sizing: border-box;
+      height: 28px;
+      & :global(.refStyleToggleRoot) {
+        height: 24px;
+      }
+    }
+  }
+  & :global(.right-pane__mask) {
+    background: rgba(0, 0, 0, 0.15);
+  }
+  & :global(.panel-popup) {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text);
+    box-shadow: var(--ant-box-shadow-secondary);
+  }
+  & :global(.refButtonRoot):global(.button--active), & :global(.refButtonRoot):global(.button--active):hover {
+    background: var(--ant-color-primary-bg);
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.refButtonRoot):global(.button--active) :global(.refButtonSlotTargetChildren) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.refStyleSelectOverlayMain), & :global(.refSelectOverlayMain), & :global(.refDropdownOverlayRoot) {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text);
+    box-shadow: var(--ant-box-shadow-secondary);
+  }
+  & :global(.refStyleSelectOptionRoot), & :global(.refStyleSelectOptionSlotTargetChildren), & :global(.refSelectOptionRoot), & :global(.refSelectOptionSlotTargetChildren) {
+    color: var(--ant-color-text);
+  }
+  & :global(.refStyleSelectOptionRootisSelected), & :global(.refSelectOptionRootisSelected) {
+    background: var(--ant-color-primary-bg);
+  }
+  & :global(.refStyleSelectOptionSlotTargetChildrenisSelected), & :global(.refSelectOptionSlotTargetChildrenisSelected) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.refStyleSelectOptionRootisHighlighted), & :global(.refSelectOptionRootisHighlighted) {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.refStyleSelectOptionSlotTargetChildrenisUnsetOption), & :global(.refSelectOptionSlotTargetChildrenisUnsetOption) {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.refQuickInsertRoot):hover:hover, & :global(.refDataSourceOptionRoot):hover:hover, & :global(.refNavWorkspaceRoot):hover:hover {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.refQuickInsertRootisSelected), & :global(.refQuickInsertRootisSelected):hover:hover {
+    background: var(--ant-color-primary-bg);
+  }
+  & :global(.refQuickInsertSlotTargetChildrenisSelected), & :global(.refQuickInsertSlotTargetIconisSelected) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.refMarkdownHintsRoot), & :global(.refUserMentionsRoot), & :global(.refFindReferencesRoot), & :global(.refVariantsDrawerRoot), & :global(.refMergeFlowFreeBox___5XViU), & :global(.refMergeFlowFreeBox___8VwQ3), & :global(.refDiffsFreeBox__bU0WY), & :global(.refPublishFlowRoot) {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text);
+  }
+  & :global(.refBranchPanelRoot), & :global(.refActivitiesPanelRoot), & :global(.refPublishFlowAddActionsContainer), & :global(.refPublishFlowFreeBox__uIv1), & :global(.refPublishFlowAddWebsitePanel), & :global(.refPublishFlowAddGithubPanel), & :global(.refPublishFlowAddWebhooksPanel) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.refUserMentionsSeparator) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refUserMentionsSvg) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refVariantsBarFreeBoxisFocused), & :global(.refVariantsBarDropdownTrigger) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.refVariantsBarRoot) :global(.refVariantsBarDropdownTrigger):hover {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.refVariantsComboSelectButton) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.refVariantsComboSelectButton):hover {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.refVariantsComboSelectButton):focus:focus {
+    box-shadow: 0 0 0 2px var(--ant-color-primary-border);
+  }
+  & :global(.refVariantsComboSelectButton) :global(.refButtonSlotTargetChildren) {
+    color: var(--ant-color-text);
+  }
+  & :global(.refVariantsComboSelectButton) :global(.refButtonSlotTargetEndIcon) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refVariantsMenuRoot) {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text);
+    box-shadow: var(--ant-box-shadow-secondary);
+  }
+  & :global(.refVariantsMenuFreeBox) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refVariantsMenuSvg), & :global(.refVariantsGroupLabelSlotTargetChildren) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refVariantsMenuSearchInput) {
+    background: transparent;
+    color: var(--ant-color-text);
+  }
+  & :global(.refVariantsMenuSearchInput)::placeholder {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.refVariantRowSlotTargetChildren) {
+    color: var(--ant-color-text);
+  }
+  & :global(.refVariantRowSlotTargetChildrenisBase), & :global(.refVariantRowSvgisBase) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.refVariantRowSlotTargetChildrenisRecording) {
+    color: var(--ant-color-error-text);
+  }
+  & :global(.refVariantRowRoothighlight) {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.refVariantRowRoothighlight_isBase) {
+    background: var(--ant-color-primary-bg);
+  }
+  & :global(.refVariantRowRoothighlight_isRecording) {
+    background: var(--ant-color-error-bg);
+  }
+  & :global(.refPresetsRoot), & :global(.refStyleOptionGroupRoot) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.refStyleOptionGroupSeparator) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refStyleOptionGroupSlotTargetTitle) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.fg), & :global(.text-set) {
+    color: var(--ant-color-text);
+  }
+  & :global(.non-link-btn) {
+    color: var(--ant-color-text);
+  }
+  & :global(.non-link-btn):disabled, & :global(.non-link-btn--disabled) {
+    color: var(--ant-color-text-disabled);
+  }
+  & :global(.icon-link-btn) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.icon-link-btn):hover:not(:disabled) {
+    color: var(--ant-color-text);
+  }
+  & :global(.icon-link-btn--active), & :global(.icon-link-btn--active):hover {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.icon-link-btn):disabled, & :global(.icon-link-btn--disabled), & :global(.icon-link-btn--disabled):hover {
+    color: var(--ant-color-text-disabled);
+  }
+  & :global(.SectionSeparator), & :global(.Separator) {
+    background: var(--ant-color-border-secondary);
+  }
+  & :global(.dimfg), & :global(.panel-section__title) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.dimdimfg) {
+    color: var(--ant-color-text-tertiary);
+  }
+  & :global(.value-preview) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.value-preview--error) {
+    color: var(--ant-color-error-text);
+  }
+  & :global(.value-preview--loading) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refCopilotPromptPromptDialog) {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text);
+  }
+  & :global(.modal), & :global(.code-preview-inner), & :global(.canvas-editor__right-float-pane), & :global(.sidebar-header-section__content), & :global(.vertical-fill-table) :global(.ant-table-tbody) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.code-preview), & :global(.vertical-fill-table) :global(.ant-table-container) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refDataPickerRoot) {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text);
+  }
+  & :global(.refDataPickerHeader), & :global(.refDataPickerFooter), & :global(.refDataPickerFreeBox___3RfRi), & :global(.refDataPickerCodeEnvPanelContainer), & :global(.refDataPickerCodeEnvToggleButton), & :global(.refDataPickerCodePreviewPanel) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refDataPickerFooter), & :global(.refDataPickerCodeEnvPanelContainer), & :global(.refDataPickerCodePreviewPanel) {
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.refDataPickerCodeEnvLabelText), & :global(.refDataPickerCodeSvg__ckpYw) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.textbox), & :global(.select-dropdown__button), & :global(.dropdown-container) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    border-color: var(--ant-color-border);
+  }
+  & :global(.textbox)::placeholder, & :global(.dropdown-input-container) input::placeholder {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.textbox):disabled {
+    color: var(--ant-color-text-disabled);
+  }
+  & :global(.textbox):global(.textbox--transparent), & :global(.textbox):global(.textbox--seamless), & :global(.dropdown-input-container) input {
+    background: transparent;
+    color: var(--ant-color-text);
+  }
+  & :global(.dropdown-container--bordered) {
+    box-shadow: inset 0 0 0 1px var(--ant-color-border);
+  }
+  & :global(.dropdown-container--bordered):hover {
+    box-shadow: inset 0 0 0 1px var(--ant-color-primary-border);
+  }
+  & :global(.dropdown-pill), & :global(.dropdown-pill--inline-block), & :global(.fixed-mixins-pill) {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text);
+  }
+  & :global(.dropdown-pill--selected), & :global(.dropdown-pill--selected) :global(.icon-link-btn), & :global(.dropdown-pill--selected) :global(.icon-link-btn):hover {
+    background: var(--ant-color-primary);
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.no-selector-placeholder), & :global(.xmultiselect-arrow) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.pcr-app)[data-theme] {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text);
+  }
+  & :global(.pcr-app) :global(.pcr-interaction) :global(.pcr-result) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.refDefinedIndicatorDefinedIndicator) {
+    box-shadow: none;
+    opacity: 0.65;
+  }
+  & :global(.refDefinedIndicatorDefinedIndicatorContainer):hover :global(.refDefinedIndicatorDefinedIndicator) {
+    opacity: 1;
+  }
+  & :global(.tpltree__label__indicator) {
+    opacity: 0.65;
+  }
+  & :global(.tpltree__label__indicator):hover {
+    opacity: 1;
+  }
+  & :global(.defined-indicator__source-stack), & :global(.defined-indicator__source-icon) {
+    background: var(--ant-color-bg-elevated);
+  }
+  & :global(.defined-indicator__source) {
+    color: var(--ant-color-text-secondary);
+    padding: 4px 0;
+    align-items: center;
+  }
+  & :global(.defined-indicator__source) > button {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    min-height: 24px;
+    flex-shrink: 0;
+    padding: 0;
+    margin-left: 8px;
+    align-self: center;
+  }
+  & :global(.defined-indicator__source--target) {
+    color: var(--ant-color-text);
+  }
+  & :global(.defined-indicator__source-name) {
+    min-width: 64px;
+    max-width: 40%;
+    flex-shrink: 0;
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.defined-indicator__source-value) {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  & :global(.defined-indicator__source-stack__line-container__line), & :global(.defined-indicator__prop) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.defined-indicator__edit-button) {
+    background: var(--ant-color-fill-tertiary);
+    color: var(--ant-color-text);
+  }
+  & :global(.defined-indicator__edit-button):hover {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.right-panel-input-background), & :global(.right-panel-input-background__no-height), & :global(.code-editor-input), & :global(.generic-prop-editor) :global(.code-editor-input) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.right-panel-input-background):hover, & :global(.right-panel-input-background__no-height):hover, & :global(.code-editor-input):hover, & :global(.generic-prop-editor) :global(.code-editor-input):hover, & :global(.right-panel-input-background-selected) {
+    background: var(--ant-color-fill-tertiary);
+  }
+  & :global(.code-chip-like), & :global(.templated-string-input) :global(.code-chip), & :global(.code-editor-input) :global(.text-set) {
+    background: var(--ant-color-success-bg);
+    color: var(--ant-color-success-text);
+  }
+  & :global(.code-chip-like):hover, & :global(.templated-string-input) :global(.code-chip):hover, & :global(.code-editor-input) :global(.text-set):hover {
+    background: var(--ant-color-success-bg-hover);
+  }
+  & :global(.templated-string-input) :global(.code-chip):global(.right-panel-input-background-selected) {
+    background: var(--ant-color-primary);
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.templated-string-input) :global(.code-chip):global(.right-panel-input-background-selected):hover {
+    background: var(--ant-color-primary-hover);
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.text-unset) {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.text-inherited) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.multi-select-prop-pill) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.img-thumb-border) {
+    border-color: var(--ant-color-border);
+  }
+  & :global(.img-thumb--placeholder) {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  & :global(.refLeftSettingsPanelRoot) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.refButtonRoot):global(.refButtonRoottype_primary) :global(.refButtonSlotTargetChildren), & :global(.refButtonRoot):global(.refButtonRoottype_primary) :global(.refButtonSlotTargetStartIcon), & :global(.refButtonRoot):global(.refButtonRoottype_primary) :global(.refButtonSlotTargetEndIcon), & :global(.refButtonRoot):global(.refButtonRootcolor_darkRed) :global(.refButtonSlotTargetChildren) {
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.refButtonRoot):global(.refButtonRootcolor_darkRed) :global(.refButtonSlotTargetStartIcon), & :global(.refButtonRoot):global(.refButtonRootcolor_darkRed) :global(.refButtonSlotTargetEndIcon) {
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.refActionMenuSlotTargetChildrentype_primary), & :global(.refIconButtonSlotTargetChildrentype_primary), & :global(.refIconButtonRoottype_primary):hover :global(.refIconButtonSlotTargetChildrentype_primary), & :global(.refIconButtonRoottype_primary):active :global(.refIconButtonSlotTargetChildrentype_primary) {
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.refTooltipFreeBox), & :global(.refStyleTooltipFloatingWindow) {
+    background: var(--ant-color-bg-spotlight);
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.refTooltipSlotTargetContent), & :global(.refStyleTooltipSlotTargetChildren) {
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.refAddCommentMarkerSvg) {
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.CanvasFrame__Config) {
+    background: var(--ant-color-bg-elevated);
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.CanvasFrame__Config):hover {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text);
+  }
+  & :global(.refCanvasFrameDevice) > :global(.CanvasFrame__Config) {
+    background: color-mix(in srgb, var(--ant-color-bg-elevated) 55%, transparent);
+  }
+  & :global(.refCanvasFrameDevice) > :global(.CanvasFrame__Config):hover {
+    background: color-mix(in srgb, var(--ant-color-bg-elevated) 70%, transparent);
+  }
+  & :global(.labeled-item__label) {
+    color: var(--ant-color-text);
+  }
+  & :global(.btn-link) {
+    color: var(--ant-color-text);
+  }
+  & :global(.btn-link):disabled {
+    color: var(--ant-color-text-disabled);
+  }
+  & :global(.form-control), & :global(.textboxlike), & :global(.templated-string-input), & :global(.image-paster) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    border-color: var(--ant-color-border);
+  }
+  & :global(.templated-string-input):hover {
+    background: var(--ant-color-fill-tertiary);
+  }
+  & :global(.labeled-item) :global(.ant-input):not(:where(:global(.query-builder) *)), & :global(.labeled-item) :global(.ant-input-number):not(:where(:global(.query-builder) *)), & :global(.labeled-item) :global(.ant-select):global(.textboxlike) :global(.ant-select-selector):not(:where(:global(.query-builder) *)), & [data-plasmic-role="labeled-item"] :global(.ant-input):not(:where(:global(.query-builder) *)), & [data-plasmic-role="labeled-item"] :global(.ant-input-number):not(:where(:global(.query-builder) *)), & [data-plasmic-role="labeled-item"] :global(.ant-select):global(.textboxlike) :global(.ant-select-selector):not(:where(:global(.query-builder) *)), & :global(.tag-select) :global(.ant-select):global(.textboxlike) :global(.ant-select-selector):not(:where(:global(.query-builder) *)) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.labeled-item) :global(.ant-input):not(:where(:global(.query-builder) *)):hover, & :global(.labeled-item) :global(.ant-input-number):not(:where(:global(.query-builder) *)):hover, & :global(.labeled-item) :global(.ant-select):global(.textboxlike) :global(.ant-select-selector):not(:where(:global(.query-builder) *)):hover, & [data-plasmic-role="labeled-item"] :global(.ant-input):not(:where(:global(.query-builder) *)):hover, & [data-plasmic-role="labeled-item"] :global(.ant-input-number):not(:where(:global(.query-builder) *)):hover, & [data-plasmic-role="labeled-item"] :global(.ant-select):global(.textboxlike) :global(.ant-select-selector):not(:where(:global(.query-builder) *)):hover, & :global(.tag-select) :global(.ant-select):global(.textboxlike) :global(.ant-select-selector):not(:where(:global(.query-builder) *)):hover {
+    background: var(--ant-color-fill-tertiary);
+  }
+  & :global(.labeled-item) :global(.ant-input):not(:where(:global(.query-builder) *))::placeholder, & :global(.labeled-item) :global(.ant-input-number-input):not(:where(:global(.query-builder) *))::placeholder, & [data-plasmic-role="labeled-item"] :global(.ant-input):not(:where(:global(.query-builder) *))::placeholder, & [data-plasmic-role="labeled-item"] :global(.ant-input-number-input):not(:where(:global(.query-builder) *))::placeholder {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.templated-string-input):focus, & :global(.image-paster):focus {
+    border-color: var(--ant-color-primary);
+  }
+  & :global(.image-paster)::placeholder {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.panel-dim-block) {
+    background: var(--ant-color-bg-layout);
+    color: var(--ant-color-text);
+  }
+  & :global(.file-uploader) {
+    border-color: var(--ant-color-border);
+  }
+  & :global(.file-uploader):hover {
+    background: var(--ant-color-fill-tertiary);
+  }
+  & :global(.file-uploader) :global(.fake-upload) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refSearchInputSearchInputContainer) :global(.refSearchInputSvg), & :global(.refSearchInputSearchInputContainer) :global(.refSearchInputClearFieldIcon) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refSearchInputSearchInputContainer):hover :global(.refSearchInputSvg), & :global(.refSearchInputSearchInputContainer) :global(.refSearchInputClearFieldIcon):hover, & :global(.refChipRoot) :global(.refChipCloseIcon):hover, & :global(.refChipRoot) :global(.refChipCloseIcon):active {
+    color: var(--ant-color-text);
+  }
+  & :global(.plasmic_tokens_95xp9cYcv7HrNWpFWWhbcv) {
+    --token-iR8SeEwQZ: var(--ant-color-bg-container);
+    --token-9jh0BkCENS: var(--ant-color-bg-container);
+    --token-p-rw5DRJTx: var(--ant-color-bg-layout);
+    --token-O4S7RMTqZ3: var(--ant-color-fill-quaternary);
+    --token-bV4cCeIniS6: var(--ant-color-fill-tertiary);
+    --token-Ik3bdE1e1Uy: var(--ant-color-fill-secondary);
+    --token-hoA5qaM-91G: var(--ant-color-border-secondary);
+    --token-VBhAy2b-S: var(--ant-color-border-secondary);
+    --token-eBt2ZgqRUCz: var(--ant-color-border);
+    --token-PTyaboLP9ZK: var(--ant-color-text-quaternary);
+    --token-fVn5vRhXJxQ: var(--ant-color-text-tertiary);
+    --token-qKhMu66CwSx: var(--ant-color-text-secondary);
+    --token-UunsGa2Y3t3: var(--ant-color-text-secondary);
+    --token-0IloF6TmFvF: var(--ant-color-text);
+    --token-dqEx_KxIoYV: var(--ant-color-primary-bg);
+    --token-qP8a3gYPq7fd: var(--ant-color-primary);
+    --token-HKVCQ5ZKovK: var(--ant-color-error-bg-hover);
+    --token-Le11TVejD2x2: var(--ant-color-error);
+    --token-5kjtdCiiOPB: var(--ant-color-error-bg-hover);
+    --token-ElMeFHrIrKT: var(--ant-color-text);
+    --token-h3n_6qpT3Tc4: var(--ant-color-fill-tertiary);
+    --token-D666zt2IZPL: var(--ant-color-primary);
+    --token-mu3x63xzJRW: var(--ant-color-primary-hover);
+    --token-VUsIDivgUss: var(--ant-color-primary-text);
+    --token-yqAf_E0HIjU: var(--ant-color-primary-bg);
+    --token-JfSQu2FXX0v: var(--ant-color-primary-border);
+    --token-WqsKGtAj1ZMI: var(--ant-color-primary);
+    --token-iRjO5KzKh1e_: var(--ant-color-bg-elevated);
+    --token-S8OnTYk9S2Q: var(--ant-color-error);
+    --token-SJeRSg5mW91: var(--ant-color-error-bg);
+    --token-pH5HkOAVcYh: var(--ant-color-error-border);
+    --token-oI9RmKl5Rl_y: var(--ant-color-success);
+    --token-qEDJedw9WWX8: var(--ant-color-success-bg);
+    --token-LsPj_iMMTYwZ: var(--ant-color-success-border);
+    --token-DEbwNasuLfjs: var(--ant-color-warning);
+    --token-WsutfVbnQWpY: var(--ant-color-warning-bg);
+    --token-680C9kW9i_xC: var(--ant-color-warning-border);
+    --token-N-GFU-C_NPxa: var(--ant-color-warning-text);
+    --token-qYuX4XAEbRt: var(--ant-color-error-bg);
+    --token-iDpByWoW0eF: var(--ant-color-error);
+    --token-Y2CWh0ci95a: var(--ant-color-error-text);
+    --token-Ift7nNWjir7: var(--ant-color-error-text-active);
+    --token-yUAjM3D7ZnY: var(--ant-color-error-border);
+    --token-RhvOnhv_xIi: var(--ant-color-primary-bg-hover);
+    --token-iP3LxEvLa0xh: var(--ant-color-text);
+    --token-krbUYvO2lx2: var(--ant-color-primary-text-active);
+    --token-h-5XbcO2WhcA: var(--ant-color-success-bg);
+    --token-dv0BWWyaHl7H: var(--ant-color-success-bg-hover);
+    --token-3AptjBfMqvPS: var(--ant-color-success-bg-hover);
+    --token-GEBK7U4Am62W: var(--ant-color-success);
+    --token-hIvqQBCxyWwX: var(--ant-color-success-text);
+    --token-AKguBXlLTkKh: var(--ant-color-success-text-active);
+    --token-n4S9_H7k9rsR: var(--ant-color-success-border);
+    --token-Cr1odk81N3Y: var(--ant-color-primary-bg);
+    --token-oPrqrxbKHqk: var(--ant-color-primary-bg-hover);
+    --token-I2zAJ678hbp: var(--ant-color-primary-bg-hover);
+    --token-Izr3_jwKAp1: var(--ant-color-primary);
+    --token-UCbZU41E8Mj: var(--ant-color-primary-text);
+    --token-ZaJGjVCo3Ue: var(--ant-color-primary-text-active);
+  }
+  & :global(.plasmic_tokens_dyzP6dbCdycwJpqiR2zkwe) {
+    --token-CWv8jfhWh: var(--ant-color-border-secondary);
+    --token-aUCjnzhayS: var(--ant-color-bg-container);
+    --token-nadNyMOsLjl: var(--ant-color-text-secondary);
+    --token-0KXajUKTVZC: var(--ant-color-text);
+    --token-dBnk53GtPsb: var(--ant-color-text-tertiary);
+    --token-B77WAT17jl8: var(--ant-color-border);
+    --token-pryzRkTNOFd: var(--ant-color-bg-layout);
+    --token-7bUFmc-GkpN: var(--ant-color-fill-secondary);
+    --token-6-fKAK7Ga33: var(--ant-color-primary);
+    --token-2H3KashplBE: var(--ant-color-primary-hover);
+    --token-txY5tRAWqAc: var(--ant-color-primary-text);
+  }
+  & :global(.plasmic_tokens_fpbcKyXdMTvY59T4C5fjcC) {
+    --token-0vHxN11ixM: var(--ant-color-border-secondary);
+    --token-t68i-MG5Bw: var(--ant-color-text-secondary);
+    --token-pCMcQv3xBc: var(--ant-color-text);
+    --token-tqZN8CQTuKc: var(--ant-color-text-tertiary);
+    --token-HgOUo1yKGd7: var(--ant-color-border-secondary);
+    --token-p7qUpYIr0s0: var(--ant-color-bg-layout);
+    --token-NxA0xIzktpH: var(--ant-color-text-secondary);
+    --token-NcVkVEFwiIx: var(--ant-color-text);
+    --token-fFqkXw6j9cb: var(--ant-color-border);
+    --token-XH9PcvIOG8Q: var(--ant-color-primary-text);
+    --token-QMdL41TrGn5: var(--ant-color-error-bg);
+    --token-ogRzOcay4E5: var(--ant-color-warning-bg);
+    --token-590x3zVVS2z: var(--ant-color-error);
+    --token-koLTWNKDmAp: var(--ant-color-success);
+    --token-6QEhTkH8umI: var(--ant-color-error);
+    --token-MUeFl9R6QY0: var(--ant-color-success-text);
+    --token-QrwPbjkKitC: var(--ant-color-error-text);
+    --token-BvJVLj75Y27: var(--ant-color-error-text);
+    --token-uNUqZL6OMn5: var(--ant-color-warning-text);
+    --token-CYqwMJchyYA: var(--ant-color-text-tertiary);
+  }
+  & :global(.refSelectTrigger), & :global(.refSelectContentContainer), & :global(.refSelectSlotTargetSelectedContent) {
+    color: var(--ant-color-text);
+  }
+  & :global(.refSelectTrigger) {
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border);
+  }
+  & :global(.refSelectSlotTargetSelectedContentshowPlaceholder) {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.refTextboxRoot) {
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.refTextboxRoot):has(input:disabled) {
+    background: var(--ant-color-bg-container-disabled);
+  }
+  & :global(.refTextboxTextbox) {
+    background: transparent;
+    color: var(--ant-color-text);
+    border-radius: inherit;
+  }
+  & :global(.refTextboxTextboxdisabled) {
+    background: transparent;
+    color: var(--ant-color-text-disabled);
+  }
+  & :global(.refDimTokenSelectorTextboxdisabled) {
+    color: var(--ant-color-text-disabled);
+  }
+  & :global(.refTextareaRootwhiteBackground), & :global(.refTextareaTextarea) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.refTextareaTextareadisabled) {
+    background: var(--ant-color-bg-container-disabled);
+    color: var(--ant-color-text-disabled);
+  }
+  & :global(.plasmic_tokens_gYEVvAzCcLMHDVPvuYxkFh) {
+    --token-MJxs_G7Sqa: var(--ant-color-text-disabled);
+    --plasmic-token-textboxdisabled: var(--ant-color-text-disabled);
+    --token-4f35RzFNq: var(--ant-color-text-tertiary);
+    --plasmic-token-text-unset: var(--ant-color-text-tertiary);
+  }
+  & :global(.plasmic_tokens_tXkSR39sgCDWSitZxC5xFV) {
+    --token-iCBCh1BQyu-W: var(--ant-color-fill-quaternary);
+    --token-11LpBV8ry6Ok: var(--ant-color-fill-secondary);
+  }
+}

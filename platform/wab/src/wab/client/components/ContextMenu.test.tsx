@@ -56,7 +56,7 @@ it("themes shortcut badges in context menus and portaled submenus when appearanc
         appearance === "dark" ? "rgb(237, 238, 245)" : "rgb(37, 42, 56)",
       );
       expect(style.borderColor).toBe(
-        appearance === "dark" ? "#30313b" : "#e6e8ef",
+        appearance === "dark" ? "rgb(48, 49, 59)" : "rgb(230, 232, 239)",
       );
       expect(style.boxShadow).toBe("none");
     }

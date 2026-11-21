@@ -1,4 +1,4 @@
-import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
+import styles from "../ui/ProjectBrowser.module.less";
 import { useI18n } from "@/wab/client/i18n";
 import { Tabs } from "antd";
 import * as React from "react";
@@ -15,7 +15,7 @@ export function WorkspaceTabs({
   children: React.ReactNode;
 }) {
   const { t } = useI18n();
-  const { styles } = useProjectBrowserStyles();
+
   return (
     <Tabs
       className={styles.workspaceTabs}

@@ -1,3 +1,4 @@
+import styles from "./GhostFrame.module.less";
 import sty from "@/wab/client/components/studio/arenas/GhostFrame.module.sass";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
@@ -8,7 +9,6 @@ import {
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { cx, mkShortId } from "@/wab/shared/common";
 import { Dropdown, Popover, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import { isString } from "lodash";
 import React, {
   useCallback,
@@ -18,18 +18,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  root: {
-    backgroundColor: token.colorFillTertiary,
-    borderColor: token.colorBorder,
-    color: token.colorTextSecondary,
-    "&:hover": {
-      backgroundColor: token.colorFillSecondary,
-      color: token.colorText,
-    },
-  },
-}));
 
 const GHOST_FRAME_MIN_DIM = 80;
 const GHOST_FRAME_MAX_DIM = 1200;
@@ -54,7 +42,7 @@ export const GhostFrame = React.forwardRef(function GhostFrame_(
   },
   ref: React.Ref<GhostFrameRef>,
 ) {
-  const { styles } = useStyles();
+
   const {
     tooltip,
     children,

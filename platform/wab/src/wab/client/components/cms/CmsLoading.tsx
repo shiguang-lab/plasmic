@@ -1,8 +1,9 @@
+import styles from "./CmsLayout.module.less";
+import { cx } from "@/wab/shared/common";
 import {
   CmsDetailsLayout,
   CmsSettingsLayout,
 } from "@/wab/client/components/cms/CmsDetailsLayout";
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import { CmsNavigation } from "@/wab/client/components/cms/CmsLeftTabs";
 import { CmsModelsListLayout } from "@/wab/client/components/cms/CmsModelsList";
 import { CmsTopBarChrome } from "@/wab/client/components/cms/CmsTopBar";
@@ -24,7 +25,7 @@ import * as React from "react";
 
 export function CmsContentLoading({ schema = false }: { schema?: boolean }) {
   const { t } = useI18n();
-  const { styles, cx } = useCmsLayoutStyles();
+
   const modelsList = {
     render: ({ className }: { className?: string }) => (
       <CmsModelsListLayout
@@ -109,7 +110,7 @@ export function CmsContentLoading({ schema = false }: { schema?: boolean }) {
 // route module load. These overrides don't require an API context.
 export function CmsLoadingShell({ content }: { content?: React.ReactNode }) {
   const { pathname } = useLocation();
-  const { styles } = useCmsLayoutStyles();
+
   const { t } = useI18n();
   const databaseId = APP_ROUTES.cmsRoot.parse(pathname, false)?.databaseId;
   const activeTab = APP_ROUTES.cmsSettings.parse(pathname)

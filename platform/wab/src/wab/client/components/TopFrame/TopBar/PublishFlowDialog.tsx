@@ -1,3 +1,4 @@
+import actionStyles from "./PublishFlowDialog.module.less";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { useGetDomainsForProject } from "@/wab/client/api-hooks";
@@ -50,33 +51,7 @@ import type {
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Skeleton } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
-
-const usePublishActionStyles = createStyles(({ token }) => ({
-  options: { display: "flex", flexDirection: "column", gap: 16 },
-  heading: {
-    margin: 0,
-    textAlign: "center",
-    color: token.colorTextSecondary,
-    fontSize: token.fontSize,
-    fontWeight: 600,
-  },
-  cards: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 8,
-    "@media (max-width: 600px)": { gridTemplateColumns: "minmax(0, 1fr)" },
-  },
-  card: {
-    minWidth: 0,
-    padding: 8,
-    border: `1px solid ${token.colorBorderSecondary}`,
-    borderRadius: token.borderRadiusSM,
-    "& > button": { background: token.colorFillTertiary, fontWeight: 600 },
-    "& > p": { margin: "8px 0 0", color: token.colorText },
-  },
-}));
 
 export interface VisibleEnableBlockReadOnly {
   visible: boolean;
@@ -141,7 +116,7 @@ interface PublishFlowDialogProps extends DefaultPublishFlowDialogProps {
 
 function PublishFlowDialog(props: PublishFlowDialogProps) {
   const { t } = useI18n();
-  const { styles: actionStyles } = usePublishActionStyles();
+
   const {
     appCtx,
     project,

@@ -1,49 +1,11 @@
+import layout from "../ui/ProjectBrowser.module.less";
+import styles from "./ContentSkeletons.module.less";
+import { cx } from "@/wab/shared/common";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
-import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { Flex, Skeleton } from "antd";
 import { FolderOutlined } from "@ant-design/icons";
-import { createStyles } from "antd-style";
 import * as React from "react";
-
-const useSkeletonStyles = createStyles(({ token }) => ({
-  card: {
-    cursor: "default",
-    pointerEvents: "none",
-    background: token.colorBgContainer,
-    borderColor: token.colorBorderSecondary,
-  },
-  thumbnail: {
-    background: token.colorFillSecondary,
-  },
-  line: {
-    width: "100%",
-    flex: 1,
-    minWidth: 0,
-    "& .ant-skeleton-input": { width: "100%", height: 14, minWidth: 0 },
-  },
-  row: {
-    display: "flex",
-    alignItems: "center",
-    gap: 16,
-    padding: "12px 0",
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-  },
-  fields: { display: "flex", flexDirection: "column", gap: 20, padding: 24 },
-  chart: {
-    height: 360,
-    display: "flex",
-    alignItems: "flex-end",
-    gap: "4%",
-    padding: "24px 32px",
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-  },
-  bar: {
-    flex: 1,
-    background: token.colorFillSecondary,
-    borderRadius: "6px 6px 0 0",
-  },
-}));
 
 export function PillSkeleton({
   width = 112,
@@ -71,8 +33,7 @@ export function ProjectCardsSkeleton({
   label?: string;
 }) {
   const { t } = useI18n();
-  const { styles: layout, cx } = useProjectBrowserStyles();
-  const { styles } = useSkeletonStyles();
+
   return (
     <div
       className={cx(layout.grid, view === "list" && layout.list)}
@@ -135,7 +96,7 @@ export function RowsSkeleton({
   rows?: number;
   avatar?: boolean;
 }) {
-  const { styles } = useSkeletonStyles();
+
   return (
     <div aria-hidden="true">
       {Array.from({ length: rows }, (_, key) => (
@@ -155,7 +116,7 @@ export function RowsSkeleton({
 }
 
 export function FormSkeleton({ labels }: { labels?: string[] }) {
-  const { styles } = useSkeletonStyles();
+
   return (
     <div className={styles.fields}>
       {(labels ?? [undefined, undefined, undefined]).map((label, key) => (
@@ -178,7 +139,7 @@ export function FormSkeleton({ labels }: { labels?: string[] }) {
 }
 
 export function ChartSkeleton() {
-  const { styles } = useSkeletonStyles();
+
   return (
     <div className={styles.chart} aria-hidden="true">
       {[40, 65, 50, 80, 60, 90].map((height, key) => (

@@ -1,80 +1,16 @@
+import styles from "./CanvasViewControls.module.less";
+import { cx } from "@/wab/shared/common";
 import { useActiveContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
 import { ZoomButton } from "@/wab/client/components/top-bar/ZoomButton";
-import { editorCanvasControlsLayout } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { Button, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import { ok } from "neverthrow";
 import * as React from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  root: {
-    position: "absolute",
-    right: editorCanvasControlsLayout.edgeInset,
-    bottom: editorCanvasControlsLayout.edgeInset,
-    zIndex: 30,
-    width: 240,
-    display: "flex",
-    alignItems: "center",
-    gap: 2,
-    height: editorCanvasControlsLayout.height,
-    boxSizing: "border-box",
-    padding: 3,
-    borderRadius: editorCanvasControlsLayout.height / 2,
-    background: token.colorBgContainer,
-    border: `1px solid ${token.colorBorder}`,
-    boxShadow: token.boxShadowSecondary,
-    color: token.colorText,
-    "& button[aria-expanded=true]": {
-      background: token.colorFillSecondary,
-    },
-    "& button:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: 2,
-    },
-    "& svg": {
-      width: 16,
-      height: 16,
-      fill: "none",
-      stroke: "currentColor",
-      strokeWidth: 1.6,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    },
-  },
-  action: {
-    "&.ant-btn": {
-      flexShrink: 0,
-      minWidth: 28,
-      height: 28,
-      padding: 0,
-      // Match Antd's hover border so its transition cannot flash currentColor.
-      border: "1px solid transparent",
-      borderRadius: 14,
-      boxShadow: "none",
-      "&.ant-btn-icon-only": { width: 28 },
-    },
-  },
-  pressed: {
-    // Outrank Antd's text-button hover rule so the pressed state stays visible.
-    "&.ant-btn.ant-btn, &.ant-btn.ant-btn:not(:disabled):hover": {
-      color: token.colorPrimary,
-      background: token.colorPrimaryBg,
-    },
-  },
-  separator: {
-    flexShrink: 0,
-    width: 1,
-    height: 14,
-    marginInline: 3,
-    background: token.colorBorder,
-  },
-}));
 export const CanvasViewControls = React.memo(function CanvasViewControls({
   studioCtx,
 }: {
@@ -91,7 +27,7 @@ export const CanvasViewControls = React.memo(function CanvasViewControls({
     (state) => state.frames.length === 0,
   );
   const { t } = useI18n();
-  const { styles, cx } = useStyles();
+
   const [interactive, fullPageHeight] = useStudioRenderPolicy(
     studioCtx,
     useShallow((state) => [state.interactive, state.fullPageHeight] as const),

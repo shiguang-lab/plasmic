@@ -1,3 +1,4 @@
+import popupStyles from "../ui/EditorPopup.module.less";
 import { useTopBarInputs } from "@/wab/client/components/top-bar/top-bar-inputs";
 import { useStore } from "zustand";
 import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
@@ -7,7 +8,6 @@ import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/v
 import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
 import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
 import { EditorBrandGroup } from "@/wab/client/components/top-bar/EditorBrandGroup";
-import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 
@@ -72,7 +72,7 @@ interface TopBarProps {
 function TopBarContent({ preview }: TopBarProps) {
   const { t } = useI18n();
   const { token } = AntdTheme.useToken();
-  const { styles: popupStyles } = useEditorPopupStyles();
+
   const studioCtx = useStudioCtx();
   const publishedTemplate = !!studioCtx.siteInfo.publishedTemplateVersion;
   useTopBarInputs(studioCtx, !!preview);
@@ -437,7 +437,6 @@ function TopBarContent({ preview }: TopBarProps) {
   const previewArtboards = previewCtx.studioCtx.site.components.filter((c) =>
     isFrameComponent(c),
   );
-
 
   return (
     <>

@@ -1,5 +1,5 @@
+import styles from "./CmsLayout.module.less";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import { CmsLoadingShell } from "@/wab/client/components/cms/CmsLoading";
 import { useCmsDatabase } from "@/wab/client/components/cms/cms-contexts";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
@@ -23,7 +23,7 @@ export interface CmsRootProps extends DefaultCmsRootProps {
 function CmsRoot_(props: CmsRootProps, ref: HTMLElementRefOf<"div">) {
   const { databaseId, ...rest } = props;
   const { t } = useI18n();
-  const { styles } = useCmsLayoutStyles();
+
   const { database, error, mutate } = useCmsDatabase(databaseId);
   useErrorMessage(error, "Failed to load content library");
   if (!database) {

@@ -1,3 +1,4 @@
+import styles from "./CmsLayout.module.less";
 import {
   CmsDetailsLayout,
   CmsModelDetailsLayout,
@@ -8,7 +9,6 @@ import {
   renderEntryField,
   renderMaybeLocalizedInput,
 } from "@/wab/client/components/cms/CmsInputs";
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import {
   useCmsDatabase,
   useCmsTable,
@@ -410,7 +410,6 @@ export function CmsModelDetails_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { t: studioUiT } = useI18n();
-  const { styles } = useCmsLayoutStyles();
 
   const api = useApi();
   const match = useMatchedRoute(APP_ROUTES.cmsModelSchema)!;

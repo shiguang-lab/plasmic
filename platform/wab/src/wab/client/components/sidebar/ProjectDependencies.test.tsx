@@ -44,9 +44,6 @@ vi.mock("@/wab/client/contexts/StudioContexts", () => ({ useStudioCtx: () => moc
 vi.mock("@/wab/client/components/studio/add-drawer/AddDrawer", () => ({
   shouldShowHostLessPackage: () => true,
 }));
-vi.mock("@/wab/client/components/ui/layout-styles", () => ({
-  useLibraryPanelStyles: () => ({ styles: { root: "libraries" } }),
-}));
 vi.mock("@/wab/client/components/view-common", () => ({
   Matcher: class {
     constructor(private query: string) {}

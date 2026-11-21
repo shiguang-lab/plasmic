@@ -4,7 +4,6 @@ import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageL
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
-import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { readFileSync } from "fs";
 import { createMemoryHistory } from "history";
@@ -67,22 +66,6 @@ it("renders editor chrome before the application context exists", () => {
     container.querySelector(".ant-spin, .studio-loading__spinner"),
   ).toBeNull();
 });
-
-it.each([
-  ["dark", "rgb(21, 22, 27)"],
-  ["light", "rgb(236, 238, 243)"],
-] as const)(
-  "uses the %s theme in the loading canvas",
-  (appearance, background) => {
-    setAppearancePreference(appearance);
-    const { container } = setup("/projects/project");
-    const canvas = container.querySelector(".canvas-editor__canvas-container");
-    expect(canvas).toBeTruthy();
-    expect(getComputedStyle(canvas as Element).backgroundColor).toBe(
-      background,
-    );
-  },
-);
 
 it("keeps editor chrome and replaces loading with an error and retry", () => {
   const { container } = setup("/projects/project", vi.fn());

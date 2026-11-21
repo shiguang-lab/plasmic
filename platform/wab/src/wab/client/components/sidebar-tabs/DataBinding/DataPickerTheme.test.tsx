@@ -10,23 +10,6 @@ import { theme as AntdTheme } from "antd";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
-// Preserve distinct generated class names, as in the production CSS build.
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPicker.module.css",
-  () => ({
-    default: new Proxy({}, { get: (_target, key) => `picker-${String(key)}` }),
-  }),
-);
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPickerCodeEditorLayout.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => `picker-code-${String(key)}` },
-    ),
-  }),
-);
-
 afterEach(() => {
   cleanup();
   setAppearancePreference("dark");

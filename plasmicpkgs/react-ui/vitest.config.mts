@@ -19,7 +19,7 @@ const aliases = [
   { find: /^@plasmicapp\/data-sources-context$/, replacement: fileURLToPath(new URL("../../packages/data-sources-context/src/index.tsx", import.meta.url)) },
   { find: /^@plasmicapp\/host$/, replacement: fileURLToPath(new URL("../../packages/host/src/index.ts", import.meta.url)) },
   { find: /^@plasmicapp\/query$/, replacement: fileURLToPath(new URL("../../packages/query/src/index.tsx", import.meta.url)) },
-  ...["react", "react-dom", "antd", "antd-style", "@ant-design/icons", "@ant-design/cssinjs", "@testing-library/react", "swr", "dayjs"].map((name) => ({
+  ...["react", "react-dom", "antd", "@ant-design/icons", "@ant-design/cssinjs", "@testing-library/react", "swr", "dayjs"].map((name) => ({
   find: new RegExp(`^${name}(/.*)?$`),
   replacement: path.dirname((name === "@ant-design/cssinjs" ? antdRequire : studioRequire).resolve(`${name}/package.json`)) + "$1",
 })),

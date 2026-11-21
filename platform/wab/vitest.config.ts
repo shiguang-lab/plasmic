@@ -1,14 +1,58 @@
 import { transformAsync } from "@babel/core";
+import { playwright } from "@vitest/browser-playwright";
 import fs from "fs";
 import { isBuiltin } from "module";
 import os from "os";
 import path from "path";
+import commonjs from "vite-plugin-commonjs";
 import { defineConfig, Plugin } from "vitest/config";
 import { reactAriaRuntimeAliases } from "./tools/react-aria-runtime.mjs";
 import {
   reactCompilerInclude,
   reactCompilerOptions,
 } from "./tools/react-compiler.mjs";
+
+// Vite's ICSS loader normally reads referenced Sass files as plain CSS.
+const SassModuleLoader =
+  require("postcss-modules/build/FileSystemLoader").default;
+const {
+  compileSassModule,
+} = require("./tools/webpack/sass-module-reference.cjs");
+class StyleModuleLoader extends SassModuleLoader {
+  constructor(...args: unknown[]) {
+    super(...args);
+    this.fs = {
+      readFile(
+        file: string,
+        encoding: BufferEncoding,
+        done: (err: Error | null, css?: string) => void,
+      ) {
+        if (/\.s[ac]ss$/.test(file)) {
+          compileSassModule(file).then(
+            (result: { css: string }) => done(null, result.css),
+            done,
+          );
+        } else {
+          fs.readFile(file, encoding, done);
+        }
+      },
+    };
+  }
+}
+
+// Vite forwards the additional Loader option to postcss-modules.
+const cssModules = { scopeBehaviour: "local" as const, Loader: StyleModuleLoader };
+
+const themeTests = [
+  "src/wab/client/components/canvas/CanvasContentEditorControls.test.tsx",
+  "src/wab/client/components/top-bar/VariantsComboSelect.test.tsx",
+  "src/wab/client/components/ContextMenu.test.tsx",
+  "src/wab/client/antd-theme.test.tsx",
+  "src/wab/client/product-ui-theme.test.tsx",
+  "src/wab/client/components/QueryBuilder/FilterQueryBuilder.theme.test.tsx",
+  "src/wab/client/components/style-controls/property-controls-theme.test.tsx",
+  "src/wab/client/components/sidebar-tabs/DataBinding/DataPickerTheme.test.tsx",
+];
 
 const srcDir = path.join(__dirname, "src");
 // jsdom makes vite resolve for the browser, which picks npm shims such as
@@ -47,29 +91,15 @@ function webpackLoaderPrefixes(): Plugin {
   };
 }
 
-// Tests never assert on plain stylesheets, so skip preprocessing them
-// entirely. CSS modules are left alone, since tests do assert on their keys.
-function stubStylesheets(): Plugin {
-  return {
-    name: "stub-stylesheets",
-    enforce: "pre",
-    load(id) {
-      const file = id.split("?")[0];
-      return /\.(css|sass|scss|less)$/.test(file) &&
-        !/\.module\.\w+$/.test(file)
-        ? ""
-        : null;
-    },
-  };
-}
-
 function reactCompilerForTests(): Plugin {
   return {
     name: "studio-react-compiler",
     enforce: "pre",
     async transform(code, id) {
       const filename = id.split("?")[0];
-      if (!reactCompilerInclude.test(filename)) { return null; }
+      if (!reactCompilerInclude.test(filename)) {
+        return null;
+      }
       const result = await transformAsync(code, {
         filename,
         babelrc: false,
@@ -87,12 +117,8 @@ function reactCompilerForTests(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [
-    nodeBuiltins(),
-    webpackLoaderPrefixes(),
-    stubStylesheets(),
-    reactCompilerForTests(),
-  ],
+  css: { modules: cssModules },
+  plugins: [webpackLoaderPrefixes(), reactCompilerForTests()],
   server: {
     // The codegen tests compile into a temp dir and import the result.
     fs: {
@@ -108,7 +134,10 @@ export default defineConfig({
     // Studio's dependency tree so every callback uses the renderer's React.
     dedupe: ["react", "react-dom", "swr"],
     alias: [
-      ...Object.entries(reactAriaRuntimeAliases).map(([name, replacement]) => ({ find: new RegExp(`^${name}$`), replacement })),
+      ...Object.entries<string>(reactAriaRuntimeAliases).map(([name, replacement]) => ({
+        find: new RegExp(`^${name}$`),
+        replacement,
+      })),
       {
         find: /^monaco-editor$/,
         replacement: require.resolve("monaco-editor/editor/editor.main.js"),
@@ -159,8 +188,58 @@ export default defineConfig({
     projects: [
       {
         extends: true,
+        plugins: [
+          commonjs({
+            filter: (id) =>
+              id.startsWith(srcDir + "/") && /\.[jt]sx?(\?|$)/.test(id),
+          }),
+        ],
+        optimizeDeps: {
+          include: [
+            "@/wab/client/i18n/locale-resolution.cjs",
+            "@plasmic-shared/resource-cache",
+            "short-uuid",
+            "regexp.execall",
+          ],
+        },
+        define: {
+          global: "globalThis",
+          "process.env": {
+            COMMITHASH: "test",
+            NODE_ENV: "test",
+            PUBLICPATH: "/",
+          },
+        },
+        resolve: {
+          alias: [
+            { find: /^@sentry\/node$/, replacement: "@sentry/browser" },
+            {
+              find: /^(?:node:)?path$/,
+              replacement: require.resolve("path-browserify"),
+            },
+          ],
+        },
+        test: {
+          name: "studio-theme",
+          include: themeTests,
+          setupFiles: ["./src/wab/client/__testonly__/theme-browser.ts"],
+          css: { include: [/.*/], modules: { classNameStrategy: "scoped" } },
+          browser: {
+            enabled: true,
+            screenshotFailures: false,
+            viewport: { width: 1200, height: 800 },
+            provider: playwright(),
+            headless: true,
+            instances: [{ browser: "chromium" }],
+          },
+        },
+      },
+      {
+        extends: true,
+        plugins: [nodeBuiltins()],
         test: {
           name: "server",
+          setupFiles: ["./src/wab/client/__testonly__/setupTests.js"],
           include: [
             "src/wab/server/**/*.{spec,test}.{js,jsx,ts,tsx}",
             "tools/webpack/**/*.{spec,test}.{js,jsx,ts,tsx}",
@@ -170,13 +249,13 @@ export default defineConfig({
       },
       {
         extends: true,
+        plugins: [nodeBuiltins()],
         test: {
           name: "studio",
+          setupFiles: ["./src/wab/client/__testonly__/setupTests.js"],
           // Server and webpack utility tests use the node project above.
-          include: [
-            "src/**/*.{spec,test}.{js,jsx,ts,tsx}",
-          ],
-          exclude: ["src/wab/server/**"],
+          include: ["src/**/*.{spec,test}.{js,jsx,ts,tsx}"],
+          exclude: ["src/wab/server/**", ...themeTests],
           environment: "jsdom",
           // DEVFLAGS.hostUrl is http://localhost in tests; keep the document on
           // the same origin so app-hosting URL checks pass.
@@ -192,13 +271,15 @@ export default defineConfig({
     ],
     globals: true,
     silent: "passed-only",
-    setupFiles: ["./src/wab/client/__testonly__/setupTests.js"],
     coverage: {
       include: ["src/**/*.{js,jsx,ts,tsx}"],
       exclude: ["src/**/*.d.ts"],
     },
     // Generated code asserts on its own CSS module class names.
-    css: { modules: { classNameStrategy: "non-scoped" } },
+    css: {
+      include: [/\.module\.less$/],
+      modules: { classNameStrategy: "non-scoped" },
+    },
     // Modules read these at import time, so they must be set before the test
     // file's imports run, which rules out assigning them in a setup file.
     env: {

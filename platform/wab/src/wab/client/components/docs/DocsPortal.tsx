@@ -1,5 +1,5 @@
+import styles from "./DocsLayout.module.less";
 import { BottomModalsProvider } from "@/wab/client/components/BottomModal";
-import { useDocsLayoutStyles } from "@/wab/client/components/docs/DocsLayout.styles";
 import DocsPortalBranches from "@/wab/client/components/docs/DocsPortalBranches";
 import {
   DocsPortalCtx,
@@ -25,7 +25,7 @@ interface DocsPortalProps {
 
 function DocsPortal(props: DocsPortalProps) {
   const { studioCtx } = props;
-  const { styles } = useDocsLayoutStyles();
+
   const history = useHistory();
   const [docsCtx] = useState(() => new DocsPortalCtx(studioCtx));
   const projectName = useStore(studioCtx.projectMetadataStore, (state) => state.name);

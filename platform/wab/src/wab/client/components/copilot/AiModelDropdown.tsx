@@ -1,40 +1,10 @@
+import styles from "./AiModelDropdown.module.less";
 import { useI18n } from "@/wab/client/i18n";
 import type { LocalAiModel } from "@/wab/shared/copilot/local-edit";
 import { DownOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Dropdown } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  model: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "2px 4px",
-    minHeight: 24,
-    border: 0,
-    borderRadius: token.borderRadiusSM,
-    background: "transparent",
-    color: token.colorTextSecondary,
-    fontSize: 11,
-    fontFamily: "inherit",
-    lineHeight: "20px",
-    cursor: "pointer",
-    flexShrink: 1,
-    minWidth: 0,
-    "&:hover:not(:disabled)": { color: token.colorText },
-    "&:disabled": { cursor: "not-allowed", color: token.colorTextDisabled },
-    "& > .anticon": { flexShrink: 0, fontSize: 10 },
-  },
-  name: {
-    minWidth: 0,
-    overflowWrap: "anywhere",
-    whiteSpace: "normal",
-    textAlign: "left",
-  },
-  menu: { maxWidth: "calc(100vw - 16px)" },
-}));
 
 export function AiModelDropdown({
   models,
@@ -50,7 +20,7 @@ export function AiModelDropdown({
   onOpen?: () => void;
 }) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const viewport = React.useRef<HTMLElement>(null);
   const [open, setOpen] = React.useState(false);
   return (

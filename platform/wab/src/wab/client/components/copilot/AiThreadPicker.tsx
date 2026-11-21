@@ -1,3 +1,4 @@
+import styles from "./AiThreadPicker.module.less";
 import { useAiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
@@ -20,98 +21,7 @@ import {
   Tag,
   Tooltip,
 } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  bar: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    minWidth: 0,
-    width: "100%",
-    minHeight: 28,
-    "& .ant-btn": { height: 24, paddingInline: 4, fontSize: 12 },
-    "& > .ant-btn": { flexShrink: 0, color: token.colorTextSecondary },
-    "& .ant-btn:not(:disabled):not(.ant-btn-disabled):hover": {
-      background: "transparent",
-    },
-  },
-  current: {
-    display: "flex",
-    alignItems: "center",
-    flex: 1,
-    minWidth: 0,
-    "& > .ant-btn": { minWidth: 0, textAlign: "left" },
-    "& .anticon-down": { fontSize: 10 },
-    "& .ant-btn > span:not(.anticon)": {
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-    },
-  },
-  title: {
-    flex: "0 1 auto",
-    minWidth: 0,
-    maxWidth: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 6,
-  },
-  popup: {
-    width: 320,
-    maxWidth: "calc(100vw - 32px)",
-    minWidth: 0,
-    color: token.colorText,
-    background: token.colorBgElevated,
-  },
-  filters: { display: "flex", alignItems: "center", gap: 4, margin: "8px 0" },
-  list: { maxHeight: "min(340px, calc(100vh - 220px))", minHeight: 64 },
-  row: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    borderRadius: token.borderRadius,
-    "&[data-selected=true]": { background: token.colorFillSecondary },
-  },
-  entry: {
-    flex: 1,
-    minWidth: 0,
-    textAlign: "left",
-    border: 0,
-    background: "transparent",
-    color: "inherit",
-    cursor: "pointer",
-    borderRadius: token.borderRadius,
-    padding: "9px 8px",
-    font: "inherit",
-    "&:hover": { background: token.colorFillTertiary },
-  },
-  line: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    fontSize: 12,
-    minWidth: 0,
-  },
-  name: {
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    flex: 1,
-  },
-  secondary: {
-    color: token.colorTextSecondary,
-    fontSize: 11,
-    marginTop: 3,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  date: { flexShrink: 0, color: token.colorTextTertiary, fontSize: 11 },
-  more: { width: "100%", marginTop: 8 },
-}));
 
 /** The same picker controls the top-frame composer and the assistant panel. */
 export function AiThreadPicker({
@@ -129,7 +39,7 @@ export function AiThreadPicker({
 }) {
   const { t, locale } = useI18n();
   const view = useAiSessionSnapshot(session);
-  const { styles } = useStyles();
+
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [archived, setArchived] = React.useState(false);

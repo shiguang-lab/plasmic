@@ -1,5 +1,6 @@
+import styles from "./CmsLayout.module.less";
+import { cx } from "@/wab/shared/common";
 import { PublicLink } from "@/wab/client/components/PublicLink";
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import { useCmsDatabase } from "@/wab/client/components/cms/cms-contexts";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
@@ -31,7 +32,7 @@ export const CmsNavigation = React.forwardRef<
   { className, activeTab, contentHref, schemaHref, settingsHref, hideSettings },
   ref,
 ) {
-  const { styles, cx } = useCmsLayoutStyles();
+
   const { t } = useI18n();
   return (
     <nav

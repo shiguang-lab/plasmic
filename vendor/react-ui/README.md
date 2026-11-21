@@ -20,7 +20,7 @@ because the current App uses Antd 6, which supplies styles through CSS-in-JS.
 ES module imports include file extensions for bundling.
 ResourceAuthorization uses Antd 6's drawer `size` internally while retaining its
 public `width` prop. Its body retains the component library's native Drawer
-scrolling. `antd-style` supplies its existing token-based styles.
+scrolling. Its Less CSS module follows the current Ant Design theme through CSS variables.
 
 ResourceAuthorization requests resolve the host's `window.$$request` at call time. The private
 `@lattebank/webadmin-http` fallback is removed; the host must inject an instance

@@ -1,13 +1,14 @@
+import projectBrowserStyles from "../ui/ProjectBrowser.module.less";
+import members from "./Members.module.less";
+import { cx } from "@/wab/shared/common";
 import ProjectsFilter from "@/wab/client/components/dashboard/ProjectsFilter";
 import { CmsDatabasesSkeleton, TeamMembersSkeleton, WorkspaceDataSourcesSkeleton } from "@/wab/client/components/dashboard/DashboardSkeletons";
-import { useMembersStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import { useProjectsFilter } from "@/wab/client/hooks/useProjectsFilter";
 import { Redirect } from "@/wab/client/route/Redirect";
 import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectButton";
 import { WorkspaceTabs } from "@/wab/client/components/dashboard/WorkspaceTabs";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import SettingsContainer from "@/wab/client/components/pages/plasmic/SettingsContainer";
-import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import {
   PillSkeleton,
   ProjectCardsSkeleton,
@@ -94,7 +95,7 @@ export function WorkspacePageLoading({
 }) {
   const { hash } = useLocation();
   const history = useHistory();
-  const { styles } = useProjectBrowserStyles();
+
   const { t } = useI18n();
   const appCtx = React.useContext(AppCtxContext);
   const tab =
@@ -116,7 +117,7 @@ export function WorkspacePageLoading({
           </Flex>
         }
       >
-        <div className={styles.workspaceContent}>
+        <div className={projectBrowserStyles.workspaceContent}>
           {tab === "projects" ? <ProjectCardsSkeleton /> : <WorkspaceDataSourcesSkeleton />}
         </div>
       </WorkspaceTabs>
@@ -173,7 +174,7 @@ export function WorkspacePageLoading({
 
 export function TeamSettingsLoading({ name }: { name?: string }) {
   const { t } = useI18n();
-  const { styles: members, cx } = useMembersStyles();
+
   return (
     <PlasmicTeamSettings
       teamName={name ?? <Skeleton.Input active size="small" style={{ width: 180, minWidth: 0, height: 16 }} />}
@@ -272,7 +273,7 @@ export function DashboardPageLoading() {
   const { pathname } = useLocation();
   const appCtx = React.useContext(AppCtxContext);
   const { t } = useI18n();
-  const { styles } = useProjectBrowserStyles();
+
   const workspaceId = APP_ROUTES.workspace.parse(pathname)?.workspaceId;
   const teamId =
     APP_ROUTES.orgSettings.parse(pathname)?.teamId ??
@@ -381,11 +382,11 @@ export function DashboardPageLoading() {
     );
   }
   return (
-    <section className={styles.root}>
-      <div className={styles.toolbar}>
+    <section className={projectBrowserStyles.root}>
+      <div className={projectBrowserStyles.toolbar}>
         <LoadingProjectFilters allWorkspaces />
       </div>
-      <div className={styles.workspaceContent}>
+      <div className={projectBrowserStyles.workspaceContent}>
         <ProjectGroupsSkeleton />
       </div>
     </section>

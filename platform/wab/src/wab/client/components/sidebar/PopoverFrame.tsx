@@ -1,9 +1,10 @@
+import { useStudioThemeClass } from "@/wab/client/studio-theme-class";
+import themeStyles from "../../product-ui-theme.module.less";
 import { PropValuePath } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import PlasmicPopoverFrame from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicPopoverFrame";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { zIndex } from "@/wab/client/z-index";
-import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
 import { arrayReversed } from "@/wab/shared/collections";
 import { cx, ensure } from "@/wab/shared/common";
@@ -15,7 +16,6 @@ import { OverlayProvider, useOverlay, useOverlayPosition } from "react-aria";
 import ReactDOM from "react-dom";
 import { animated, useSpring } from "@react-spring/web";
 import ResizeObserver from "resize-observer-polyfill";
-import { theme } from "antd";
 
 interface Store {
   state: PopoverFrameState;
@@ -270,8 +270,8 @@ function PopoverFrameInternal(props: PopoverFrameProps & { frameId: string }) {
 }
 
 function PopoverFrameShell() {
-  const { token } = theme.useToken();
-  const { styles: themeStyles } = useProductThemeStyles(token);
+  const tokenClass = useStudioThemeClass();
+
   const popupRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLElement | null>(null);
   const { state, dispatch } = usePopoverFrameContext();
@@ -382,7 +382,7 @@ function PopoverFrameShell() {
   return ReactDOM.createPortal(
     <OverlayProvider>
       <div
-        className={cx("auto-pointer-events", themeStyles.root)}
+        className={cx("auto-pointer-events", themeStyles.root, tokenClass)}
         style={{
           position: "fixed",
           inset: 0,

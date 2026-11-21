@@ -1,3 +1,6 @@
+import productStyles from "../product-ui-theme.module.less";
+import newProjectModalStyles from "./NewProjectModal.module.less";
+import { cx } from "@/wab/shared/common";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
@@ -7,7 +10,6 @@ import {
   useAppCtx,
 } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { ProjectId, WorkspaceId } from "@/wab/shared/ApiSchema";
 import { updateExtraDataJson } from "@/wab/shared/ApiSchemaUtil";
@@ -34,9 +36,7 @@ import {
   Typography,
   theme as AntdTheme,
 } from "antd";
-import { createStyles } from "antd-style";
 import { union, uniqBy } from "lodash";
-     
 import * as React from "react";
 
 interface NewProjectModalProps {
@@ -44,28 +44,13 @@ interface NewProjectModalProps {
   workspaceId?: WorkspaceId;
 }
 
-const useStyles = createStyles(({ token }) => ({
-  templates: { maxHeight: "min(420px, 45vh)", minHeight: 0, padding: 2 },
-  card: { height: "100%", cursor: "pointer", borderColor: token.colorBorder },
-  selected: {
-    borderColor: token.colorPrimary,
-    background: token.colorPrimaryBg,
-  },
-  image: {
-    width: "100%",
-    height: 110,
-    objectFit: "cover",
-    borderRadius: token.borderRadius,
-  },
-}));
-
 const NewProjectModal = function NewProjectModal({
   workspaceId,
   onCancel,
 }: NewProjectModalProps) {
   useTrackOpenModal(true);
   const { token } = AntdTheme.useToken();
-  const { styles: productStyles } = useProductThemeStyles(token);
+
   const { t } = useI18n();
   const appCtx = useAppCtx();
   const history = useHistory();
@@ -75,7 +60,7 @@ const NewProjectModal = function NewProjectModal({
     mutate: reloadProjects,
   } = useAllProjectsData();
   useErrorMessage(loadError, "Failed to load projects");
-  const { styles, cx } = useStyles();
+
   const [form] = Form.useForm<{ name: string; workspaceId?: WorkspaceId }>();
   const [startingPoint, setStartingPoint] = React.useState("blank");
   const [selectedTemplate, setSelectedTemplate] =
@@ -308,7 +293,7 @@ const NewProjectModal = function NewProjectModal({
               key: "template",
               label: t("Templates"),
               children: (
-                <Scrollbar scrollX={false} className={styles.templates}>
+                <Scrollbar scrollX={false} className={newProjectModalStyles.templates}>
                   {templates.length === 0 ? (
                     <Empty
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -334,9 +319,9 @@ const NewProjectModal = function NewProjectModal({
                           <Col span={24} key={template.tag}>
                             <Card
                               className={cx(
-                                styles.card,
+                                newProjectModalStyles.card,
                                 selectedTemplate?.tag === template.tag &&
-                                  styles.selected,
+                                  newProjectModalStyles.selected,
                               )}
                               onClick={() => {
                                 if (!creating) {
@@ -346,7 +331,7 @@ const NewProjectModal = function NewProjectModal({
                             >
                               {template.imageUrl && (
                                 <img
-                                  className={styles.image}
+                                  className={newProjectModalStyles.image}
                                   src={template.imageUrl}
                                   alt=""
                                 />

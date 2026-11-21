@@ -1,4 +1,5 @@
-import { useQueryBuilderStyles } from "@/wab/client/components/QueryBuilder/QueryBuilder.styles";
+import { useStudioThemeClass } from "@/wab/client/studio-theme-class";
+import styles from "./QueryBuilder.module.less";
 import "@/wab/client/components/QueryBuilder/QueryBuilder.scss";
 import { ActionButton } from "@/wab/client/components/QueryBuilder/Components/ActionButton";
 import { NativeValueEditor } from "@/wab/client/components/QueryBuilder/Components/NativeValueEditor";
@@ -141,13 +142,14 @@ export function FilterQueryBuilder({
   renderValueEditor?: RenderQueryValue;
 }) {
   const { label } = useI18n();
-  const { styles } = useQueryBuilderStyles();
+  const tokenClass = useStudioThemeClass();
+
   const native = React.useMemo(
     () => createQueryBuilderConfig(config, disabled),
     [config, disabled],
   );
   return (
-    <div className={`query-builder-container query-builder ${styles.root}`}>
+    <div className={`query-builder-container query-builder ${styles.root} ${tokenClass}`}>
       <QueryBuilderAntD>
         <QueryBuilderDnD dnd={dnd} canDrop={canMoveFilter}>
           <QueryBuilder

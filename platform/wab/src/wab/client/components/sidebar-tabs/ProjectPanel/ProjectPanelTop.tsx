@@ -1,3 +1,4 @@
+import styles from "./ProjectPanelTop.module.less";
 import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
 import { apiKey } from "@/wab/client/api";
 import { menuSection } from "@/wab/client/components/menu-builder";
@@ -41,45 +42,10 @@ import {
   Tooltip,
   notification,
 } from "antd";
-import { createStyles } from "antd-style";
 import { useStore } from "zustand";
 import React, { useState } from "react";
 import { useDebounce } from "react-use";
 import useSWR, { mutate } from "swr";
-
-const useStyles = createStyles(({ token }) => ({
-  root: { width: "100%", minWidth: 0 },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    marginBottom: 8,
-  },
-  loading: { display: "flex", justifyContent: "center", padding: 32 },
-  list: { maxHeight: "min(400px, 50vh)", minHeight: 0, marginTop: 8 },
-  section: { padding: 8, fontSize: 12, color: token.colorTextSecondary },
-  row: { display: "flex", alignItems: "center", gap: 4 },
-  branch: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    flex: 1,
-    minWidth: 0,
-    height: 36,
-    textAlign: "left",
-    '&[aria-pressed="true"]': {
-      background: token.colorPrimaryBg,
-      color: token.colorPrimaryText,
-    },
-  },
-  name: {
-    flex: 1,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-}));
 
 export const BranchPanelTop = React.forwardRef(BranchPanelTop_);
 
@@ -88,7 +54,7 @@ function BranchPanelTop_(
   outerRef: React.Ref<HTMLDivElement>,
 ) {
   const { t, label } = useI18n();
-  const { styles } = useStyles();
+
   const topFrameApi = useTopFrameApi();
   const studioCtx = useStudioCtx();
   const isLive = useStudioLiveMode(studioCtx);

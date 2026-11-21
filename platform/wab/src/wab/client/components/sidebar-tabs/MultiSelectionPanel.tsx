@@ -1,3 +1,4 @@
+import multiSelectionPanelStyles from "./MultiSelectionPanel.module.less";
 import { InspectorEdit } from "@/wab/client/components/studio/inspector-access";
 import { MultiSelectionInputs } from "@/wab/client/components/sidebar-tabs/multi-selection-inputs";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -24,39 +25,8 @@ import { spawn } from "@/wab/shared/common";
 import { PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Typography } from "antd";
-import { createStyles } from "antd-style";
 import React from "react";
 import { useStore } from "zustand";
-
-export const useMultiSelectionStyles = createStyles(({ token }) => ({
-  root: { flex: 1, minHeight: 0, color: token.colorText },
-  section: {
-    padding: 16,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-  },
-  heading: { fontSize: 12, fontWeight: 600, margin: "0 0 12px" },
-  bounds: { display: "flex", gap: 24, fontVariantNumeric: "tabular-nums" },
-  row: {
-    display: "grid",
-    gridTemplateColumns: "88px minmax(0, 1fr) 24px",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 12,
-  },
-  control: { minWidth: 0, "& > *": { width: "100%" } },
-  layers: {
-    margin: "12px 0 0",
-    padding: 0,
-    listStyle: "none",
-    "& li": {
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-      padding: "4px 0",
-      color: token.colorTextSecondary,
-    },
-  },
-}));
 
 export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
   viewCtx,
@@ -68,7 +38,7 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
   const permissions = useStore(viewCtx.studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
   const { t } = useI18n();
   const panelId = React.useId();
-  const { styles } = useMultiSelectionStyles();
+
   const bounds = useSelectionBounds(viewCtx);
   const canEditProject = useStore(
     viewCtx.studioCtx.uiEnvironment.store,
@@ -120,7 +90,7 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
         const opacity = prop === "opacity";
         return (
           <div
-            className={styles.row}
+            className={multiSelectionPanelStyles.row}
             key={prop}
             data-multi-selection-prop={prop}
             role="group"
@@ -132,7 +102,7 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
             >
               {caption}
             </label>
-            <div className={styles.control}>
+            <div className={multiSelectionPanelStyles.control}>
               {prop === "color" ? (
                 <>
                   {mixed && (
@@ -207,17 +177,17 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
       <SidebarModalProvider containerSelector=".multi-selection-panel">
         <Scrollbar
           scrollX={false}
-          className={`${styles.root} multi-selection-panel studio-scrollbar`}
+          className={`${multiSelectionPanelStyles.root} multi-selection-panel studio-scrollbar`}
         >
-          <section className={styles.section}>
-            <h3 className={styles.heading}>{t("Selection bounds")}</h3>
+          <section className={multiSelectionPanelStyles.section}>
+            <h3 className={multiSelectionPanelStyles.heading}>{t("Selection bounds")}</h3>
             {bounds && (
-              <div className={styles.bounds}>
+              <div className={multiSelectionPanelStyles.bounds}>
                 <span>W {Math.round(bounds.width())}</span>
                 <span>H {Math.round(bounds.height())}</span>
               </div>
             )}
-            <ul className={styles.layers}>
+            <ul className={multiSelectionPanelStyles.layers}>
               {providers.map((provider, index) => {
                 const tpl = provider.tpl, name = snapshot.names[index];
                 return (
@@ -229,7 +199,7 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
             </ul>
           </section>
           {providers.length > 0 && boxState.capabilities.visible && (
-            <section className={styles.section}>
+            <section className={multiSelectionPanelStyles.section}>
               <BoxGeometryCard
                 expsProvider={providers[0]}
                 multiTarget={boxState}
@@ -245,8 +215,8 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
                 (field) =>
                   field.supported && ["width", "height"].includes(field.prop),
               ) && (
-                <section className={styles.section} data-test-id="size-section">
-                  <h3 className={styles.heading}>{t("Size")}</h3>
+                <section className={multiSelectionPanelStyles.section} data-test-id="size-section">
+                  <h3 className={multiSelectionPanelStyles.heading}>{t("Size")}</h3>
                   {renderFields(["width", "height"])}
                 </section>
               )}
@@ -255,8 +225,8 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
                   field.supported &&
                   ["opacity", "border-radius"].includes(field.prop),
               ) && (
-                <section className={styles.section}>
-                  <h3 className={styles.heading}>{t("Appearance")}</h3>
+                <section className={multiSelectionPanelStyles.section}>
+                  <h3 className={multiSelectionPanelStyles.heading}>{t("Appearance")}</h3>
                   {renderFields(["opacity", "border-radius"])}
                 </section>
               )}
@@ -265,19 +235,19 @@ export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
                   field.supported &&
                   ["font-size", "color"].includes(field.prop),
               ) && (
-                <section className={styles.section}>
-                  <h3 className={styles.heading}>{t("Typography")}</h3>
+                <section className={multiSelectionPanelStyles.section}>
+                  <h3 className={multiSelectionPanelStyles.heading}>{t("Typography")}</h3>
                   {renderFields(["font-size", "color"])}
                 </section>
               )}
-              <section className={styles.section}>
+              <section className={multiSelectionPanelStyles.section}>
                 <Typography.Text type="secondary">
                   {t("Changes apply to all selected layers.")}
                 </Typography.Text>
               </section>
             </>
           ) : (
-            <section className={styles.section}>
+            <section className={multiSelectionPanelStyles.section}>
               <Typography.Text type="secondary">
                 {t("These layers have no shared editable styles.")}
               </Typography.Text>

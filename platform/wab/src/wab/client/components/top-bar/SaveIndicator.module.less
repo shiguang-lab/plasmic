@@ -1,0 +1,54 @@
+.root {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+  &[data-save-state='error'], &[data-save-state='blocked'] {
+    color: var(--ant-color-error);
+  }
+  &[data-save-state='pending'], &[data-save-state='unlogged'] {
+    color: var(--ant-color-warning);
+  }
+  &[data-save-state='saved'] {
+    color: var(--ant-color-success);
+  }
+  & :global(.save-indicator-dot) {
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  &[data-save-state='saving'] {
+    color: var(--ant-color-primary);
+  }
+  &[data-save-state='local'], &[data-save-state='conflict'] {
+    color: var(--ant-color-warning);
+  }
+  &[data-save-state='synced'] {
+    color: var(--ant-color-success);
+  }
+  & :global(.save-indicator-content) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    width: auto;
+    height: 28px;
+    padding: 0 2px;
+  }
+  & :global(.ant-btn) {
+    color: inherit;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    min-width: 0;
+    width: auto;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

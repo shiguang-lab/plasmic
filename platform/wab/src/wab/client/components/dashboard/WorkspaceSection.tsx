@@ -1,3 +1,5 @@
+import styles from "../ui/ProjectBrowser.module.less";
+import { cx } from "@/wab/shared/common";
 import {
   promptNewDatabase,
   WorkspaceMenu,
@@ -16,7 +18,6 @@ import { DataSourceModal } from "@/wab/client/components/modals/DataSourceModal"
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
-import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
@@ -86,7 +87,7 @@ function WorkspaceSection_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { t } = useI18n();
-  const { styles, cx } = useProjectBrowserStyles();
+
   const [projectView, setProjectView] = React.useState("grid");
   const appCtx = useAppCtx();
 

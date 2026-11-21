@@ -1,3 +1,4 @@
+import styles from "./AiResponse.module.less";
 import { AiExecutionProgress } from "@/wab/client/components/copilot/AiExecutionProgress";
 import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
@@ -8,20 +9,7 @@ import type {
   AiTask,
   EditRecord,
 } from "@/wab/shared/copilot/ai-chat";
-import { createStyles } from "antd-style";
 import React from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  answer: { minWidth: 0 },
-  heading: { fontSize: 11, color: token.colorTextTertiary, marginBottom: 8 },
-  note: { margin: 0, fontSize: 11, color: token.colorTextSecondary },
-  separator: {
-    margin: 0,
-    border: 0,
-    borderTop: `1px solid ${token.colorBorderSecondary}`,
-    width: "100%",
-  },
-}));
 
 /** Render the server's channel and event order without classifying model text. */
 export function aiResponseSections(task: AiTask) {
@@ -65,7 +53,7 @@ export function AiResponse({
   lastRecord?: EditRecord;
 }) {
   const { t, label } = useI18n();
-  const { styles } = useStyles();
+
   const sections = aiResponseSections(task);
   const nodes = [
     ...(task.nodes ?? []),

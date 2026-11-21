@@ -1,3 +1,5 @@
+import styles from "./PreviewTopBar.module.less";
+import { cx } from "@/wab/shared/common";
 import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
@@ -20,11 +22,9 @@ import {
   Segmented,
   Tooltip,
 } from "antd";
-import { createStyles } from "antd-style";
 import React, { useState } from "react";
 import { useStore } from "zustand";
 import { MdScreenRotation } from "react-icons/md";
-
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { getDeviceFrame } from "@/wab/client/components/device-frame/device-frame";
 import {
@@ -35,7 +35,6 @@ import {
 import { usePreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import VariantsComboSelect from "@/wab/client/components/top-bar/VariantsComboSelect";
-import { applicationHeaderLayout } from "@/wab/client/components/ui/layout-styles";
 import { Icon, SvgIcon } from "@/wab/client/components/widgets/Icon";
 import { useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
@@ -46,218 +45,12 @@ import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/Plasm
 import { ensure, spawn } from "@/wab/shared/common";
 import { naturalSort } from "@/wab/shared/sort";
 
-const useStyles = createStyles(({ token }) => ({
-  topBar: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
-    alignItems: "center",
-    gap: 12,
-    minHeight: applicationHeaderLayout.height,
-    flexShrink: 0,
-    margin: 8,
-    color: token.colorText,
-    position: "relative",
-    zIndex: 100,
-    "& .ant-btn": {
-      height: applicationHeaderLayout.controlHeight,
-      borderRadius: 8,
-      fontSize: 13,
-    },
-    "& .ant-segmented": { padding: 2, borderRadius: 8 },
-    "& .ant-segmented-item-label": { minHeight: 24, lineHeight: "24px" },
-    "& .ant-segmented-item": { borderRadius: 6 },
-    "& .ant-segmented-item-selected": {
-      background: token.colorPrimary,
-      color: token.colorTextLightSolid,
-    },
-    "@media (max-width: 1280px)": {
-      gridTemplateColumns: "minmax(0, 1fr) auto",
-      gap: 12,
-    },
-    "@media (max-width: 600px)": { columnGap: 8 },
-    "@media (max-width: 420px)": { gridTemplateColumns: "1fr" },
-  },
-  section: {
-    display: "flex",
-    alignItems: "center",
-    minHeight: applicationHeaderLayout.height,
-    minWidth: 0,
-    maxWidth: "100%",
-    boxSizing: "border-box",
-    padding: "6px 8px",
-    background: token.colorBgContainer,
-    border: `1px solid ${token.colorBorder}`,
-    borderRadius: token.borderRadiusLG,
-    boxShadow: token.boxShadowSecondary,
-  },
-  leftGroup: {
-    display: "flex",
-    alignItems: "center",
-    justifySelf: "start",
-    minWidth: 0,
-    maxWidth: "100%",
-    gap: 12,
-  },
-  rightGroup: {
-    display: "flex",
-    alignItems: "center",
-    justifySelf: "end",
-    minWidth: 0,
-    maxWidth: "100%",
-    gap: 12,
-    gridColumn: -2,
-    gridRow: 1,
-    "@media (max-width: 420px)": { gridRow: 2, gridColumn: 1 },
-  },
-  leftSection: {
-    gap: 4,
-    justifySelf: "start",
-    paddingInline: 12,
-    borderRadius: applicationHeaderLayout.height / 2,
-    "@media (max-width: 600px)": { flexWrap: "wrap" },
-  },
-  navigationTrigger: {
-    minWidth: 0,
-    flexShrink: 1,
-    gap: 6,
-    "&&": {
-      height: applicationHeaderLayout.controlHeight,
-      padding: "0 8px",
-      border: 0,
-      "--ant-btn-border-width": "0px",
-      borderRadius: 7,
-      background: "transparent",
-      boxShadow: "none",
-      transitionProperty: "background-color, color",
-      "&:hover, &[aria-expanded=true]": {
-        background: token.colorFillTertiary,
-        color: token.colorText,
-      },
-      "&:focus-visible": {
-        outline: `2px solid ${token.colorPrimary}`,
-        outlineOffset: 2,
-      },
-    },
-  },
-  desktopLeftSection: {
-    "&&": {
-      paddingLeft: 96,
-    },
-  },
-  centerSection: {
-    justifySelf: "center",
-    justifyContent: "center",
-    gap: 12,
-    "@media (max-width: 1280px)": { gridRow: 2, gridColumn: "1 / -1" },
-    "@media (max-width: 600px)": { gap: 8, flexWrap: "wrap" },
-    "@media (max-width: 420px)": { gridRow: 3 },
-  },
-  rightSection: {
-    justifySelf: "end",
-    justifyContent: "flex-end",
-    gap: 4,
-    borderRadius: applicationHeaderLayout.height / 2,
-    flexShrink: 0,
-  },
-  pageLabel: {
-    display: "flex",
-    color: token.colorText,
-    alignItems: "center",
-    gap: 6,
-    minWidth: 0,
-    "& svg": { flexShrink: 0, color: token.colorTextSecondary },
-    "& span": {
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-    },
-  },
-  pageMenu: {
-    width: 300,
-    maxWidth: "calc(100vw - 32px)",
-    maxHeight: "calc(100vh - 120px)",
-    minHeight: 0,
-    padding: 6,
-    borderRadius: token.borderRadiusLG,
-    background: token.colorBgElevated,
-    boxShadow: token.boxShadowSecondary,
-    "& .ant-dropdown-menu": {
-      padding: 0,
-      maxHeight: "none",
-      overflow: "visible",
-      background: "transparent",
-      boxShadow: "none",
-    },
-    "& .ant-dropdown-menu-item-group-title": {
-      padding: "8px 10px",
-      fontSize: 12,
-    },
-    "& .ant-dropdown-menu-item": {
-      padding: "8px 10px",
-      borderRadius: 6,
-      minHeight: 36,
-    },
-    "& .ant-dropdown-menu-item-selected": {
-      background: token.colorPrimaryBg,
-      color: token.colorPrimaryText,
-      fontWeight: 500,
-    },
-  },
-  moreMenuContent: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-    minWidth: 200,
-    padding: 4,
-  },
-  sizeMenu: { width: 280, display: "flex", flexDirection: "column", gap: 4 },
-  sizeOption: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 8,
-    height: 36,
-    textAlign: "left",
-    padding: "0 12px",
-  },
-  selectedSize: {
-    background: token.colorPrimaryBg,
-    color: token.colorPrimaryText,
-  },
-  check: { width: 14, flexShrink: 0 },
-  divider: {
-    borderTop: `1px solid ${token.colorBorderSecondary}`,
-    margin: "8px 0",
-  },
-  customLabel: {
-    fontSize: 12,
-    color: token.colorTextSecondary,
-    margin: "0 8px 8px",
-  },
-  customSizeInputs: {
-    display: "flex",
-    alignItems: "flex-end",
-    gap: 8,
-    padding: "0 8px 8px",
-    "& label": {
-      display: "flex",
-      flexDirection: "column",
-      gap: 6,
-      fontSize: 12,
-      color: token.colorTextSecondary,
-    },
-    "& .ant-input-number": { width: 76, height: 36 },
-    "& .ant-input-number-input": { height: 34 },
-  },
-}));
-
 export function PreviewTopBar({
   dimensions,
 }: {
   dimensions?: { width: number; height: number };
 }) {
-  const { styles, cx } = useStyles();
+
   const { t } = useI18n();
   const topFrameApi = useTopFrameApi();
   const isMacDesktop = navigator.userAgent.includes("PlasmicDesktop/darwin");
@@ -740,7 +533,6 @@ export function PreviewTopBar({
     </div>
   );
 }
-
 
 function PreviewBrand({ className }: { className: string }) {
   const studioCtx = useStudioCtx();

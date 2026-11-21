@@ -1,3 +1,4 @@
+import styles from "./CopilotChatDialog.module.less";
 import { useAiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
@@ -10,7 +11,6 @@ import { AiRunningNotice, AiThreadPicker } from "@/wab/client/components/copilot
 import { AiWelcome } from "@/wab/client/components/copilot/AiWelcome";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
-import { editorPanelHeaderStyle } from "@/wab/client/components/ui/layout-styles";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
 import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
@@ -21,9 +21,7 @@ import type { LocalAiModel, LocalAiStatus } from "@/wab/shared/copilot/local-edi
 import { getPublicUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Button, Image, Skeleton, Spin, Tag } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
-
 import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 
 export interface CopilotChatDialogProps {
@@ -39,83 +37,6 @@ export interface CopilotChatDialogProps {
   readOnly?: boolean;
 }
 
-const useStyles = createStyles(({ token }) => ({
-  panel: {
-    height: "100%",
-    minHeight: 0,
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    background: token.colorBgContainer,
-    color: token.colorText,
-    pointerEvents: "auto",
-    fontSize: 13,
-    fontWeight: 400,
-    lineHeight: 1.6,
-  },
-  header: editorPanelHeaderStyle(token),
-  conversations: { padding: "8px 12px", borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0 },
-  history: { flex: 1, minHeight: 0 },
-  historyContent: {
-    padding: 16,
-    display: "flex",
-    flexDirection: "column",
-    gap: 24,
-  },
-  request: {
-    padding: "10px 12px",
-    borderRadius: token.borderRadiusLG,
-    background: token.colorFillSecondary,
-    whiteSpace: "pre-wrap",
-    overflowWrap: "anywhere",
-    "& p": { margin: 0, fontWeight: 400 },
-  },
-  metadata: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "4px 8px",
-    marginTop: 6,
-    color: token.colorTextTertiary,
-    fontSize: 11,
-  },
-  response: { display: "flex", flexDirection: "column", gap: 12, minWidth: 0 },
-  status: {
-    display: "flex",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 6,
-    color: token.colorTextSecondary,
-    fontSize: 11,
-  },
-  note: {
-    margin: 0,
-    fontSize: 11,
-    lineHeight: 1.6,
-    color: token.colorTextSecondary,
-  },
-  files: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 8,
-    fontSize: 12,
-  },
-  task: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-    minWidth: 0,
-    paddingBottom: 24,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-    "&:last-child": { paddingBottom: 0, borderBottom: 0 },
-  },
-  composer: {
-    padding: 12,
-    flexShrink: 0,
-    borderTop: `1px solid ${token.colorBorderSecondary}`,
-  },
-}));
-
 export function CopilotChatDialog({
   project,
   context,
@@ -129,7 +50,7 @@ export function CopilotChatDialog({
   readOnly = false,
 }: CopilotChatDialogProps) {
   const { t, label, locale } = useI18n();
-  const { styles } = useStyles();
+
   const appCtx = useAppCtx();
   const enabled = appCtx.appConfig.enableLocalAiEditing;
   const view = useAiSessionSnapshot(session);

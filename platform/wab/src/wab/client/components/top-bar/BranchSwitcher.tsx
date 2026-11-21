@@ -1,38 +1,13 @@
+import branchSwitcherStyles from "./BranchSwitcher.module.less";
+import { cx } from "@/wab/shared/common";
 import { BranchPanelTop } from "@/wab/client/components/sidebar-tabs/ProjectPanel/ProjectPanelTop";
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
 import { BranchesOutlined } from "@ant-design/icons";
 import { Button, Popover, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import { useStore } from "zustand";
 import * as React from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  trigger: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    width: "auto",
-    minWidth: 0,
-    height: 28,
-    padding: "0 2px",
-    border: "1px solid transparent",
-    borderRadius: 4,
-    boxShadow: "none",
-    background: "transparent",
-    color: token.colorTextSecondary,
-    "&[aria-expanded='true']": {
-      background: "transparent",
-      color: token.colorPrimaryText,
-    },
-    "&:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: 2,
-    },
-  },
-}));
 
 export interface BranchSwitcherProps {
   className?: string;
@@ -43,7 +18,7 @@ function BranchSwitcher({
 }: BranchSwitcherProps) {
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
-  const { styles, cx } = useStyles();
+
   const currentBranchName = useStore(studioCtx.uiEnvironment.store, (state) => state.branchName);
   const [visible, setVisible] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
@@ -85,7 +60,7 @@ function BranchSwitcher({
           id="branch-nav-button"
           color="primary"
           variant="link"
-          className={cx(styles.trigger, className)}
+          className={cx(branchSwitcherStyles.trigger, className)}
           aria-label={`${t("Branches")}: ${currentBranchName}`}
           aria-expanded={visible}
           onKeyDownCapture={closeOnEscape}

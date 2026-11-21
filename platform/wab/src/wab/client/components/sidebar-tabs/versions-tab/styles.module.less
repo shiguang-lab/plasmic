@@ -1,0 +1,96 @@
+@value header as refHeaderHeader,
+  titleContainer as refHeaderTitleContainer,
+  descriptionContainer as refHeaderDescriptionContainer,
+  alertContainer as refHeaderAlertContainer,
+  slotTargetAlert as refHeaderSlotTargetAlert from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftPaneHeader.module.css";
+@value root as refSeparatorRoot,
+  separatorLine as refSeparatorSeparatorLine,
+  freeBox__i2Yzw as refSeparatorFreeBox__i2Yzw,
+  slotTargetChildren as refSeparatorSlotTargetChildren from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicListSeperator.module.css";
+@value listItemContainer as refItemListItemContainer,
+  listItemContainerisSelected as refItemListItemContainerisSelected,
+  nameAndDate as refItemNameAndDate,
+  userAndDateContainer as refItemUserAndDateContainer from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicVersionsListItem.module.css";
+@import "../../../product-ui-theme.less";
+
+.root {
+  .productPalette();
+  && {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    flex: 1;
+    min-height: 0;
+  }
+  & :global(.refHeaderHeader) {
+    padding: 12px 16px;
+    row-gap: 12px;
+  }
+  & :global(.refHeaderTitleContainer) {
+    display: none;
+  }
+  & :global(.refHeaderDescriptionContainer) {
+    color: var(--ant-color-text-secondary);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  & :global(.refHeaderAlertContainer) {
+    background: var(--ant-color-warning-bg);
+    padding: 10px 12px;
+    border-color: var(--ant-color-warning-border);
+  }
+  & :global(.refHeaderSlotTargetAlert) {
+    color: var(--ant-color-warning-text);
+    font-size: 12px;
+  }
+  & a {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.refSeparatorRoot) {
+    margin: 8px 0;
+  }
+  & :global(.refSeparatorSeparatorLine) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refSeparatorFreeBox__i2Yzw) {
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border-secondary);
+    padding: 0 8px;
+  }
+  & :global(.refSeparatorSlotTargetChildren) {
+    color: var(--ant-color-text-secondary);
+    font-size: 11px;
+  }
+  & :global(.refItemListItemContainer):hover {
+    background: var(--ant-color-fill-tertiary);
+    box-shadow: none;
+  }
+  & :global(.refItemListItemContainerisSelected) {
+    background: var(--ant-color-primary-bg);
+    box-shadow: inset 2px 0 var(--ant-color-primary);
+  }
+  & :global(.refItemNameAndDate) {
+    color: var(--ant-color-text-secondary);
+    font-size: 12px;
+    line-height: 18px;
+  }
+  & :global(.refItemUserAndDateContainer) {
+    min-width: 0;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  & :global(.dimfg) {
+    color: var(--ant-color-text-secondary);
+  }
+}
+
+.search {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  flex-shrink: 0;
+}
+
+.description {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

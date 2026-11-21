@@ -22,7 +22,7 @@ import { BankOutlined, DeleteOutlined, TeamOutlined, UserOutlined } from '@ant-d
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { createResourceAuthorizationApi } from "./api.js";
 import { PolicyCategory } from "./constants.js";
-import { useStyles } from "./style.js";
+import styles from "./ResourceAuthorization.module.less";
 import { getErrorMessage } from "./utils.js";
 import { jsx as _jsx } from "react/jsx-runtime";
 import { jsxs as _jsxs } from "react/jsx-runtime";
@@ -56,9 +56,6 @@ export var Record = function Record(_ref) {
     _ref$width = _ref.width,
     width = _ref$width === void 0 ? 600 : _ref$width;
   var isEditing = useContext(ResourceAuthorizationCanvasContext);
-  var _useStyles = useStyles(),
-    styles = _useStyles.styles,
-    cx = _useStyles.cx;
   var _message$useMessage = _message.useMessage(),
     _message$useMessage2 = _slicedToArray(_message$useMessage, 2),
     messageApi = _message$useMessage2[0],
@@ -251,7 +248,7 @@ export var Record = function Record(_ref) {
         };
         var canDelete = isPersonalizedPolicy(subject.policyCode);
         return /*#__PURE__*/_jsxs("div", {
-          className: cx(styles.subjectItem, type === 'allow' ? styles.allowSubjectItem : styles.denySubjectItem),
+          className: [styles.subjectItem, type === 'allow' ? styles.allowSubjectItem : styles.denySubjectItem].join(' '),
           children: [/*#__PURE__*/_jsx(_Tag, {
             icon: bindInfo.icon,
             color: bindInfo.color,
@@ -307,12 +304,12 @@ export var Record = function Record(_ref) {
             className: styles.actionContent,
             children: [/*#__PURE__*/_jsxs("div", {
               children: [/*#__PURE__*/_jsx("div", {
-                className: cx(styles.actionSectionTitle, styles.allowTitle),
+                className: [styles.actionSectionTitle, styles.allowTitle].join(' '),
                 children: "\u5141\u8BB8\u8BBF\u95EE (\u767D\u540D\u5355)"
               }), renderSubjects(action.allowBindings, 'allow')]
             }), /*#__PURE__*/_jsxs("div", {
               children: [/*#__PURE__*/_jsx("div", {
-                className: cx(styles.actionSectionTitle, styles.denyTitle),
+                className: [styles.actionSectionTitle, styles.denyTitle].join(' '),
                 children: "\u62D2\u7EDD\u8BBF\u95EE (\u9ED1\u540D\u5355)"
               }), renderSubjects(action.denyBindings, 'deny')]
             })]

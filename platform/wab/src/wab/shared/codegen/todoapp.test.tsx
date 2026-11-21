@@ -50,11 +50,11 @@ describe("todo app codegen", () => {
         );
         if (task.done) {
           expect(root.getByTestId(`text-${task.id}`)).toHaveStyle({
-            "text-decoration": "line-through",
+            textDecoration: "line-through",
           });
         } else {
           expect(root.getByTestId(`text-${task.id}`)).toHaveStyle({
-            "text-decoration": "none",
+            textDecoration: "none",
           });
         }
       }

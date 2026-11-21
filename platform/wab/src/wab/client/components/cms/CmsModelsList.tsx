@@ -1,5 +1,6 @@
+import styles from "./CmsLayout.module.less";
+import { cx } from "@/wab/shared/common";
 import ListSection from "@/wab/client/components/ListSection";
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import CmsModelItem from "@/wab/client/components/cms/CmsModelItem";
 import {
   useCmsDatabase,
@@ -43,7 +44,7 @@ export const CmsModelsListLayout = React.forwardRef<
   },
   ref,
 ) {
-  const { styles, cx } = useCmsLayoutStyles();
+
   const { t } = useI18n();
   return (
     <div ref={ref} className={cx(className, styles.models)}>

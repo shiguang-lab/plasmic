@@ -1,3 +1,5 @@
+import styles from "./CommentPostForm.module.less";
+import { cx } from "@/wab/shared/common";
 import { useUserMentions } from "@/wab/client/components/user-mentions/useUserMentions";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { useI18n } from "@/wab/client/i18n";
@@ -5,39 +7,8 @@ import type { DefaultCommentPostFormProps } from "@/wab/client/plasmic/plasmic_k
 import { ArrowUpOutlined } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Flex, Input, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 import { createPortal } from "react-dom";
-
-const useStyles = createStyles(({ token }) => ({
-  root: { minWidth: 0, width: "100%" },
-  input: {
-    border: `1px solid ${token.colorBorder}`,
-    borderRadius: token.borderRadius,
-    background: token.colorFillQuaternary,
-    "&:focus-within": {
-      borderColor: token.colorPrimary,
-      boxShadow: `0 0 0 2px ${token.colorPrimaryBg}`,
-    },
-    "& textarea.ant-input": {
-      overflow: "hidden",
-      resize: "none",
-      border: 0,
-      background: "transparent",
-      boxShadow: "none",
-      padding: "10px 12px",
-      fontSize: 12,
-    },
-  },
-  toolbar: { padding: "4px 8px 8px" },
-  hint: { color: token.colorTextSecondary, fontSize: 11 },
-  footer: {
-    marginTop: 5,
-    textAlign: "right",
-    color: token.colorTextSecondary,
-    fontSize: 11,
-  },
-}));
 
 export type CommentPostFormProps = DefaultCommentPostFormProps & {
   id: string;
@@ -59,7 +30,7 @@ export default function CommentPostForm({
   className,
 }: CommentPostFormProps) {
   const { t } = useI18n();
-  const { styles, cx } = useStyles();
+
   const [value, setValue] = React.useState(defaultValue);
   const [submitting, setSubmitting] = React.useState(false);
   const inputElementId = `comment-post-input-${id}`;

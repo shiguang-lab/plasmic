@@ -1,0 +1,38 @@
+.conversations {
+  margin-bottom: 4px;
+  padding: 0 7px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.threadPicker {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline-start: auto;
+  position: relative;
+  z-index: 1000;
+  mix-blend-mode: difference;
+  color: #fff;
+  & :global(.ant-btn):not(:disabled):not(:global(.ant-btn-disabled)) {
+    color: inherit;
+  }
+  & :global(.ant-btn):disabled {
+    color: inherit;
+    opacity: 0.4;
+  }
+}
+
+.foreground {
+  position: relative;
+  z-index: 1000;
+}
+
+.position {
+  position: absolute;
+  bottom: 8px;
+  left: 52px;
+  right: 180px;
+  margin-inline: auto;
+  width: 530px;
+  max-width: calc(100% - 232px);
+}

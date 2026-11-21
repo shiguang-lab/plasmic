@@ -1,0 +1,30 @@
+@value root as refPublishRoot,
+  freeBox___11T7Q as refPublishFreeBox___11T7Q,
+  addActionsContainer as refPublishAddActionsContainer,
+  freeBox__uIv1 as refPublishFreeBox__uIv1,
+  addWebsitePanel as refPublishAddWebsitePanel,
+  addGithubPanel as refPublishAddGithubPanel,
+  addWebhooksPanel as refPublishAddWebhooksPanel from "@/wab/client/plasmic/plasmic_kit_continuous_deployment/PlasmicPublishFlowDialog.module.css";
+@value slotTargetChildrentype_secondary as refButtonSlotTargetChildrentype_secondary from "@/wab/client/plasmic/PlasmicButton.module.css";
+
+.content {
+  max-height: calc(100vh - 240px);
+  min-height: 0;
+  color: var(--ant-color-text);
+  & :global(.refPublishRoot) {
+    width: 100%;
+    background: var(--ant-color-bg-container);
+    border: 0;
+    border-radius: 0;
+  }
+  & :global(.refPublishFreeBox___11T7Q) {
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.refPublishAddActionsContainer), & :global(.refPublishFreeBox__uIv1), & :global(.refPublishAddWebsitePanel), & :global(.refPublishAddGithubPanel), & :global(.refPublishAddWebhooksPanel) {
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refButtonSlotTargetChildrentype_secondary) {
+    color: var(--ant-color-text);
+  }
+}

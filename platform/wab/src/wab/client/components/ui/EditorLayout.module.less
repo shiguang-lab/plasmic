@@ -1,0 +1,1206 @@
+@value root as refButtonRoot,
+  slotTargetChildrentype_secondary as refButtonSlotTargetChildrentype_secondary,
+  freeBox as refButtonFreeBox,
+  startIconContainer as refButtonStartIconContainer,
+  endIconContainer as refButtonEndIconContainer,
+  slotTargetChildrentype_primary as refButtonSlotTargetChildrentype_primary from "@/wab/client/plasmic/PlasmicButton.module.css";
+@value headerTitle as refSidebarSectionHeaderTitle,
+  headerTitleActive as refSidebarSectionHeaderTitleActive,
+  headerRoot as refSidebarSectionHeaderRoot,
+  root as refSidebarSectionRoot,
+  bodyNoHeaderSymmetric as refSidebarSectionBodyNoHeaderSymmetric,
+  collapsingToggle as refSidebarSectionCollapsingToggle,
+  collapsingToggle_sticky as refSidebarSectionCollapsingToggle_sticky,
+  collapsingToggleLabel as refSidebarSectionCollapsingToggleLabel from "@/wab/client/components/sidebar/SidebarSection.module.scss";
+@value slotTargetChildrencolor_purple as refTextboxLikeSlotTargetChildrencolor_purple,
+  controlContainercolor_purple as refTextboxLikeControlContainercolor_purple from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicTextboxLike.module.css";
+@value root as refTopBarRoot,
+  left as refTopBarLeft,
+  right as refTopBarRight,
+  freeBox___7MgoJ as refTopBarFreeBox___7MgoJ,
+  titleSegment as refTopBarTitleSegment,
+  saveIndicator as refTopBarSaveIndicator,
+  projectTitle as refTopBarProjectTitle from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar.module.css";
+@value actionButton as refActionButtonActionButton,
+  menuButton as refActionButtonMenuButton,
+  slotTargetChildrentype_primary as refActionButtonSlotTargetChildrentype_primary from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicActionMenuButton.module.css";
+@value slotTargetChildren as refIconButtonSlotTargetChildren from "@/wab/client/plasmic/PlasmicIconButton.module.css";
+@value root as refPanelTextboxRoot,
+  textbox as refPanelTextboxTextbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css";
+@value root as refLabeledListItemRoot,
+  actionsContainer as refLabeledListItemActionsContainer,
+  actionsContainerlayout_vertical as refLabeledListItemActionsContainerlayout_vertical,
+  rootpadding_noHorizontal as refLabeledListItemRootpadding_noHorizontal from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicLabeledListItem.module.css";
+@value contentRoot as refResponsivenessPanelContentRoot,
+  deleteIconCol as refResponsivenessPanelDeleteIconCol,
+  warningIconCustomVariant as refResponsivenessPanelWarningIconCustomVariant,
+  warningIconBaseVariant as refResponsivenessPanelWarningIconBaseVariant from "@/wab/client/components/sidebar-tabs/ResponsivenessPanel/ResponsivenessPanel.module.scss";
+@value searchInputContainer as refNavigationSearchSearchInputContainer,
+  searchInput as refNavigationSearchSearchInput,
+  svg as refNavigationSearchSvg,
+  clearFieldIcon as refNavigationSearchClearFieldIcon from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicSearchInput.module.css";
+@value freeBox as refRowItemFreeBox,
+  root as refRowItemRoot,
+  menuButton as refRowItemMenuButton from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicRowItem.module.css";
+@value root as refLeftPaneRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftPane.module.css";
+@value freeBox__s2Zn2 as refLeftTabStripFreeBox__s2Zn2,
+  freeBox___5Ah7Y as refLeftTabStripFreeBox___5Ah7Y from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip.module.css";
+@value root as refLeftTabButtonRoot,
+  slotTargetIcon as refLeftTabButtonSlotTargetIcon from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabButton.module.css";
+@value root as refFontsPanelRoot from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftFontsPanel.module.css";
+@value root as refImagesPanelRoot from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftImagesPanel.module.css";
+@value root as refMixinsPanelRoot from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftMixinsPanel.module.css";
+@value root as refVersionsPanelRoot from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftVersionsPanel.module.css";
+@value root as refTokensPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftGeneralTokensPanel.module.css";
+@value root as refDataTokensPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftGeneralDataTokensPanel.module.css";
+@value root as refComponentsPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftComponentsPanel.module.css";
+@value root as refExpressionsPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftExprsSearchPanel.module.css";
+@value root as refThemesPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel.module.css";
+@value root as refSplitsPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftSplitsPanel.module.css";
+@value root as refIssuesPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftLintIssuesPanel.module.css";
+@value root as refAnimationsPanelRoot from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftAnimationSequencesPanel.module.css";
+@value header as refPanelHeaderHeader,
+  descriptionContainer as refPanelHeaderDescriptionContainer,
+  slotTargetTitle as refPanelHeaderSlotTargetTitle from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftPaneHeader.module.css";
+@value searchPanel as refSearchPanelSearchPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftSearchPanel.module.css";
+@import "../../product-ui-theme.less";
+@import "./panel-header.less";
+
+.root {
+  .productPalette();
+  color: var(--ant-color-text);
+  background: var(--ant-color-bg-layout);
+  & :global(.SidebarSection__Container) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refSidebarSectionHeaderTitle), & :global(.refSidebarSectionHeaderTitleActive) {
+    color: var(--ant-color-text);
+  }
+  & :global(.refTextboxLikeSlotTargetChildrencolor_purple) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.refTextboxLikeControlContainercolor_purple) {
+    background: var(--ant-color-primary-bg);
+  }
+  & :global(.refTopBarRoot) :global(.refButtonRoot), & :global(.refTopBarRoot) :global(.refButtonFreeBox), & :global(.refTopBarRoot) :global(.refButtonStartIconContainer), & :global(.refTopBarRoot) :global(.refButtonEndIconContainer) {
+    color: var(--ant-color-text);
+  }
+  & :global(.refTopBarRoot) :global(.refActionButtonActionButton), & :global(.refTopBarRoot) :global(.refActionButtonMenuButton) {
+    color: var(--ant-color-text);
+  }
+  & :global(.tpltree__nodeLabel__name) {
+    color: var(--ant-color-text);
+  }
+  & :global(.tpltree__nodeLabel__summary), & :global(.tpltree__label--hidden) :global(.tpltree__nodeLabel__name) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.tpltree__nodeLabel__name) + :global(.tpltree__nodeLabel__summary), & :global(.tpltree__nodeLabel__customLabel) + :global(.tpltree__nodeLabel__summary) {
+    color: var(--ant-color-text-secondary);
+    opacity: 1;
+  }
+  & :global(.tpltree__label) {
+    margin: 0 8px;
+    width: calc(100% - 16px);
+    border-radius: 6px;
+    padding-right: 4px;
+    box-sizing: border-box;
+  }
+  & :global(.tpltree__label__expander) {
+    height: 20px;
+    border-radius: 4px;
+    justify-content: center;
+    color: var(--ant-color-text-secondary);
+    &:not(:empty):hover {
+      background: var(--ant-color-fill-secondary);
+      color: var(--ant-color-text);
+    }
+    &:empty {
+      pointer-events: none;
+    }
+  }
+  & :global(.tpltree__label):hover {
+    background: var(--ant-color-fill-tertiary);
+  }
+  & :global(.tpltree__label--hovered) {
+    box-shadow: none;
+  }
+  & :global(.tpltree__label--drilled-descendant) {
+    background: var(--ant-color-primary-bg);
+  }
+  & :global(.tpltree__label--focused), & :global(.tpltree__label--focused):hover, & :global(.tpltree__label--drilled-descendant):global(.tpltree__label--focused) {
+    background: var(--ant-color-primary-bg);
+    box-shadow: none;
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.tpltree__label--focused) :global(.tpltree__nodeLabel__name), & :global(.tpltree__label--focused) :global(.tpltree__label__expander) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.tpltree__label--focused) :global(.tpltree__nodeLabel__summary) {
+    color: var(--ant-color-text);
+  }
+  & :global(.tpltree__label__action-icon), & :global(.tpltree__label__menu) {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ant-color-text-secondary);
+    &:hover {
+      background: var(--ant-color-fill-secondary);
+      color: var(--ant-color-text);
+    }
+  }
+  & :global(.tpltree__label__menu) {
+    display: inline-flex;
+  }
+  & :global(.tpltree__label__menu) :global(.refIconButtonSlotTargetChildren) {
+    color: inherit;
+  }
+  & :global(.tpltree__label__action-icon) svg, & :global(.tpltree__label__menu) svg {
+    width: 16px;
+    height: 16px;
+    color: inherit;
+  }
+  & :global(.refButtonSlotTargetChildrentype_primary), & :global(.refActionButtonSlotTargetChildrentype_primary) {
+    color: var(--ant-color-text-light-solid);
+  }
+  & :global(.value-preview) {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.value-preview--error) {
+    color: var(--ant-color-error-text);
+  }
+  & :global(.value-preview--loading) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.dimfg), & :global(.panel-section__title) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.canvas-editor__hsplit) {
+    position: relative;
+    min-height: 0;
+  }
+  & :global(.canvas-editor__top-bar) {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 42px;
+    z-index: 40;
+    pointer-events: none;
+    background: transparent;
+  }
+  & :global(.canvas-editor__top-bar) :global(.refTopBarRoot) {
+    height: 42px;
+    padding-right: 0;
+    justify-content: space-between;
+    background: transparent;
+    border: 0;
+    pointer-events: none;
+  }
+  & :global(.canvas-editor__top-bar) :global(.refTopBarLeft), & :global(.canvas-editor__top-bar) :global(.refTopBarRight) {
+    width: auto;
+    height: 42px;
+    box-sizing: border-box;
+    padding: 0 8px;
+    border: 1px solid var(--ant-color-border);
+    border-radius: 21px;
+    background: var(--ant-color-bg-container);
+    box-shadow: var(--ant-box-shadow-secondary);
+    pointer-events: auto;
+  }
+  & :global(.canvas-editor__top-bar) :global(.refTopBarLeft) {
+    flex-shrink: 1;
+    min-width: 0;
+    column-gap: 6px;
+    padding-inline: 12px;
+  }
+  & :global(.canvas-editor__top-bar) :global(.refTopBarRight) {
+    flex-shrink: 0;
+    min-width: 0;
+    padding: 0 8px;
+  }
+  & :global(.canvas-editor__top-bar) :global(.refTopBarFreeBox___7MgoJ) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  & :global(.canvas-editor__top-bar) :global(.refTopBarTitleSegment) {
+    height: 28px;
+    gap: 0;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: visible;
+    align-items: center;
+  }
+  & :global(.canvas-editor__top-bar) :global(.refTopBarTitleSegment) :global(.refTopBarSaveIndicator) {
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+  & :global(.editor-project-title) {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    min-width: 0;
+    max-width: 30vw;
+    padding: 0 6px;
+    gap: 4px;
+    color: var(--ant-color-text);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+    border-radius: 7px;
+    box-shadow: none;
+  }
+  & :global(.editor-project-title) > span:not(:global(.ant-btn-icon)) {
+    min-width: 0;
+    overflow: hidden;
+  }
+  & :global(.editor-project-title) :global(.ant-btn-icon) {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  & :global(.editor-project-title) svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--ant-color-text-secondary);
+    transform: translateY(-1px);
+  }
+  & :global(.editor-project-title):disabled {
+    color: var(--ant-color-text);
+    background: transparent;
+    cursor: default;
+  }
+  & :global(.editor-project-title):not(:disabled):hover {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text);
+  }
+  & :global(.editor-project-title):focus-visible, & :global(.editor-project-trigger):focus-visible, & :global(.editor-history-action):focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: 2px;
+  }
+  & :global(.editor-project-trigger)[aria-expanded=true], & :global(.editor-history-action)[aria-expanded=true] {
+    background: transparent;
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.editor-project-trigger):disabled, & :global(.editor-history-action):disabled {
+    background: transparent;
+    color: var(--ant-color-text-secondary);
+    opacity: 0.35;
+  }
+  & :global(.editor-project-name) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & :global(.editor-primary-actions) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  & :global(.editor-primary-actions) :global(.ant-btn) {
+    height: 24px;
+    border-radius: 12px;
+    font-size: 12px;
+    box-shadow: none;
+  }
+  & :global(.canvas-editor__top-bar) :global(#branch-nav-button) {
+    height: 28px;
+  }
+  & :global(.canvas-editor__top-bar) :global(#branch-nav-button) svg {
+    width: 14px;
+    height: 14px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-collaborator-group) {
+    display: inline-flex;
+    align-items: center;
+  }
+  & :global(.editor-primary-actions) :global(.Avatar) {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-collaborator-group) :global(.Avatar) {
+    position: relative;
+    box-shadow: 0 0 0 2px var(--ant-color-bg-container);
+  }
+  & :global(.editor-primary-actions) :global(.editor-collaborator-group) :global(.Avatar):hover {
+    z-index: 1;
+  }
+  & :global(.editor-primary-actions) :global(.Avatar):global(.AvatarPlayer) {
+    width: 24px;
+    height: 24px;
+    margin-block: 0;
+    box-sizing: border-box;
+    font-size: 10px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-icon-action)[aria-expanded=true], & :global(.editor-primary-actions) :global(.editor-icon-action)[aria-pressed=true] {
+    background: var(--ant-color-primary-bg);
+    color: var(--ant-color-primary-text);
+    border-color: var(--ant-color-primary);
+  }
+  & :global(.editor-primary-actions) :global(.ant-btn):focus-visible, & :global(#left-tab-strip) button:focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: 2px;
+  }
+  & :global(.canvas-editor__left-pane) button:focus-visible, & :global(.canvas-editor__right-pane) button:focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: -2px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-icon-action) svg, & :global(.editor-primary-actions) :global(.editor-publish-action) svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  & :global(.editor-primary-actions) :global(.anticon-loading) svg {
+    fill: currentColor;
+    stroke: none;
+  }
+  & :global(.editor-primary-actions) :global(.editor-icon-action), & :global(.editor-primary-actions) :global(.editor-publish-action) {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-icon-action):hover:not(:disabled) {
+    background: var(--ant-color-fill-tertiary);
+    color: var(--ant-color-text);
+  }
+  & :global(.editor-primary-actions) :global(.editor-icon-action):disabled {
+    opacity: 0.35;
+  }
+  & :global(.editor-primary-actions) :global(.editor-publish-action):disabled {
+    opacity: 0.45;
+  }
+  & :global(.editor-primary-actions) :global(.editor-publish-wrapper) {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  & :global(.editor-primary-actions) :global(.editor-publish-branch-group) {
+    gap: 1px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-publish-branch-group) :global(.editor-publish-action) {
+    width: 22px;
+    min-width: 22px;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+  & :global(.editor-primary-actions) :global(.editor-publish-branch-menu) {
+    width: 16px;
+    min-width: 16px;
+    height: 24px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: 12px;
+    border-end-end-radius: 12px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-publish-branch-menu) svg {
+    width: 10px;
+    height: 10px;
+  }
+  & :global(.editor-primary-actions) :global(.editor-publish-badge) {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ant-color-error);
+    border: 1.5px solid var(--ant-color-bg-container);
+    pointer-events: none;
+  }
+  & :global(.editor-code-controls) {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  & :global(.editor-code-controls) > :global(.editor-code-options) {
+    width: 22px;
+    padding: 2px;
+  }
+  & :global(.editor-action-divider) {
+    width: 1px;
+    height: 16px;
+    background: var(--ant-color-border-secondary);
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+  & :global(.editor-history-divider) {
+    width: 1px;
+    height: 22px;
+    flex-shrink: 0;
+    background: var(--ant-color-border);
+  }
+  & :global(.editor-history-action) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 0;
+    height: 28px;
+    padding: 0 2px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: none;
+    background: transparent;
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.editor-history-action) svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    stroke: none;
+  }
+  & :global(.editor-project-trigger) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    min-width: 0;
+    height: 28px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    flex-shrink: 0;
+    background: transparent;
+    color: var(--ant-color-text-secondary);
+    box-shadow: none;
+  }
+  & :global(.editor-project-trigger) svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+  & :global(.editor-rail-divider) {
+    width: 20px;
+    height: 1px;
+    flex-shrink: 0;
+    align-self: center;
+    background: var(--ant-color-border);
+    margin: 6px 0;
+  }
+  & :global(.canvas-editor__left-pane) :global(.refButtonRoot) {
+    color: var(--ant-color-text);
+    &:hover:not(:disabled) {
+      background: var(--ant-color-fill-secondary);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--ant-color-primary);
+      outline-offset: 2px;
+    }
+  }
+  & :global(.canvas-editor__left-pane) :global(.refButtonSlotTargetChildrentype_secondary) {
+    color: var(--ant-color-text);
+  }
+  & :global(.editor-panel-header) {
+    .editorPanelHeaderStyle();
+  }
+  & :global(.editor-inspector-header) {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--ant-color-border-secondary);
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.editor-inspector-header) :global(.editor-panel-header) {
+    height: 40px;
+    border-bottom: none;
+    gap: 6px;
+    padding: 0 8px 0 10px;
+  }
+  & :global(.editor-panel-header__title-group) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+  & :global(.editor-inspector-node-icon) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  & :global(.editor-inspector-name):global(.refPanelTextboxRoot) {
+    height: 28px;
+    min-height: 28px;
+    margin-left: -6px;
+    border-radius: var(--ant-border-radius-sm);
+    &:focus-within:focus-within {
+      box-shadow: inset 0 0 0 1px var(--ant-color-primary);
+      outline: none;
+    }
+    & :global(.refPanelTextboxTextbox) {
+      height: 100%;
+      padding: 0 8px 0 6px;
+      font-size: 13px;
+    }
+  }
+  & :global(.editor-inspector-part-badge) {
+    font-size: 11px;
+    color: var(--ant-color-text-secondary);
+    flex-shrink: 0;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & :global(.editor-panel-header__actions) {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  & :global(.editor-panel-header__icon-btn), & :global(.editor-panel-subheader__icon-btn) {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ant-color-text-secondary);
+    border-radius: var(--ant-border-radius-sm);
+  }
+  & :global(.editor-panel-header__icon-btn--active) {
+    color: var(--ant-color-primary);
+  }
+  & :global(.editor-panel-header__divider) {
+    width: 1px;
+    height: 14px;
+    background: var(--ant-color-border-secondary);
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+  & :global(.editor-panel-subheader) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 28px;
+    padding: 0 8px 6px 10px;
+  }
+  & :global(.editor-panel-subtitle-group) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1 1 0%;
+    min-width: 0;
+    height: 16px;
+    color: var(--ant-color-text-secondary);
+    font-size: 11px;
+    line-height: 16px;
+  }
+  & :global(.editor-panel-subtitle-group--interactive) {
+    cursor: pointer;
+  }
+  & :global(.editor-panel-subtitle-name) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & :global(.editor-panel-subtitle-info-btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--ant-color-text-tertiary);
+    cursor: pointer;
+    &:hover {
+      color: var(--ant-color-text-secondary);
+    }
+  }
+  & :global(.editor-panel-description) {
+    flex: 1 1 0%;
+    min-width: 0;
+    max-width: 100%;
+    height: 16px;
+    font-size: 11px;
+    line-height: 16px;
+    color: var(--ant-color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  & :global(.editor-panel-description__content) {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 16px;
+    & > *, & p, & div, & ul, & ol, & li, & pre, & blockquote, & code {
+      display: inline;
+      margin: 0;
+      padding: 0;
+      border: none;
+      white-space: nowrap;
+    }
+    & br {
+      display: none;
+    }
+    & a {
+      color: inherit;
+      text-decoration: none;
+      pointer-events: none;
+    }
+  }
+  & :global(.editor-panel-subheader__actions) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  & :global(.editor-panel-state-pill) {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: var(--ant-border-radius-sm);
+    color: var(--ant-color-text);
+    background: var(--ant-color-fill-tertiary);
+    max-width: 116px;
+  }
+  & :global(.editor-panel-repeat-trigger) + :global(.editor-panel-state-pill) {
+    margin-left: 8px;
+  }
+  & :global(.editor-panel-state-pill--recording) {
+    color: var(--ant-color-primary);
+    background: var(--ant-color-primary-bg);
+  }
+  & :global(.editor-panel-state-dot) {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ant-color-text-quaternary);
+    flex-shrink: 0;
+  }
+  & :global(.editor-panel-state-dot--recording) {
+    background: var(--ant-color-primary);
+  }
+  & :global(.editor-panel-state-label) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & :global(.editor-issues-panel) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+  }
+  & :global(.editor-issues-panel) :global(.ant-empty) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.editor-inspector-tabs) {
+    flex: 1;
+    min-height: 0;
+  }
+  & :global(.editor-inspector-tabs) > :global(.ant-tabs-nav) {
+    margin: 0;
+    padding: 0 12px;
+    flex-shrink: 0;
+  }
+  & :global(.editor-inspector-tabs) :global(.ant-tabs-tab) {
+    padding: 12px 0;
+  }
+  & :global(.editor-inspector-tabs) > :global(.ant-tabs-body-holder) {
+    min-height: 0;
+    overflow: hidden;
+  }
+  & :global(.editor-inspector-tabs) :global(.ant-tabs-body), & :global(.editor-inspector-tabs) :global(.ant-tabs-content) {
+    height: 100%;
+  }
+  & :global(.editor-inspector-tabs) :global(.ant-tabs-content) > :global(.vlist-scrollable-descendant) {
+    height: 100%;
+  }
+  & :global(.canvas-editor__right-pane) :global(.refSidebarSectionHeaderRoot) {
+    min-height: 40px;
+  }
+  & :global(.canvas-editor__right-pane) :global(.SidebarSection__Body):not(:global(.SidebarSection__Body__NoBottomPadding)):not(:global(.SidebarSection__Body__EmptyBody)) {
+    padding-bottom: 12px;
+  }
+  & :global(.canvas-editor__right-pane) :global(.refSidebarSectionRoot) :global(.SidebarSection__Body):global(.refSidebarSectionBodyNoHeaderSymmetric) {
+    padding-top: 12px;
+  }
+  & :global(.canvas-editor__right-pane) :global(.SidebarSection__Body):not(:global(.SidebarSection__Body__NoBottomPadding)):not(:global(.SidebarSection__Body__EmptyBody)) > :global(.refSidebarSectionCollapsingToggle):not(:global(.refSidebarSectionCollapsingToggle_sticky)) {
+    margin-bottom: 0;
+  }
+  & :global(.canvas-editor__right-pane) :global(.refSidebarSectionHeaderTitle) {
+    color: var(--ant-color-text);
+  }
+  & :global(.canvas-editor__right-pane) :global(.SidebarSection__Container):not(:global(.SidebarSection__Container--NoBorder)) {
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.canvas-editor__right-pane) :global(.refLabeledListItemRoot) {
+    position: relative;
+  }
+  & :global(.canvas-editor__right-pane) :global(.refLabeledListItemActionsContainer):not(:global(.refLabeledListItemActionsContainerlayout_vertical)) {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  & :global(.canvas-editor__right-pane) :global(.refLabeledListItemRoot):hover :global(.refLabeledListItemActionsContainer), & :global(.canvas-editor__right-pane) :global(.refLabeledListItemRoot):focus-within :global(.refLabeledListItemActionsContainer) {
+    pointer-events: auto;
+  }
+  & :global(.canvas-editor__right-pane) :global(.refLabeledListItemRootpadding_noHorizontal) > :global(.refLabeledListItemActionsContainer):not(:global(.refLabeledListItemActionsContainerlayout_vertical)) {
+    right: -18px;
+  }
+  & :global(.canvas-editor__left-pane) :global(.right-panel-input-background__no-height), & :global(.canvas-editor__left-pane) :global(.dropdown-container) {
+    background: var(--ant-color-fill-quaternary);
+    color: var(--ant-color-text);
+    border-radius: 7px;
+    min-height: 32px;
+  }
+  & :global(.canvas-editor__left-pane) :global(.dropdown-pill) {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text);
+  }
+  & :global(.canvas-editor__left-pane) :global(.dropdown-input-container) input {
+    color: var(--ant-color-text);
+    background: transparent;
+  }
+  & :global(.canvas-editor__left-pane) :global(.ant-radio-button-wrapper) {
+    background: transparent;
+    color: var(--ant-color-text-secondary);
+    &:hover {
+      color: var(--ant-color-primary-text);
+    }
+  }
+  & :global(.canvas-editor__left-pane) :global(.ant-radio-button-wrapper-checked) {
+    background: var(--ant-color-primary-bg);
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refResponsivenessPanelContentRoot) p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refResponsivenessPanelDeleteIconCol) svg {
+    color: var(--ant-color-text-secondary);
+    &:hover {
+      color: var(--ant-color-error);
+    }
+  }
+  & :global(.canvas-editor__left-pane) :global(.refResponsivenessPanelWarningIconCustomVariant), & :global(.canvas-editor__left-pane) :global(.refResponsivenessPanelWarningIconBaseVariant) {
+    color: var(--ant-color-warning);
+  }
+  & :global(.editor-panel-title) {
+    flex: 1;
+    margin-left: 8px;
+    color: var(--ant-color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & :global(.editor-page-navigation) {
+    overflow: hidden;
+    min-height: 0;
+    height: 100%;
+  }
+  & :global(.editor-navigation-root) {
+    height: 100%;
+    min-height: 0;
+    align-items: stretch;
+  }
+  & :global(.editor-navigation-tree) {
+    flex: 1;
+    min-height: 0;
+  }
+  & :global(.editor-document-label) {
+    min-width: 0;
+    overflow: hidden;
+  }
+  & :global(.editor-document-label) > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & :global(.editor-document-label) :global(.dimfg) {
+    color: var(--ant-color-text-secondary);
+    font-size: 12px;
+  }
+  & :global(.canvas-editor__left-pane) :global(.refNavigationSearchSearchInputContainer) {
+    height: 34px;
+    min-height: 34px;
+    border-color: var(--ant-color-border);
+    background: var(--ant-color-bg-layout);
+    &:hover {
+      box-shadow: 0 0 0 1px var(--ant-color-border);
+    }
+    &:focus-within {
+      box-shadow: 0 0 0 2px var(--ant-color-primary-bg);
+      border-color: var(--ant-color-primary);
+    }
+  }
+  & :global(.canvas-editor__left-pane) :global(.refNavigationSearchSearchInput) {
+    color: var(--ant-color-text);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refNavigationSearchSvg) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refNavigationSearchSearchInput)::placeholder {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refNavigationSearchClearFieldIcon) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.editor-page-navigation) :global(.refRowItemFreeBox) {
+    gap: 4px;
+  }
+  & :global(.editor-page-navigation) :global(.refRowItemFreeBox) button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ant-color-text-secondary);
+    &:hover {
+      background: var(--ant-color-fill-tertiary);
+      color: var(--ant-color-text);
+    }
+    &:active {
+      background: var(--ant-color-fill-secondary);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--ant-color-primary);
+      outline-offset: 2px;
+    }
+  }
+  & :global(.editor-page-navigation) :global(.refRowItemFreeBox) :global(.refIconButtonSlotTargetChildren) {
+    color: inherit;
+  }
+  & :global(.editor-page-navigation) :global(.refRowItemFreeBox) button svg {
+    width: 16px;
+    height: 16px;
+    color: inherit;
+  }
+  & :global(.editor-page-navigation) :global(.refRowItemRoot):hover :global(.refRowItemMenuButton):global(.__wab_instance):global(.__wab_instance) {
+    display: inline-flex;
+  }
+  @media (max-width: 800px) {
+    & :global(.canvas-editor__top-bar) :global(.refTopBarProjectTitle) {
+      max-width: 140px;
+    }
+  }
+  & :global(.canvas-editor__left-pane-container) :global(.refLeftPaneRoot) {
+    background: transparent;
+    border: 0;
+  }
+  & :global(.canvas-editor__top-pane__floating-elements-container) {
+    padding-top: 58px;
+  }
+  & :global(.editor-tool-rail-group) {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 36px;
+    height: 100%;
+    min-height: 0;
+  }
+  & :global(#left-tab-strip) {
+    box-sizing: border-box;
+    min-height: 0;
+    width: 36px;
+    height: auto;
+    max-height: 100%;
+    padding: 0;
+    overflow: hidden;
+    row-gap: 0;
+    align-self: flex-start;
+    border: 1px solid var(--ant-color-border);
+    border-radius: 18px;
+    box-shadow: var(--ant-box-shadow-secondary);
+    background: var(--ant-color-bg-container);
+  }
+  & :global(#left-tab-strip) :global(.refLeftTabStripFreeBox__s2Zn2) {
+    height: auto;
+    flex: 1;
+  }
+  & :global(#left-tab-strip) :global(.refLeftTabStripFreeBox___5Ah7Y) {
+    width: 100%;
+    min-height: 0;
+  }
+  & :global(.editor-rail-scroll) {
+    width: 100%;
+    min-height: 0;
+  }
+  & :global(.editor-rail-tools) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+  }
+  & :global(#left-tab-strip) :global(.refLeftTabButtonRoot) {
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    padding: 0;
+    gap: 0;
+  }
+  & :global(#left-tab-strip) :global(.refLeftTabButtonSlotTargetIcon) svg {
+    width: 16px;
+    height: 16px;
+  }
+  & :global(#left-tab-strip) button[aria-current='true'] {
+    background: var(--ant-color-primary-bg);
+    color: var(--ant-color-primary-text);
+  }
+  & :global(#left-tab-strip) button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  & :global(.canvas-editor__left-pane-container) {
+    z-index: 20;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    & :global(.canvas-editor__left-pane) :global(.refFontsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refImagesPanelRoot), & :global(.canvas-editor__left-pane) :global(.refMixinsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refVersionsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refTokensPanelRoot), & :global(.canvas-editor__left-pane) :global(.refDataTokensPanelRoot), & :global(.canvas-editor__left-pane) :global(.refComponentsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refExpressionsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refThemesPanelRoot), & :global(.canvas-editor__left-pane) :global(.refSplitsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refIssuesPanelRoot), & :global(.canvas-editor__left-pane) :global(.refAnimationsPanelRoot) {
+      background: var(--ant-color-bg-container);
+      color: var(--ant-color-text);
+      min-height: 0;
+    }
+    & :global(.canvas-editor__left-pane) :global(.refPanelHeaderHeader) {
+      padding: 12px 16px;
+      row-gap: 12px;
+      border-color: var(--ant-color-border-secondary);
+    }
+    & :global(.canvas-editor__left-pane) :global(.refPanelHeaderDescriptionContainer) {
+      color: var(--ant-color-text-secondary);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    & :global(.canvas-editor__left-pane) :global(.refPanelHeaderSlotTargetTitle) {
+      color: var(--ant-color-text);
+      font-size: 13px;
+      line-height: 20px;
+    }
+    & :global(.canvas-editor__left-pane) a {
+      color: var(--ant-color-primary-text);
+    }
+    & :global(.canvas-editor__left-pane) a:hover {
+      color: var(--ant-color-primary-hover);
+    }
+    & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) {
+      height: auto;
+      min-height: 56px;
+      padding: 10px 12px;
+      gap: 6px;
+      background: var(--ant-color-bg-container);
+      border-color: var(--ant-color-border-secondary);
+    }
+    & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) :global(.refPanelTextboxRoot) {
+      flex: 1;
+      min-width: 0;
+      min-height: 34px;
+      border-radius: 7px;
+      background: var(--ant-color-bg-layout);
+      box-shadow: inset 0 0 0 1px var(--ant-color-border);
+    }
+    & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) :global(.refPanelTextboxRoot):focus-within {
+      box-shadow: inset 0 0 0 1px var(--ant-color-primary), 0 0 0 2px var(--ant-color-primary-bg);
+    }
+    & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) input {
+      background: transparent;
+      color: var(--ant-color-text);
+      font-size: 13px;
+      line-height: 20px;
+      min-height: 32px;
+    }
+    & :global(.canvas-editor__left-pane) input::placeholder {
+      color: var(--ant-color-text-placeholder);
+    }
+    & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) svg {
+      color: var(--ant-color-text-secondary);
+    }
+    & :global(.canvas-editor__left-pane) :global(.dimfg) {
+      color: var(--ant-color-text-secondary);
+    }
+  }
+  & :global(.canvas-editor__left-pane) :global(.refFontsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refImagesPanelRoot), & :global(.canvas-editor__left-pane) :global(.refMixinsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refVersionsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refTokensPanelRoot), & :global(.canvas-editor__left-pane) :global(.refDataTokensPanelRoot), & :global(.canvas-editor__left-pane) :global(.refComponentsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refExpressionsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refThemesPanelRoot), & :global(.canvas-editor__left-pane) :global(.refSplitsPanelRoot), & :global(.canvas-editor__left-pane) :global(.refIssuesPanelRoot), & :global(.canvas-editor__left-pane) :global(.refAnimationsPanelRoot) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    min-height: 0;
+  }
+  & :global(.canvas-editor__left-pane) :global(.refPanelHeaderHeader) {
+    padding: 12px 16px;
+    row-gap: 12px;
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refPanelHeaderDescriptionContainer) {
+    color: var(--ant-color-text-secondary);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  & :global(.canvas-editor__left-pane) :global(.refPanelHeaderSlotTargetTitle) {
+    color: var(--ant-color-text);
+    font-size: 13px;
+    line-height: 20px;
+  }
+  & :global(.canvas-editor__left-pane) a {
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.canvas-editor__left-pane) a:hover {
+    color: var(--ant-color-primary-hover);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) {
+    height: auto;
+    min-height: 56px;
+    padding: 10px 12px;
+    gap: 6px;
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) :global(.refPanelTextboxRoot) {
+    flex: 1;
+    min-width: 0;
+    min-height: 34px;
+    border-radius: 7px;
+    background: var(--ant-color-bg-layout);
+    box-shadow: inset 0 0 0 1px var(--ant-color-border);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) :global(.refPanelTextboxRoot):focus-within {
+    box-shadow: inset 0 0 0 1px var(--ant-color-primary), 0 0 0 2px var(--ant-color-primary-bg);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) input {
+    background: transparent;
+    color: var(--ant-color-text);
+    font-size: 13px;
+    line-height: 20px;
+    min-height: 32px;
+  }
+  & :global(.canvas-editor__left-pane) input::placeholder {
+    color: var(--ant-color-text-placeholder);
+  }
+  & :global(.canvas-editor__left-pane) :global(.refSearchPanelSearchPanel) svg {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.canvas-editor__left-pane) :global(.dimfg) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.canvas-editor__left-pane) {
+    animation: none;
+    border: 1px solid var(--ant-color-border);
+    border-radius: var(--ant-border-radius-lg);
+    overflow: hidden;
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.refLeftPaneRoot), & :global(.refTopBarRoot) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    border-color: var(--ant-color-border);
+  }
+  & :global(.editor-inspector-reopen) {
+    position: absolute;
+    right: 8px;
+    top: 58px;
+    z-index: 20;
+    padding: 4px;
+    background: var(--ant-color-bg-container);
+    border: 1px solid var(--ant-color-border);
+    border-radius: var(--ant-border-radius-lg);
+  }
+  & :global(.canvas-editor__right-pane-viewport) {
+    position: absolute;
+    right: 8px;
+    top: 58px;
+    bottom: 52px;
+    width: 240px;
+    max-width: calc(100% - 16px);
+    z-index: 20;
+  }
+  & :global(.canvas-editor__right-pane) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    border: 1px solid var(--ant-color-border);
+    border-radius: var(--ant-border-radius-lg);
+  }
+  & :global(.canvas-editor__right-pane) > :global(.dev-env) {
+    background: inherit;
+  }
+  & :global(.refSidebarSectionCollapsingToggleLabel) {
+    background: var(--ant-color-fill-secondary);
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refSidebarSectionCollapsingToggleLabel):hover {
+    background: var(--ant-color-primary-bg) !important;
+    color: var(--ant-color-primary-text);
+  }
+  & :global(.hilite-tabs) {
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border-secondary);
+    color: var(--ant-color-text);
+  }
+  & :global(.hilite-tab--active)::after, & :global(.hilite-tab):hover::after, & :global(.hilite-tab):focus::after {
+    background: var(--ant-color-primary);
+  }
+  & :global(.hilite-tab--active) {
+    color: var(--ant-color-primary);
+    border-color: var(--ant-color-primary);
+  }
+  & :global(.canvas-editor__right-pane), & :global(.canvas-editor__right-float-pane) {
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border);
+    color: var(--ant-color-text);
+  }
+  & :global(.canvas-editor__canvas-container) {
+    background: var(--ant-color-bg-layout);
+  }
+  & :global(.canvas-editor__canvas-scrollbar) {
+    background-color: var(--ant-color-bg-layout);
+  }
+  & :global(.canvas-editor__right-pane__scroll) {
+    scrollbar-color: var(--ant-color-border) transparent;
+  }
+}

@@ -1,5 +1,6 @@
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
-import { useSettingsStyles } from "@/wab/client/components/pages/plasmic/SettingsContainer.styles";
+import styles from "./CmsLayout.module.less";
+import settings from "../pages/plasmic/SettingsContainer.module.less";
+import { cx } from "@/wab/shared/common";
 import { PlasmicCmsEntryDetails } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsEntryDetails";
 import { PlasmicCmsModelDetails } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsModelDetails";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -10,7 +11,7 @@ export const CmsDetailsLayout = React.forwardRef<
   HTMLDivElement,
   React.PropsWithChildren<{ className?: string; header?: React.ReactNode }>
 >(function CmsDetailsLayout({ className, header, children }, ref) {
-  const { styles, cx } = useCmsLayoutStyles();
+
   return (
     <div ref={ref} className={cx(className, styles.details)}>
       {header && <div className={styles.detailsHeader}>{header}</div>}
@@ -115,8 +116,7 @@ export const CmsSettingsLayout = React.forwardRef<
   HTMLDivElement,
   { className?: string; content: React.ReactNode }
 >(function CmsSettingsLayout({ className, content }, ref) {
-  const { styles, cx } = useCmsLayoutStyles();
-  const { styles: settings } = useSettingsStyles();
+
   return (
     <div ref={ref} className={cx(className, styles.settingsLayout)}>
       <Scrollbar scrollX={false} className={styles.detailsBody}>

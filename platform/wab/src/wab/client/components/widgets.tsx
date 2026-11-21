@@ -1,8 +1,8 @@
+import popupStyles from "./ui/EditorPopup.module.less";
 import { InspectorReadOnly } from "@/wab/client/components/studio/inspector-access";
 import searchStyles from "@/wab/client/components/widgets/Searchbox.module.scss";
 import { reportError } from "@/wab/client/ErrorNotifications";
 import { PublicLink } from "@/wab/client/components/PublicLink";
-import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
@@ -209,7 +209,6 @@ export function ReadablePromiseLoadable<T, E>({
   }
   return result.match(contents, failureContents);
 }
-
 
 export class Tab {
   name: ReactNode;
@@ -884,7 +883,7 @@ function DropdownMenuContent({
   maxHeight?: number;
   onClose: () => void;
 }) {
-  const { styles: popupStyles } = useEditorPopupStyles();
+
   const renderScrollableMenu = (menu: ReactNode, maxHeight?: number) =>
     productUI ? (
       <Scrollbar

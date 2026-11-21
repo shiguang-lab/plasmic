@@ -1,3 +1,4 @@
+import styles from "./CmsInputs.module.less";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import {
   UniqueFieldStatus,
@@ -54,7 +55,6 @@ import {
   Skeleton,
   notification,
 } from "antd";
-import { createStyles } from "antd-style";
 import { FormItemProps } from "antd/lib/form";
 import dayjs, { Dayjs } from "dayjs";
 import { upperFirst } from "lodash";
@@ -64,18 +64,6 @@ import { useHover } from "react-aria";
 const LazyRichTextEditor = React.lazy(
   () => import("@/wab/client/components/RichTextEditor"),
 );
-
-const useColorInputStyles = createStyles(({ token }) => ({
-  root: {
-    "& .pcr-app": { background: token.colorBgContainer },
-    "& .pcr-interaction .pcr-result": {
-      background: token.colorFillTertiary,
-      color: token.colorText,
-      border: `1px solid ${token.colorBorder}`,
-      "&:focus": { borderColor: token.colorPrimary, boxShadow: "none" },
-    },
-  },
-}));
 
 type NamePathz = (string | number)[];
 
@@ -660,7 +648,7 @@ export function CmsColorInput(props: {
   value?: string | undefined;
   onChange?: (value: string | undefined) => void;
 }) {
-  const { styles } = useColorInputStyles();
+
   const { disabled } = useContentEntryFormContext();
   const { value, onChange } = props;
   const colorPickerRef = React.useRef<HTMLDivElement>(null);

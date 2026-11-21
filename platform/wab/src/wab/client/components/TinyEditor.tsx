@@ -38,7 +38,7 @@ import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { getMessages } from "@/wab/client/i18n/locales";
 import { Editor, IAllProps } from "@tinymce/tinymce-react";
-import { useTheme } from "antd-style";
+import { ConfigProvider, theme as antTheme } from "antd";
 import * as React from "react";
 import type { Editor as TinyMceEditor } from "tinymce";
 
@@ -55,7 +55,11 @@ export function TinyEditor({
   const appCtx = useAppCtx();
   const { locale } = useI18n();
   if ("matchMedia" in window) {require("tinymce/tinymce").addI18n(locale, getMessages(locale) ?? {});}
-  const token = useTheme();
+  const { token } = antTheme.useToken();
+  const algorithm = React.useContext(ConfigProvider.ConfigContext).theme?.algorithm;
+  const isDark = Array.isArray(algorithm)
+    ? algorithm.includes(antTheme.darkAlgorithm)
+    : algorithm === antTheme.darkAlgorithm;
   const [editor, setEditor] = React.useState<TinyMceEditor>();
   const contentTheme = `
     html, body { background: ${token.colorBgContainer}; color: ${token.colorText}; }
@@ -81,7 +85,7 @@ export function TinyEditor({
   }, [editor, contentTheme]);
   return (
     <div>
-      <style>{`${token.isDarkMode ? darkSkin : lightSkin}
+      <style>{`${isDark ? darkSkin : lightSkin}
         .tox.tox-tinymce { border-color: ${token.colorBorder}; border-radius: ${token.borderRadius}px; }
         .tox .tox-editor-header, .tox .tox-toolbar-overlord,
         .tox .tox-edit-area__iframe { background: ${token.colorBgContainer}; }

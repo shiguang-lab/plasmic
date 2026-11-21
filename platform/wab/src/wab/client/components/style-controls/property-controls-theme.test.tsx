@@ -51,33 +51,6 @@ import { codeLit } from "@/wab/shared/core/exprs";
 import { createSite } from "@/wab/shared/core/sites";
 import { AttrSource } from "@/wab/shared/defined-indicator";
 
-// Codegen tests require unscoped CSS module names in Vitest. Keep these
-// modules distinct, as in Studio, so tooltip slots cannot alias option slots.
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Overlay.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => `format-overlay-${String(key)}` },
-    ),
-  }),
-);
-vi.mock("@/wab/client/plasmic/PlasmicButton.module.css", () => ({
-  default: new Proxy({}, { get: (_target, key) => `button-${String(key)}` }),
-}));
-vi.mock("@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect.module.css", () => ({
-  default: new Proxy({}, { get: (_target, key) => `variants-combo-${String(key)}` }),
-}));
-vi.mock(
-  "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css",
-  () => ({
-    default: new Proxy(
-      {},
-      { get: (_target, key) => `format-option-${String(key)}` },
-    ),
-  }),
-);
-
 const styleOwners: SingleRsStyleInputs[] = [];
 afterEach(() => { cleanup(); styleOwners.splice(0).forEach((owner) => owner.dispose()); });
 

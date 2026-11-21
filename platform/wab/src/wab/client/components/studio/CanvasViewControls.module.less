@@ -1,0 +1,64 @@
+:global(.canvas-editor__canvas-container) > .root {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 30;
+  width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 3px;
+  border-radius: 18px;
+  background: var(--ant-color-bg-container);
+  border: 1px solid var(--ant-color-border);
+  box-shadow: var(--ant-box-shadow-secondary);
+  color: var(--ant-color-text);
+  & button[aria-expanded=true] {
+    background: var(--ant-color-fill-secondary);
+  }
+  & button:focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: 2px;
+  }
+  & svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.action {
+  &:global(.ant-btn) {
+    flex-shrink: 0;
+    min-width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    box-shadow: none;
+    &:global(.ant-btn-icon-only) {
+      width: 28px;
+    }
+  }
+}
+
+.pressed {
+  &:global(.ant-btn):global(.ant-btn), &:global(.ant-btn):global(.ant-btn):not(:disabled):hover {
+    color: var(--ant-color-primary);
+    background: var(--ant-color-primary-bg);
+  }
+}
+
+.separator {
+  flex-shrink: 0;
+  width: 1px;
+  height: 14px;
+  margin-inline: 3px;
+  background: var(--ant-color-border);
+}

@@ -1,0 +1,19 @@
+.railPosition {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8px;
+  pointer-events: none;
+  transform: translateX(calc(-100% - 8px));
+  transition: transform 180ms ease;
+  &[data-open='true'] {
+    transform: translateX(0);
+  }
+  & > :global(.editor-tool-rail-group) {
+    margin-left: 100%;
+    pointer-events: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

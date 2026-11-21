@@ -1,13 +1,11 @@
 import { useI18n } from "@/wab/client/i18n";
-import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import {
   UiAppearance,
   useUiAppearance,
   usesProductTheme,
 } from "@/wab/client/ui-theme";
 import type { ThemeConfig } from "antd";
-import { ConfigProvider, theme as AntdTheme } from "antd";
-import { ThemeProvider } from "antd-style";
+import { theme as AntdTheme, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import jaJP from "antd/locale/ja_JP";
 import koKR from "antd/locale/ko_KR";
@@ -18,6 +16,7 @@ import "dayjs/locale/ko";
 import "dayjs/locale/zh-cn";
 import "dayjs/locale/zh-tw";
 import * as React from "react";
+import productStyles from "./product-ui-theme.module.less";
 
 // Port of the antd v4 less variables from antd-overrides.less.
 export const antdTheme: ThemeConfig = {
@@ -56,31 +55,42 @@ export function AntdConfigProvider({
     document.documentElement.lang = locale;
   }, [locale]);
   const currentTheme = productUI ? productTheme(appearance) : antdTheme;
-  const { styles } = useProductThemeStyles(AntdTheme.getDesignToken(currentTheme));
+  const tokenClass = productUI ? `studio-${appearance}` : "studio-classic";
+  const platformClass = navigator.userAgent.includes("PlasmicDesktop/darwin")
+    ? productStyles.macDesktop
+    : navigator.userAgent.includes("PlasmicDesktop/win32")
+      ? productStyles.windowsDesktop
+      : undefined;
   // Portals can leave the themed body/editor subtree. Bind the palette to
   // every popup root so legacy controls inside inherit it in any container.
-  const popupClassNames = productUI ? { root: styles.root } : undefined;
+  const popupClassNames = productUI
+    ? { root: productStyles.root + " " + tokenClass }
+    : undefined;
   React.useLayoutEffect(() => {
-    if (!productUI) {
-      return;
+    const classes = [
+      tokenClass,
+      ...(productUI ? [productStyles.root] : []),
+      ...(platformClass ? [platformClass] : []),
+    ];
+    for (const name of classes) {
+      productThemeRoots.set(name, (productThemeRoots.get(name) ?? 0) + 1);
+      document.documentElement.classList.add(name);
     }
-    productThemeRoots.set(
-      styles.root,
-      (productThemeRoots.get(styles.root) ?? 0) + 1,
-    );
-    document.body.classList.add(styles.root);
     return () => {
-      const remaining = (productThemeRoots.get(styles.root) ?? 1) - 1;
-      if (remaining) {
-        productThemeRoots.set(styles.root, remaining);
-      } else {
-        productThemeRoots.delete(styles.root);
-        document.body.classList.remove(styles.root);
+      for (const name of classes) {
+        const count = productThemeRoots.get(name)! - 1;
+        if (count) productThemeRoots.set(name, count);
+        else {
+          productThemeRoots.delete(name);
+          document.documentElement.classList.remove(name);
+        }
       }
     };
-  }, [productUI, styles.root]);
+  }, [productUI, tokenClass, platformClass]);
   React.useLayoutEffect(() => {
-    ConfigProvider.config({ theme: currentTheme });
+    ConfigProvider.config({
+      theme: { ...currentTheme, cssVar: { key: tokenClass } },
+    });
     // Document/loading colors follow the selected appearance even on auth
     // routes and in independent modal roots that use the legacy control theme.
     const token = AntdTheme.getDesignToken(productTheme(appearance));
@@ -94,10 +104,10 @@ export function AntdConfigProvider({
     })) {
       root.style.setProperty(`--studio-loading-${name}`, value);
     }
-  }, [productUI, appearance]);
+  }, [productUI, appearance, tokenClass]);
   return (
     <ConfigProvider
-      theme={currentTheme}
+      theme={{ ...currentTheme, cssVar: { key: tokenClass } }}
       tooltip={{ arrow: false, classNames: popupClassNames }}
       popover={{ arrow: false, classNames: popupClassNames }}
       dropdown={{ classNames: popupClassNames }}
@@ -107,12 +117,7 @@ export function AntdConfigProvider({
         { en: enUS, "zh-CN": zhCN, "zh-TW": zhTW, ja: jaJP, ko: koKR }[locale]
       }
     >
-      <ThemeProvider
-        appearance={productUI ? appearance : "light"}
-        theme={currentTheme}
-      >
-        {children}
-      </ThemeProvider>
+      {children}
     </ConfigProvider>
   );
 }

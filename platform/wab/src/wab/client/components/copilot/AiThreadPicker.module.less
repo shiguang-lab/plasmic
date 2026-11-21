@@ -1,0 +1,130 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  min-height: 28px;
+  & :global(.ant-btn) {
+    height: 24px;
+    padding-inline: 4px;
+    font-size: 12px;
+  }
+  & > :global(.ant-btn) {
+    flex-shrink: 0;
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.ant-btn):not(:disabled):not(:global(.ant-btn-disabled)):hover {
+    background: transparent;
+  }
+}
+
+.current {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  & > :global(.ant-btn) {
+    min-width: 0;
+    text-align: left;
+  }
+  & :global(.anticon-down) {
+    font-size: 10px;
+  }
+  & :global(.ant-btn) > span:not(:global(.anticon)) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.title {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.popup {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  min-width: 0;
+  color: var(--ant-color-text);
+  background: var(--ant-color-bg-elevated);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.list {
+  max-height: min(340px, calc(100vh - 220px));
+  min-height: 64px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--ant-border-radius);
+  &[data-selected=true] {
+    background: var(--ant-color-fill-secondary);
+  }
+}
+
+.entry {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--ant-border-radius);
+  padding: 9px 8px;
+  font: inherit;
+  &:hover {
+    background: var(--ant-color-fill-tertiary);
+  }
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.secondary {
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date {
+  flex-shrink: 0;
+  color: var(--ant-color-text-tertiary);
+  font-size: 11px;
+}
+
+.more {
+  width: 100%;
+  margin-top: 8px;
+}

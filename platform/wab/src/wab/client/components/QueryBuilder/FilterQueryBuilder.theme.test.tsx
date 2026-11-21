@@ -1,6 +1,7 @@
+import styles from "./QueryBuilder.module.less";
+import { userEvent as browserUser } from "vitest/browser";
 import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { FilterQueryBuilder } from "@/wab/client/components/QueryBuilder/FilterQueryBuilder";
-import { useQueryBuilderStyles } from "@/wab/client/components/QueryBuilder/QueryBuilder.styles";
 import { setUiLocale } from "@/wab/client/i18n";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
@@ -23,12 +24,11 @@ import {
   TimePicker,
   theme as AntdTheme,
 } from "antd";
-import { ThemeProvider } from "antd-style";
+import { ConfigProvider as ThemeProvider } from "antd";
 import dayjs from "dayjs";
-import { readFileSync } from "node:fs";
+import "@/wab/styles/antd-overrides.scss";
 import * as React from "react";
 import type { RuleGroupType } from "react-querybuilder";
-import { compile } from "sass";
 
 const config: QueryBuilderConfig = {
   fields: [
@@ -66,35 +66,13 @@ const value: RuleGroupType = {
   ],
 };
 const onChange = vi.fn();
-const loadedStyles: HTMLStyleElement[] = [];
-beforeAll(async () => {
-  await setUiLocale("en");
-  // Include the actual stylesheets that Vitest normally stubs. This catches
-  // legacy property-row overrides masking Antd's native interactive states.
-  for (const path of [
-    "../../../styles/antd-overrides.scss",
-    "./QueryBuilder.scss",
-  ]) {
-    const style = document.createElement("style");
-    style.textContent = compile(new URL(path, import.meta.url).pathname).css;
-    document.head.prepend(style);
-    loadedStyles.push(style);
-  }
-  const vendor = document.createElement("style");
-  vendor.textContent = readFileSync(
-    require.resolve("react-querybuilder/dist/query-builder.css"),
-    "utf8",
-  );
-  document.head.prepend(vendor);
-  loadedStyles.push(vendor);
-});
-afterAll(() => loadedStyles.forEach((style) => style.remove()));
+beforeAll(() => setUiLocale("en"));
 afterEach(() => {
   cleanup();
   setAppearancePreference("dark");
 });
 function FramedBuilder({ disabled = false }: { disabled?: boolean }) {
-  const { styles } = useQueryBuilderStyles();
+
   return (
     <div data-testid="frame" className={`labeled-item ${styles.frame}`}>
       <FilterQueryBuilder
@@ -107,9 +85,9 @@ function FramedBuilder({ disabled = false }: { disabled?: boolean }) {
   );
 }
 function ReferenceControls({ children }: { children: React.ReactNode }) {
-  const { styles } = useQueryBuilderStyles();
+
   return (
-    <div data-testid="reference" className={styles.root}>
+    <div data-testid="reference" className={`query-builder ${styles.root}`}>
       {children}
     </div>
   );
@@ -120,10 +98,9 @@ function queryControl(root: ParentNode, id: string, selector: string) {
     `Expected ${id} editor`,
   );
 }
-function expectSameStyle(actual: Element, reference: Element) {
-  const actualStyle = getComputedStyle(actual);
-  const referenceStyle = getComputedStyle(reference);
-  for (const property of [
+function controlStyle(element: Element) {
+  const style = getComputedStyle(element);
+  return Object.fromEntries([
     "color",
     "background-color",
     "border-top-color",
@@ -131,11 +108,10 @@ function expectSameStyle(actual: Element, reference: Element) {
     "border-radius",
     "font-family",
     "box-shadow",
-  ]) {
-    expect(actualStyle.getPropertyValue(property), property).toBe(
-      referenceStyle.getPropertyValue(property),
-    );
-  }
+  ].map(property => [property, style.getPropertyValue(property)]));
+}
+function expectSameStyle(actual: Element, reference: Element) {
+  expect(controlStyle(actual)).toEqual(controlStyle(reference));
 }
 it("updates group colors, sizing, and every drag state with the selected theme", () => {
   const { container } = render(
@@ -171,9 +147,11 @@ it("updates group colors, sizing, and every drag state with the selected theme",
       token.colorInfo,
     );
     expect(css.fontSize).toBe(`${token.fontSizeSM}px`);
-    expect(css.fontFamily.replace(/,\s*/g, ",")).toBe(
-      token.fontFamily.replace(/,\s*/g, ","),
-    );
+    const reference = document.createElement("span");
+    reference.style.fontFamily = token.fontFamily;
+    root.appendChild(reference);
+    expect(css.fontFamily).toBe(getComputedStyle(reference).fontFamily);
+    reference.remove();
     expect(
       getComputedStyle(screen.getByTestId("frame")).paddingBlockStart,
     ).toBe(`${token.paddingSM}px`);
@@ -181,7 +159,7 @@ it("updates group colors, sizing, and every drag state with the selected theme",
 });
 it.each([false, true])(
   "preserves native control styling inside property rows (disabled=%s)",
-  (disabled) => {
+  async (disabled) => {
     const options = [
       { value: "open", label: "Open" },
       { value: "closed", label: "Closed" },
@@ -190,7 +168,7 @@ it.each([false, true])(
       <AntdConfigProvider productUI>
         <FramedBuilder disabled={disabled} />
         <ReferenceControls>
-          <Input disabled={disabled} size="small" value="Ada" readOnly />
+          <Input disabled={disabled} size="small" defaultValue="Ada" />
           <InputNumber disabled={disabled} size="small" value={18} />
           <Segmented
             disabled={disabled}
@@ -246,13 +224,11 @@ it.each([false, true])(
           "Expected native reference control",
         );
         expectSameStyle(actual, expected);
-        fireEvent.mouseOver(actual);
-        actual.setAttribute("data-hover-probe", appearance);
-        fireEvent.mouseOver(expected);
-        expected.setAttribute("data-hover-probe", appearance);
-        expectSameStyle(actual, expected);
-        fireEvent.mouseOut(actual);
-        fireEvent.mouseOut(expected);
+        await browserUser.hover(actual, { force: true });
+        const hovered = controlStyle(actual);
+        await browserUser.hover(expected, { force: true });
+        expect(hovered).toEqual(controlStyle(expected));
+        await browserUser.unhover(expected);
       }
       const input = queryControl(container, "text", ".ant-input");
       const expectedInput = ensure(
@@ -357,7 +333,7 @@ it("honors custom typography, radius, spacing and semantic color tokens", () => 
     },
   };
   const { container } = render(
-    <ThemeProvider appearance="light" theme={custom}>
+    <ThemeProvider theme={custom}>
       <FilterQueryBuilder
         config={{ fields: [config.fields[0]] }}
         value={{ combinator: "and", rules: [value.rules[0]] }}

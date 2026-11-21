@@ -1,10 +1,10 @@
+import styles from "./PermissionItem.module.less";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import type { MessageKey } from "@/wab/client/i18n/locales";
 import { AccessLevel, GrantableAccessLevel } from "@/wab/shared/EntUtil";
 import { DeleteOutlined } from "@ant-design/icons";
 import { Avatar, Button, Select, Tooltip, message } from "antd";
-import { createStyles } from "antd-style";
 import React, { ReactNode } from "react";
 
 interface PermissionItemProps {
@@ -99,34 +99,10 @@ export const permissionDescriptions: Record<GrantableAccessLevel, MessageKey> =
     editor: "Can update anything including model schemas.",
     owner: "Owner",
   };
-const useStyles = createStyles(({ token }) => ({
-  row: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "10px 0",
-    minWidth: 0,
-    flexWrap: "wrap",
-  },
-  identity: { flex: "1 1 120px", minWidth: 0, overflowWrap: "anywhere" },
-  secondary: { color: token.colorTextSecondary, fontSize: 12, marginTop: 2 },
-  actions: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    marginLeft: "auto",
-    "& .ant-select": { width: 120 },
-  },
-  avatar: {
-    background: token.colorFillSecondary,
-    color: token.colorTextSecondary,
-    flexShrink: 0,
-  },
-}));
 
 function PermissionItem(props: PermissionItemProps) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const {
     accessLevel,
     canEdit,

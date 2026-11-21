@@ -1,5 +1,5 @@
+import styles from "./Member.module.less";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
-import { useMemberStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
 import { useI18n } from "@/wab/client/i18n";
 import { PlasmicDataSource } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicDataSource";
 import { PlasmicDatabaseListItem } from "@/wab/client/plasmic/plasmic_kit_dashboard/PlasmicDatabaseListItem";
@@ -68,7 +68,7 @@ export function CmsDatabasesSkeleton() {
 }
 
 export function TeamMembersSkeleton() {
-  const { styles } = useMemberStyles();
+
   return (
     <div aria-hidden="true">
       {[0, 1, 2].map((key) => (

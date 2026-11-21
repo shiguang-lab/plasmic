@@ -1,3 +1,5 @@
+import { $$$ } from "@/wab/shared/TplQuery";
+import panelStyles from "../../studio/StructurePanel.module.less";
 import { useNavigationCatalogInputs, type NavigationArenaInput } from "@/wab/client/components/sidebar-tabs/ProjectPanel/navigation-catalog-inputs";
 import { useShallow } from "zustand/react/shallow";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
@@ -46,8 +48,6 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import { NewComponentInfo } from "@/wab/client/components/widgets/NewComponentModal";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
-
-import { useStructurePanelStyles } from "@/wab/client/components/studio/StructurePanel.styles";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   buildInsertableExtraInfo,
@@ -71,7 +71,6 @@ import {
 import { ARENAS_DESCRIPTION } from "@/wab/shared/Labels";
 import { tryGetMainContentSlotTarget } from "@/wab/shared/SlotUtils";
 import { addEmptyQuery } from "@/wab/shared/TplMgr";
-import { $$$ } from "@/wab/shared/TplQuery";
 import { toVarName } from "@/wab/shared/codegen/util";
 import {
   assert,
@@ -286,7 +285,7 @@ function NavigationDropdown_(
   const navigationPanel = useStore(studioCtx.navigationPanelStore);
   const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
   const catalog = useNavigationCatalogInputs(studioCtx, contentEditorMode);
-  const { styles: panelStyles } = useStructurePanelStyles();
+
   const [searchVisible, setSearchVisible] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
   const showSearch =
@@ -362,7 +361,6 @@ function NavigationDropdown_(
   const contextValue = React.useMemo((): NavigationDropdownContextValue => {
     return { onClose };
   }, [onClose]);
-
 
   const onAddArena = async (arenaType: ArenaType, folderName?: string) => {
     onExpandedChange(true);

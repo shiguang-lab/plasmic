@@ -1,0 +1,63 @@
+@value root as refButtonRoot,
+  slotTargetChildren as refButtonSlotTargetChildren from "@/wab/client/plasmic/PlasmicButton.module.css";
+@value freeBox__wsP0Q as refComponentViewFreeBox__wsP0Q,
+  freeBox__vapgF as refComponentViewFreeBox__vapgF from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicComponentView.module.css";
+@value root as refHeaderRoot from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicDocsPortalHeader.module.css";
+@value slotTargetSlot as refBranchSlotTargetSlot from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicDocsPortalBranch.module.css";
+@value body as refDocsBody,
+  sidebar as refDocsSidebar,
+  itemsContainer as refDocsItemsContainer from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicDocsPortal.module.css";
+@import "../../product-ui-theme.less";
+
+.root {
+  .productPalette();
+  color: var(--ant-color-text);
+  && {
+    background: var(--ant-color-bg-layout);
+    color: var(--ant-color-text);
+    box-sizing: border-box;
+    padding: 8px;
+    gap: 8px;
+  }
+  & :global(.refComponentViewFreeBox__wsP0Q), & :global(.refComponentViewFreeBox__vapgF) {
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.refHeaderRoot) {
+    height: 48px;
+    box-sizing: border-box;
+    padding-left: var(--studio-titlebar-left, 12px);
+    padding-right: var(--studio-titlebar-right, 12px);
+    -webkit-app-region: var(--studio-titlebar-drag, none);
+    & a, & button, & [role=button], & [role=combobox] {
+      -webkit-app-region: no-drag;
+    }
+    flex-shrink: 0;
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refHeaderRoot) :global(.refButtonRoot), & :global(.refHeaderRoot) :global(.refButtonSlotTargetChildren) {
+    color: var(--ant-color-text);
+  }
+  & :global(.refBranchSlotTargetSlot) {
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.refDocsBody) {
+    background: var(--ant-color-bg-layout);
+    flex: 1;
+    height: 0;
+    gap: 8px;
+  }
+  & :global(.refDocsSidebar) {
+    width: 240px;
+    background: var(--ant-color-bg-container);
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.refDocsItemsContainer) {
+    min-height: 0;
+  }
+  @media (max-width: 1100px) {
+    & :global(.refDocsSidebar) {
+      width: 200px;
+    }
+  }
+}

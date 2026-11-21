@@ -1,3 +1,4 @@
+import styles from "./menu-builder.module.less";
 import { comboToKeyLabels } from "@/wab/client/components/studio/Shortcuts";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
@@ -8,7 +9,6 @@ import { MaybeWrap, joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { ensure, filterFalsy } from "@/wab/shared/common";
 import type { MenuProps } from "antd";
 import { Menu, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import L from "lodash";
 import React from "react";
 
@@ -155,38 +155,12 @@ export function CreateNewMenuItemContent(props: {
   );
 }
 
-const useKeyboardShortcutStyles = createStyles(({ token }) => ({
-  root: {
-    "&.shortcut-combo": {
-      background: token.colorBgContainer,
-      color: token.colorText,
-      border: `1px solid ${token.colorBorderSecondary}`,
-      boxShadow: "none",
-      padding: "2px 5px",
-      minWidth: 18,
-      textAlign: "center",
-    },
-  },
-  tooltip: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 12,
-    whiteSpace: "nowrap",
-  },
-  tooltipKeys: {
-    color: "inherit",
-    opacity: 0.55,
-    fontSize: "inherit",
-    lineHeight: "inherit",
-  },
-}));
-
 export function KeyboardShortcut(props: {
   children?: string;
   tooltip?: React.ReactNode;
   variant?: "tooltip";
 }) {
-  const { styles } = useKeyboardShortcutStyles();
+
   return props.children ? (
     <MaybeWrap
       cond={!!props.tooltip}
@@ -215,7 +189,7 @@ export function TextAndShortcut(props: {
   variant?: "tooltip";
 }) {
   const { children, shortcut, variant } = props;
-  const { styles } = useKeyboardShortcutStyles();
+
   return (
     <div className={variant === "tooltip" ? styles.tooltip : "flex"}>
       <div className={variant === "tooltip" ? undefined : "flex-fill mr-sm"}>

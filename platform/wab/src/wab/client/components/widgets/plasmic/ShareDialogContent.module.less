@@ -1,0 +1,132 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--ant-color-text);
+}
+
+.body {
+  max-height: calc(100dvh - 250px);
+  min-height: 0;
+}
+
+.section {
+  padding: 0 0 20px;
+  h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  & + section {
+    padding-top: 20px;
+    border-top: 1px solid var(--ant-color-border-secondary);
+  }
+}
+
+.caption {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+  margin: 10px 0 0;
+  line-height: 1.6;
+}
+
+.inviteRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px auto;
+  gap: 8px;
+  @media (max-width: 500px) {
+    grid-template-columns: minmax(0, 1fr) 110px;
+    button {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.linkRole {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  & :global(.ant-select) {
+    width: 120px;
+  }
+}
+
+.copySuccess {
+  color: var(--ant-color-success);
+}
+
+.copyError {
+  color: var(--ant-color-error);
+  margin: 10px 0 0;
+  font-size: 12px;
+}
+
+.inherited {
+  padding: 0 0 20px;
+  color: var(--ant-color-text-secondary);
+  summary {
+    cursor: pointer;
+  }
+}
+
+.inheritedRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  & span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  & a {
+    color: var(--ant-color-primary);
+    &:hover {
+      color: var(--ant-color-primary-hover);
+    }
+    &:active {
+      color: var(--ant-color-primary-active);
+    }
+  }
+}
+
+.access {
+  margin: 0 0 20px;
+  padding: 16px;
+  background: var(--ant-color-fill-alter);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius-lg);
+}
+
+.accessRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  & :global(.ant-select) {
+    width: 112px;
+    flex-shrink: 0;
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  & > span {
+    margin: 0 auto 0 0;
+    text-align: left;
+  }
+  & > div {
+    margin-left: auto;
+  }
+}

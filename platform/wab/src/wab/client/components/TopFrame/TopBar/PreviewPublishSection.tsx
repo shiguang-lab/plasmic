@@ -1,3 +1,4 @@
+import themeStyles from "./PreviewPublishSection.module.less";
 import styles from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection.module.scss";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { useI18n } from "@/wab/client/i18n";
@@ -5,30 +6,8 @@ import { GlobalOutlined } from "@ant-design/icons";
 import type { PreviewPage, PreviewPublication } from "@plasmic-shared/preview";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Checkbox, Flex, Select, Steps, Typography, message } from "antd";
-import { createStyles } from "antd-style";
 import copy from "copy-to-clipboard";
 import React from "react";
-
-const usePublishStyles = createStyles(({ token }) => ({
-  root: {
-    color: token.colorText,
-    [`& .${styles.icon}, & .${styles.offline}`]: {
-      background: token.colorFillSecondary,
-      color: token.colorTextSecondary,
-    },
-    [`& .${styles.live}`]: {
-      background: token.colorSuccessBg,
-      color: token.colorSuccessText,
-    },
-    [`& .${styles.content}, & .${styles.version}`]: {
-      borderColor: token.colorBorderSecondary,
-      background: token.colorBgContainer,
-    },
-    [`& .${styles.description}, & .${styles.version}`]: {
-      color: token.colorTextSecondary,
-    },
-  },
-}));
 
 export interface PreviewPublishSectionProps {
   publication: PreviewPublication | null | undefined;
@@ -64,7 +43,7 @@ export default function PreviewPublishSection(
   props: PreviewPublishSectionProps,
 ) {
   const { t } = useI18n();
-  const { styles: themeStyles } = usePublishStyles();
+
   const {
     publication,
     pages,

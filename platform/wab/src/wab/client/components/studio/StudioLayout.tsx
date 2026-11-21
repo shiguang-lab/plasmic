@@ -1,4 +1,5 @@
-import { useEditorLayoutStyles } from "@/wab/client/components/ui/layout-styles";
+import styles from "../ui/EditorLayout.module.less";
+import { cx } from "@/wab/shared/common";
 import * as React from "react";
 
 export function StudioLayout({
@@ -8,7 +9,7 @@ export function StudioLayout({
   hiddenForPreview?: boolean;
   children?: React.ReactNode;
 }) {
-  const { styles, cx } = useEditorLayoutStyles();
+
   return (
     // Hide the whole editor without changing canvas geometry or panel state.
     <div

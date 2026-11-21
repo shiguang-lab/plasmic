@@ -1,3 +1,4 @@
+import styles from "./PageOverview.module.less";
 import { loadComponentPreviewRuntime } from "@/wab/client/components/docs/DocsPreviewCanvas";
 import {
   buildPreviewUpdate,
@@ -12,66 +13,8 @@ import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
 import type { PageArena } from "@/wab/shared/model/classes";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { createStyles } from "antd-style";
 import React from "react";
 import { useStore } from "zustand";
-
-const useStyles = createStyles(({ token }) => ({
-  root: {
-    position: "absolute",
-    inset: 0,
-    zIndex: 20,
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 0,
-    background: token.colorBgLayout,
-    color: token.colorText,
-  },
-  heading: {
-    display: "flex",
-    alignItems: "baseline",
-    gap: 12,
-    margin: "24px 32px 16px",
-    "& h2": { margin: 0 },
-    "& span": { color: token.colorTextSecondary },
-  },
-  scroll: { flex: 1, minHeight: 0 },
-  grid: {
-    padding: "8px 32px 32px",
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(186px, 1fr))",
-    gap: 20,
-    alignItems: "start",
-  },
-  card: {
-    background: token.colorBgContainer,
-    color: token.colorText,
-    border: `1px solid ${token.colorBorderSecondary}`,
-    borderRadius: 8,
-    cursor: "pointer",
-    padding: 12,
-    minWidth: 0,
-    textAlign: "left",
-    "&:hover, &:focus-visible": { borderColor: token.colorPrimary },
-    "& strong": { display: "block", marginBottom: 8, overflowWrap: "anywhere" },
-  },
-  preview: {
-    display: "block",
-    position: "relative",
-    width: "100%",
-    overflow: "hidden",
-    background: token.colorFillQuaternary,
-    borderRadius: 4,
-    "& iframe": {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      border: 0,
-      pointerEvents: "none",
-      transformOrigin: "top left",
-    },
-  },
-}));
 
 /** Mount only visible previews. They use the project's own host and models,
  * independent of the editor's selected frame, zoom, and persisted arenas. */
@@ -84,7 +27,7 @@ function PageCard({
   arena: PageArena;
   name: string;
 }) {
-  const { styles } = useStyles();
+
   const { t } = useI18n();
   const hostUrl = useStore(
     studio.uiEnvironment.store,
@@ -231,7 +174,7 @@ function PageCard({
 }
 
 export function PageOverview({ studio }: { studio: StudioCtx }) {
-  const { styles } = useStyles();
+
   const { t } = useI18n();
   const contentEditor = useStore(
     studio.uiEnvironment.store,

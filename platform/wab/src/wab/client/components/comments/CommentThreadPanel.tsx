@@ -1,3 +1,5 @@
+import styles from "./CommentThreadPanel.module.less";
+import { cx } from "@/wab/shared/common";
 import CommentPostForm from "@/wab/client/components/comments/CommentPostForm";
 import {
   CommentSubjectName,
@@ -20,68 +22,8 @@ import {
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Button, Flex, Skeleton, Tooltip, Typography, message } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 import { useStore } from "zustand";
-
-export const useCommentPanelStyles = createStyles(({ token }) => ({
-  root: {
-    display: "flex",
-    flexDirection: "column",
-    flex: 1,
-    minHeight: 0,
-    minWidth: 0,
-  },
-  header: {
-    padding: 12,
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-    flexShrink: 0,
-  },
-  back: { padding: "0 4px", fontSize: 13, fontWeight: 500 },
-  context: {
-    padding: "12px 16px",
-    borderBottom: `1px solid ${token.colorBorder}`,
-    flexShrink: 0,
-  },
-  location: {
-    flex: 1,
-    minWidth: 0,
-    padding: 0,
-    height: "auto",
-    textAlign: "left",
-    justifyContent: "flex-start",
-    overflow: "hidden",
-    "& .ant-btn-content": {
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      flex: 1,
-      minWidth: 0,
-    },
-  },
-  locationIcon: {
-    color: token.colorPrimaryText,
-    background: token.colorPrimaryBg,
-    borderRadius: 6,
-    padding: 7,
-    flexShrink: 0,
-  },
-  locationDetails: { flex: 1, minWidth: 0 },
-  locationText: { width: "100%", color: "inherit" },
-  locationName: {
-    fontSize: 12,
-    fontWeight: 500,
-  },
-  resolve: { flexShrink: 0 },
-  secondary: { fontSize: 11, color: token.colorTextSecondary },
-  content: { padding: "4px 16px 16px" },
-  composer: {
-    padding: "12px 14px 8px",
-    borderTop: `1px solid ${token.colorBorderSecondary}`,
-    background: token.colorBgContainer,
-    flexShrink: 0,
-  },
-}));
 
 export function CommentThreadPanel({
   openedThread,
@@ -93,7 +35,7 @@ export function CommentThreadPanel({
   const studioCtx = useStudioCtx();
   const ctx = studioCtx.commentsCtx;
   const { t } = useI18n();
-  const { styles, cx } = useCommentPanelStyles();
+
   const thread = useStore(ctx.store, (state) =>
     state.threadsById.get(openedThread.threadId),
   );

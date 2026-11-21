@@ -1,3 +1,4 @@
+import styles from "./CanvasAiComposer.module.less";
 import { useAiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
@@ -7,57 +8,12 @@ import {
   AiRunningNotice,
   AiThreadPicker,
 } from "@/wab/client/components/copilot/AiThreadPicker";
-import {
-  editorCanvasControlsLayout,
-  editorLeftRailLayout,
-} from "@/wab/client/components/ui/layout-styles";
 import { getLocalEditSession } from "@/wab/client/copilot/local-edit-session";
 import { useLocalAiStatus } from "@/wab/client/copilot/use-local-ai-status";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useI18n } from "@/wab/client/i18n";
 import { LocalAiContext, LocalAiDraft } from "@/wab/shared/copilot/local-edit";
-import { createStyles } from "antd-style";
 import * as React from "react";
-
-const leftInset =
-  editorLeftRailLayout.left +
-  editorLeftRailLayout.width +
-  editorLeftRailLayout.panelGap;
-// Keep the bottom-right canvas controls clear as the editor viewport narrows.
-const rightInset = 180;
-const useStyles = createStyles(() => ({
-  conversations: {
-    marginBottom: 4,
-    padding: "0 7px",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  threadPicker: {
-    width: "fit-content",
-    maxWidth: "100%",
-    marginInlineStart: "auto",
-    position: "relative",
-    zIndex: 1000,
-    mixBlendMode: "difference",
-    color: "#fff",
-    "& .ant-btn:not(:disabled):not(.ant-btn-disabled)": { color: "inherit" },
-    "& .ant-btn:disabled": { color: "inherit", opacity: 0.4 },
-  },
-  foreground: {
-    position: "relative",
-    zIndex: 1000,
-  },
-  position: {
-    // A fixed/z-indexed ancestor would isolate the picker from the canvas backdrop.
-    position: "absolute",
-    bottom: editorCanvasControlsLayout.edgeInset,
-    left: leftInset,
-    right: rightInset,
-    marginInline: "auto",
-    width: 530,
-    maxWidth: `calc(100% - ${leftInset + rightInset}px)`,
-  },
-}));
 
 export interface CanvasAiComposerProps {
   appCtx?: AppCtx;
@@ -77,7 +33,7 @@ export function CanvasAiComposer({
   loading = !appCtx,
 }: CanvasAiComposerProps) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const session = React.useMemo(
     () => getLocalEditSession(projectId),
     [projectId],

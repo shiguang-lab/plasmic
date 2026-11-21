@@ -1,0 +1,36 @@
+.node {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  vertical-align: middle;
+  padding: 2px 7px;
+  border-radius: var(--ant-border-radius-sm);
+  border: 1px solid var(--ant-color-primary-border);
+  background: var(--ant-color-primary-bg);
+  color: var(--ant-color-primary-text);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  cursor: pointer;
+  font-family: var(--ant-font-family);
+  & span[data-node-name] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & svg {
+    flex-shrink: 0;
+  }
+  &:hover {
+    background: var(--ant-color-primary-bg-hover);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: 2px;
+  }
+  &:disabled {
+    cursor: default;
+    opacity: 0.65;
+  }
+}

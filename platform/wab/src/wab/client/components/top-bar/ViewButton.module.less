@@ -1,0 +1,65 @@
+.popup {
+  & :global(.ant-menu), & :global(.ant-dropdown-menu) {
+    width: 336px;
+    max-width: calc(100vw - 32px);
+    padding: 6px;
+    background: var(--ant-color-bg-elevated);
+    border: 1px solid var(--ant-color-border-secondary);
+    border-radius: var(--ant-border-radius-lg);
+    box-shadow: var(--ant-box-shadow-secondary);
+    color: var(--ant-color-text);
+  }
+  & :global(.ant-menu-item), & :global(.ant-dropdown-menu-item) {
+    height: 36px;
+    min-height: 36px;
+    line-height: 20px;
+    padding: 8px 10px;
+    margin: 2px 0;
+    width: 100%;
+    border-radius: var(--ant-border-radius);
+    font-size: 13px;
+    color: var(--ant-color-text);
+  }
+  & :global(.ant-menu-title-content), & :global(.ant-dropdown-menu-title-content) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  & :global(.ant-menu-title-content) > :global(.flex), & :global(.ant-dropdown-menu-title-content) > :global(.flex) {
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+  }
+  & :global(.anticon), & :global(.dimfg) {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    flex-shrink: 0;
+    color: var(--ant-color-text-secondary);
+  }
+  & :global(.mr-sm) {
+    margin-right: 0;
+  }
+  & :global(.shortcut-combo) {
+    background: var(--ant-color-fill-tertiary);
+    color: var(--ant-color-text-secondary);
+    font-size: 11px;
+    line-height: 18px;
+    padding: 0 5px;
+    border: 1px solid var(--ant-color-border-secondary);
+    border-radius: 4px;
+    box-shadow: none;
+    margin-left: 12px;
+  }
+  & :global(.ant-menu-item-divider), & :global(.ant-dropdown-menu-item-divider) {
+    margin: 6px 4px;
+    border-color: var(--ant-color-border-secondary);
+  }
+  & :global(.ant-menu-item):hover, & :global(.ant-dropdown-menu-item):hover {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.ant-menu-item):focus-visible, & :global(.ant-dropdown-menu-item):focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: -2px;
+  }
+}

@@ -1,3 +1,5 @@
+import $ from "jquery";
+import styles from "./CanvasCommentMarkers.module.less";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
@@ -37,9 +39,7 @@ import {
 } from "@/wab/shared/core/tpls";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
 import { Popover, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
-import $ from "jquery";
 import { noCanvasModelFields, useCanvasComponentInputs, useCanvasViewInputs } from "@/wab/client/components/canvas/canvas-view-inputs";
 import { useCommentMarkerOwner } from "@/wab/client/components/comments/comment-marker-inputs";
 import React, { ReactNode } from "react";
@@ -51,9 +51,6 @@ const ADD_COMMENT_MARKER_MARGIN = 10;
 const ADD_COMMENT_INDIVIDUAL_MARKER_MARGIN = 20;
 const COMMENT_MARKER_INITIAL_Z_INDEX = 12;
 const THREAD_MARKER_MARGIN = 30;
-const useMarkerStyles = createStyles(({ token }) => ({
-  button: { border: 0, padding: 0, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "inline-flex", "&[aria-pressed=true], &:focus-visible": { outline: `2px solid ${token.colorPrimary}`, outlineOffset: 2 } },
-}));
 
 export const CanvasCommentSubjectLabel = React.memo(function CanvasCommentSubjectLabel(props: { subject: TplNode; view: ViewCtx }) {
   const { t: studioUiT, label } = useI18n();
@@ -85,7 +82,7 @@ export const CanvasCommentMarker = React.memo(function CanvasCommentMarker(props
   onHoverChange: (hovering: boolean) => void;
 }) {
   const { commentThread, viewCtx, offsetRight, zIndex, onHoverChange } = props;
-  const { styles } = useMarkerStyles();
+
   const { t } = useI18n();
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const commentsCtx = viewCtx.studioCtx.commentsCtx;
@@ -371,7 +368,6 @@ export const CanvasCommentOverlay = React.memo(function CanvasCommentOverlay({
   if (!$elt || $elt.length === 0) {
     return null;
   }
-
 
   // Keep the overlay inside its frame so it moves with the frame during drag.
   return (

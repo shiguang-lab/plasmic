@@ -1,3 +1,5 @@
+import styles from "./SaveIndicator.module.less";
+import { cx } from "@/wab/shared/common";
 import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -9,68 +11,16 @@ import {
   useDesktopDraftSelector,
 } from "@/wab/client/studio-ctx/desktop-drafts-react";
 import { Button, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 
 export interface SaveIndicatorProps {
   className?: string;
 }
 
-const useStyles = createStyles(({ token }) => ({
-  root: {
-    display: "flex",
-    alignItems: "center",
-    flexShrink: 0,
-    color: token.colorTextSecondary,
-    fontSize: 12,
-    "&[data-save-state='error'], &[data-save-state='blocked']": {
-      color: token.colorError,
-    },
-    "&[data-save-state='pending'], &[data-save-state='unlogged']": {
-      color: token.colorWarning,
-    },
-    "&[data-save-state='saved']": { color: token.colorSuccess },
-    "& .save-indicator-dot": {
-      width: 6,
-      height: 6,
-      flexShrink: 0,
-      borderRadius: "50%",
-      background: "currentColor",
-    },
-    "&[data-save-state='saving']": { color: token.colorPrimary },
-    "&[data-save-state='local'], &[data-save-state='conflict']": {
-      color: token.colorWarning,
-    },
-    "&[data-save-state='synced']": { color: token.colorSuccess },
-    "& .save-indicator-content": {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      minWidth: 0,
-      width: "auto",
-      height: 28,
-      padding: "0 2px",
-    },
-    "& .ant-btn": {
-      color: "inherit",
-      padding: 0,
-      border: 0,
-      background: "transparent",
-      boxShadow: "none",
-      minWidth: 0,
-      width: "auto",
-      height: 28,
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-  },
-}));
-
 const SaveIndicator = React.forwardRef<HTMLDivElement, SaveIndicatorProps>(
     function SaveIndicator(props, ref) {
       const { t, locale } = useI18n();
-      const { styles, cx } = useStyles();
+
       const studioCtx = useStudioCtx();
       const [saveStatus, canSave] = useStudioSaveState(studioCtx,
         useShallow((state) => [state.saveStatus, state.canSave] as const));

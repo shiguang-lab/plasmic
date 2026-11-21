@@ -1,8 +1,8 @@
+import styles from "../ui/EditorLayout.module.less";
 import { usePreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import { PreviewFrame } from "@/wab/client/components/live/PreviewFrame";
 import { PreviewTopBar } from "@/wab/client/components/live/PreviewTopBar";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
-import { useEditorLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { fixStudioIframePositionAndOverflow } from "@/wab/client/dom-utils";
 import { PREVIEW_SHORTCUTS } from "@/wab/client/shortcuts/preview/preview-shortcuts";
 import { useBindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
@@ -16,7 +16,7 @@ interface PreviewProps {
 
 function Preview(props: PreviewProps) {
   const { studioCtx } = props;
-  const { styles } = useEditorLayoutStyles();
+
   const previewCtx = usePreviewCtx();
   const full = usePreviewSelector(previewCtx, (state) => state.previewData?.full ?? false);
   const isLive = usePreviewSelector(previewCtx, (state) => state.isLive);

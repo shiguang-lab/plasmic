@@ -1,3 +1,4 @@
+import styles from "./AiExecutionProgress.module.less";
 import { AiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import { AiNodeReference } from "@/wab/client/components/copilot/AiNodeReference";
 import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
@@ -23,214 +24,7 @@ import {
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Tooltip } from "antd";
-import { createStyles } from "antd-style";
 import React from "react";
-
-const useStyles = createStyles(({ token }) => ({
-  root: {
-    minWidth: 0,
-    "& > summary": {
-      display: "flex",
-      alignItems: "center",
-      gap: 9,
-      padding: "2px 0",
-      cursor: "pointer",
-      listStyle: "none",
-      fontSize: 12,
-      fontWeight: 400,
-      color: token.colorTextSecondary,
-      lineHeight: "20px",
-    },
-    "& summary::-webkit-details-marker": { display: "none" },
-    "& > summary:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: -2,
-      borderRadius: token.borderRadiusSM,
-    },
-    "&[open] > summary [data-progress-caret]": { transform: "rotate(90deg)" },
-  },
-  caret: {
-    fontSize: 10,
-    color: token.colorTextSecondary,
-    transition: "transform 150ms",
-    flexShrink: 0,
-  },
-  count: {
-    marginLeft: "auto",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 5,
-    fontSize: 11,
-    fontVariantNumeric: "tabular-nums",
-    whiteSpace: "nowrap",
-    color: token.colorTextTertiary,
-  },
-  summaryIcon: {
-    width: 16,
-    height: 20,
-    fontSize: 12,
-    flexShrink: 0,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: token.colorTextTertiary,
-    "& [data-progress-caret]": { fontSize: "inherit" },
-    "&[data-status=running]": { color: token.colorPrimaryText },
-    "&[data-status=failed]": { color: token.colorErrorText },
-  },
-  notice: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    padding: "0 0 0 25px",
-    margin: "0 0 8px",
-    color: token.colorTextTertiary,
-    fontSize: 11,
-  },
-  steps: { listStyle: "none", padding: "8px 0 4px", margin: 0 },
-  step: {
-    position: "relative",
-    display: "grid",
-    gridTemplateColumns: "16px minmax(0, 1fr)",
-    gap: 9,
-    paddingBottom: 12,
-    "&:last-child": { paddingBottom: 0 },
-    "&:not(:last-child)::before": {
-      content: "''",
-      position: "absolute",
-      left: 7.5,
-      top: 21,
-      bottom: 2,
-      borderLeft: `1px solid ${token.colorBorderSecondary}`,
-    },
-  },
-  indicator: {
-    position: "relative",
-    zIndex: 1,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "start",
-    width: 16,
-    height: 20,
-    fontSize: 12,
-    lineHeight: "20px",
-    color: token.colorTextTertiary,
-    "&[data-status=running]": { color: token.colorPrimaryText },
-    "&[data-status=failed]": { color: token.colorErrorText },
-  },
-  content: { minWidth: 0 },
-  heading: {
-    display: "flex",
-    alignItems: "center",
-    gap: 7,
-    minWidth: 0,
-    minHeight: 20,
-  },
-  title: {
-    fontSize: 12,
-    fontWeight: 400,
-    lineHeight: "20px",
-    color: token.colorTextSecondary,
-    overflowWrap: "anywhere",
-  },
-  target: {
-    fontSize: 11,
-    lineHeight: "18px",
-    color: token.colorTextTertiary,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    minWidth: 0,
-  },
-  status: {
-    marginLeft: "auto",
-    fontSize: 11,
-    lineHeight: "20px",
-    flexShrink: 0,
-    color: token.colorTextTertiary,
-    "&[data-status=running]": { color: token.colorPrimaryText },
-    "&[data-status=failed]": { color: token.colorErrorText },
-  },
-  tool: {
-    "& > summary": { cursor: "pointer", listStyle: "none" },
-    "& > summary::-webkit-details-marker": { display: "none" },
-    "&[open] > summary [data-tool-caret]": { transform: "rotate(90deg)" },
-    "& > summary:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      borderRadius: token.borderRadiusSM,
-    },
-  },
-  metadata: {
-    fontSize: 11,
-    color: token.colorTextTertiary,
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 6,
-    alignItems: "center",
-    marginTop: 6,
-    "& code": { fontFamily: token.fontFamilyCode, fontSize: 10 },
-  },
-  errorSummary: {
-    fontSize: 11,
-    lineHeight: 1.6,
-    color: token.colorTextSecondary,
-    margin: "3px 0 0",
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-    "&[data-status=failed]": { color: token.colorErrorText },
-  },
-  error: {
-    margin: "6px 0 0",
-    padding: "6px 8px",
-    borderRadius: token.borderRadiusSM,
-    background: token.colorFillQuaternary,
-    color: token.colorTextSecondary,
-    fontSize: 11,
-    lineHeight: 1.6,
-    whiteSpace: "pre-wrap",
-    overflowWrap: "anywhere",
-  },
-  change: {
-    fontSize: 11,
-    color: token.colorTextSecondary,
-    "& summary": { cursor: "pointer", lineHeight: "22px" },
-    "& details": { marginTop: 6 },
-    "& pre": {
-      margin: "6px 0",
-      fontFamily: token.fontFamilyCode,
-      fontSize: 11,
-      lineHeight: 1.6,
-      whiteSpace: "pre-wrap",
-      overflowWrap: "anywhere",
-    },
-    "& button": { marginTop: 6 },
-  },
-  detailScroll: { maxHeight: 200 },
-  reasoningToggle: {
-    width: "100%",
-    padding: 0,
-    border: 0,
-    background: "transparent",
-    textAlign: "left",
-    font: "inherit",
-    cursor: "pointer",
-    "&[aria-expanded=true] [data-reasoning-caret]": {
-      transform: "rotate(90deg)",
-    },
-    "&:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      borderRadius: token.borderRadiusSM,
-    },
-  },
-  reasoningBody: {
-    margin: "3px 0 0",
-    display: "flow-root",
-    "&[data-collapsed=true]": { maxHeight: "35.2px", overflow: "hidden" },
-  },
-}));
 
 function ThoughtSummary({
   children,
@@ -240,7 +34,7 @@ function ThoughtSummary({
   thinking: boolean;
 }) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const [expanded, setExpanded] = React.useState(false);
   const bodyId = React.useId();
   return (
@@ -283,7 +77,7 @@ export function AiExecutionProgress({
   parts?: AiMessagePart[];
 }) {
   const { t, label } = useI18n();
-  const { styles } = useStyles();
+
   const [open, setOpen] = React.useState(
     task.status === "running" || task.status === "failed",
   );

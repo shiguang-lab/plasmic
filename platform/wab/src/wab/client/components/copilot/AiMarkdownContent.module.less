@@ -1,0 +1,188 @@
+.compact {
+  &&& {
+    --font-size: 11px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ant-color-text-tertiary);
+  }
+  &&& p, &&& li, &&& [data-component=paragraph], &&& h1, &&& h2, &&& h3, &&& h4, &&& h5, &&& h6, &&& th, &&& td {
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+  &&& p, &&& [data-component=paragraph] {
+    margin-bottom: 6px;
+  }
+  &&& h1, &&& h2, &&& h3, &&& h4, &&& h5, &&& h6 {
+    margin: 8px 0 4px;
+  }
+  &&& ul, &&& ol {
+    margin: 4px 0 6px;
+  }
+  &&& button[data-node-uuid] {
+    font-size: inherit;
+    line-height: inherit;
+    padding: 0 3px;
+  }
+}
+
+.markdown {
+  && {
+    --font-size: 13px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.7;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--ant-color-text);
+  & > :first-child {
+    margin-top: 0;
+  }
+  & > :last-child {
+    margin-bottom: 0;
+  }
+  && p, && [data-component=paragraph] {
+    margin: 0 0 10px;
+    white-space: normal;
+  }
+  && h1, && h2, && h3, && h4, && h5, && h6 {
+    margin: 16px 0 8px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  && h1 {
+    font-size: 18px;
+  }
+  && h2 {
+    font-size: 16px;
+  }
+  && h3, && h4, && h5, && h6 {
+    font-size: 14px;
+  }
+  & strong {
+    font-weight: 600;
+  }
+  && ul, && ol {
+    margin: 8px 0 12px;
+    padding-left: 22px;
+  }
+  & ul {
+    list-style-type: disc;
+  }
+  & ol {
+    list-style-type: decimal;
+  }
+  && li {
+    padding-left: 2px;
+    margin: 4px 0;
+  }
+  && li > p {
+    margin-bottom: 4px;
+  }
+  && li > ul, && li > ol {
+    margin: 4px 0;
+  }
+  && blockquote {
+    margin: 12px 0;
+    padding: 4px 12px;
+    border-left: 3px solid var(--ant-color-border);
+    color: var(--ant-color-text-secondary);
+  }
+  && blockquote > p:last-child {
+    margin-bottom: 0;
+  }
+  && a {
+    color: var(--ant-color-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  && code {
+    font-family: var(--ant-font-family-code);
+    font-size: 12px;
+  }
+  && :not(pre) > code {
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: var(--ant-color-fill-secondary);
+  }
+  && pre {
+    margin: 0;
+    padding: 12px;
+    white-space: pre;
+    overflow-wrap: normal;
+    line-height: 1.6;
+  }
+  && pre code {
+    padding: 0;
+    background: transparent;
+  }
+  && table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 12px;
+  }
+  && th, && td {
+    border: 1px solid var(--ant-color-border-secondary);
+    padding: 7px 10px;
+    min-width: 80px;
+  }
+  && th {
+    background: var(--ant-color-fill-secondary);
+    font-weight: 600;
+  }
+  && hr {
+    border: 0;
+    border-top: 1px solid var(--ant-color-border-secondary);
+    margin: 16px 0;
+  }
+}
+
+.codeBlock {
+  margin: 12px 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.codeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 4px 12px;
+  font-size: 11px;
+  color: var(--ant-color-text-secondary);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.codeScroll {
+  max-height: 300px;
+  max-width: 100%;
+  & pre {
+    overflow: visible;
+  }
+}
+
+.codeActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fullscreen {
+  height: min(70dvh, 800px);
+  min-height: 0;
+  & pre {
+    overflow: visible;
+  }
+}
+
+.tableScroll {
+  max-width: 100%;
+  margin: 12px 0;
+}

@@ -1,9 +1,9 @@
+import styles from "./ui/AuthenticatedLayout.module.less";
 import type { AppCtx } from "@/wab/client/app-ctx";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { HelpButton } from "@/wab/client/components/top-bar/HelpButton";
-import { useAuthenticatedLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { InlineIcon } from "@/wab/client/components/widgets";
 import { BrowserAlertBanner } from "@/wab/client/components/widgets/BrowserAlertBanner";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -55,7 +55,7 @@ function NormalLayoutComponent(props: NormalLayoutComponentProps) {
     );
 }
 function AuthenticatedLayout(props: NormalLayoutComponentProps) {
-  const { styles } = useAuthenticatedLayoutStyles();
+
   return <NormalLayoutComponent {...props} className={styles.root} />;
 }
 export function NormalNonAuthLayout({children}: { children?: React.ReactNode }) {

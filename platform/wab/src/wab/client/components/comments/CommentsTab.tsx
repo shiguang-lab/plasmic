@@ -1,3 +1,4 @@
+import commentsTabStyles from "./CommentsTab.module.less";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { CommentThreadPanel } from "@/wab/client/components/comments/CommentThreadPanel";
 import { NewCommentPanel } from "@/wab/client/components/comments/NewCommentPanel";
@@ -30,77 +31,9 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-
-const useCommentsStyles = createStyles(({ token }) => ({
-  root: {
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 0,
-    minWidth: 0,
-    color: token.colorText,
-    background: token.colorBgContainer,
-    fontSize: 12,
-  },
-  header: {
-    flexShrink: 0,
-    padding: "12px 16px 14px",
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-  },
-  toolbar: { marginBottom: 12 },
-  filterOptions: { marginTop: 12 },
-  title: { fontSize: 14 },
-  filters: {
-    width: "100%",
-    fontSize: 12,
-    padding: 3,
-    "& .ant-segmented-group": { alignItems: "stretch" },
-    "& .ant-segmented-item": { minWidth: 0 },
-    "& .ant-segmented-item-label": {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "100%",
-      minHeight: 28,
-      padding: "5px 6px",
-      lineHeight: "18px",
-      whiteSpace: "normal",
-      overflowWrap: "anywhere",
-    },
-  },
-  content: { minWidth: 0 },
-  statusButton: { padding: 0, fontSize: 12 },
-  related: { fontSize: 12, marginInlineStart: "auto" },
-  threads: { display: "flex", flexDirection: "column" },
-  empty: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "44px 12px 48px",
-    textAlign: "center",
-  },
-  emptyIcon: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 44,
-    height: 44,
-    marginBottom: 16,
-    borderRadius: token.borderRadiusLG,
-    color: token.colorTextSecondary,
-    background: token.colorFillTertiary,
-    fontSize: 20,
-  },
-  emptyTitle: { fontWeight: 500, marginBottom: 6 },
-  emptyHint: {
-    maxWidth: 240,
-    color: token.colorTextSecondary,
-    lineHeight: "20px",
-  },
-}));
 
 const statusLabels = {
   unresolved: "Unresolved",
@@ -137,7 +70,7 @@ export const CommentsTab = React.memo(function CommentsTab(
 ) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
-  const { styles } = useCommentsStyles();
+
   const [savingNotification, setSavingNotification] = React.useState(false);
 
   const commentsCtx = studioCtx.commentsCtx;
@@ -242,7 +175,7 @@ export const CommentsTab = React.memo(function CommentsTab(
   };
 
   const renderThreads = (items: typeof threads) => (
-    <div className={styles.threads}>
+    <div className={commentsTabStyles.threads}>
       {items.map((commentThread) => (
         <RootComment
           key={commentThread.id}
@@ -258,7 +191,7 @@ export const CommentsTab = React.memo(function CommentsTab(
 
   return (
     <section
-      className={`comments-tab flex-even ${styles.root}`}
+      className={`comments-tab flex-even ${commentsTabStyles.root}`}
       aria-label={uiT("Comments")}
     >
       {openedThread && (
@@ -278,17 +211,17 @@ export const CommentsTab = React.memo(function CommentsTab(
         }}
         aria-hidden={!!(openedThread || openedNewThread)}
       >
-        <header className={styles.header}>
+        <header className={commentsTabStyles.header}>
           <Flex
             justify="space-between"
             align="center"
             gap={8}
-            className={styles.toolbar}
+            className={commentsTabStyles.toolbar}
           >
             <Flex align="center" gap={4}>
-              <Typography.Text strong className={styles.title}>
+              <Typography.Text strong className={commentsTabStyles.title}>
                 {uiT("Comments")}{" "}
-                <span className={styles.emptyHint}>{threads.length}</span>
+                <span className={commentsTabStyles.emptyHint}>{threads.length}</span>
               </Typography.Text>
               {!studioCtx.isPublishedTemplate && <Dropdown
                 trigger={["click"]}
@@ -345,7 +278,7 @@ export const CommentsTab = React.memo(function CommentsTab(
           </Flex>
           <Segmented<CommentFilters["scope"]>
             block
-            className={styles.filters}
+            className={commentsTabStyles.filters}
             aria-label={uiT("Comment scope")}
             value={filters.scope}
             onChange={(scope) =>
@@ -356,7 +289,7 @@ export const CommentsTab = React.memo(function CommentsTab(
               { value: "project", label: uiT("Entire project") },
             ]}
           />
-          <Flex align="center" gap={8} wrap className={styles.filterOptions}>
+          <Flex align="center" gap={8} wrap className={commentsTabStyles.filterOptions}>
             <Dropdown
               trigger={["click"]}
               placement="bottomLeft"
@@ -376,7 +309,7 @@ export const CommentsTab = React.memo(function CommentsTab(
               <Button
                 type="text"
                 size="small"
-                className={styles.statusButton}
+                className={commentsTabStyles.statusButton}
                 aria-label={uiT("Comment status")}
               >
                 {uiT(statusLabels[filters.status])}
@@ -384,7 +317,7 @@ export const CommentsTab = React.memo(function CommentsTab(
               </Button>
             </Dropdown>
             <Checkbox
-              className={styles.related}
+              className={commentsTabStyles.related}
               checked={filters.onlyRelated}
               onChange={(event) =>
                 commentsCtx.setCommentsFilter({
@@ -409,7 +342,7 @@ export const CommentsTab = React.memo(function CommentsTab(
             },
           }}
         >
-          <div className={styles.content}>
+          <div className={commentsTabStyles.content}>
             {loadFailed && (
               <Alert
                 type="error"
@@ -434,22 +367,22 @@ export const CommentsTab = React.memo(function CommentsTab(
               renderThreads(threads)
             ) : (
               hasLoaded && (
-                <div className={styles.empty} role="status">
-                  <span className={styles.emptyIcon} aria-hidden="true">
+                <div className={commentsTabStyles.empty} role="status">
+                  <span className={commentsTabStyles.emptyIcon} aria-hidden="true">
                     {filters.status === "resolved" ? (
                       <CheckOutlined />
                     ) : (
                       <MessageOutlined />
                     )}
                   </span>
-                  <div className={styles.emptyTitle}>
+                  <div className={commentsTabStyles.emptyTitle}>
                     {uiT(
                       filters.onlyRelated
                         ? "No comments related to you"
                         : emptyMessages[filters.status].title,
                     )}
                   </div>
-                  <div className={styles.emptyHint}>
+                  <div className={commentsTabStyles.emptyHint}>
                     {uiT(
                       filters.onlyRelated
                         ? "Comments you started, replied to, or were mentioned in will appear here."

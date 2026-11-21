@@ -17,7 +17,7 @@ import { ValTag } from "@/wab/shared/core/val-nodes";
 import { ArenaFrame, Component, TplNode } from "@/wab/shared/model/classes";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { theme as AntdTheme } from "antd";
-import { ThemeProvider } from "antd-style";
+import { ConfigProvider as ThemeProvider } from "antd";
 import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import { mock } from "vitest-mock-extended";
@@ -545,7 +545,7 @@ it.each([
   const { studioCtx, frame, child, target } = nestedActivity();
   studioCtx.studioIsVisible = true;
   const { container } = render(
-    <ThemeProvider appearance={appearance} theme={productTheme(appearance)}>
+    <ThemeProvider theme={productTheme(appearance)}>
       <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />
     </ThemeProvider>,
   );
@@ -565,7 +565,10 @@ it.each([
   });
   const region = ensure(container.querySelector("[data-copilot-target]"), "Expected activity region");
   const token = AntdTheme.getDesignToken(productTheme(appearance));
-  const color = kind === "inspection" ? "#1677ff" : token.colorPrimary;
+  const color = kind === "inspection" ? "#1677ff" : "var(--ant-color-primary)";
+  if (kind === "edit") {
+    expect(getComputedStyle(region).getPropertyValue("--ant-color-primary").trim()).toBe(token.colorPrimary);
+  }
   expect(region.textContent).toBe("");
   expect(region.getAttribute("data-copilot-target")).toBe(child.uuid);
   expect(region.getAttribute("data-kind")).toBe(kind);

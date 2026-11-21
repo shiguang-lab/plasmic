@@ -1,42 +1,11 @@
+import React from "react";
+import styles from "./AiNodeReference.module.less";
 import { useI18n } from "@/wab/client/i18n";
 import type { AiTask } from "@/wab/shared/copilot/ai-chat";
 import { AimOutlined, BlockOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
-import { createStyles } from "antd-style";
-import React from "react";
 
 export type AiNode = NonNullable<AiTask["nodes"]>[number];
-const useStyles = createStyles(({ token }) => ({
-  node: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 5,
-    maxWidth: "100%",
-    verticalAlign: "middle",
-    padding: "2px 7px",
-    borderRadius: token.borderRadiusSM,
-    border: `1px solid ${token.colorPrimaryBorder}`,
-    background: token.colorPrimaryBg,
-    color: token.colorPrimaryText,
-    fontSize: 12,
-    fontWeight: 400,
-    lineHeight: "20px",
-    cursor: "pointer",
-    fontFamily: token.fontFamily,
-    "& span[data-node-name]": {
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-    },
-    "& svg": { flexShrink: 0 },
-    "&:hover": { background: token.colorPrimaryBgHover },
-    "&:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: 2,
-    },
-    "&:disabled": { cursor: "default", opacity: 0.65 },
-  },
-}));
 
 export function AiNodeReference({
   node,
@@ -46,7 +15,7 @@ export function AiNodeReference({
   onLocate?: (node: AiNode) => void;
 }) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   return (
     <Tooltip
       title={

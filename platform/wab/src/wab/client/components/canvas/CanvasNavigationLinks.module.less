@@ -1,0 +1,56 @@
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 8;
+  color: var(--ant-color-primary);
+}
+
+.svg {
+  position: absolute;
+  overflow: visible;
+  width: 1px;
+  height: 1px;
+}
+
+.hit {
+  pointer-events: stroke;
+  cursor: pointer;
+  outline: none;
+  &:focus-visible {
+    stroke: var(--ant-color-primary);
+    stroke-opacity: 0.2;
+  }
+}
+
+.label {
+  position: absolute;
+  transform-origin: left center;
+  pointer-events: auto;
+  white-space: nowrap;
+  background: var(--ant-color-bg-elevated);
+  color: var(--ant-color-text);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  box-shadow: var(--ant-box-shadow-secondary);
+  cursor: pointer;
+}
+
+.labelText {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

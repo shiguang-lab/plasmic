@@ -3,6 +3,7 @@ import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import glob from "glob";
 import path from "path";
+import postcss from "rollup-plugin-postcss";
 import esbuild from "rollup-plugin-esbuild";
 
 const SKINNY_INPUTS = glob.sync("./src/register*.ts*");
@@ -33,6 +34,7 @@ export default [
       },
     ],
     plugins: [
+      postcss({ include: /\.module\.less$/, modules: true, use: ["less"] }),
       resolve(),
       commonjs(),
       json(),
@@ -73,6 +75,7 @@ export default [
       },
     ],
     plugins: [
+      postcss({ include: /\.module\.less$/, modules: true, use: ["less"] }),
       resolve(),
       commonjs(),
       json(),

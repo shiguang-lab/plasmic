@@ -1,3 +1,4 @@
+import themeStyles from "./PreviewFrame.module.less";
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
@@ -40,7 +41,6 @@ import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import { readBusinessAnchor } from "@plasmic-shared/preview";
 import { theme as AntdTheme } from "antd";
-import { createStyles } from "antd-style";
 import React from "react";
 import { useMountedState } from "react-use";
 import { useStore } from "zustand";
@@ -434,22 +434,11 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   };
 }
 
-const usePreviewStyles = createStyles(({ token }) => ({
-  root: {
-    "--preview-surface": token.colorBgContainer,
-    "--preview-layout": token.colorBgLayout,
-    "--preview-text": token.colorText,
-    "--preview-muted": token.colorTextSecondary,
-    "--preview-border": token.colorBorderSecondary,
-    "--preview-primary": token.colorPrimary,
-  },
-}));
-
 export function PreviewFrame({
   previewCtx,
   onDimensionsChange,
 }: PreviewFrameProps) {
-  const { styles: themeStyles } = usePreviewStyles();
+
   const { t: uiT } = useI18n();
   const studioCtx = previewCtx.studioCtx;
   const hostUrl = useStore(studioCtx.uiEnvironment.store, (state) => state.hostUrl);

@@ -1,3 +1,4 @@
+import styles from "./CmsLayout.module.less";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { Api } from "@/wab/client/api";
 import {
@@ -12,7 +13,6 @@ import {
   renderEntryField,
   renderMaybeLocalizedInput,
 } from "@/wab/client/components/cms/CmsInputs";
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import {
   useCmsDatabase,
   useCmsRow,
@@ -255,7 +255,6 @@ function CmsEntryDetailsForm_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { t: studioUiT } = useI18n();
-  const { styles } = useCmsLayoutStyles();
 
   const { database, table, row, ...rest } = props;
   const api = useApi();
@@ -362,8 +361,6 @@ function CmsEntryDetailsForm_(
       ),
     );
   };
-
-
 
   const hasChanges = () => {
     const { identifier, ...draftData } = form.getFieldsValue(true);

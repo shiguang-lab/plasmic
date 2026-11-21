@@ -1,6 +1,8 @@
+import styles from "./TemplateCenter.module.less";
+import projectBrowserStyles from "../ui/ProjectBrowser.module.less";
+import { cx } from "@/wab/shared/common";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
-import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { ProjectCardsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -28,133 +30,8 @@ import {
   Upload,
   message,
 } from "antd";
-import { createStyles } from "antd-style";
 import * as React from "react";
 import useSWR from "swr";
-
-const useStyles = createStyles(({ token }) => ({
-  navigation: {
-    "@container workspace-tabs (width > 1240px)": {
-      "&& > .ant-tabs-nav": { minWidth: "max-content" },
-    },
-    "@container workspace-tabs (max-width: 1240px)": {
-      flexDirection: "column",
-      alignItems: "stretch",
-      gap: 8,
-      paddingBottom: 12,
-      "& > div:last-child": { paddingBlock: 0 },
-    },
-  },
-  search: {
-    width: 240,
-    maxWidth: "100%",
-    "@container workspace-tabs (max-width: 480px)": { width: "100%" },
-  },
-  filter: {
-    width: 144,
-    "@container workspace-tabs (max-width: 480px)": {
-      maxWidth: "calc((100% - 8px) / 2)",
-    },
-  },
-  libraryFilter: { maxWidth: "100%", width: 184 },
-  catalog: {
-    [`&& .${dashboard.thumbnail}`]: {
-      height: "auto",
-      padding: 0,
-      aspectRatio: "4 / 3",
-      overflow: "hidden",
-      borderBottom: 0,
-    },
-    [`& .${dashboard.content}`]: { borderTop: "1px solid var(--ui-border)" },
-  },
-  card: { position: "relative" },
-  cover: {
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-  },
-  coverBackdrop: {
-    "&&": { objectFit: "cover" },
-    filter: "blur(20px)",
-    transform: "scale(1.16)",
-  },
-  placeholder: {
-    margin: "auto",
-    color: token.colorTextTertiary,
-    fontSize: 24,
-  },
-  cardOpen: {
-    display: "block",
-    width: "100%",
-    padding: 0,
-    border: 0,
-    background: "transparent",
-    color: "inherit",
-    font: "inherit",
-    textAlign: "left",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    "&:enabled::after": {
-      content: '""',
-      position: "absolute",
-      inset: 0,
-      borderRadius: token.borderRadiusLG,
-    },
-    "&:enabled": { cursor: "pointer" },
-    "&:focus-visible": { outline: "none" },
-    "&:focus-visible::after": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: -2,
-    },
-  },
-  cardMenu: { position: "relative", zIndex: 1, flexShrink: 0 },
-  description: {
-    display: "-webkit-box",
-    WebkitBoxOrient: "vertical",
-    WebkitLineClamp: 2,
-    overflow: "hidden",
-    margin: 0,
-    color: token.colorTextSecondary,
-    fontSize: 13,
-    overflowWrap: "anywhere",
-  },
-  upload: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 10,
-    padding: 16,
-    borderRadius: 12,
-    border: `1px dashed ${token.colorBorder}`,
-    background: token.colorFillAlter,
-  },
-  uploadPreview: {
-    width: "100%",
-    maxHeight: 120,
-    objectFit: "contain",
-    borderRadius: 8,
-  },
-  uploadHint: {
-    margin: 0,
-    fontSize: 12,
-    color: token.colorTextSecondary,
-    textAlign: "center",
-  },
-  formScroll: { maxHeight: "min(65dvh, calc(100dvh - 144px))", minHeight: 0 },
-  form: {
-    "& .ant-form-item": { marginBottom: 16 },
-    "& > .ant-form-item:last-child": { marginBottom: 0 },
-  },
-  fieldGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    columnGap: 16,
-    "@media (width < 576px)": { gridTemplateColumns: "minmax(0, 1fr)" },
-  },
-}));
 
 const emptyMetadata: TemplateMetadata = {
   name: "",
@@ -169,8 +46,7 @@ export default function TemplateCenter() {
   const appCtx = useAppCtx();
   const history = useHistory();
   const { t } = useI18n();
-  const { styles, cx } = useStyles();
-  const { styles: layout } = useProjectBrowserStyles();
+
   const { data, error, mutate, isValidating } = useSWR(
     ["template-center", appCtx.selfInfo?.id],
     () => appCtx.api.listDesignTemplates(),
@@ -261,7 +137,7 @@ export default function TemplateCenter() {
     });
   }
   const catalog = (
-    <div className={cx(layout.workspaceContent, styles.catalog)}>
+    <div className={cx(projectBrowserStyles.workspaceContent, styles.catalog)}>
       {error ? (
         <Alert
           type="error"
@@ -298,7 +174,7 @@ export default function TemplateCenter() {
           ) : null}
         </Empty>
       ) : (
-        <div className={layout.grid}>
+        <div className={projectBrowserStyles.grid}>
           {filtered.map((item) => {
             const meta = item.metadata;
             const details = [
@@ -417,17 +293,17 @@ export default function TemplateCenter() {
   );
 
   return (
-    <section className={layout.root} aria-label={t("Template center")}>
+    <section className={projectBrowserStyles.root} aria-label={t("Template center")}>
       {documentTitle(t("Template center"))}
       <Tabs
-        className={layout.workspaceTabs}
+        className={projectBrowserStyles.workspaceTabs}
         activeKey={kind}
         onChange={setKind}
         renderTabBar={(props, DefaultTabBar) => (
-          <div className={cx(layout.workspaceNavigation, styles.navigation)}>
+          <div className={cx(projectBrowserStyles.workspaceNavigation, styles.navigation)}>
             <DefaultTabBar {...props} />
             <Flex
-              className={layout.workspaceToolbar}
+              className={projectBrowserStyles.workspaceToolbar}
               align="center"
               wrap
               gap={8}
@@ -585,7 +461,7 @@ export default function TemplateCenter() {
 }
 
 function TemplateCover({ url }: { url: string }) {
-  const { styles, cx } = useStyles();
+
   const [failedUrl, setFailedUrl] = React.useState<string>();
   const [backdropUrl, setBackdropUrl] = React.useState<string>();
   return url && failedUrl !== url ? (
@@ -630,7 +506,7 @@ function TemplateCoverUpload({
 }) {
   const appCtx = useAppCtx();
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const [uploadMessage, contextHolder] = message.useMessage();
   return (
     <div className={styles.upload}>

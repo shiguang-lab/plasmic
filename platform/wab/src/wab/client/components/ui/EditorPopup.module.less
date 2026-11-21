@@ -1,0 +1,67 @@
+@value slotTargetLabel as refLeftTabButtonSlotTargetLabel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabButton.module.css";
+@import "../../product-ui-theme.less";
+
+.menuScroll {
+  max-height: 80vh;
+  border-radius: var(--ant-border-radius-sm);
+  background: var(--ant-color-bg-elevated);
+  box-shadow: var(--ant-box-shadow-secondary);
+  & :global(.ant-dropdown-menu) {
+    max-height: none;
+    overflow: visible;
+    box-shadow: none;
+  }
+}
+
+.root {
+  .productPalette();
+  color: var(--ant-color-text);
+  & :global(.shortcut-combo) {
+    background: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    border: 1px solid var(--ant-color-border-secondary);
+    box-shadow: none;
+    padding: 2px 5px;
+    min-width: 18px;
+    text-align: center;
+  }
+  & button {
+    color: var(--ant-color-text);
+    font-size: 13px;
+    min-height: 36px;
+    border-radius: var(--ant-border-radius);
+  }
+  & button:disabled {
+    color: var(--ant-color-text-disabled);
+  }
+  & button:focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: 2px;
+  }
+  & button[aria-expanded=true] {
+    background: var(--ant-color-primary-bg);
+    color: var(--ant-color-primary-text);
+  }
+  & button:hover:not(:disabled) {
+    background: var(--ant-color-fill-secondary);
+  }
+  & :global(.editor-management-menu) {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 4px;
+    border-top: 1px solid var(--ant-color-border);
+    padding-top: 8px;
+  }
+  & :global(.editor-management-menu) button {
+    width: 100%;
+    height: 36px;
+    justify-content: flex-start;
+    flex-direction: row;
+    gap: 8px;
+  }
+  & :global(.refLeftTabButtonSlotTargetLabel) {
+    color: var(--ant-color-text);
+    font-size: 13px;
+  }
+}

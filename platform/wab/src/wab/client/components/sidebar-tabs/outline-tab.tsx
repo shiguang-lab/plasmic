@@ -1,3 +1,4 @@
+import panelStyles from "../studio/StructurePanel.module.less";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
 import { OutlineCtx } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
@@ -6,7 +7,6 @@ import {
   ArenaTree,
   TreeDndManager,
 } from "@/wab/client/components/sidebar-tabs/tpl-tree";
-import { useStructurePanelStyles } from "@/wab/client/components/studio/StructurePanel.styles";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
@@ -41,7 +41,7 @@ function OutlineTab_() {
   const studioCtx = useStudioCtx();
   useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
   const world = studioCtx.arenaState.lifetime();
-  const { styles: panelStyles } = useStructurePanelStyles();
+
   const dndManager = React.useMemo(
     () => new TreeDndManager(studioCtx),
     [studioCtx, world],

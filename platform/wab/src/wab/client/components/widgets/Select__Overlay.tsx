@@ -1,9 +1,10 @@
+import styles from "../../product-ui-theme.module.less";
+import { cx } from "@/wab/shared/common";
 import { TriggeredOverlayContext, getDefaultPlasmicProps, PLUME_STRICT_MODE } from "@plasmicapp/react-web";
 import {
   DefaultSelect__OverlayProps,
   PlasmicSelect__Overlay,
 } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicSelect__Overlay";
-import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import { TriggeredOverlayRef } from "@plasmicapp/react-web";
 import { theme as AntdTheme } from "antd";
 import * as React from "react";
@@ -27,7 +28,7 @@ function Select__Overlay_(props: Select__OverlayProps, ref: TriggeredOverlayRef)
 
 function Select__OverlayWithContext({props, ref}: {props: Select__OverlayProps; ref: TriggeredOverlayRef}) {
   const { token } = AntdTheme.useToken();
-  const { styles, cx } = useProductThemeStyles(token);
+
   const { plasmicProps } = PlasmicSelect__Overlay.useBehavior(
     { ...props, className: cx(props.className, styles.root) },
     ref,

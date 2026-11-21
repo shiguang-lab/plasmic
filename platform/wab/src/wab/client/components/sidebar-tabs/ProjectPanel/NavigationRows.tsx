@@ -1,3 +1,4 @@
+import styles from "../../studio/StructurePanel.module.less";
 import { COMMANDS } from "@/wab/client/commands/command";
 import RowGroup, { RowGroupProps } from "@/wab/client/components/RowGroup";
 import RowItem from "@/wab/client/components/RowItem";
@@ -6,7 +7,6 @@ import type { CommentsStats } from "@/wab/client/components/comments/utils";
 import { ArenaContextMenu } from "@/wab/client/components/sidebar-tabs/ProjectPanel/ArenaContextMenu";
 import { FolderContextMenu } from "@/wab/client/components/sidebar-tabs/ProjectPanel/FolderContextMenu";
 import { NavigationDropdownContext } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
-import { useStructurePanelStyles } from "@/wab/client/components/studio/StructurePanel.styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -94,7 +94,7 @@ export function NavigationHeaderRow({
   toggleExpand,
   ...props
 }: NavigationHeaderRowProps) {
-  const { styles } = useStructurePanelStyles();
+
   const { t } = useI18n();
   const studioCtx = useStudioCtx();
   const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
@@ -235,7 +235,7 @@ export function NavigationArenaRow({
     "Expected NavigationDropdownContext",
   );
   const displayName = getFolderDisplayName(fullArenaName);
-  const { styles } = useStructurePanelStyles();
+
   const isPage = isPageArena(arena);
 
   const pageRowProps = isPage && canEditProject

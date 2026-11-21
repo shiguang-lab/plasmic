@@ -1,13 +1,14 @@
+import layout from "../ui/ApplicationLayout.module.less";
+import styles from "./CmsLayout.module.less";
+import { cx } from "@/wab/shared/common";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import InlineEditable from "@/wab/client/components/InlineEditable";
-import { useCmsLayoutStyles } from "@/wab/client/components/cms/CmsLayout.styles";
 import CmsLeftTabs from "@/wab/client/components/cms/CmsLeftTabs";
 import {
   useCmsDatabase,
   useMutateDatabase,
 } from "@/wab/client/components/cms/cms-contexts";
 import dashboardStyles from "@/wab/client/components/dashboard/dashboard.module.scss";
-import { useApplicationLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { AppCtxContext, useApi } from "@/wab/client/contexts/AppContexts";
 import { DefaultCmsTopBarProps } from "@/wab/client/plasmic/plasmic_kit_cms/PlasmicCmsTopBar";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
@@ -24,8 +25,7 @@ export const CmsTopBarChrome = React.forwardRef<
   React.PropsWithChildren<CmsTopBarProps & { navigation?: React.ReactNode }>
 >(function CmsTopBarChrome({ className, children, navigation }, ref) {
   const appCtx = React.useContext(AppCtxContext);
-  const { styles: layout } = useApplicationLayoutStyles();
-  const { styles, cx } = useCmsLayoutStyles();
+
   const mac = navigator.userAgent.includes("PlasmicDesktop/darwin");
   const windows = navigator.userAgent.includes("PlasmicDesktop/win32");
   return (
@@ -62,7 +62,7 @@ function CmsTopBar_(props: CmsTopBarProps, ref: HTMLElementRefOf<"div">) {
   const { database } = useCmsDatabase(match.pathParams.databaseId);
   const api = useApi();
   const mutateDatabase = useMutateDatabase();
-  const { styles } = useCmsLayoutStyles();
+
   const { pathname } = useLocation();
   const activeTab = APP_ROUTES.cmsSettings.parse(pathname)
     ? "settings"

@@ -1,3 +1,7 @@
+import { createMemoryHistory } from "history";
+import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageLoading";
+import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
+import { useStudioThemeClass } from "@/wab/client/studio-theme-class";
 import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { renderInspector } from "@/wab/client/components/coding/CodePreview";
 import ValueViewer from "@/wab/client/components/coding/ValueViewer";
@@ -21,18 +25,18 @@ import {
   Tooltip,
   theme as AntdTheme,
 } from "antd";
-import { useTheme } from "antd-style";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
 function ThemeProbe() {
   const { token } = AntdTheme.useToken();
-  const style = useTheme();
+  const tokenClass = useStudioThemeClass();
+
   return (
     <output
       data-testid="theme"
       data-antd-bg={token.colorBgContainer}
-      data-style-bg={style.colorBgContainer}
+      data-token-class={tokenClass}
     />
   );
 }
@@ -230,7 +234,7 @@ it.each(["popover", "tooltip", "dropdown", "modal", "drawer"] as const)(
   },
 );
 
-it("updates Ant Design and antd-style together, while auth keeps its original theme", () => {
+it("updates Ant Design and the CSS module theme together, while auth keeps its original theme", () => {
   setAppearancePreference("dark");
   const { rerender } = render(
     <AntdConfigProvider productUI>
@@ -243,14 +247,14 @@ it("updates Ant Design and antd-style together, while auth keeps its original th
   expect(
     document.documentElement.style.getPropertyValue("--studio-loading-surface"),
   ).toBe("#202128");
-  expect(probe.dataset.styleBg).toBe(probe.dataset.antdBg);
+  expect(document.documentElement.classList.contains(ensure(probe.dataset.tokenClass, "theme class"))).toBe(true);
   act(() => setAppearancePreference("light"));
   expect(probe.dataset.antdBg).toBe("#ffffff");
   expect(document.documentElement.dataset.uiAppearance).toBe("light");
   expect(
     document.documentElement.style.getPropertyValue("--studio-loading-surface"),
   ).toBe("#ffffff");
-  expect(probe.dataset.styleBg).toBe(probe.dataset.antdBg);
+  expect(document.documentElement.classList.contains(ensure(probe.dataset.tokenClass, "theme class"))).toBe(true);
   act(() => setAppearancePreference("dark"));
   rerender(
     <AntdConfigProvider productUI={false}>
@@ -258,7 +262,7 @@ it("updates Ant Design and antd-style together, while auth keeps its original th
     </AntdConfigProvider>,
   );
   expect(probe.dataset.antdBg).toBe("#fff");
-  expect(probe.dataset.styleBg).toBe(probe.dataset.antdBg);
+  expect(document.documentElement.classList.contains(ensure(probe.dataset.tokenClass, "theme class"))).toBe(true);
   expect(document.documentElement.dataset.uiAppearance).toBe("dark");
   expect(
     document.documentElement.style.getPropertyValue("--studio-loading-layout"),
@@ -306,13 +310,13 @@ it.each([
 
 it("keeps portal theme bindings until the last product root closes", () => {
   setAppearancePreference("dark");
-  const baseline = document.body.className;
+  const baseline = document.documentElement.className;
   const shell = render(
     <AntdConfigProvider productUI>
       <ThemeProbe />
     </AntdConfigProvider>,
   );
-  const productClasses = document.body.className;
+  const productClasses = document.documentElement.className;
   expect(productClasses).not.toBe(baseline);
   const modal = render(
     <AntdConfigProvider productUI>
@@ -320,13 +324,15 @@ it("keeps portal theme bindings until the last product root closes", () => {
     </AntdConfigProvider>,
   );
   modal.unmount();
-  expect(document.body.className).toBe(productClasses);
+  expect(document.documentElement.className).toBe(productClasses);
   shell.rerender(
     <AntdConfigProvider productUI={false}>
       <ThemeProbe />
     </AntdConfigProvider>,
   );
-  expect(document.body.className).toBe(baseline);
+  expect(document.documentElement.classList.contains("studio-classic")).toBe(true);
+  shell.unmount();
+  expect(document.documentElement.className).toBe(baseline);
 });
 
 it("themes legacy editor controls rendered in a portal", () => {
@@ -438,3 +444,25 @@ it("themes hidden legacy controls when a portal opens, including while appearanc
     expected.remove();
   }
 });
+
+it.each([
+  ["dark", "rgb(21, 22, 27)"],
+  ["light", "rgb(236, 238, 243)"],
+] as const)(
+  "uses the %s theme in the loading canvas",
+  (appearance, background) => {
+    setAppearancePreference(appearance);
+    const { container } = render(
+      <AntdConfigProvider productUI>
+        <HistoryProvider history={createMemoryHistory({ initialEntries: ["/projects/project"] })}>
+          <ApplicationPageLoading />
+        </HistoryProvider>
+      </AntdConfigProvider>,
+    );
+    const canvas = container.querySelector(".canvas-editor__canvas-container");
+    expect(canvas).toBeTruthy();
+    expect(getComputedStyle(canvas as Element).backgroundColor).toBe(
+      background,
+    );
+  },
+);

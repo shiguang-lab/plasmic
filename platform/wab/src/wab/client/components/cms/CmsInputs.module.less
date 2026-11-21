@@ -1,0 +1,14 @@
+.root {
+  & :global(.pcr-app) {
+    background: var(--ant-color-bg-container);
+  }
+  & :global(.pcr-interaction) :global(.pcr-result) {
+    background: var(--ant-color-fill-tertiary);
+    color: var(--ant-color-text);
+    border: 1px solid var(--ant-color-border);
+    &:focus {
+      border-color: var(--ant-color-primary);
+      box-shadow: none;
+    }
+  }
+}

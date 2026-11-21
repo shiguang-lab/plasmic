@@ -1,9 +1,9 @@
+import popupStyles from "../ui/EditorPopup.module.less";
 import {
   EditorToolIcon,
   EditorToolRail,
 } from "@/wab/client/components/studio/EditorToolRail";
 import LeftTabButton from "@/wab/client/components/studio/LeftTabButton";
-import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { DataTokenIcon } from "@/wab/client/icons";
@@ -105,7 +105,7 @@ const CanvasTools = React.memo(function CanvasTools() {
 
 const LeftTabStrip = React.memo(function LeftTabStrip(props: LeftTabStripProps) {
   const { t } = useI18n();
-  const { styles: popupStyles } = useEditorPopupStyles();
+
   const studioCtx = useStudioCtx();
   const libraryTab = useStore(studioCtx.libraryTabStore);
   const isLoggedIn = useStore(studioCtx.uiEnvironment.store, (state) => state.hasUserInfo);

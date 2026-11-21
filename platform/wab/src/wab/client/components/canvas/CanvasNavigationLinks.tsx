@@ -1,3 +1,5 @@
+import $ from "jquery";
+import styles from "./CanvasNavigationLinks.module.less";
 import { CanvasViewFieldRecipe, useCanvasViewValue } from "@/wab/client/components/canvas/canvas-view-inputs";
 import { computeElementVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { routeNavigation, NavigationRoute } from "@/wab/client/components/canvas/navigation-routing";
@@ -19,20 +21,10 @@ import { Box, Rect } from "@/wab/shared/geom";
 import { ArenaFrame, isKnownTplComponent } from "@/wab/shared/model/classes";
 import { DeleteOutlined } from "@ant-design/icons";
 import { Button } from "antd";
-import { createStyles } from "antd-style";
-import $ from "jquery";
 import { ok } from "neverthrow";
 import * as React from "react";
 import ResizeObserver from "resize-observer-polyfill";
 import { useShallow } from "zustand/react/shallow";
-
-const useStyles = createStyles(({ token }) => ({
-  layer: { position: "absolute", left: 0, top: 0, width: 0, height: 0, pointerEvents: "none", zIndex: 8, color: token.colorPrimary },
-  svg: { position: "absolute", overflow: "visible", width: 1, height: 1 },
-  hit: { pointerEvents: "stroke", cursor: "pointer", outline: "none", "&:focus-visible": { stroke: token.colorPrimary, strokeOpacity: 0.2 } },
-  label: { position: "absolute", transformOrigin: "left center", pointerEvents: "auto", whiteSpace: "nowrap", background: token.colorBgElevated, color: token.colorText, border: `1px solid ${token.colorBorderSecondary}`, borderRadius: token.borderRadius, display: "flex", alignItems: "center", gap: 8, padding: "4px 8px", boxShadow: token.boxShadowSecondary, cursor: "pointer" },
-  labelText: { background: "none", border: 0, padding: 0, color: "inherit", cursor: "pointer", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-}));
 
 interface FrameTarget { frame: ArenaFrame; view?: ViewCtx; }
 interface MeasuredLink { link: PageNavigation; source: Rect; target?: FrameTarget; targetRect?: Rect; route?: NavigationRoute; }
@@ -108,7 +100,7 @@ function ReadyNavigationFrame(props: { entry: ViewRegistryEntry; frames: FrameTa
 function NavigationFrame({ view, frames, selected, onSelect }: { view: ViewCtx; frames: FrameTarget[]; selected?: string; onSelect: (id?: string) => void }) {
   const studio = view.studioCtx;
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const zoom = useCanvasZoom(studio);
   const renderCount = useCanvasRenderCount(view);
   const variants = useViewVariants(view, useShallow((state) => [state.frames, state.global]));

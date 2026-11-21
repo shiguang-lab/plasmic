@@ -9,7 +9,7 @@ import ChevronUpsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Plasm
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { isEmptyReactNode } from "@/wab/commons/ViewUtil";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { useTheme } from "antd-style";
+import { theme as antTheme } from "antd";
 import cn from "classnames";
 import React, {
   CSSProperties,
@@ -50,7 +50,7 @@ function ChevronToggle(props: {
   fullyCollapsedBody?: boolean;
 }) {
   const { t: uiT } = useI18n();
-  const token = useTheme();
+  const { token } = antTheme.useToken();
   const { expanded, onClick, sticky, noBorder, fullyCollapsedBody } = props;
   const labelText = expanded ? uiT("Show less") : uiT("More options");
   return (

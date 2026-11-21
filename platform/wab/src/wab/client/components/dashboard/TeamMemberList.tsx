@@ -1,4 +1,5 @@
-import { useMembersStyles } from "@/wab/client/components/dashboard/TeamMemberList.styles";
+import styles from "./Members.module.less";
+import { cx } from "@/wab/shared/common";
 import TeamMemberListItem from "@/wab/client/components/dashboard/TeamMemberListItem";
 import { Matcher } from "@/wab/client/components/view-common";
 import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
@@ -38,7 +39,6 @@ function TeamMemberList_(
   } = props;
 
   const { t } = useI18n();
-  const { styles, cx } = useMembersStyles();
 
   // Shared Modal
   const [sharedModal, setSharedModal] = React.useState(false);

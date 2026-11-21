@@ -1,7 +1,7 @@
+import styles from "./styles.module.less";
 import { promptPublishProj } from "@/wab/client/components/modals/UpgradeDepModal";
 import { RevisionsList } from "@/wab/client/components/sidebar-tabs/versions-tab/RevisionsList";
 import { VersionsList } from "@/wab/client/components/sidebar-tabs/versions-tab/VersionsList";
-import { useVersionsStyles } from "@/wab/client/components/sidebar-tabs/versions-tab/styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
@@ -32,7 +32,7 @@ export function VersionsTab(
 ) {
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
-  const { styles } = useVersionsStyles();
+
   const [query, setQuery] = React.useState("");
   const [isPublishing, setIsPublishing] = React.useState<boolean>(false);
   const [filter, setFilter] = React.useState<VersionsFilter>("all");

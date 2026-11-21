@@ -1,0 +1,44 @@
+.root {
+  min-width: 0;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 4px 0 8px;
+}
+
+.description {
+  color: var(--ant-color-text-secondary);
+  margin: 0 0 20px;
+  font-size: 12px;
+}
+
+.examples {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  & :global(.ant-btn) {
+    height: auto;
+    white-space: normal;
+    text-align: left;
+    justify-content: flex-start;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+}
+
+.help {
+  margin-top: 24px;
+  font-size: 12px;
+  & details + details {
+    margin-top: 12px;
+  }
+  & summary {
+    cursor: pointer;
+  }
+  & p {
+    color: var(--ant-color-text-secondary);
+    margin: 6px 0 0;
+  }
+}

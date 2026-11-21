@@ -37,28 +37,30 @@
     "test:interactions": "vitest run --config vitest.config.mts"
   },
   "dependencies": {
-    "antd": "6.7.0",
-    "@shiguang-lab/plasmic-antd6": "workspace:*",
     "@ant-design/icons": "6.3.4",
+    "@shiguang-lab/plasmic-antd6": "workspace:*",
     "ahooks": "3.10.0",
-    "classcat": "^5.0.5",
-    "antd-style": "^4.1.0"
+    "antd": "6.7.0",
+    "classcat": "^5.0.5"
   },
   "devDependencies": {
     "@plasmicapp/host": "3.0.0",
-    "@types/react": "19.3.0",
-    "@types/react-dom": "19.3.0",
-    "react": "19.3.1",
-    "react-dom": "19.3.1",
-    "typescript": "catalog:",
-    "vitest": "catalog:",
     "@react/ui": "workspace:*",
-    "rollup-plugin-dts": "catalog:",
-    "rollup": "^4.62.2",
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "rollup-plugin-esbuild": "^6.2.1"
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "less": "4.6.7",
+    "postcss": "^8.5.23",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "rollup": "^4.62.2",
+    "rollup-plugin-dts": "catalog:",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "rollup-plugin-postcss": "4.0.2",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@plasmicapp/host": "^3.0.0",

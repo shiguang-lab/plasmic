@@ -2,6 +2,7 @@ import { previewCompilerBrowserRule } from "./preview-compiler-resolve.cjs";
 import type { RsbuildConfig } from "@rsbuild/core";
 import { pluginBabel } from "@rsbuild/plugin-babel";
 import { pluginReact } from "@rsbuild/plugin-react";
+import { pluginLess } from "@rsbuild/plugin-less";
 import { pluginSass } from "@rsbuild/plugin-sass";
 import { DefinePlugin, ProvidePlugin, type SwcLoaderOptions } from "@rspack/core";
 import { execSync } from "child_process";
@@ -69,8 +70,19 @@ export function mkSharedRsbuildConfig(opts: {
       }),
       pluginReact(),
       pluginSass(),
+      pluginLess(),
     ],
     tools: {
+      // CSS Modules in Less reference class names from Sass and CSS modules.
+      // Resolve those imports with the target file's own preprocessing chain.
+      bundlerChain(chain, { CHAIN_ID }) {
+        const rule = chain.module.rule(CHAIN_ID.RULE.LESS);
+        rule.use("sass-module-reference").after(CHAIN_ID.USE.CSS).loader(require.resolve("./sass-module-reference.cjs"));
+        rule.use(CHAIN_ID.USE.CSS).tap(options => ({
+          ...options,
+          importLoaders: 1,
+        }));
+      },
       ...(desktopChromiumMajor ? {
         // Only the Desktop build supplies its pinned renderer's actual version.
         // Run after Rsbuild resolves Web Browserslist targets, retaining all

@@ -1,9 +1,10 @@
+import layout from "../ui/ApplicationLayout.module.less";
+import { cx } from "@/wab/shared/common";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { promptNewTeam } from "@/wab/client/components/dashboard/dashboard-actions";
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
-import { useApplicationLayoutStyles } from "@/wab/client/components/ui/layout-styles";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -25,7 +26,6 @@ import {
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Dropdown, Layout, Segmented, Skeleton, Tooltip } from "antd";
-     
 import * as React from "react";
 
 export type DefaultLayoutProps = Omit<DefaultDefaultLayoutProps, "navigation"> &
@@ -50,7 +50,7 @@ function DefaultLayout_(
     ...rest
   } = props;
   const { t } = useI18n();
-  const { styles: layout, cx } = useApplicationLayoutStyles();
+
   const history = useHistory();
   const appCtx = React.useContext(AppCtxContext);
   const userInfo = appCtx?.selfInfo;

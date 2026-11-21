@@ -45,7 +45,7 @@
 
 ## 主题
 
-QueryBuilder 复用 Studio 现有的 Antd/antd-style 主题上下文。`QueryBuilder.styles.ts` 从同一套 token 设置字体、分组背景、边框、圆角、间距、连接线及普通/复制/分组拖拽提示。属性与数据源编辑器的外围分隔线和留白也使用这些 token。
+QueryBuilder 复用 Studio 的 Ant Design 主题上下文。`QueryBuilder.module.less` 通过同一套主题 CSS 变量设置字体、分组背景、边框、圆角、间距、连接线及普通/复制/分组拖拽提示。属性与数据源编辑器的外围分隔线和留白也使用这些 token。
 
 值编辑器、字段/操作符选择器、开关和操作按钮使用 Antd 原生主题与交互状态，局部 SCSS 只负责布局。属性行的旧样式排除 QueryBuilder，避免覆写它的焦点、禁用态、字体和控件尺寸；其他属性控件继续使用原有样式。
 

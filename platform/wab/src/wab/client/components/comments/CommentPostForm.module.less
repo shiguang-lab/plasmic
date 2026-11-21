@@ -1,0 +1,39 @@
+.root {
+  min-width: 0;
+  width: 100%;
+}
+
+.input {
+  border: 1px solid var(--ant-color-border);
+  border-radius: var(--ant-border-radius);
+  background: var(--ant-color-fill-quaternary);
+  &:focus-within {
+    border-color: var(--ant-color-primary);
+    box-shadow: 0 0 0 2px var(--ant-color-primary-bg);
+  }
+  & textarea:global(.ant-input) {
+    overflow: hidden;
+    resize: none;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}
+
+.toolbar {
+  padding: 4px 8px 8px;
+}
+
+.hint {
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+}
+
+.footer {
+  margin-top: 5px;
+  text-align: right;
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+}

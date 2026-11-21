@@ -1,3 +1,5 @@
+import styles from "../ui/ProjectBrowser.module.less";
+import { cx } from "@/wab/shared/common";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import NewProjectModal from "@/wab/client/components/NewProjectModal";
 import ProjectListItem from "@/wab/client/components/ProjectListItem";
@@ -7,7 +9,6 @@ import { NewProjectButton } from "@/wab/client/components/dashboard/NewProjectBu
 import ProjectsFilter from "@/wab/client/components/dashboard/ProjectsFilter";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
-import { useProjectBrowserStyles } from "@/wab/client/components/ui/layout-styles";
 import { ProjectGroupsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import {
   useAllProjectsData,
@@ -29,7 +30,7 @@ const AllProjectsPage = React.forwardRef<HTMLDivElement>(
   function AllProjectsPage(_props, ref) {
     const { t } = useI18n();
     const appCtx = useAppCtx();
-    const { styles, cx } = useProjectBrowserStyles();
+
     const [showNewProjectModal, setShowNewProjectModal] = React.useState(false);
     const [workspace, setWorkspace] = React.useState<string>("all");
     const [view, setView] = React.useState("grid");

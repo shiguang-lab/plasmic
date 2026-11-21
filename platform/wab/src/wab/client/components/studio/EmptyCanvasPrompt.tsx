@@ -1,3 +1,5 @@
+import styles from "./EmptyCanvasPrompt.module.less";
+import { cx } from "@/wab/shared/common";
 import { useI18n } from "@/wab/client/i18n";
 import SparklesIcon from "@/wab/client/plasmic/plasmic_kit_data_binding/icons/PlasmicIcon__Sparkles3";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -13,143 +15,8 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { createStyles } from "antd-style";
 import * as React from "react";
 import { useStore } from "zustand";
-
-const useStyles = createStyles(({ token }) => ({
-  root: {
-    position: "absolute",
-    top: 72,
-    bottom: 74,
-    right: 336,
-    minWidth: 0,
-    containerType: "inline-size",
-    pointerEvents: "none",
-    color: token.colorText,
-    fontFamily: token.fontFamily,
-  },
-  leftPanelOpen: {
-    "@media (max-width: 1100px)": { right: 8 },
-  },
-  panelsHidden: { right: 8 },
-  scroll: { height: "100%", width: "100%", pointerEvents: "auto" },
-  content: {
-    boxSizing: "border-box",
-    minHeight: "100%",
-    padding: "24px 8px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-    maxWidth: 720,
-    marginInline: "auto",
-  },
-  badge: {
-    padding: "4px 10px",
-    borderRadius: token.borderRadiusSM,
-    background: token.colorPrimaryBg,
-    color: token.colorPrimaryText,
-    fontSize: 12,
-    lineHeight: "20px",
-  },
-  title: {
-    margin: "16px 0 8px",
-    fontSize: "clamp(22px, 2vw, 28px)",
-    fontWeight: 600,
-    lineHeight: 1.4,
-    color: token.colorText,
-  },
-  description: {
-    margin: 0,
-    color: token.colorTextSecondary,
-    fontSize: 14,
-    lineHeight: 1.6,
-  },
-  cards: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: 12,
-    width: "100%",
-    marginTop: 28,
-    "@container (max-width: 600px)": { gridTemplateColumns: "1fr" },
-  },
-  card: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 12,
-    minWidth: 0,
-    padding: 20,
-    border: `1px solid ${token.colorBorder}`,
-    borderRadius: token.borderRadiusLG,
-    background: token.colorBgContainer,
-    color: token.colorText,
-    fontFamily: "inherit",
-    textAlign: "left",
-    cursor: "pointer",
-    "&:hover:not(:disabled)": {
-      borderColor: token.colorPrimary,
-      background: token.colorPrimaryBg,
-    },
-    "&:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: 2,
-    },
-    "&:disabled": { opacity: 0.5, cursor: "default" },
-    "@container (max-width: 600px)": {
-      display: "grid",
-      gridTemplateColumns: "32px minmax(0, 1fr)",
-      columnGap: 16,
-      rowGap: 6,
-      padding: 16,
-    },
-  },
-  icon: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 32,
-    height: 32,
-    color: token.colorPrimaryText,
-    fontSize: 22,
-    "& svg": { width: 22, height: 22 },
-    "@container (max-width: 600px)": { gridRow: "1 / 4" },
-  },
-  cardTitle: { fontSize: 15, fontWeight: 600, lineHeight: 1.5 },
-  cardDescription: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 1.6,
-    color: token.colorTextSecondary,
-  },
-  action: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: token.colorPrimaryText,
-  },
-  component: {
-    marginTop: 20,
-    padding: "4px 8px",
-    border: 0,
-    borderRadius: token.borderRadiusSM,
-    background: "transparent",
-    color: token.colorTextSecondary,
-    fontFamily: "inherit",
-    fontSize: 12,
-    cursor: "pointer",
-    "&:hover:not(:disabled)": { color: token.colorPrimaryText },
-    "&:focus-visible": {
-      outline: `2px solid ${token.colorPrimary}`,
-      outlineOffset: 2,
-    },
-    "&:disabled": { opacity: 0.5, cursor: "default" },
-  },
-}));
 
 export const EmptyCanvasPrompt = React.memo(function EmptyCanvasPrompt({
   studioCtx,
@@ -159,7 +26,7 @@ export const EmptyCanvasPrompt = React.memo(function EmptyCanvasPrompt({
   emptyProject: boolean;
 }) {
   const { t } = useI18n();
-  const { styles, cx } = useStyles();
+
   const canCreate = useStudioSaveState(studioCtx, (state) => state.canSave);
   const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   const leftTabKey = useStore(

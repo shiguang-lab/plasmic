@@ -1,3 +1,4 @@
+import styles from "../ui/LibraryPanel.module.less";
 import type { ProjectDependency } from "@/wab/shared/model/classes";
 import { useDirectProjectLibraries, useLibraryAppInputs, type ProjectLibraryEntry } from "@/wab/client/components/sidebar/library-inputs";
 import { showError } from "@/wab/client/ErrorNotifications";
@@ -13,7 +14,6 @@ import {
 } from "@/wab/client/components/modals/UpgradeDepModal";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { shouldShowHostLessPackage } from "@/wab/client/components/studio/add-drawer/AddDrawer";
-import { useLibraryPanelStyles } from "@/wab/client/components/ui/layout-styles";
 import { Matcher } from "@/wab/client/components/view-common";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -364,7 +364,7 @@ export const ProjectDependenciesPanel = React.memo(function ProjectDependenciesP
   const dependencies = useDirectProjectLibraries(sc);
   const appInputs = useLibraryAppInputs(sc);
   const { t } = useI18n();
-  const { styles } = useLibraryPanelStyles();
+
   const [query, setQuery] = React.useState("");
   const [refreshing, setRefreshing] = React.useState(false);
 

@@ -11,7 +11,6 @@ vi.mock("@/wab/client/components/live/PreviewCtx", () => ({ usePreviewCtx: () =>
 vi.mock("@/wab/client/components/live/PreviewTopBar", () => ({ PreviewTopBar: () => <button>Preview controls</button> }));
 vi.mock("@/wab/client/components/live/PreviewFrame", () => ({ PreviewFrame: () => <input aria-label="Runtime form" defaultValue="Initial" /> }));
 vi.mock("@/wab/client/components/studio/TopFrameObserver", () => ({ TopFrameObserver: () => null }));
-vi.mock("@/wab/client/components/ui/layout-styles", () => ({ useEditorLayoutStyles: () => ({ styles: {} }) }));
 vi.mock("@/wab/client/dom-utils", () => ({ fixStudioIframePositionAndOverflow: vi.fn() }));
 vi.mock("@/wab/client/shortcuts/shortcut-handler", () => ({ useBindShortcutHandlers: vi.fn() }));
 afterEach(cleanup);

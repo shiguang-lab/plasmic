@@ -1,3 +1,4 @@
+import styles from "./LeftPane.module.less";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useFindReferencesTarget } from "@/wab/client/studio-ctx/find-references-state";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
@@ -8,7 +9,6 @@ import { DevContainer } from "@/wab/client/components/dev";
 import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { StructurePanel } from "@/wab/client/components/studio/StructurePanel";
 import { useI18n } from "@/wab/client/i18n";
-
 import { ResponsivenessPanel } from "@/wab/client/components/sidebar-tabs/ResponsivenessPanel";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { FindReferencesModal } from "@/wab/client/components/sidebar/FindReferencesModal";
@@ -20,7 +20,6 @@ import LeftGeneralTokensPanel from "@/wab/client/components/sidebar/LeftGeneralT
 import LeftLintIssuesPanel from "@/wab/client/components/sidebar/LeftLintIssuesPanel";
 import LeftProjectSettingsPanel from "@/wab/client/components/sidebar/LeftProjectSettingsPanel";
 import LeftSplitsPanel from "@/wab/client/components/sidebar/LeftSplitsPanel";
-
 import { CopilotChatDialog } from "@/wab/client/components/copilot/CopilotChatDialog";
 import InsertPanelWrapper from "@/wab/client/components/insert-panel/InsertPanelWrapper";
 import { AnimationSequencesPanel } from "@/wab/client/components/sidebar/AnimationSequenceControls";
@@ -30,10 +29,7 @@ import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarMod
 import { DefaultStylesPanel } from "@/wab/client/components/sidebar/ThemesControls";
 import { UserManagedFontsPanel } from "@/wab/client/components/sidebar/UserManagedFonts";
 import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
-import {
-  SIDE_PANEL_TRANSITION_MS,
-  SidePanelShell,
-} from "@/wab/client/components/studio/SidePanelShell";
+import { SidePanelShell } from "@/wab/client/components/studio/SidePanelShell";
 import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
 import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -66,28 +62,8 @@ import { Component, DataToken, StyleToken } from "@/wab/shared/model/classes";
 import { LeftTabKey } from "@/wab/shared/ui-config-utils";
 import { useModelSelector } from "@/wab/client/stores/model-revisions-react";
 import { modelKeys } from "@/wab/shared/model-revisions";
-import { createStyles } from "antd-style";
 import React, { useState } from "react";
 import { useStore } from "zustand";
-
-const useStyles = createStyles(() => ({
-  railPosition: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: editorLeftRailLayout.panelGap,
-    pointerEvents: "none",
-    // Percentages follow width changes immediately; only opening/closing animates.
-    transform: `translateX(calc(-100% - ${editorLeftRailLayout.panelGap}px))`,
-    transition: `transform ${SIDE_PANEL_TRANSITION_MS}ms ease`,
-    "&[data-open='true']": { transform: "translateX(0)" },
-    "& > .editor-tool-rail-group": {
-      marginLeft: "100%",
-      pointerEvents: "auto",
-    },
-    "@media (prefers-reduced-motion: reduce)": { transition: "none" },
-  },
-}));
 
 interface LeftPaneProps {
   studioCtx: StudioCtx;
@@ -96,7 +72,7 @@ interface LeftPaneProps {
 
 const LeftPane = React.memo(function LeftPane(props: LeftPaneProps) {
   const { t } = useI18n();
-  const { styles } = useStyles();
+
   const { studioCtx } = props;
   const findReferencesTarget = useFindReferencesTarget(studioCtx);
   const devMode = useStudioRenderPolicy(studioCtx, (state) => state.devMode);

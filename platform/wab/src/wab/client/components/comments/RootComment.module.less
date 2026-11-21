@@ -1,0 +1,111 @@
+.root {
+  position: relative;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.open {
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ant-color-text);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: inherit;
+  &:hover {
+    background: var(--ant-color-fill-tertiary);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ant-color-primary);
+    outline-offset: -2px;
+  }
+}
+
+.author {
+  width: 100%;
+  min-width: 0;
+  font-size: 12px;
+  padding-right: 28px;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.secondary {
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.target {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--ant-color-text-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  & * {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    line-height: inherit;
+  }
+  & strong {
+    color: var(--ant-color-text);
+    font-weight: 500;
+  }
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.lead {
+  color: var(--ant-color-text);
+  font-weight: 500;
+  -webkit-line-clamp: 1;
+}
+
+.single {
+  -webkit-line-clamp: 3;
+}
+
+.replies {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ant-color-primary-text);
+  font-size: 11px;
+}
+
+.resolve {
+  position: absolute;
+  top: 16px;
+  right: 10px;
+  color: var(--ant-color-text-secondary);
+}

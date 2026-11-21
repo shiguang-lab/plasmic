@@ -1,3 +1,5 @@
+import { useStudioThemeClass } from "@/wab/client/studio-theme-class";
+import themeStyles from "./CopilotActivityOverlay.module.less";
 import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { useCopilotActivityInputs } from "@/wab/client/components/canvas/copilot-activity-inputs";
 import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
@@ -7,13 +9,7 @@ import {
   clipBox,
   computeClipBounds,
 } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
-import {
-  ActivityTarget,
-  CanvasActivity,
-  INSPECTION_SCAN_COLOR,
-  SCAN_COMPLETION_MS,
-  currentActivity,
-} from "@/wab/client/copilot/activity";
+import { ActivityTarget, CanvasActivity, SCAN_COMPLETION_MS, currentActivity } from "@/wab/client/copilot/activity";
 import { createAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -24,19 +20,11 @@ import { ensure } from "@/wab/shared/common";
 import { Box } from "@/wab/shared/geom";
 import type { ValNode } from "@/wab/shared/core/val-nodes";
 import { ArenaFrame, Component, TplNode } from "@/wab/shared/model/classes";
-import { createStyles } from "antd-style";
 import classNames from "classnames";
 import { findLast, groupBy } from "lodash";
 import React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-
-const useActivityStyles = createStyles(({ token }) => ({
-  root: {
-    "--scan-color": token.colorPrimary,
-    '&[data-kind="inspection"]': { "--scan-color": INSPECTION_SCAN_COLOR },
-  },
-}));
 
 type Bounds = { left: number; top: number; width: number; height: number };
 
@@ -140,7 +128,8 @@ const ActivityRegion = function ActivityRegion({
   bounds: Bounds;
   onRetired: () => void;
 }) {
-  const { styles: themeStyles } = useActivityStyles();
+
+  const tokenClass = useStudioThemeClass();
   const zoom = useCanvasZoom(viewCtx.studioCtx);
   const [finished, setFinished] = React.useState(false);
   const getOnRetired = useCommittedValue(onRetired);
@@ -161,7 +150,7 @@ const ActivityRegion = function ActivityRegion({
   }, [finished, scanning, getOnRetired]);
   return (
     <div
-      className={classNames(styles.region, themeStyles.root)}
+      className={classNames(styles.region, themeStyles.root, tokenClass)}
       data-kind={request.kind}
       data-status={request.status}
       data-scanning={!finished}
@@ -245,7 +234,8 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
   const cursorHost = React.useRef<HTMLDivElement>(null);
   const cursor = React.useRef<ReturnType<typeof createAgentCursor>>(undefined);
   const { t } = useI18n();
-  const { styles: themeStyles } = useActivityStyles();
+
+  const tokenClass = useStudioThemeClass();
   const viewCtx = useViewEntryForFrame(studioCtx, frame)?.view;
   const current = useStudioArena(studioCtx, (state) => state.current);
   const arenaName = useStudioArena(studioCtx, (state) => state.name);
@@ -422,7 +412,7 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
     <>
       {ownsCursor && <div
         ref={cursorHost}
-        className={classNames(styles.cursorHost, themeStyles.root)}
+        className={classNames(styles.cursorHost, themeStyles.root, tokenClass)}
       />}
       <div className={styles.screenClip}>
       <ActivityRegions viewCtx={viewCtx} scope={current} trackedKeys={trackedKeys} regions={visibleRegions.map(({ key, request, target, scanning, layout }) => ({
