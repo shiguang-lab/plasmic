@@ -23,7 +23,7 @@ it("shares phone/tablet geometry and removes clipping in content editing and des
     arenaFrame: () => frame,
     studioCtx: studio,
     isFullContentView: () => false,
-    canvasCtx: { viewportContainerOffset: () => ({ left: 100, top: frame.width === 393 ? 259 : 224 }) },
+    canvasCtx: { viewportContainerOffset: () => ({ left: 100, top: 200 }) },
   } as unknown as ViewCtx;
   const box = { left: 100, top: 200, width: 393, height: 852 };
   expect(canvasScreenClipStyle(view, box, 1)?.clipPath).toBe("inset(0px 0px 0px 0px round 44px)");

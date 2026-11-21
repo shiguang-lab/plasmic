@@ -15,7 +15,7 @@ export function canvasScreenClipStyle(
   if (!device) { return undefined; }
   const origin = viewCtx.canvasCtx.viewportContainerOffset();
   return screenClipStyle(
-    { left: origin.left - device.safeSide, top: origin.top - device.safeTop,
+    { left: origin.left, top: origin.top,
       width: frame.width, height: frame.height, radius: device.screenRadius },
     target,
     zoom,

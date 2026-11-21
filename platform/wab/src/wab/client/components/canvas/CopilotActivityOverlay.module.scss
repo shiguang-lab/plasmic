@@ -1,6 +1,6 @@
 .screenClip {
   position: absolute;
-  inset: var(--device-safe-top, 0px) var(--device-safe-side, 0px) var(--device-safe-bottom, 0px);
+  inset: 0;
   pointer-events: none;
   z-index: 100;
   overflow: hidden;
@@ -9,7 +9,7 @@
 
 .cursorHost {
   position: absolute;
-  inset: var(--device-safe-top, 0px) var(--device-safe-side, 0px) var(--device-safe-bottom, 0px);
+  inset: 0;
   pointer-events: none;
   z-index: 101;
   overflow: hidden;

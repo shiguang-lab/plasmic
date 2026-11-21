@@ -60,8 +60,8 @@ it("decorates mobile pages outside the viewport and reacts to resizing without c
     expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBe(shell);
     expect(frame.height).toBe(852);
     expect(container.style.height).toBe("852px");
-    expect(iframe.style.top).toBe("59px");
-    expect(iframe.style.height).toBe("759px");
+    expect(iframe.style.top).toBe("0px");
+    expect(iframe.style.height).toBe("852px");
     act(() => studioCtx.setFullPageHeightOverride(true));
     act(() => updateAutoDerivedFrameHeight(frame, 1231));
     expect(container.style.height).toBe("1231px");
@@ -69,7 +69,7 @@ it("decorates mobile pages outside the viewport and reacts to resizing without c
     expect(container.querySelector('[data-test-id="device-frame"]')).toBeNull();
     act(() => studioCtx.setFullPageHeightOverride(false));
     expect(container.style.height).toBe("852px");
-    expect(iframe.style.height).toBe("759px");
+    expect(iframe.style.height).toBe("852px");
     expect(container.querySelector("iframe")).toBe(iframe);
     await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = 1440; frame.height = 1024; }); });
     expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBeNull();
@@ -77,6 +77,11 @@ it("decorates mobile pages outside the viewport and reacts to resizing without c
       await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = width; frame.height = height; }); });
       expect(mounted.container.querySelector('[data-test-id="device-frame"]')?.getAttribute("data-device")).toBe(kind);
       expect(container.style.width).toBe(`${width}px`);
+      if (kind === "tablet") {
+        expect(iframe.style.top).toBe("0px");
+        expect(iframe.style.width).toBe("100%");
+        expect(iframe.style.height).toBe(`${height}px`);
+      }
     }
     await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = 393; frame.height = 852; component.type = ComponentType.Plain; }); });
     expect(mounted.container.querySelector('[data-test-id="device-frame"]')).toBeNull();

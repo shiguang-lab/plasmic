@@ -28,15 +28,8 @@ export function getDeviceFrame(width: number, height: number, device?: DeviceKin
   const hardwareEnd = hardware === "home-button" ? 54 : 0;
   const statusBarHeight = kind === "tablet" ? 24 : landscape ? 0 :
     hardware === "home-button" ? 20 : hardware === "notch" ? 47 : 59;
-  const safeSide = landscape && kind === "phone" && hardware !== "home-button"
-    ? hardware === "notch" ? 47 : 59
-    : 0;
-  const safeBottom = hardware === "home-button" ? 0 : kind === "tablet" ? 20 : landscape ? 21 : 34;
   return {
-    safeSide,
-    safeTop: statusBarHeight,
-    safeBottom,
-    contentHeight: height - statusBarHeight - safeBottom,
+    contentHeight: height,
     kind,
     landscape,
     hardware,
@@ -56,11 +49,11 @@ export type DeviceFrameGeometry = NonNullable<ReturnType<typeof getDeviceFrame>>
 export function deviceViewportStyle(frame: DeviceFrameGeometry) {
   return {
     position: "absolute" as const,
-    left: `${frame.safeSide}px`,
-    top: `${frame.safeTop}px`,
-    width: `calc(100% - ${2 * frame.safeSide}px)`,
+    left: "0px",
+    top: "0px",
+    width: "100%",
     height: `${frame.contentHeight}px`,
     borderRadius: "0",
-    clipPath: `inset(${-frame.safeTop}px ${-frame.safeSide}px ${-frame.safeBottom}px round ${frame.screenRadius}px)`,
+    clipPath: `inset(0px round ${frame.screenRadius}px)`,
   };
 }

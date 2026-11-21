@@ -155,7 +155,8 @@ test("full page height view lets opted-in viewport shells grow with content", as
   expect(bounded.mainOverflow).toBeGreaterThan(0);
 });
 
-test("a device page scrolls inside its safe viewport and returns from full height", async ({ page }) => {
+test("a phone page scrolls inside its full screen and returns from full height", async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 960 });
   const bundle = await build({
     stdin: {
       resolveDir: wabDir, loader: "tsx",
@@ -164,7 +165,10 @@ test("a device page scrolls inside its safe viewport and returns from full heigh
         import { createRoot } from "react-dom/client";
         import { CanvasFrame } from "../canvas-packages/src/canvas-frame";
         import { handleCanvasContentWheel } from "./src/wab/client/components/canvas/canvas-scroll";
-        let info = { viewMode: "stretch", height: 852, deviceContentHeight: 759, isHeightAutoDerived: true, fullPageHeight: false };
+        import { deviceViewportStyle, getDeviceFrame } from "./src/wab/client/components/device-frame/device-frame";
+        const device = getDeviceFrame(393, 852);
+        Object.assign(window.frameElement.style, deviceViewportStyle(device));
+        let info = { viewMode: "stretch", height: 852, deviceContentHeight: device.contentHeight, isHeightAutoDerived: true, fullPageHeight: false };
         const listeners = new Set();
         const frameInfo = { getState: () => info, getInitialState: () => info,
           subscribe: fn => { listeners.add(fn); return () => listeners.delete(fn); } };
@@ -189,31 +193,35 @@ test("a device page scrolls inside its safe viewport and returns from full heigh
     },
     bundle: true, write: false, outfile: "device.js",
   });
-  await page.setContent('<div style="position:relative;width:393px;height:852px"><iframe title="FAQ" style="position:absolute;top:59px;width:100%;height:759px;border:none"></iframe></div>');
+  await page.setContent('<div style="position:relative;width:393px;height:852px"><iframe title="FAQ" style="border:none"></iframe></div>');
   const frame = page.frames()[1];
   for (const file of bundle.outputFiles) {
     if (file.path.endsWith(".css")) { await frame.addStyleTag({ content: file.text }); }
     else { await frame.addScriptTag({ content: file.text }); }
   }
   await frame.addStyleTag({ content: canvasCss });
+  const screen = page.locator('iframe[title="FAQ"]');
+  await expect(screen).toHaveCSS("top", "0px");
+  await expect(screen).toHaveCSS("width", "393px");
+  await expect(screen).toHaveCSS("height", "852px");
   const search = frame.getByPlaceholder("Buscar pregunta");
   const feedback = frame.getByText("Feedback");
   const last = frame.getByText("Last question");
   const host = frame.locator("[data-overlayscrollbars]").first();
-  await expect(host).toHaveCSS("height", "759px");
+  await expect(host).toHaveCSS("height", "852px");
   await expect(search).toBeInViewport();
   const bottom = () => feedback.evaluate(el => el.getBoundingClientRect().bottom);
-  expect(await bottom()).toBe(747);
+  expect(await bottom()).toBe(840);
   await search.hover();
   await page.keyboard.down("Alt");
   await page.mouse.wheel(0, 1200);
   await page.keyboard.up("Alt");
   await expect(last).toBeInViewport();
-  expect(await bottom()).toBe(747);
+  expect(await bottom()).toBe(840);
   expect(await frame.evaluate(() => window.scrollY)).toBe(0);
   await frame.evaluate(() => (window as any).showFull(true));
   await expect.poll(() => host.evaluate(el => el.clientHeight)).toBeGreaterThan(1100);
   await frame.evaluate(() => (window as any).showFull(false));
-  await expect(host).toHaveCSS("height", "759px");
-  expect(await bottom()).toBe(747);
+  await expect(host).toHaveCSS("height", "852px");
+  expect(await bottom()).toBe(840);
 });

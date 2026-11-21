@@ -618,9 +618,6 @@ export const CanvasFrame = React.memo(function CanvasFrame({
         className={cx("CanvasFrame__Container", deviceFrame && styles.device)}
         style={{
           ...(deviceFrame ? {
-            "--device-safe-side": `${deviceFrame.safeSide}px`,
-            "--device-safe-top": `${deviceFrame.safeTop}px`,
-            "--device-safe-bottom": `${deviceFrame.safeBottom}px`,
             "--device-content-clip": deviceViewportStyle(deviceFrame).clipPath,
             "--device-inset-x": `${deviceFrame.insetX}px`,
             "--device-inset-top": `${deviceFrame.insetTop}px`,
