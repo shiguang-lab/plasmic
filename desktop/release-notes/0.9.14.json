@@ -1,0 +1,7 @@
+{
+  "en": "- Projects and templates open faster. Reopening an editor restores your saved canvas position and zoom before the first artboard appears.\n- On phones and tablets, the canvas and preview fill the device viewport.\n- The project directory keeps pages in insertion order.",
+  "zh-CN": "- 项目和模板打开更快。再次进入编辑器时，首张画板会直接显示在上次保存的位置和缩放比例。\n- 手机和平板画板在画布和预览中都铺满设备视口。\n- 项目目录中的页面按添加顺序排列。",
+  "zh-TW": "- 專案和範本開啟更快。再次進入編輯器時，第一張畫板會直接顯示在上次儲存的位置和縮放比例。\n- 手機和平板畫板在畫布和預覽中都會填滿裝置視窗。\n- 專案目錄中的頁面依新增順序排列。",
+  "ja": "- プロジェクトとテンプレートをより速く開けるようになりました。エディターを開き直すと、最初のアートボードが前回保存した位置と倍率で表示されます。\n- スマートフォンとタブレットのアートボードは、キャンバスとプレビューの両方でデバイスの表示領域いっぱいに表示されます。\n- プロジェクト内のページが追加順に並びます。",
+  "ko": "- 프로젝트와 템플릿이 더 빠르게 열립니다. 편집기를 다시 열면 첫 아트보드가 마지막으로 저장한 위치와 배율로 표시됩니다.\n- 휴대폰과 태블릿 아트보드가 캔버스와 미리보기에서 기기 화면을 가득 채웁니다.\n- 프로젝트 디렉터리의 페이지가 추가한 순서대로 표시됩니다."
+}
