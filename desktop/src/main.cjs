@@ -466,10 +466,14 @@ async function startDesktop() {
       desktopAppearance.set(value);
       return desktopAppearance.snapshot();
     });
-    ipcMain.handle("desktop:startup-data", async (event, projectId, branchName) => {
-      if (!trustedAuthSender(event) || workspace.projectId(event.senderFrame.url) !== projectId) {
+    ipcMain.handle("desktop:startup-data", async (event, projectId, branchName, published = false) => {
+      if (!trustedAuthSender(event)) {
         throw new Error("Invalid Studio page");
       }
+      const documentUrl = new URL(event.senderFrame.url);
+      if (workspace.projectId(documentUrl.href) !== projectId ||
+          (documentUrl.searchParams.get("publishedTemplate") === "true") !== published ||
+          (!published && (documentUrl.searchParams.get("branch") || "main") !== branchName)) return null;
       const restore = restoringProject;
       if (restore?.url === event.senderFrame.url) {
         if (await restore.checked !== restore.url) {
@@ -480,7 +484,9 @@ async function startDesktop() {
         }
         if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
       }
-      return workspace.consumeStartupData(projectId, branchName);
+      const epoch = desktopIdentity.epoch;
+      const data = await workspace.consumeStartupData(projectId, branchName, published);
+      return trustedAuthSender(event) && desktopIdentity.epoch === epoch ? data : null;
     });
     ipcMain.handle("desktop:saved-editor-view", (event, projectId) => {
       if (
@@ -619,6 +625,23 @@ async function startDesktop() {
     updateDialogs.set(contents, createUpdateDialog(updates, win, contents));
     contents.once("destroyed", () => updateDialogs.delete(contents));
   };
+  let scheduledDocument;
+  const startOpening = url => {
+    const started = performance.now();
+    const opening = workspace.startOpening(desktopSession, url);
+    if (opening) void opening.result.then(({ status, data }) => {
+      projectOpenLog.preflight({
+        source: "navigation", projectId: opening.id, publishedTemplate: opening.published,
+        projectStatus: status, outcome: data ? "prefetched" : "failed",
+        durationMs: Math.round(performance.now() - started),
+      });
+    });
+  };
+  studio.on("will-load", (url, startupCheck) => {
+    scheduledDocument = url;
+    if (!startupCheck) startOpening(url);
+  });
+  win.once("closed", () => workspace.clearStartupData());
   const attachContents = (contents) => {
     require("./error-log.cjs").attachErrorLog(contents, app.getPath("userData"));
     projectOpenLog.attachContents(contents, url => workspace.projectId(url));
@@ -628,8 +651,13 @@ async function startDesktop() {
       if (["mouseDown", "mouseWheel"].includes(mouse.type)) userActivity();
     });
     protectWindow(studio, contents);
-    contents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
-      if (contents === studio.webContents && isMainFrame && !inPlace) { desktopIdentity.expire(); drafts.reset(); }
+    contents.on("did-start-navigation", details => {
+      if (contents !== studio.webContents || !details.isMainFrame || details.isSameDocument) return;
+      desktopIdentity.expire();
+      drafts.reset();
+      // Chromium reloads and direct document navigations can bypass StudioWindow.loadURL.
+      if (details.url !== scheduledDocument) startOpening(details.url);
+      scheduledDocument = undefined;
     });
     contents.on("did-navigate", (_event, url) => {
       if (contents === studio.webContents && url !== restoringProject?.url) workspace.rememberUrl(url);

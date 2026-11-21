@@ -49,6 +49,23 @@ it("hydrates a published template through the ordinary model URL with its public
   });
   expect(result.depPkgs).toEqual([{ id: "release", model: { version: "schema" } }]);
 });
+it("consumes desktop project and publication GETs and hydrates the published dependencies", async () => {
+  const project = { project: { id: "design" }, startup: { branchName: "feature" } };
+  const snapshot = { project: { id: "design", publishedTemplateVersion: "2" }, depPkgs: [{ id: "pkg", modelResourceId: "res" }] };
+  const consumeStartupData = vi.fn().mockResolvedValueOnce(project).mockResolvedValueOnce(snapshot)
+    .mockResolvedValueOnce({ httpStatus: 403, requestUrl: "/api/v1/template-center/design/studio", error: { name: "ForbiddenError", message: "Unavailable" } });
+  vi.stubGlobal("desktopEnvironment", { consumeStartupData });
+  try {
+    const api = new Api();
+    expect(await api.getProjectStartup("design", "feature")).toEqual(project);
+    calls.fetch.mockResolvedValue(new Response('{"version":"schema"}'));
+    expect((await api.getSiteInfo("design", { publishedTemplate: true })).depPkgs).toEqual([{ id: "pkg", model: { version: "schema" } }]);
+    expect(calls.fetch).toHaveBeenCalledExactlyOnceWith("/api/v1/dependency-models/res", { headers: { "X-Plasmic-Published-Template": "design" } });
+    await expect(api.getSiteInfo("design", { publishedTemplate: true })).rejects.toBeInstanceOf(ForbiddenError);
+    expect(consumeStartupData.mock.calls).toEqual([["design", "feature", false], ["design", undefined, true], ["design", undefined, true]]);
+    expect(calls.ajax).not.toHaveBeenCalled();
+  } finally { vi.unstubAllGlobals(); }
+});
 it("prefetches shared startup dependencies as bytes through the resource cache", async () => {
   const response = new Response(JSON.stringify({ name: "按钮" }));
   const parse = vi.spyOn(response, "json");

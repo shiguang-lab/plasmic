@@ -572,24 +572,14 @@ export function Root() {
       void loadProjectEntry().catch(() => undefined);
     }
     if (!hostFrameCtx && projectLocation && !projectLocation.publishedTemplate) {
-      const desktop = (window as Window & { desktopEnvironment?: {
-        consumeStartupData?: (projectId: string, branchName?: string) => Promise<import("@/wab/shared/ApiSchema").ProjectOpeningResponse | null>;
-      } }).desktopEnvironment;
-      const opening = await (async () => {
-        return await (async () => {
-          return await desktop?.consumeStartupData?.(projectLocation.projectId, projectLocation.branchName)
-            ?? await retryStartupRead(() => api.getProjectStartup(projectLocation.projectId, projectLocation.branchName));
-        })().catch((error) => {
-          const status = asApiError(error)?.statusCode;
-          // The combined request checks project access before the app knows
-          // who is signed in. Let normal initialization reach StudioFrame's
-          // sign-in / permission handling for a denied private project.
-          if (status === 401 || status === 403) {
-            return null;
-          }
-          throw error;
-        });
-      })();
+      const opening = await retryStartupRead(() =>
+        api.getProjectStartup(projectLocation.projectId, projectLocation.branchName)
+      ).catch((error) => {
+        const status = asApiError(error)?.statusCode;
+        // Let StudioFrame handle sign-in and denied private projects.
+        if (status === 401 || status === 403) return null;
+        throw error;
+      });
       if (opening) {
       const bootstrap = opening.startup;
       performance.mark("studio-bootstrap-ready");

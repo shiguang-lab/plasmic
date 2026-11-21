@@ -13,21 +13,25 @@ const profile = fs.mkdtempSync(
 app.setPath("userData", profile);
 // Match the macOS app lifecycle while reopening a window through startDesktop.
 app.on("window-all-closed", () => {});
-const projectUrl =
-  config.studioOrigin + "/projects/unavailable?branch=main#page";
+const interactive = process.argv.includes("--open");
+const published = process.argv.includes("--published");
+const projectUrl = config.studioOrigin + "/projects/unavailable" +
+  (published ? "?publishedTemplate=true" : "?branch=feature") + "#page";
 fs.writeFileSync(
   path.join(profile, "workspace.json"),
   JSON.stringify([{ url: projectUrl, name: "Unavailable startup project" }]),
 );
 fs.writeFileSync(
   path.join(profile, "workspace-route.json"),
-  JSON.stringify(projectUrl),
+  JSON.stringify(interactive ? config.studioOrigin + (published ? "/template-center" : "/projects") : projectUrl),
 );
 const forbidden = process.argv.includes("--forbidden");
 const authorized = process.argv.includes("--authorized");
 const measure = process.argv.includes("--measure");
 const shell = Promise.withResolvers();
+const editorBridge = fs.readFileSync(path.join(__dirname, "../src/editor-bridge.js"), "utf8");
 let projectChecks = 0;
+let requestStarted;
 const documentPaths = [];
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
@@ -36,12 +40,13 @@ Module._load = function (request, parent, isMain) {
     parent.filename.endsWith("/src/main.cjs")
   ) {
     return {
-      createAssetHandler: () => async (assetRequest) => {
+      createAssetHandler: ({ remoteFetch }) => async (assetRequest) => {
+        if (new URL(assetRequest.url).pathname.startsWith("/api/")) return remoteFetch(assetRequest);
         documentPaths.push(new URL(assetRequest.url).pathname);
         if (assetRequest.url === projectUrl || new URL(assetRequest.url).pathname === "/projects/unavailable") {
           shell.resolve(performance.now());
-          return new Response(`<html><body><script>
-            window.startup = desktopEnvironment.consumeStartupData("unavailable", "main").then(opening => {
+          return new Response(`<html><body><script>${editorBridge}</script><script>
+            window.startup = desktopEnvironment.consumeStartupData("unavailable", ${published ? "undefined, true" : '"feature"'}).then(opening => {
               if (!opening) fetch("/unexpected-startup-request");
               return opening?.project?.id;
             });
@@ -69,35 +74,71 @@ app
   .then(async () => {
     const ses = session.fromPartition("persist:plasmic-desktop");
     let checkFinished;
-    ses.fetch = async (request) => {
+    const firstCheck = Promise.withResolvers();
+    const sessionFetch = ses.fetch.bind(ses);
+    ses.fetch = async (request, options) => {
+      if (!options?.bypassCustomProtocolHandlers) {
+        requestStarted = performance.now();
+        return sessionFetch(request, options);
+      }
       const url = new URL(typeof request === "string" ? request : request.url);
       if (url.pathname === "/api/auth/session") {
         return Response.json({ authenticated: true });
       }
-      assert.equal(url.pathname, "/api/v1/projects/unavailable");
-      assert.equal(JSON.parse(url.searchParams.get("branchName")), "main");
+      if (url.pathname === "/api/v1/projects/header-fixture") {
+        assert.deepEqual(Object.fromEntries(url.searchParams), { includeStartup: "true", branchName: '"main"' });
+        return Response.json({ project: { id: "header-fixture" }, startup: { projectId: "header-fixture", branchName: "main" } });
+      }
+      assert.equal(url.pathname, published ? "/api/v1/template-center/unavailable/studio" : "/api/v1/projects/unavailable");
+      assert.deepEqual(Object.fromEntries(url.searchParams), published ? {} : { includeStartup: "true", branchName: '"feature"' });
+      requestStarted ??= performance.now();
       projectChecks++;
+      if (!measure) await shell.promise;
       await delay(400);
       checkFinished = performance.now();
+      firstCheck.resolve(checkFinished);
       if (authorized) {
-        return Response.json({ project: { id: "unavailable" }, startup: { projectId: "unavailable", branchName: "main" } });
+        return Response.json(published
+          ? { project: { id: "unavailable", publishedTemplateVersion: "1.0.0" } }
+          : { project: { id: "unavailable" }, startup: { projectId: "unavailable", branchName: "feature" } });
       }
       return Response.json({ projectData: { projects: [], perms: [] } }, { status: forbidden ? 403 : 404 });
     };
     const started = performance.now();
     let win = await startDesktop();
+    const dashboard = interactive ? studioContents(win) : undefined;
+    if (dashboard) {
+      await dashboard.executeJavaScript(`desktopNavigation.navigate(${JSON.stringify(projectUrl)})`);
+      assert.notEqual(studioContents(win), dashboard);
+    }
     const shellStarted = await shell.promise;
-    if (!measure) assert.ok(shellStarted < checkFinished, "The project document must start before the access check finishes");
+    if (!measure) assert.ok(shellStarted < await firstCheck.promise, "The project document must start before the access check finishes");
     if (authorized) {
       assert.equal(studioContents(win).getURL(), projectUrl);
       assert.equal(await studioContents(win).executeJavaScript("window.startup"), "unavailable");
       assert.equal(projectChecks, 1);
+      assert.ok(requestStarted <= shellStarted, "Opening GET must begin by the time the editor document is requested");
       console.log(JSON.stringify({
         documentRequestMs: Math.round(shellStarted - started),
         accessCheckMs: Math.round(checkFinished - started),
         modelReadbackMs: Math.round(performance.now() - started),
         projectChecks,
       }));
+      if (interactive) {
+        const editor = studioContents(win);
+        const reloaded = new Promise(resolve => editor.once("did-finish-load", resolve));
+        editor.reload();
+        await reloaded;
+        assert.equal(await editor.executeJavaScript("window.startup"), "unavailable");
+        assert.equal(projectChecks, 2, "Reload must initiate exactly one fresh opening GET");
+      }
+      const retired = studioContents(win);
+      const closed = new Promise(resolve => retired.once("destroyed", resolve));
+      const listUrl = dashboard?.getURL() ?? config.studioOrigin + "/projects";
+      await retired.executeJavaScript(`void desktopNavigation.navigate(${JSON.stringify(listUrl)})`);
+      await closed;
+      assert.equal(studioContents(win).getURL(), listUrl);
+      if (dashboard) assert.equal(studioContents(win), dashboard);
       win.destroy();
       clearTimeout(timeout);
       app.exit(0);
@@ -129,7 +170,9 @@ app
     );
     if (process.platform === "darwin") {
       await studioContents(win).loadURL(config.studioOrigin + "/projects/header-fixture");
-      await new Promise(setImmediate);
+      assert.equal(await studioContents(win).executeJavaScript(
+        'desktopEnvironment.consumeStartupData("header-fixture", "main").then(data => data?.project?.id)'
+      ), "header-fixture");
       assert.deepEqual(win.getWindowButtonPosition(), { x: 24, y: 22 });
       const resized = new Promise((resolve) => win.once("resize", resolve));
       const [width, height] = win.getContentSize();

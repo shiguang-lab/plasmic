@@ -89,40 +89,65 @@ class DesktopWorkspace {
     this.recent = recent;
     return true;
   }
-  async startupUrl(session, logPreflight, savedUrl = this.lastUrl) {
-    const home = this.origin + "/";
-    const id = this.projectId(savedUrl);
-    if (!id) {
-      return savedUrl;
-    }
+  // Keep a single opening bound to its navigation and authenticated session.
+  // The project and publication endpoints have different access rules and payloads.
+  startOpening(session, destination, restoring = false) {
     this.clearStartupData();
-    const url = new URL("/api/v1/projects/" + id, this.origin);
-    const branchName =
-      new URL(savedUrl).searchParams.get("branch") || "main";
-    url.searchParams.set("includeStartup", "true");
-    if (branchName) {
+    const id = this.projectId(destination);
+    if (!id) return;
+    const route = new URL(destination);
+    if (!restoring && !/^\/projects\/[\w-]+(?:\/(?:-\/[^/]+|preview))?\/?$/.test(route.pathname)) return;
+    const published = route.searchParams.get("publishedTemplate") === "true";
+    const branchName = published ? undefined : route.searchParams.get("branch") || "main";
+    const url = new URL(published ? `/api/v1/template-center/${id}/studio` : `/api/v1/projects/${id}`, this.origin);
+    if (!published) {
+      url.searchParams.set("includeStartup", "true");
       url.searchParams.set("branchName", JSON.stringify(branchName));
     }
+    const controller = new AbortController();
     const options = {
-      bypassCustomProtocolHandlers: true,
+      // Interactive opens follow the same session recovery as renderer API requests.
+      bypassCustomProtocolHandlers: restoring,
       credentials: "include",
-      redirect: "manual",
+      redirect: restoring ? "manual" : "follow",
       cache: "no-store",
-      signal: AbortSignal.timeout(10000),
+      signal: restoring ? AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]) : controller.signal,
     };
+    const result = session.fetch(url.href, options).then(async response => {
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        return {
+          status: response.status,
+          failure: { httpStatus: response.status, error: body?.error, requestUrl: url.pathname + url.search },
+        };
+      }
+      const data = await response.json();
+      const matchesRoute = published
+        ? !!data.project?.publishedTemplateVersion
+        : data.startup?.projectId === id && data.startup.branchName === branchName;
+      if (data.project?.id !== id || !matchesRoute) {
+        throw new Error("Invalid project opening response");
+      }
+      return { status: response.status, data };
+    }).catch(error => ({ error }));
+    const opening = { id, published, branchName, result, controller, options, expiresAt: Date.now() + 30000 };
+    this.startupData = opening;
+    this.startupTimer = setTimeout(() => this.clearStartupData(), 30000);
+    this.startupTimer.unref();
+    return opening;
+  }
+  async startupUrl(session, logPreflight, savedUrl = this.lastUrl) {
+    const home = this.origin + "/";
+    const opening = this.startOpening(session, savedUrl, true);
+    if (!opening) return savedUrl;
+    const { id, options } = opening;
     const started = performance.now();
     const preflight = { projectId: id, outcome: "failed" };
     try {
-      const response = await session.fetch(url.toString(), options);
+      const response = await opening.result;
+      if (response.error) throw response.error;
       preflight.projectStatus = response.status;
-      if (response.ok) {
-        const opening = await response.json();
-        if (opening.project?.id !== id || opening.startup?.projectId !== id) {
-          throw new Error("Invalid project opening response");
-        }
-        this.startupData = { data: opening, expiresAt: Date.now() + 30000 };
-        this.startupTimer = setTimeout(() => this.clearStartupData(), 30000);
-        this.startupTimer.unref();
+      if (response.data) {
         preflight.outcome = "prefetched";
         return savedUrl;
       } else if (![401, 403, 404].includes(response.status)) {
@@ -138,6 +163,7 @@ class DesktopWorkspace {
       );
       preflight.sessionStatus = login.status;
       const status = await login.json();
+      if (this.startupData !== opening) return savedUrl;
       if (login.status === 401 && status.authenticated === false) {
         preflight.outcome = "sign-in";
         return savedUrl;
@@ -161,14 +187,21 @@ class DesktopWorkspace {
   clearStartupData() {
     clearTimeout(this.startupTimer);
     this.startupTimer = undefined;
+    this.startupData?.controller.abort();
     this.startupData = undefined;
   }
-  consumeStartupData(projectId, branchName) {
-    const data = this.startupData;
-    this.clearStartupData();
-    return data?.data.project?.id === projectId && data.data.startup.branchName === branchName && Date.now() < data.expiresAt
-      ? data.data
-      : null;
+  async consumeStartupData(projectId, branchName, published = false) {
+    const opening = this.startupData;
+    if (!opening || opening.claimed || opening.id !== projectId || opening.branchName !== branchName ||
+        opening.published !== published || Date.now() >= opening.expiresAt) return null;
+    opening.claimed = true;
+    clearTimeout(this.startupTimer);
+    try {
+      const { data, failure } = await opening.result;
+      return this.startupData === opening ? data ?? failure ?? null : null;
+    } finally {
+      if (this.startupData === opening) this.clearStartupData();
+    }
   }
   async refreshRecent(session) {
     const entries = [...this.recent];
@@ -190,9 +223,17 @@ class DesktopWorkspace {
       if (!login.ok || (await login.json()).authenticated !== true) {
         return false;
       }
+      let catalog;
       const unavailable = await Promise.all(
         entries.map(async (entry) => {
           const id = this.projectId(entry.url);
+          if (new URL(entry.url).searchParams.get("publishedTemplate") === "true") {
+            catalog ??= session.fetch(this.origin + "/api/v1/template-center", options)
+              .then(async response => response.ok ? (await response.json()).templates : undefined)
+              .catch(() => undefined);
+            const templates = await catalog;
+            return Array.isArray(templates) && !templates.some(item => item.id === id && item.published) ? id : undefined;
+          }
           const url = new URL("/api/v1/projects", this.origin);
           url.searchParams.set("query", JSON.stringify("byIds"));
           url.searchParams.set("projectIds", JSON.stringify([id]));
@@ -292,9 +333,11 @@ function fileMenu({
                 if (!workspace.recent.some((item) => item.url === entry.url)) {
                   return;
                 }
-                await controller.dispatch("open_design", {
-                  projectId: workspace.projectId(entry.url),
-                });
+                const current = await controller.state([]);
+                if (current.url !== entry.url) {
+                  await controller.saveBeforeNavigation(current);
+                  await navigate(entry.url);
+                }
               }),
             }))
           : [{ label: t("No Recent Projects"), enabled: false }],

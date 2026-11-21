@@ -205,6 +205,20 @@ export class Api extends SharedApi {
     return ajax(method, url, data, opts, hideDataOnError, noErrorTransform);
   }
 
+  protected override async readProjectOpening(projectId: string, branchName: string | undefined, published: boolean) {
+    const desktop = (window as Window & { desktopEnvironment?: {
+      consumeStartupData?: (id: string, branch: string | undefined, published: boolean) =>
+        Promise<ProjectOpeningResponse | Omit<ProjectOpeningResponse, "startup"> | { httpStatus: number; error?: unknown; requestUrl: string } | null>;
+    } }).desktopEnvironment;
+    const opening = await desktop?.consumeStartupData?.(projectId, branchName, published);
+    if (opening && "httpStatus" in opening) {
+      const error = deserializeApiError(opening.error, opening.httpStatus);
+      error.request = { method: "GET", url: opening.requestUrl };
+      throw error;
+    }
+    return opening ?? super.readProjectOpening(projectId, branchName, published);
+  }
+
   private async getDependencyModelResource(
     url: string,
     opts?: RequestInit,

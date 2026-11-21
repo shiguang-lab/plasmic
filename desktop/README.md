@@ -71,10 +71,11 @@ remote saving remains available.
 Opening a project restores a single compatible draft only when its base revision
 matches the server. Matching remote content clears an already committed draft;
 divergent or incompatible drafts remain available for export, opening as a new
-project, or explicit deletion. Opening still requires a fresh project response from the server. Desktop may hand
-that opening response to its trusted main frame once within 30 seconds, scoped to
-the exact project and branch. This handoff is memory-only and is discarded when
-the account changes; it avoids a duplicate renderer request.
+project, or explicit deletion. Desktop starts the fresh project GET as soon as
+editor navigation is approved. Published templates use the published Studio
+snapshot endpoint. The editor can claim the in-flight response once within
+30 seconds. The handoff is scoped to the current account, project, branch and
+publication mode, and is discarded on navigation or account changes.
 If a live save encounters a newer server revision, Desktop keeps the current
 edits and pauses saving until the user resolves the draft; it does not replay
 potentially committed edits. Choosing the remote version keeps the local draft

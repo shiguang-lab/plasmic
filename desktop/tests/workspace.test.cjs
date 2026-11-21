@@ -39,8 +39,8 @@ test("startup validates the exact saved project before restoring its route", asy
   assert.ok(durationMs >= 0);
   assert.deepEqual(record, { projectId: "saved", outcome: "prefetched", projectStatus: 200 });
   assert.equal(workspace.recent.length, 2);
-  assert.equal(workspace.consumeStartupData("saved", "main").project.id, "saved");
-  assert.equal(workspace.consumeStartupData("saved", "main"), null);
+  assert.equal((await workspace.consumeStartupData("saved", "main")).project.id, "saved");
+  assert.equal(await workspace.consumeStartupData("saved", "main"), null);
 });
 for (const status of [401, 403, 404]) {
   test(`startup removes an unavailable project after confirming login (HTTP ${status})`, async (t) => {
@@ -536,18 +536,18 @@ test("startup data expires and is scoped to the restored project", async (t) => 
   const { workspace } = startupFixture(t);
   const session = { fetch: async () => Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } }) };
   await workspace.startupUrl(session);
-  assert.equal(workspace.consumeStartupData("other"), null);
+  assert.equal(await workspace.consumeStartupData("other"), null);
   await workspace.startupUrl(session);
   const originalNow = Date.now;
   Date.now = () => originalNow() + 31000;
-  try { assert.equal(workspace.consumeStartupData("saved", "main"), null); }
+  try { assert.equal(await workspace.consumeStartupData("saved", "main"), null); }
   finally { Date.now = originalNow; }
 });
 
 test("startup handoff cannot supply a model from another branch", async (t) => {
   const { workspace } = startupFixture(t);
   await workspace.startupUrl({ fetch: async () => Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } }) });
-  assert.equal(workspace.consumeStartupData("saved", "feature"), null);
+  assert.equal(await workspace.consumeStartupData("saved", "feature"), null);
 });
 
 test("unconsumed project data is released from memory after 30 seconds", async (t) => {
@@ -557,6 +557,49 @@ test("unconsumed project data is released from memory after 30 seconds", async (
   assert.ok(workspace.startupData);
   t.mock.timers.tick(30000);
   assert.equal(workspace.startupData, undefined);
+});
+
+test("switching projects or accounts invalidates a claimed in-flight read", async (t) => {
+  const { workspace, savedUrl } = startupFixture(t);
+  for (const next of ["project", "account"]) {
+    const pending = Promise.withResolvers();
+    const opening = workspace.startOpening({ fetch: () => pending.promise }, savedUrl);
+    const read = workspace.consumeStartupData("saved", "main");
+    if (next === "project") {
+      workspace.startOpening({ fetch: async () => Response.json({ project: { id: "other", publishedTemplateVersion: "1" } }) },
+        origin + "/projects/other?publishedTemplate=true");
+    } else {
+      workspace.clearStartupData();
+    }
+    assert.ok(opening.controller.signal.aborted);
+    pending.resolve(Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } }));
+    assert.equal(await read, null);
+    if (next === "project") {
+      assert.equal(await workspace.consumeStartupData("other", "main"), null);
+      assert.equal((await workspace.consumeStartupData("other", undefined, true)).project.id, "other");
+    }
+  }
+});
+
+test("a published template and a branch reopen from Recent Projects at their saved URLs", async (t) => {
+  const { workspace } = startupFixture(t);
+  const edited = origin + "/projects/saved/-/design?branch=feature%2Ftwo";
+  const published = origin + "/projects/template?publishedTemplate=true";
+  workspace.saveRecent([{ name: "Branch", url: edited }, { name: "Template", url: published }]);
+  const destinations = [];
+  const menu = fileMenu({ workspace, t: key => key,
+    session: { fetch: async url => {
+      const path = new URL(url).pathname;
+      if (path === "/api/auth/session") return Response.json({ authenticated: true });
+      if (path === "/api/v1/template-center") return Response.json({ templates: [{ id: "template", published: { version: "1" } }] });
+      assert.deepEqual(JSON.parse(new URL(url).searchParams.get("projectIds")), ["saved"]);
+      return Response.json({ projects: [{ id: "saved" }] });
+    } },
+    controller: { state: async () => ({url:origin + "/projects"}), saveBeforeNavigation: async () => {} },
+    navigate: async url => destinations.push(url), refresh: () => {}, dialog: { showErrorBox: assert.fail },
+  });
+  for (const item of menu.submenu.find(item => item.label === "Recent Projects").submenu) await item.click();
+  assert.deepEqual(destinations, [edited, published]);
 });
 
 test("an invalid saved branch preserves the project instead of deleting it", async (t) => {

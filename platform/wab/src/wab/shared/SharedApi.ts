@@ -371,7 +371,13 @@ export abstract class SharedApi {
   }
 
   getProjectStartup(projectId: string, branchName?: string): Promise<ProjectOpeningResponse> {
-    return this.get(`/projects/${projectId}`, { includeStartup: true, branchName });
+    return this.readProjectOpening(projectId, branchName, false);
+  }
+
+  protected readProjectOpening(projectId: string, branchName: string | undefined, published: boolean) {
+    return published
+      ? this.get(`/template-center/${projectId}/studio`)
+      : this.get(`/projects/${projectId}`, { includeStartup: true, branchName });
   }
 
   resolveProjectModel(opening: Omit<ProjectOpeningResponse, "startup"> & { startup?: ProjectOpeningResponse["startup"] }): Promise<GetProjectResponse> {
@@ -457,7 +463,7 @@ export abstract class SharedApi {
     },
   ): Promise<GetProjectResponse> {
     if (opts?.publishedTemplate) {
-      return this.getModelResponse(`/template-center/${siteId}/studio`);
+      return this.readProjectOpening(siteId, undefined, true).then(response => this.hydrateModelResponse(response));
     }
     return this.getModelResponse(
       `/projects/${showProjectBranchId(toOpaque(siteId), opts?.branchId)}`,

@@ -117,6 +117,7 @@ class StudioWindow extends EventEmitter {
         await this.beforeNavigate();
         if (this.window.isDestroyed()) throw new Error("Desktop window closed");
       }
+      this.emit("will-load", url, startupCheck);
       if (nextProject) {
         if (!this.editor || currentProject !== nextProject) {
           const retired = this.editor;

@@ -229,22 +229,16 @@ it("preserves the presentation when startup expires after the login redirect", a
 
 beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));
 
-it("consumes the desktop opening response without repeating the project GET", async () => {
+it("uses one startup GET for the requested branch and prepares its initial model", async () => {
   const opening = { startup: { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "feature", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [{ id: "branch", name: "feature" }] }, depPkgs: [], rev: {} };
-  const consumeStartupData = vi.fn().mockResolvedValue(opening);
-  Object.defineProperty(window, "desktopEnvironment", { configurable: true, value: { consumeStartupData } });
-  try {
-    mocks.loadAppCtx.mockRejectedValue(new Error("Stop after opening"));
-    setup("/projects/project?branch=feature");
-    await screen.findByRole("alert");
-    expect(consumeStartupData).toHaveBeenCalledExactlyOnceWith("project", "feature");
-    expect(mocks.getProjectStartup).not.toHaveBeenCalled();
-    expect(mocks.getSiteInfo).not.toHaveBeenCalled();
-    expect(mocks.prepareProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
-    expect(mocks.loadAppCtx.mock.calls[0][0].initialProjectModel.branchId).toBe("branch");
-  } finally {
-    Reflect.deleteProperty(window, "desktopEnvironment");
-  }
+  mocks.getProjectStartup.mockResolvedValue(opening);
+  mocks.loadAppCtx.mockRejectedValue(new Error("Stop after opening"));
+  setup("/projects/project?branch=feature");
+  await screen.findByRole("alert");
+  expect(mocks.getProjectStartup).toHaveBeenCalledExactlyOnceWith("project", "feature");
+  expect(mocks.getSiteInfo).not.toHaveBeenCalled();
+  expect(mocks.prepareProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
+  expect(mocks.loadAppCtx.mock.calls[0][0].initialProjectModel.branchId).toBe("branch");
 });
 
 // Docs intentionally stays outside parseProjectLocation() so its component/icon

@@ -33,7 +33,7 @@
     "package:linux": "node scripts/package.mjs linux x64",
     "test:mcp": "electron tests/mcp-smoke.cjs",
     "test:auth-startup": "electron tests/unified-startup.cjs",
-    "test:workspace-startup": "electron tests/workspace-startup.cjs && electron tests/workspace-startup.cjs --forbidden",
+    "test:workspace-startup": "electron tests/workspace-startup.cjs && electron tests/workspace-startup.cjs --forbidden && electron tests/workspace-startup.cjs --authorized && electron tests/workspace-startup.cjs --authorized --published && electron tests/workspace-startup.cjs --authorized --open && electron tests/workspace-startup.cjs --authorized --open --published",
     "test:startup-appearance": "electron tests/startup-appearance.cjs",
     "test:auth-session": "electron tests/unified-session.cjs",
     "test:library-cache": "electron tests/library-cache-native.cjs",
