@@ -11,9 +11,14 @@ const { createAssetHandler } = require("../../src/asset-handler.cjs");
 const task = path.resolve(process.argv[2]);
 const mode = process.argv[3] || "timing";
 const buildRoot = process.env.PERF_BUILD_ROOT || path.join(task,"build-installed");
+const routeStudy = process.env.PERF_ROUTE_STUDY === "1";
+const studyHeap = routeStudy && process.env.PERF_ROUTE_HEAP === "1";
+const studyEdit = routeStudy && process.env.PERF_ROUTE_EDIT === "1";
+const routeCpuRate = routeStudy && Number(process.env.PERF_ROUTE_CPU_RATE || 1);
 const opens = Number(process.env.PERF_OPENS || 4);
 const profileKey=process.env.PERF_PROFILE_KEY || mode;
 const debuggerEnabled=process.env.PERF_NO_DEBUG!=="1";
+if (routeStudy && debuggerEnabled) throw Error("Route comparisons require PERF_NO_DEBUG=1");
 const sparePolicy = process.env.PERF_SPARE_POLICY;
 const spareArguments = process.env.PERF_SPARE_ARGUMENTS || "compatible";
 if (sparePolicy) {
@@ -54,6 +59,17 @@ const report = {
   project: { id: startup.projectId, name: opening.project.name, revision: opening.rev.revision, objects: Object.keys(projectBundle.map).length, sha256: hash(opening.rev.data), dependencies: opening.depPkgs.map(p => ({ id:p.id, version:p.version, resource:"/api/v1/dependency-models/"+p.modelResourceId, sha256:hash(models["/api/v1/dependency-models/"+p.modelResourceId].body) })) },
   requests: [], resources: [], samples: [], errors: [], blocked: []
 };
+if (routeStudy) {
+  report.routeStudy = {
+    route: isolatedSessions ? "desktop" : "spa",
+    rendererCpuRate: routeCpuRate,
+    counters: process.env.PERF_ROUTE_COUNTERS === "1",
+    snapshots: studyHeap,
+    settle: process.env.PERF_ROUTE_SETTLE || null,
+    cleanHtml: process.env.PERF_ROUTE_CLEAN === "1",
+    electron: process.versions.electron,
+  };
+}
 if (sparePolicy) report.spareRenderer = {policy:sparePolicy,arguments:spareArguments,electron:process.versions.electron};
 const now = () => performance.timeOrigin + performance.now();
 const firstFrames=new Map();
@@ -162,6 +178,13 @@ app.on("web-contents-created", (_, contents) => {
     if (event.level === "error") report.errors.push(event.message.slice(0,800));
   });
   contents.on("will-prevent-unload", event => { navigation("will-prevent-unload"); event.preventDefault(); });
+  if (routeCpuRate > 1) {
+    const debuggerApi = contents.debugger;
+    debuggerApi.attach("1.3");
+    void debuggerApi.sendCommand("Emulation.setCPUThrottlingRate", {
+      rate: routeCpuRate,
+    }).catch(error => report.errors.push(error.message));
+  }
   if(!debuggerEnabled)return;
   const debug = contents.debugger;
   debug.attach("1.3");
@@ -197,6 +220,38 @@ async function memoryPoint(label, retiredPid, retiredFramePids = []) {
   const sample = {label,rendererPid:win.webContents.getOSProcessId(),processes,
     heap:debuggerEnabled?await win.webContents.debugger.sendCommand("Runtime.getHeapUsage"):null,
     dom:debuggerEnabled?await win.webContents.debugger.sendCommand("Memory.getDOMCounters"):null};
+  if (routeStudy && process.env.PERF_ROUTE_COUNTERS === "1") {
+    const debug = win.webContents.debugger;
+    const attached = debug.isAttached();
+    if (!attached) debug.attach("1.3");
+    try {
+      sample.heap = await debug.sendCommand("Runtime.getHeapUsage");
+      sample.dom = await debug.sendCommand("Memory.getDOMCounters");
+    } finally {
+      if (!attached) debug.detach();
+    }
+  }
+  if (routeStudy && process.env.PERF_ROUTE_MEMORY_DUMP === "1" &&
+      ["cold-dashboard", "canvas-" + (opens - 1), "returned-" + (opens - 1), "settled-30s"].includes(label)) {
+    const debug = win.webContents.debugger;
+    const attached = debug.isAttached();
+    if (!attached) debug.attach("1.3");
+    try {
+      await contentTracing.startRecording({
+        included_categories: ["disabled-by-default-memory-infra"], excluded_categories: ["*"],
+      });
+      try {
+        const dump = await debug.sendCommand("Tracing.requestMemoryDump", {
+          levelOfDetail: "detailed", deterministic: false,
+        });
+        if (!dump.success) throw Error("Chromium memory dump failed");
+      } finally {
+        await contentTracing.stopRecording(path.join(task, mode + "-" + label + ".trace"));
+      }
+    } finally {
+      if (!attached) debug.detach();
+    }
+  }
   if (sparePolicy) {
     const owners = webContents.getAllWebContents().map(c=>({id:c.id,pid:c.getOSProcessId(),url:c.getURL()}));
     sample.ownedRendererPids = [...new Set(owners.map(c=>c.pid).filter(Boolean))];
@@ -206,6 +261,27 @@ async function memoryPoint(label, retiredPid, retiredFramePids = []) {
   if (retiredPid && processes.some(p=>p.pid===retiredPid)) throw Error("Editor process survived return to dashboard");
   report.sessionMemory ??= [];report.sessionMemory.push(sample);
   console.log("SESSION_MEMORY "+JSON.stringify(sample));
+}
+async function routeSnapshot(label) {
+  const debug = win.webContents.debugger;
+  const attached = debug.isAttached();
+  if (!attached) debug.attach("1.3");
+  const file = fs.openSync(path.join(task, mode + "-" + label + ".heapsnapshot"), "w", 0o600);
+  const writeChunk = (_event, method, params) => {
+    if (method === "HeapProfiler.addHeapSnapshotChunk") fs.writeSync(file, params.chunk);
+  };
+  debug.on("message", writeChunk);
+  try {
+    await debug.sendCommand("HeapProfiler.collectGarbage");
+    const heap = await debug.sendCommand("Runtime.getHeapUsage");
+    const dom = await debug.sendCommand("Memory.getDOMCounters");
+    (report.routeHeap ??= []).push({label, heap, dom});
+    await debug.sendCommand("HeapProfiler.takeHeapSnapshot");
+  } finally {
+    debug.off("message", writeChunk);
+    fs.closeSync(file);
+    if (!attached) debug.detach();
+  }
 }
 async function dashboard() {
   return until(() => win.webContents.executeJavaScript(`(()=>{const e=[...document.querySelectorAll('[role="link"][aria-label]')].find(e=>e.getAttribute('aria-label').endsWith(${JSON.stringify(": " + opening.project.name)}));return e && {label:e.getAttribute('aria-label'),rect:JSON.stringify(e.getBoundingClientRect())}})()`), "real dashboard card");
@@ -229,7 +305,7 @@ app.whenReady().then(async () => {
   }
   const ses = session.fromPartition((process.env.PERF_PERSIST_CACHE === "1" ? "persist:" : "") + "real-project-" + profileKey);
   ses.webRequest.onBeforeRequest({urls:["ws://*/*","wss://*/*"]}, (_, cb) => cb({cancel:true}));
-  const backend = require('./real-project-backend.cjs').createProjectBackend({opening,startup,models,codes,plume,report,phase:()=>phase,functional:process.env.PERF_OPEN_FUNCTIONAL==='1'});
+  const backend = require('./real-project-backend.cjs').createProjectBackend({opening,startup,models,codes,plume,report,phase:()=>phase,functional:studyEdit || process.env.PERF_OPEN_FUNCTIONAL==='1'});
   const identity = {epoch:0,value:startup.selfInfo,async read(){return this.value}};
   const cache = new LibraryCache({directory:path.join(task,"library-cache-"+mode),studioOrigin:origin,buildId:report.build.build.rendererHash,identity,remoteFetch:backend});
   const diskRead = cache.store.read.bind(cache.store);
@@ -246,10 +322,26 @@ app.whenReady().then(async () => {
   ses.protocol.handle("http", remoteFetch);
   const assets=createAssetHandler({root:buildRoot,studioOrigin:origin,canvasOrigin,remoteFetch});
   ses.protocol.handle("https",async request=>{
+    if (routeStudy) {
+      const url = new URL(request.url);
+      if (url.origin === origin && url.pathname === "/api/v1/project-covers/events") {
+        return new Response(null, {status: 204});
+      }
+      if (/^\/assets\/[A-Za-z0-9_-]+\.(png|webp|jpg|jpeg)$/.test(url.pathname)) {
+        const image = path.join(task, "images", path.basename(url.pathname));
+        if (fs.existsSync(image)) {
+          const format = path.extname(image).slice(1);
+          return new Response(await fs.promises.readFile(image), {headers: {
+            "Content-Type": "image/" + (format === "jpg" ? "jpeg" : format),
+            "Access-Control-Allow-Origin": "*",
+          }});
+        }
+      }
+    }
     const response=customHost && new URL(request.url).origin === canvasOrigin && new URL(request.url).pathname === customHost.pathname
       ? new Response(customHost.html,{headers:{"Content-Type":"text/html; charset=utf-8","Access-Control-Allow-Origin":"*"}})
       : await assets(request);
-    if(debuggerEnabled||!response.headers.get("Content-Type")?.startsWith("text/html"))return response;
+    if(debuggerEnabled || (routeStudy && process.env.PERF_ROUTE_CLEAN === "1") || !response.headers.get("Content-Type")?.startsWith("text/html"))return response;
     const headers=new Headers(response.headers);headers.delete("Content-Length");
     const html=(await response.text()).replace(/<head[^>]*>/i,head=>head+`<script>(${bootstrap.toString()})(false,${process.env.PERF_BLOCK_PHYSICAL_INPUT === '1'})</script>`);
     return new Response(html,{status:response.status,headers});
@@ -290,7 +382,9 @@ app.whenReady().then(async () => {
     await contentTracing.startRecording({included_categories:["toplevel","v8","devtools.timeline","blink.user_timing","disabled-by-default-v8.cpu_profiler"],excluded_categories:["*"]});
     tracing = true;
   }
-  if(isolatedSessions) await memoryPoint("cold-dashboard");
+  if (isolatedSessions || routeStudy) await memoryPoint("cold-dashboard");
+  let savedPage;
+  const documentOrigin = routeStudy && await initialDashboard.executeJavaScript("performance.timeOrigin");
   for (let i=0;i<opens;i++) {
     if(report.memoryProbe) report.memoryProbe.openPeakRssKiB=0;
     if(process.env.PERF_RETURN_TIMING === "1") {app.focus({steal:true});nativeWindow.show();nativeWindow.focus();win.webContents.focus();}
@@ -373,6 +467,47 @@ app.whenReady().then(async () => {
     };
     report.samples.push(sample);
     console.log(JSON.stringify({phase,detectedReadyMs:sample.detectedReadyMs,studio:probes.find(p=>p.studio)?.studio}));
+    if (routeStudy) {
+      sample.documentReused = topPaint.timeOrigin === documentOrigin;
+      if (sample.documentReused === isolatedSessions) throw Error("Unexpected top document ownership");
+      if (!revealed || atFirstReady.rendered < 1) throw Error("Target artboard did not render");
+      if (studyEdit && i === 0) {
+        savedPage = await frame.executeJavaScript(`(async () => {
+          const ctx = studioCtx;
+          const page = ctx.site.pageArenas[0];
+          const original = page.component.name;
+          const updated = original + "RouteStudy";
+          await ctx.changeUnsafe(() => ctx.siteOps().tryRenameArenas([{arena: page, newName: updated}]));
+          await ctx.undo();
+          if (page.component.name !== original) throw Error("Page rename undo failed");
+          await ctx.redo();
+          if (page.component.name !== updated) throw Error("Page rename redo failed");
+          ctx.needsFullSave = true;
+          await ctx.save();
+          if (ctx.saveStatus !== "saved") throw Error("Offline save failed");
+          return {name: updated, revision: ctx.dbCtx().revisionNum};
+        })()`);
+      } else if (studyEdit) {
+        const reopened = await frame.executeJavaScript(
+          "({name: studioCtx.site.pageArenas[0].component.name, revision: studioCtx.dbCtx().revisionNum})"
+        );
+        if (reopened.name !== savedPage.name || reopened.revision !== savedPage.revision) {
+          throw Error("Reopened route lost the saved edit");
+        }
+        sample.savedEditRestored = true;
+      }
+      if (studyHeap) {
+        const marker = JSON.stringify("routeStudySession" + i);
+        await frame.executeJavaScript(`(() => {
+          for (const object of [studioCtx, studioCtx.site, window.document, ...studioCtx.viewCtxs]) {
+            Object.defineProperty(object, ${marker}, {value: true, configurable: true});
+          }
+        })()`);
+        sample.editorSharesRenderer = frame.osProcessId === win.webContents.getOSProcessId();
+        if (!sample.editorSharesRenderer) throw Error("Heap study needs the actual editor isolate");
+        if (i === 0) await routeSnapshot("active");
+      }
+    }
     if (nativeBridge) {
       progress("native-after-open", { iteration: i });
       await nativeBridge.afterOpen(frame, i);
@@ -402,7 +537,7 @@ app.whenReady().then(async () => {
     const returnStartedAt=now();activatedAt=undefined;
     const retiredPid = win.webContents.getOSProcessId();
     const retiredFramePids = process.env.PERF_SPARE_MEMORY === "1" ? [...new Set(win.webContents.mainFrame.framesInSubtree.map(f=>f.osProcessId).filter(Boolean))] : [];
-    if(isolatedSessions) {
+    if(isolatedSessions || routeStudy) {
       await memoryPoint("canvas-"+i);
       await frame.executeJavaScript(`(()=>{const link=document.querySelector('a[href="/projects"][aria-label]');if(!link)throw Error('Missing Dashboard link');link.click();})()`);
     } else await win.webContents.executeJavaScript("history.back()");
@@ -418,6 +553,20 @@ app.whenReady().then(async () => {
     }
     await sleep(500);
     if(isolatedSessions) await memoryPoint("returned-"+i,retiredPid,retiredFramePids);
+    if (routeStudy) {
+      if (!isolatedSessions) await memoryPoint("returned-" + i);
+      const top = await win.webContents.executeJavaScript("performance.timeOrigin");
+      if (top !== documentOrigin) throw Error("Dashboard top document was replaced");
+      if (win.webContents.mainFrame.framesInSubtree.length !== 1) throw Error("Editor frame still attached");
+      const settle = process.env.PERF_ROUTE_SETTLE;
+      if (settle === "each" || (i === opens - 1 && settle === "1")) {
+        for (const seconds of [5, 30]) {
+          await sleep(seconds === 5 ? 4500 : 25000);
+          await memoryPoint("settled-" + seconds + "s");
+        }
+      }
+      if (studyHeap && i === opens - 1) await routeSnapshot("returned");
+    }
     if(sparePolicy && process.env.PERF_SPARE_MEMORY === "1") {
       await sleep(500);
       await memoryPoint("returned-"+i+"-1s",retiredPid,retiredFramePids);
@@ -439,6 +588,9 @@ app.whenReady().then(async () => {
         report.memoryProbe.afterSecondGc = {heap:await win.webContents.debugger.sendCommand('Runtime.getHeapUsage'),processes:app.getAppMetrics().map(p=>({type:p.type,rssKiB:p.memory.workingSetSize}))};
       }
     }
+  }
+  if (routeStudy && (report.errors.length || report.blocked.length)) {
+    throw Error("Route study recorded renderer errors or blocked requests; inspect the private report");
   }
 }).catch(e => {report.error=e?.stack ?? String(e);console.error(e);process.exitCode=1;}).finally(async () => {
   if (tracing) await contentTracing.stopRecording(path.join(task,"list-open.trace.json"));
