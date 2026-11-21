@@ -2120,5 +2120,119 @@
         }
       }
     ]
+  },
+  "nativeAndRouteCleanupComparison": {
+    "native": {
+      "count": 20,
+      "warmMedianMs": {
+        "canvasRevealedMs": 1265,
+        "allFramesRenderedMs": 2757
+      },
+      "memoryMiB": {
+        "cold-dashboard": {
+          "foregroundPrivate": 142,
+          "appPrivateSum": 491,
+          "gpuPrivate": 245
+        },
+        "canvas-19": {
+          "foregroundPrivate": 629,
+          "appPrivateSum": 1450,
+          "gpuPrivate": 622
+        },
+        "returned-19": {
+          "foregroundPrivate": 107,
+          "appPrivateSum": 596,
+          "gpuPrivate": 391
+        },
+        "settled-30s": {
+          "foregroundPrivate": 107,
+          "appPrivateSum": 325,
+          "gpuPrivate": 136
+        }
+      }
+    },
+    "clear": {
+      "count": 20,
+      "warmMedianMs": {
+        "canvasRevealedMs": 1125,
+        "allFramesRenderedMs": 2574
+      },
+      "memoryMiB": {
+        "cold-dashboard": {
+          "foregroundPrivate": 144,
+          "appPrivateSum": 484,
+          "gpuPrivate": 233
+        },
+        "canvas-19": {
+          "foregroundPrivate": 615,
+          "appPrivateSum": 1569,
+          "gpuPrivate": 833
+        },
+        "returned-19": {
+          "foregroundPrivate": 252,
+          "appPrivateSum": 1128,
+          "gpuPrivate": 751
+        },
+        "settled-30s": {
+          "foregroundPrivate": 183,
+          "appPrivateSum": 427,
+          "gpuPrivate": 158
+        }
+      }
+    },
+    "delay": {
+      "count": 20,
+      "warmMedianMs": {
+        "canvasRevealedMs": 806,
+        "allFramesRenderedMs": 2046
+      },
+      "delayCounts": {
+        "cancelled": 19,
+        "fired": 1
+      },
+      "memoryMiB": {
+        "cold-dashboard": {
+          "foregroundPrivate": 137,
+          "appPrivateSum": 481,
+          "gpuPrivate": 237
+        },
+        "canvas-19": {
+          "foregroundPrivate": 2419,
+          "appPrivateSum": 3419,
+          "gpuPrivate": 857
+        },
+        "returned-19": {
+          "foregroundPrivate": 2419,
+          "appPrivateSum": 3313,
+          "gpuPrivate": 740
+        },
+        "settled-30s": {
+          "foregroundPrivate": 256,
+          "appPrivateSum": 424,
+          "gpuPrivate": 73
+        }
+      }
+    },
+    "cpu-native": {
+      "count": 4,
+      "warmMedianMs": {
+        "canvasRevealedMs": 4982,
+        "allFramesRenderedMs": 11465
+      }
+    },
+    "cpu-clear": {
+      "count": 4,
+      "warmMedianMs": {
+        "canvasRevealedMs": 4413,
+        "allFramesRenderedMs": 10939
+      }
+    },
+    "cpu-delay": {
+      "count": 4,
+      "warmMedianMs": {
+        "canvasRevealedMs": 2648,
+        "allFramesRenderedMs": 6855
+      }
+    }
   }
 }
