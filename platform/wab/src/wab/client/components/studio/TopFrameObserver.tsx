@@ -61,6 +61,7 @@ import { getLeftTabPermission } from "@/wab/shared/ui-config-utils";
 export interface TopFrameObserverProps {
   preview?: boolean;
   studioReady?: boolean;
+  showEditor?: boolean;
 }
 
 const loadFigmaImporter = () => import("@/wab/client/figma-importer/import-file");
@@ -212,6 +213,7 @@ class CopilotToolCalls {
 export const TopFrameObserver = React.memo(function TopFrameObserverContent({
   preview,
   studioReady = true,
+  showEditor = studioReady,
 }: TopFrameObserverProps) {
   const hostFrameCtx = useHostFrameCtx();
   const studioCtx = useStudioCtx();
@@ -519,9 +521,14 @@ export const TopFrameObserver = React.memo(function TopFrameObserverContent({
   React.useEffect(() => {
     if (studioReady) {
       studioCtx.loadTimings.report("canvas-revealed");
+    }
+  }, [studioReady, studioCtx]);
+
+  React.useEffect(() => {
+    if (showEditor) {
       spawn(hostFrameCtx.revealStudio());
     }
-  }, [studioReady, hostFrameCtx]);
+  }, [showEditor, hostFrameCtx]);
 
   React.useEffect(
     () =>

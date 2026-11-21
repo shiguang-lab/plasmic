@@ -14,7 +14,7 @@ import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 vi.mock("@shiguang2/components/esm/scrollbar", () => ({ Scrollbar: ({children}: React.PropsWithChildren) => <div>{children}</div> }));
 vi.mock("@/wab/client/components/studio/LeftPane", () => ({ default: () => <aside data-testid="left-sidebar" /> }));
 vi.mock("@/wab/client/components/studio/RightPane", () => ({ RightPane: ({canvasLoading}: {canvasLoading: boolean}) => <aside data-testid="right-sidebar" data-loading={String(canvasLoading)} /> }));
-vi.mock("@/wab/client/components/studio/TopFrameObserver", () => ({ TopFrameObserver: ({studioReady}: {studioReady: boolean}) => <output data-testid="studio-ready">{String(studioReady)}</output> }));
+vi.mock("@/wab/client/components/studio/TopFrameObserver", () => ({ TopFrameObserver: ({studioReady, showEditor}: {studioReady: boolean; showEditor: boolean}) => <output data-testid="studio-ready" data-show-editor={showEditor}>{String(studioReady)}</output> }));
 vi.mock("@/wab/client/components/widgets/StudioLoading", () => ({ StudioLoading: () => <output data-testid="studio-loading" /> }));
 vi.mock("@/wab/client/components/insert-panel/ComponentPresetsModal", () => ({ ComponentPresetsModal: () => <output data-testid="component-presets" /> }));
 vi.mock("@/wab/client/components/canvas/canvas-arena", () => ({ CanvasArenaShell: ({arena}: {arena: {uid: number}}) => <div data-testid={`arena-${arena.uid}`} /> }));
@@ -76,6 +76,23 @@ it("keeps the global mask and top-frame readiness closed until both target rende
     check(false);
     target.mockReturnValue(true); mounted.rerender(view(studioCtx)); check(false);
     act(() => studioCtx.startupStore.setState({viewportLoaded: true})); check(true);
+  } finally { mounted.unmount(); studioCtx.dispose(); }
+});
+
+it("shows the positioned saved canvas while keeping the inspector and editing readiness pending", async () => {
+  const { studioCtx } = fakeStudioCtx();
+  await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+  vi.spyOn(studioCtx, "activeCanvasReady", "get").mockReturnValue(false);
+  vi.spyOn(studioCtx, "hasInitialEditorView", "get").mockReturnValue(true);
+  studioCtx.startupStore.setState({ viewportLoaded: false });
+  const mounted = render(view(studioCtx));
+  try {
+    expect(screen.getByTestId("studio-ready").dataset.showEditor).toBe("false");
+    act(() => studioCtx.startupStore.setState({ viewportLoaded: true }));
+    expect(screen.queryByTestId("studio-loading")).toBeNull();
+    expect(screen.getByTestId("studio-ready").dataset.showEditor).toBe("true");
+    expect(screen.getByTestId("studio-ready").textContent).toBe("false");
+    expect(screen.getByTestId("right-sidebar").dataset.loading).toBe("true");
   } finally { mounted.unmount(); studioCtx.dispose(); }
 });
 

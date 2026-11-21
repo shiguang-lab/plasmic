@@ -399,6 +399,20 @@ private suppressGestureClick() {
     docs.forEach(doc => { doc.addEventListener("click", click, true); doc.addEventListener("pointerdown", clear, true); });
     this.clearSuppressedClick = clear;
   }
+  applyInitialViewportLayout() {
+    const studio = this.props.studioCtx;
+    const scaler = this.canvasScaler.current;
+    const viewport = studio.viewportCtx;
+    if (this.props.canvasLoading || !studio.initialRouteReady || studio.initialViewportReady ||
+        !studio.hasInitialEditorView || !viewport || !this.canvasClipper || !scaler) {
+      return;
+    }
+    studio.applyInitialViewportLayout(
+      Box.fromRect(this.canvasClipper.getBoundingClientRect()),
+      Box.fromRect(scaler.getBoundingClientRect()).size().scale(1 / viewport.scale()),
+    );
+  }
+
 initializeCanvas = (canvasClipper: HTMLElement | null) => {
     if (!canvasClipper || this.canvasClipper === canvasClipper) {
       return;
@@ -609,6 +623,8 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
           );
         }
       }
+      // A hidden clipper can receive its first usable layout after mounting.
+      this.applyInitialViewportLayout();
     });
     this.resizeObserver.observe(canvasClipper);
     this.resizeObserver.observe(canvasScaler);
@@ -2227,6 +2243,9 @@ export function ViewEditor_(props: ViewEditorProps) {
   const arenaInputs = useStore(studioCtx.arenaState.store);
   const overview = useStore(studioCtx.pageOverviewOpenStore);
   const startup = useStore(studioCtx.startupStore);
+  React.useLayoutEffect(() => {
+    controller.applyInitialViewportLayout();
+  }, [controller, startup.routeLoaded, startup.viewportLoaded, props.canvasLoading, arenaInputs.current]);
   const registry = useStore(studioCtx.arenaState.viewRegistry.store);
   const insertion = useStore(studioCtx.canvasInsertStore);
   const draggingObject = useStore(studioCtx.draggingObjectStore);
@@ -2235,6 +2254,8 @@ export function ViewEditor_(props: ViewEditorProps) {
   const readReady = React.useCallback(() => studioCtx.activeCanvasReady, [studioCtx]);
   const activeCanvasReady = React.useSyncExternalStore(subscribeReady, readReady, readReady);
   const canvasLoading = props.canvasLoading || !activeCanvasReady;
+  const showEditor = !props.canvasLoading && startup.routeLoaded && startup.viewportLoaded &&
+    (activeCanvasReady || studioCtx.hasInitialEditorView);
   const panelsHidden = props.panelsHidden;
   const world = useCurrentModelWorld(studioCtx);
   const mixed = useStore(world.models.field<Site, "arenas">(world.site, "arenas"));
@@ -2259,6 +2280,7 @@ export function ViewEditor_(props: ViewEditorProps) {
               !props.renderDocs && (
                 <TopFrameObserver
                   studioReady={!canvasLoading && startup.viewportLoaded}
+                  showEditor={showEditor}
                 />
               )}
           </DevContainer>
@@ -2364,7 +2386,7 @@ export function ViewEditor_(props: ViewEditorProps) {
                 {!publishedTemplate && !arenaInputs.focusedMode && <VariantsBar />}
               </Scrollbar>
               {overview && <PageOverview studio={studioCtx} />}
-              {!overview && (canvasLoading || !startup.viewportLoaded) && (
+              {!overview && !showEditor && (
                 <StudioLoading />
               )}
               <CanvasDndOverlay container={canvasContainer} />

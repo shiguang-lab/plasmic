@@ -252,12 +252,11 @@ const canvasVisibilityGuidance: Record<ReturnType<typeof getCanvasElementVisibil
 };
 
 function editorView(studio: StudioCtx) {
-  const vc = studio.focusedViewCtx();
   return studio.currentArena && studio.viewportCtx
     ? {
         arenaId: getArenaUuidOrName(studio.currentArena),
         arenaType: getArenaType(studio.currentArena),
-        frameUuid: (vc?.arenaFrame() ?? studio.focusedFrame())?.uuid ?? null,
+        frameUuid: studio.savedViewFrame?.uuid ?? null,
         scale: studio.viewportCtx.scale(),
         scroll: { x: studio.viewportCtx.scroll().x, y: studio.viewportCtx.scroll().y },
         canvasPadding: { x: studio.viewportCtx.canvasPadding().x, y: studio.viewportCtx.canvasPadding().y },

@@ -129,7 +129,7 @@ import {
 } from "@/wab/shared/core/vals";
 import { isDraggableSize } from "@/wab/shared/css-size";
 import { CanvasEnv, tryEvalExpr } from "@/wab/shared/eval";
-import { Pt, rectsIntersect } from "@/wab/shared/geom";
+import { Pt } from "@/wab/shared/geom";
 import { disposeCanvasFactories } from "@/wab/client/components/canvas/canvas-factories";
 import {
   ArenaFrame,
@@ -2798,13 +2798,7 @@ export class ViewCtx extends WithDbCtx {
       return true;
     }
 
-    const visibleScalerBox = this.viewportCtx.visibleScalerBox();
-    const frameScalerRect = this.studioCtx.getArenaFrameScalerRect(
-      this.arenaFrame(),
-    );
-    return frameScalerRect
-      ? rectsIntersect(visibleScalerBox.rect(), frameScalerRect)
-      : true;
+    return this.studioCtx.isFrameInViewport(this.arenaFrame(), this.viewportCtx);
   }
 
   ancestorComponents(valNode: /*TWZ*/ ValComponent | ValComponent) {

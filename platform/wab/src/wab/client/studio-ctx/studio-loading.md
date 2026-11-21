@@ -14,8 +14,8 @@ and application data concurrently. Application-data retries reuse a successful
 bundle lookup. Desktop recent-project refresh runs when the File menu opens
 rather than delaying navigation.
 
-The target is the focused frame (including focus inside its content), or the
-first frame of the current arena. Resolve it before its ViewCtx exists. Queue
+The target is the focused frame (including focus inside its content), the
+pending saved frame, or the first frame of the current arena, in that order. Resolve it before its ViewCtx exists. Queue
 that frame ahead of other frames in the current arena and background arenas.
 Target iframe initialization starts without an idle wait; other iframe loads
 remain serial and idle scheduled.
@@ -27,11 +27,18 @@ task boundary retains promise ownership through completion. Idle-task and
 evaluation failures release their queues, report the original canvas error and
 reject tool readiness instead of leaving startup waiting for a success marker.
 Canvas errors retain their stack in Desktop's existing error log.
-Saved-view restoration waits for the target ViewCtx. It restores the camera after the
-inspector layout frames while target rendering proceeds. The viewport commit
-frame and observable first render readiness both complete before releasing the
-loading overlay. Editing tools continue to wait for the complete sync queue;
-initial reveal does not wait on subsequent evaluations.
+The initial route resolves the saved target before mounting artboards. On the
+first measurable canvas layout, the editor measures the clipper and unscaled
+arena, then applies the saved scale and scroll in one viewport transaction.
+Reopening a valid saved view releases the top-level and canvas-wide loading
+overlays when this layout commits. Pending artboards display their own loading
+state. The saved frame determines startup render priority and the viewport snapshot.
+Once the target is ready and each initial artboard intersecting the current
+viewport has rendered or reported a load error, two animation frames and a
+zero-delay timer defer restoring the saved selection and its inspector together.
+The callback rechecks the current viewport before publishing. A failed
+target, explicit selection, navigation or teardown cancels the pending restore.
+Offscreen background artboards retain their normal on-demand evaluation. Editing tools continue to wait for the complete sync queue.
 Saved views include the scroll offset and canvas padding together; restoration
 compensates for the current padding so window resizing and scroll-surface
 expansion preserve the same canvas coordinates and zoom. Incomplete saved views
@@ -43,11 +50,10 @@ ends the wait. The first actual wait is recorded as `background-canvas-wait`.
 Each ViewCtx exposes observable `initialRenderReady` after its first evaluation
 and post-evaluation work produce a val system root. It stays true during later
 edits, and a recreated ViewCtx starts false. Pending frames use their own loading
-overlay. The global loading overlay and top-frame ready notification wait for
-the target render and `initialViewportReady`, independently of other frames.
-The inspector mounts when its ViewCtx exists so saved viewport restoration can
-account for its padding before revealing the canvas. Loading does not select
-frames, rewrite props or restore the viewport a second time.
+overlay. Opens without a saved viewport wait for target readiness before
+revealing the editor. The first-render milestone and editor view menu still
+require both the active target and the viewport. Later layout changes use the
+viewport's normal padding compensation and preserve the restored canvas point.
 
 Top-frame dialogs load as one deferred module when a dialog or onboarding tour is
 first requested. The group stays mounted after closing so form state and ongoing
@@ -91,13 +97,12 @@ the first edited backup constructs its snapshot when it is actually needed.
   (including branch resolution), `model-unbundle`, `studio-context`,
   `code-component-sync`, `app-user-init`, `initializer-ready`.
 - Route/viewport: `initial-route`, `initial-viewport` (including route waiting),
-  `initial-target-wait`, `initial-viewport-layout`, `initial-viewport-commit`.
-  `initial-target-wait` measures context availability; `initial-target-render-wait`
-  measures any remaining first-render wait after camera commit.
+  and `initial-viewport-commit` (publishing initial geometry and the saved
+  camera to the DOM).
 - Per frame: `frame-load-start`, `frame-host-document` (fetch through document
   completion), `frame-host-ready`, `frame-runtime`, `frame-component-packages`,
   `frame-initialization`, `frame-context-created`, `frame-first-render`,
-  `frame-rendered`.
+  `frame-rendered`, `initial-selection-restored` (saved target only).
 - Milestones: `canvas-revealed`, `all-frame-contexts-created`,
   `all-frames-rendered`.
 
@@ -117,10 +122,10 @@ The controlled queue comparison uses four 100ms frame loads and 50ms idle waits.
 The target is the last authored frame. The previous serial/all-frame gate would
 release at 600ms; target-first progressive readiness releases at 100ms, while
 all contexts finish at 550ms. This verifies scheduling and reveal independence;
-it is not a measured business-project speedup. For real projects compare cold
-and warm opens using `canvas-revealed.startMs` and
-`all-frame-contexts-created.startMs`, preserving the same viewport and project
-revision between runs.
+it is not a measured business-project speedup. For real projects, measure from the list click to the first window frame
+containing the target artboard. Use `canvas-revealed` to locate the Host's
+readiness effect and `all-frame-contexts-created` to locate background
+initialization. Preserve the viewport and project revision between runs.
 
 ## Top-frame startup contract
 

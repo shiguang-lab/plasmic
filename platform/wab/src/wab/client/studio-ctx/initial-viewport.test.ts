@@ -16,10 +16,8 @@ import { mock } from "vitest-mock-extended";
 
 afterEach(() => vi.unstubAllGlobals());
 
-it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "missing-padding", "invalid"])("initializes %s viewport before releasing loading", async (mode) => {
+it.each(["saved", "hidden-clipper", "missing-frame", "missing-padding", "invalid"])("initializes %s viewport before releasing loading", async (mode) => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
-  // Electron can stop animation frames while still reporting a visible document.
-  vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
   const frames: FrameRequestCallback[] = [];
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.push(callback); return frames.length; });
   const site = createSite();
@@ -50,28 +48,23 @@ it.each(["saved", "suspended-layout", "suspended-commit", "missing-frame", "miss
       expect(toolReady).toBe(false);
       studioCtx.tryZoomToFitArena();
       expect(zoom).not.toHaveBeenCalled();
-      await waitFor(() => expect(frames.length).toBeGreaterThan(0));
-      let remainingFrames = mode === "suspended-layout" ? 0 : mode === "suspended-commit" ? 2 : Infinity;
-      while (frames.length && remainingFrames-- > 0) {
-        frames.shift()?.(0);
-        await Promise.resolve();
-      }
-      await waitFor(() => expect(studioCtx.initialViewportReady).toBe(true));
-      await ready;
-      expect(toolReady).toBe(true);
-      expect(viewport.scale()).toBe(0.5);
-      expect(dom.scrollTo).toHaveBeenLastCalledWith(new Pt(240, 360), false);
-      expect(zoom).not.toHaveBeenCalled();
-      if (mode !== "saved") {
-        expect(frames.length).toBeGreaterThan(0);
-        // Showing the main window later must not apply the saved viewport again.
-        dom.scrollTo.mockClear();
-        while (frames.length) {
-          frames.shift()?.(0);
-          await Promise.resolve();
-        }
+      if (mode === "hidden-clipper") {
+        studioCtx.applyInitialViewportLayout(Box.zero(), Pt.zero());
+        expect(studioCtx.initialViewportReady).toBe(false);
         expect(dom.scrollTo).not.toHaveBeenCalled();
       }
+      studioCtx.applyInitialViewportLayout(viewport.clipperBox(), new Pt(1000, 800));
+      expect(studioCtx.initialViewportReady).toBe(true);
+      expect(viewport.scale()).toBe(0.5);
+      expect(dom.scaleTo).toHaveBeenLastCalledWith(0.5, false);
+      expect(dom.scrollTo).toHaveBeenLastCalledWith(new Pt(240, 360), false);
+      expect(frames).toHaveLength(0);
+      dom.scrollTo.mockClear();
+      studioCtx.applyInitialViewportLayout(viewport.clipperBox(), new Pt(1000, 800));
+      expect(dom.scrollTo).not.toHaveBeenCalled();
+      await ready;
+      expect(toolReady).toBe(true);
+      expect(zoom).not.toHaveBeenCalled();
       studioCtx.tryZoomToFitArena();
       expect(zoom).toHaveBeenCalledTimes(1);
     } else {
@@ -141,7 +134,9 @@ it("restores the saved viewport against the recovered draft model on startup", a
     });
     studio.viewportCtx = viewport;
     studio.startInitialRoute();
-    await waitFor(() => expect(studio.initialViewportReady && studio.initialRouteReady).toBe(true));
+    await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+    studio.applyInitialViewportLayout(viewport.clipperBox(), new Pt(1000, 800));
+    expect(studio.initialViewportReady).toBe(true);
     expect(studio.loadTimings.has("initial-viewport-commit")).toBe(true);
     expect(studio.currentArena).toBe(studio.site.arenas.find(arena => arena.name === "Overview"));
     expect(viewport.scale()).toBe(0.5);

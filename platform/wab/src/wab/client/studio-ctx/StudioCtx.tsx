@@ -356,7 +356,7 @@ import {
 } from "@/wab/shared/devflags";
 import { DataSourceUser } from "@/wab/shared/dynamic-bindings";
 import { noopFn } from "@/wab/shared/functions";
-import { Box, Pt } from "@/wab/shared/geom";
+import { Box, Pt, rectsIntersect } from "@/wab/shared/geom";
 import { cloneInsertableTemplateComponent } from "@/wab/shared/insertable-templates";
 import { InsertableTemplateComponentExtraInfo } from "@/wab/shared/insertable-templates/types";
 import { createFindReferencesStore } from "@/wab/client/studio-ctx/find-references-state";
@@ -750,6 +750,10 @@ export class StudioCtx extends WithDbCtx {
   readonly loadTimings: StudioLoadTimings;
   private initialCanvasFrames: ArenaFrame[] = [];
   private initialEditorView: SavedEditorView | null = null;
+  private pendingInitialFocus?: ArenaFrame;
+  get savedViewFrame() {
+    return this.focusedViewCtx()?.arenaFrame() ?? this.focusedFrame() ?? this.pendingInitialFocus;
+  }
   get initialViewportReady() {
     return this.startupStore.getState().viewportLoaded;
   }
@@ -1024,6 +1028,7 @@ export class StudioCtx extends WithDbCtx {
       this.observeSaveInputs(),
       this.observeFocusedViewComponent(),
       this.observeHostlessPackages(),
+      subscribeViewport(this, (state) => state.visibleScalerBox, () => this.maybeRestoreInitialFocus()),
       subscribeViewport(
         this,
         (state) => state.isTransforming,
@@ -1470,7 +1475,7 @@ export class StudioCtx extends WithDbCtx {
   private inspectorFocus?: { vc: ViewCtx | undefined; frame: ArenaFrame | undefined; tpls: (TplNode | null)[]; keys: (string | null | undefined)[]; clones: (string | undefined)[]; context: ComponentCtx | null | undefined; part: string | undefined };
 
   /** Explicit editor setters and completed model transactions publish focus. */
-  notifyInspectorFocusChanged() {
+  notifyInspectorFocusChanged(publishImmediately = false) {
     if (this.canvasLoadingDisposed) {return;}
     const vc = this.focusedViewCtx();
     const next = { vc, frame: this.focusedFrame(), tpls: vc?.focusedTpls().slice() ?? [], keys: vc?.focusedSelectables().map((selection) => selection && makeSelectableFullKey(selection)) ?? [], clones: vc?.focusedCloneKeys().slice() ?? [], context: vc?.currentComponentCtx(), part: vc?.focusedComponentPart?.name };
@@ -1478,7 +1483,8 @@ export class StudioCtx extends WithDbCtx {
     if (!previous && !vc && !next.frame) { this.inspectorFocus = next; return; }
     if (previous && previous.vc === next.vc && previous.frame === next.frame && previous.context === next.context && previous.part === next.part && arrayEq(previous.tpls, next.tpls) && arrayEq(previous.keys, next.keys) && arrayEq(previous.clones, next.clones)) {return;}
     this.inspectorFocus = next;
-    this.scheduleInspectorSelection();
+    if (publishImmediately) { this.publishInspectorSelection(); }
+    else { this.scheduleInspectorSelection(); }
   }
   private inspectorGeneration = 0;
   private selectionPaintFrame?: number;
@@ -1492,27 +1498,41 @@ export class StudioCtx extends WithDbCtx {
     return this.inspectorStore.getState().selection;
   }
 
-  private scheduleInspectorSelection() {
+  private publishInspectorSelection() {
+    const vc = this.focusedViewCtx();
+    const previous = this.inspectorSelection;
+    this.inspectorStore.setState(Object.freeze({
+      selection: vc && !vc.isDisposed ? new InspectorSelection(vc, ++this.inspectorGeneration) : undefined,
+      pending: false,
+    }), true);
+    previous?.dispose();
+  }
+
+  private queueSelectionAfterPaint(task: () => void, afterTwoFrames = false) {
     if (this.selectionPaintFrame !== undefined) {
       cancelAnimationFrame(this.selectionPaintFrame);
     }
     clearTimeout(this.selectionPaintTask);
-    (() => {
-      this.inspectorSelection?.pause();
-      this.inspectorStore.setState((state) => state.pending ? state : Object.freeze({ ...state, pending: true }), true);
-    })();
-    this.selectionPaintFrame = requestAnimationFrame(() => {
-      this.selectionPaintFrame = undefined;
-      this.selectionPaintTask = setTimeout(() => {
-        this.selectionPaintTask = undefined;
-        (() => {
-          const vc = this.focusedViewCtx();
-          const previous = this.inspectorSelection;
-          this.inspectorStore.setState(Object.freeze({ selection: vc && !vc.isDisposed ? new InspectorSelection(vc, ++this.inspectorGeneration) : undefined, pending: false }), true);
-          previous?.dispose();
-        })();
-      }, 0);
-    });
+    const queueTask = () => {
+      this.selectionPaintFrame = requestAnimationFrame(() => {
+        this.selectionPaintFrame = undefined;
+        this.selectionPaintTask = setTimeout(() => {
+          this.selectionPaintTask = undefined;
+          task();
+        }, 0);
+      });
+    };
+    if (afterTwoFrames) {
+      this.selectionPaintFrame = requestAnimationFrame(queueTask);
+    } else {
+      queueTask();
+    }
+  }
+
+  private scheduleInspectorSelection() {
+    this.inspectorSelection?.pause();
+    this.inspectorStore.setState((state) => state.pending ? state : Object.freeze({ ...state, pending: true }), true);
+    this.queueSelectionAfterPaint(() => this.publishInspectorSelection());
   }
 
   private runNativeSelectionCommand<Result>(command: () => Result): Result {
@@ -2156,10 +2176,8 @@ export class StudioCtx extends WithDbCtx {
   /** Resolve the actual target even before its ViewCtx has mounted. */
   get activeCanvasFrame(): ArenaFrame | undefined {
     const frames = getArenaFrames(this.currentArena);
-    const focused = this.focusedFrame() ?? this.focusedViewCtx()?.arenaFrame();
-    return (
-      (focused && frames.includes(focused) ? focused : undefined) ?? frames[0]
-    );
+    const target = this.focusedFrame() ?? this.focusedViewCtx()?.arenaFrame() ?? this.pendingInitialFocus;
+    return target && frames.includes(target) ? target : frames[0];
   }
 
   get activeCanvasReady() {
@@ -2174,6 +2192,36 @@ export class StudioCtx extends WithDbCtx {
     return this.tryGetViewCtxForFrame(this.activeCanvasFrame);
   }
 
+  private maybeRestoreInitialFocus(renderedFrame?: ArenaFrame) {
+    const target = this.pendingInitialFocus;
+    const viewport = this.viewportCtx;
+    if (!target || !viewport || !this.initialViewportReady) { return; }
+    const frames = getArenaFrames(this.currentArena);
+    if (!frames.includes(target) || this.canvasFrameError(target)) {
+      this.pendingInitialFocus = undefined;
+      return;
+    }
+    const waitingForRender = (liveFrames: ArenaFrame[], justRendered?: ArenaFrame) =>
+      this.initialCanvasFrames.some((frame) => liveFrames.includes(frame) &&
+        frame !== justRendered && !this.tryGetViewCtxForFrame(frame)?.initialRenderReady &&
+        !this.canvasFrameError(frame) && (frame === target || this.isFrameInViewport(frame, viewport)));
+    if (this.selectionPaintFrame !== undefined || this.selectionPaintTask !== undefined ||
+        waitingForRender(frames, renderedFrame)) {
+      return;
+    }
+    this.queueSelectionAfterPaint(() => {
+      if (this.pendingInitialFocus !== target) { return; }
+      const view = this.tryGetViewCtxForFrame(target);
+      const liveFrames = getArenaFrames(this.currentArena);
+      if (!view?.initialRenderReady || !liveFrames.includes(target) || waitingForRender(liveFrames)) {
+        return;
+      }
+      this.setHighLevelFocusOnly(view, [target], true);
+      spawn(this.changeUnsafe(() => fixupChrome(this), { noUndoRecord: true }));
+      this.loadTimings.mark("initial-selection-restored", target.uuid);
+    }, true);
+  }
+
   recordCanvasFrameRendered(frame: ArenaFrame) {
     this.loadTimings.mark("frame-rendered", frame.uuid);
     if (
@@ -2184,6 +2232,7 @@ export class StudioCtx extends WithDbCtx {
     ) {
       this.loadTimings.report("all-frames-rendered");
     }
+    this.maybeRestoreInitialFocus(frame);
   }
 
   /**
@@ -2329,6 +2378,7 @@ export class StudioCtx extends WithDbCtx {
       for (const view of disposedVcs) { this.arenaState.viewRegistry.remove(view); }
     }
 
+    this.maybeRestoreInitialFocus();
     for (const frame of this.frameToViewCtxPromise.keys()) {
       if (!allLiveFrames.has(frame)) {
         this.nativeFramePromiseJournal.push([frame, ensure(this.frameToViewCtxPromise.get(frame), "Departing frame waiter")]);
@@ -2387,20 +2437,23 @@ export class StudioCtx extends WithDbCtx {
     return () => { stopped = true; stopReady(); stopLifetime(); stops.forEach((stop) => stop()); };
   }
 
-  private async awaitActiveCanvasInputs(predicate: () => boolean, description: string) {
-    const lifetime = this.arenaState.lifetime();
-    let stopped = false;
-    let stop: () => void = () => undefined;
-    const waiting = new Promise<void>((resolve) => {
-      const finish = () => {
-        if (!stopped && (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime) || predicate())) { stopped = true; stop(); resolve(); }
+  private waitForInitialCanvas(arena: AnyArena, lifetime: AbortSignal) {
+    return new Promise<void>((resolve) => {
+      const check = () => {
+        if (
+          this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime) ||
+          this.currentArena !== arena || this.canvasLoadStore.getState().error ||
+          (this.initialViewportReady && this.activeCanvasReady)
+        ) {
+          stopInputs();
+          stopErrors();
+          resolve();
+        }
       };
-      stop = this.subscribeActiveCanvasInputs(finish);
-      this.disposals.push(() => { if (!stopped) { stopped = true; stop(); resolve(); } });
-      finish();
+      const stopInputs = this.subscribeActiveCanvasInputs(check);
+      const stopErrors = this.canvasLoadStore.subscribe(check);
+      check();
     });
-    try { await withTimeout(waiting, description, 60_000); }
-    finally { stopped = true; stop(); }
   }
 
   runAfterInitialCanvasReady(task: () => Promise<unknown>) {
@@ -2421,6 +2474,7 @@ export class StudioCtx extends WithDbCtx {
   /** Publish the loading/closed owner state while every departing model is still
    * readable. Resource destruction happens only after this transaction returns. */
   private exitNativeModelOwner() {
+    this.pendingInitialFocus = undefined;
     const departingViews = this.viewCtxs;
     this.runNativeArenaCommand(() => {
       if (this.selectionPaintFrame !== undefined) { cancelAnimationFrame(this.selectionPaintFrame); this.selectionPaintFrame = undefined; }
@@ -2570,6 +2624,7 @@ export class StudioCtx extends WithDbCtx {
     ) {
       this.loadTimings.report("all-frame-contexts-created");
     }
+    this.maybeRestoreInitialFocus();
     return viewCtx;
     });
   }
@@ -2580,6 +2635,7 @@ export class StudioCtx extends WithDbCtx {
 
   get currentArena() { return this.arenaState.currentArena(); }
   set currentArena(arena: AnyArena | null) {
+    if (this.currentArena !== arena) { this.pendingInitialFocus = undefined; }
     this.arenaState.setCurrent(arena);
     this.uiEnvironment.syncArena();
     this.syncHoveredViewCtx();
@@ -2624,6 +2680,31 @@ export class StudioCtx extends WithDbCtx {
       ),
       false,
     );
+  }
+
+  applyInitialViewportLayout(clipperBox: Box, scalerSize: Pt) {
+    const saved = this.initialEditorView;
+    const viewport = this.viewportCtx;
+    if (
+      !saved || !viewport || !this.initialRouteReady || this.initialViewportReady ||
+      clipperBox.width() <= 0 || clipperBox.height() <= 0 ||
+      this.currentArena !== getArenaByNameOrUuidOrPath(this.site, saved.arenaId, saved.arenaType)
+    ) {
+      return;
+    }
+    const done = this.loadTimings.begin("initial-viewport-commit");
+    viewport.transaction(() => {
+      viewport.setClipperBox(clipperBox);
+      viewport.setArenaScalerSize(scalerSize);
+      this.restoreStudioViewportSnapshot({
+        scale: saved.scale,
+        scroll: new Pt(saved.scroll.x, saved.scroll.y),
+        canvasPadding: new Pt(saved.canvasPadding.x, saved.canvasPadding.y),
+      }, false);
+    });
+    done();
+    this.startupStore.setState({ viewportLoaded: true });
+    this.maybeRestoreInitialFocus();
   }
 
   canEditComponent(component: Component) {
@@ -2969,89 +3050,34 @@ export class StudioCtx extends WithDbCtx {
     this.loadTimings.setInitialFrames(
       this.initialCanvasFrames.map((frame) => frame.uuid),
     );
-    this.startupStore.setState({ routeLoaded: true });
+    const saved = this.initialEditorView;
+    const arena = saved && getArenaByNameOrUuidOrPath(this.site, saved.arenaId, saved.arenaType);
+    const frame = saved?.frameUuid && arena
+      ? getArenaFrames(arena).find((item) => item.uuid === saved.frameUuid)
+      : undefined;
+    if (saved && arena && arena === this.currentArena && (!saved.frameUuid || frame)) {
+      if (!this.focusedFrame() && !this.focusedViewCtx()) { this.pendingInitialFocus = frame; }
+    } else if (saved) {
+      this.initialEditorView = null;
+      if (!this.focusedFrame() && !this.focusedViewCtx()) {
+        this.setStudioFocusOnFrame({ frame: this.initialCanvasFrames[0], autoZoom: false });
+      }
+      this.tryZoomToFitArena();
+    }
+    this.startupStore.setState({ routeLoaded: true, viewportLoaded: !this.initialEditorView });
     routeDone();
     if (this.initialCanvasFrames.length === 0) {
       this.loadTimings.report("all-frame-contexts-created");
       this.loadTimings.report("all-frames-rendered");
     }
-    try {
-      const saved = this.initialEditorView;
-      if (saved) {
-        const arena = getArenaByNameOrUuidOrPath(
-          this.site,
-          saved.arenaId,
-          saved.arenaType,
-        );
-        const frame = saved.frameUuid
-          ? getArenaFrames(arena).find((item) => item.uuid === saved.frameUuid)
-          : undefined;
-        if (
-          arena &&
-          arena === this.currentArena &&
-          (!saved.frameUuid || frame)
-        ) {
-          this.setStudioFocusOnFrame({ frame, autoZoom: false });
-          const targetWaitDone = this.loadTimings.begin("initial-target-wait");
-          await this.awaitActiveCanvasInputs(() => !!this.activeCanvasViewCtx() || !this.activeCanvasFrame, "Timed out waiting for the active canvas context");
-          if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
-          targetWaitDone();
-          // Let the inspector mount and determine the viewport padding before restoring.
-          // Hidden Desktop windows can stop animation frames after navigation even
-          // with background throttling disabled and visibilityState === "visible".
-          const layoutDone = this.loadTimings.begin("initial-viewport-layout");
-          await Promise.race([
-            new Promise<void>((resolve) =>
-              requestAnimationFrame(() =>
-                requestAnimationFrame(() => resolve()),
-              ),
-            ),
-            asyncTimeout(100),
-          ]);
-          layoutDone();
-          if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
-          const commitDone = this.loadTimings.begin("initial-viewport-commit");
-          this.restoreStudioViewportSnapshot(
-            {
-              focusedArenaFrame: frame,
-              scale: saved.scale,
-              scroll: new Pt(saved.scroll.x, saved.scroll.y),
-              canvasPadding: new Pt(
-                saved.canvasPadding.x,
-                saved.canvasPadding.y,
-              ),
-            },
-            false,
-          );
-          // The viewport's MobX reaction writes the transform before revealing the canvas.
-          await Promise.race([
-            new Promise<void>((resolve) =>
-              requestAnimationFrame(() => resolve()),
-            ),
-            asyncTimeout(100),
-          ]);
-          commitDone();
-          if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
-          const renderWaitDone = this.loadTimings.begin(
-            "initial-target-render-wait",
-          );
-          await this.awaitActiveCanvasInputs(() => this.activeCanvasReady, "Timed out waiting for the active canvas render");
-          renderWaitDone();
-        } else {
-          this.initialEditorView = null;
-          this.tryZoomToFitArena();
-        }
-      }
-    } catch (error) {
-      if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
-      this.initialEditorView = null;
-      this.tryZoomToFitArena();
-      console.warn("Cannot initialize saved editor viewport", error);
-    } finally {
-      if (!this.canvasLoadingDisposed) { this.startupStore.setState({ viewportLoaded: true }); }
-      this.initialEditorView = null;
-      viewportDone();
+    if (arena && this.initialEditorView) {
+      await this.waitForInitialCanvas(arena, lifetime);
     }
+    this.initialEditorView = null;
+    if (!this.canvasLoadingDisposed && !this.initialViewportReady) {
+      this.startupStore.setState({ viewportLoaded: true });
+    }
+    viewportDone();
 
     // 'prompt' is prefilled from marketing site AI landing page, which opens up
     // Plasmic AI chat and auto-submits the prompt.
@@ -3072,6 +3098,7 @@ export class StudioCtx extends WithDbCtx {
     }
     const returningFromPreview = this.routeWasPreview && !match?.isPreview;
     this.routeWasPreview = !!match?.isPreview;
+    if (match?.isPreview || match?.pageOverview) { this.pendingInitialFocus = undefined; }
     if (match) {
       const {
         branchName,
@@ -3343,13 +3370,8 @@ export class StudioCtx extends WithDbCtx {
             }
           }
 
-          const firstFrame: ArenaFrame | undefined = getArenaFrames(arena)[0];
-          this.setStudioFocusOnFrame({
-            frame: firstFrame,
-            autoZoom: false,
-          });
-
-          if (!this.hasInitialEditorView) {
+          if (this.initialRouteReady || !this.hasInitialEditorView) {
+            this.setStudioFocusOnFrame({ frame: getArenaFrames(arena)[0], autoZoom: false });
             const lifetime = this.arenaState.lifetime();
             defer(() => {
               if (this.arenaState.isCurrentLifetime(lifetime) && this.currentArena === arena) { this.tryZoomToFitArena(); }
@@ -3484,13 +3506,15 @@ export class StudioCtx extends WithDbCtx {
   private setHighLevelFocusOnly(
     viewCtx: ViewCtx | undefined,
     frames: ArenaFrame[],
+    publishInspectorImmediately = false,
   ) {
+    this.pendingInitialFocus = undefined;
     const curFocusedViewCtx = this.focusedViewCtx();
     if (curFocusedViewCtx && (viewCtx !== curFocusedViewCtx || frames.length)) {
       curFocusedViewCtx.clearViewCtxFocus();
     }
     this.selection.set(viewCtx, frames);
-    this.notifyInspectorFocusChanged();
+    this.notifyInspectorFocusChanged(publishInspectorImmediately);
   }
 
   focusedViewCtx() {
@@ -5314,6 +5338,11 @@ export class StudioCtx extends WithDbCtx {
       zoomState.clientPt,
     );
   };
+
+  isFrameInViewport(frame: ArenaFrame, viewport: ViewportCtx) {
+    const rect = this.getArenaFrameScalerRect(frame);
+    return !rect || rectsIntersect(viewport.visibleScalerBox().rect(), rect);
+  }
 
   getArenaFrameScalerRect(frame: ArenaFrame) {
     if (frame.left != null && frame.top != null) {
@@ -9094,6 +9123,7 @@ export class StudioCtx extends WithDbCtx {
     } else {
       logError(error, "Artboard loading failed");
     }
+    this.maybeRestoreInitialFocus();
   }
 
   clearCanvasFrameError(frame: ArenaFrame) {

@@ -80,24 +80,44 @@ it("keeps the selected content frame as the target, without changing selection o
   }
 });
 
-it("reveals an offscreen initial target while other offscreen artboards stay paused", async () => {
+it.each([false, true])("renders an offscreen target while other offscreen frames stay paused with or without saved selection (%s)", async (restoreFocus) => {
   const { site, arena } = canvasFixture(2);
   const [target, other] = arena.children;
   target.left = 5000;
   other.left = 6000;
-  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
+  const api = mock<TopFrameApi>();
+  if (restoreFocus) {
+    vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
+    api.componentReuse.mockResolvedValue({ available: false });
+    api.getSavedEditorView.mockResolvedValue({
+      arenaType: "custom", arenaId: arena.name, frameUuid: target.uuid, scale: 1,
+      scroll: { x: 0, y: 0 }, canvasPadding: { x: 0, y: 0 },
+    });
+  }
+  const { studioCtx } = fakeStudioCtx({
+    site, topFrameApi: restoreFocus ? api : undefined, initialUrl: "/projects/test?arena_type=custom&arena=Overview",
+  });
   try {
-    await waitFor(() => expect(studioCtx.initialViewportReady).toBe(true));
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
     const view = ensure(studioCtx.tryGetViewCtxForFrame(target), "Missing target ViewCtx");
     const background = ensure(studioCtx.tryGetViewCtxForFrame(other), "Missing background ViewCtx");
     expect(studioCtx.activeCanvasFrame).toBe(target);
     expect(view.isVisible()).toBe(false);
     expect(background.isVisible()).toBe(false);
     vi.spyOn(studioCtx, "change").mockImplementation(async (callback) => ok(await callback()));
-    vi.spyOn(view.csEvaluator, "evalAsync").mockResolvedValue();
-    vi.spyOn(view.csEvaluator, "runPostEvalTasks").mockImplementation(() => undefined);
-    vi.spyOn(view, "updateCtxPostChange").mockImplementation(() => undefined);
-    vi.spyOn(view, "valState").mockReturnValue(new ValState({ sysRoot: mock<ValComponent>(), globalRoot: undefined }));
+    for (const vc of [view, background]) {
+      vi.spyOn(vc.csEvaluator, "evalAsync").mockResolvedValue();
+      vi.spyOn(vc.csEvaluator, "runPostEvalTasks").mockImplementation(() => undefined);
+      vi.spyOn(vc, "updateCtxPostChange").mockImplementation(() => undefined);
+      vi.spyOn(vc, "valState").mockReturnValue(new ValState({ sysRoot: mock<ValComponent>(), globalRoot: undefined }));
+    }
+    if (restoreFocus) {
+      studioCtx.viewportCtx = new ViewportCtx({
+        dom: mock<DomActions>(), initialArena: arena, initialClipperBox: new Box(0, 0, 1000, 800),
+        initialClipperScroll: Pt.zero(),
+      });
+      studioCtx.applyInitialViewportLayout(studioCtx.viewportCtx.clipperBox(), new Pt(7000, 600));
+    }
     const revealed = vi.fn(async () => {});
     studioCtx.runAfterInitialCanvasReady(revealed);
     background.scheduleSync({ eval: true });
@@ -105,8 +125,11 @@ it("reveals an offscreen initial target while other offscreen artboards stay pau
     await waitFor(() => expect(revealed).toHaveBeenCalledOnce());
     expect(view.initialRenderReady).toBe(true);
     expect(view["syncQueue"].paused).toBe(true);
-    expect(background["syncQueue"].paused).toBe(true);
+    if (restoreFocus) {
+      await waitFor(() => expect(studioCtx.inspectorSelection?.viewCtx).toBe(view));
+    }
     expect(background.initialRenderReady).toBe(false);
+    expect(background["syncQueue"].paused).toBe(true);
   } finally {
     studioCtx.dispose();
   }
@@ -203,17 +226,12 @@ it("reports post-evaluation failures and drains the sync queue instead of leavin
 });
 
 it.each([
-  ["running", false],
-  ["suspended", false],
-  ["running", true],
-  ["suspended", true],
-])("restores a saved non-first target with %s animation frames and expanded surface %s before revealing, preserving zoom, scroll and props while other boards are pending", async (animationState, expandedSurface) => {
+  { expandedSurface: false, manualSelection: false },
+  { expandedSurface: true, manualSelection: false },
+  { expandedSurface: false, manualSelection: true },
+  { expandedSurface: false, manualSelection: false, panBeforeRestore: true },
+])("positions a saved target immediately and restores focus after visible frames paint ($expandedSurface, $manualSelection, $panBeforeRestore)", async ({ expandedSurface, manualSelection, panBeforeRestore }) => {
   vi.stubGlobal("navigator", { userAgent: "PlasmicDesktop/darwin" });
-  const animationFrames: FrameRequestCallback[] = [];
-  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
-    animationFrames.push(callback);
-    return animationFrames.length;
-  });
   const { site, arena } = canvasFixture();
   const target = arena.children[3];
   const savedProps = JSON.stringify(target.container.vsettings);
@@ -245,8 +263,10 @@ it.each([
   vc.currentComponentCtx.mockReturnValue(null);
   let finishSync: () => void = () => undefined;
   vc.awaitSync.mockReturnValue(new Promise<void>((resolve) => { finishSync = resolve; }));
+  const background = new Map(arena.children.slice(0, 3).map((frame) =>
+    [frame, fakeRegistryViewCtx(studioCtx, frame)] as const));
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockImplementation((frame) =>
-    frame === target ? vc : undefined,
+    frame === target ? vc : frame && background.get(frame)?.view,
   );
   const dom = mock<DomActions>();
   const viewport = new ViewportCtx({
@@ -266,18 +286,16 @@ it.each([
     expect(studioCtx.activeCanvasReady).toBe(false);
     studioCtx.tryZoomToFitArena();
     expect(fit).not.toHaveBeenCalled();
-    await waitFor(() => expect(animationFrames.length).toBeGreaterThan(0));
-    while (animationState === "running" && animationFrames.length) {
-      animationFrames.shift()?.(0);
-      await Promise.resolve();
-    }
-    await waitFor(() => expect(viewport.scale()).toBe(0.5));
-    expect(studioCtx.initialViewportReady).toBe(false);
+    studioCtx.applyInitialViewportLayout(viewport.clipperBox(), new Pt(4000, 600));
+    expect(viewport.scale()).toBe(0.5);
+    expect(studioCtx.initialViewportReady).toBe(true);
     expect(studioCtx.activeCanvasReady).toBe(false);
+    expect(studioCtx.focusedFrame()).toBeUndefined();
+    expect(studioCtx.inspectorSelection).toBeUndefined();
     rendered.setState(true, true);
-    await waitFor(() => expect(studioCtx.initialViewportReady).toBe(true));
-    expect(studioCtx.tryGetViewCtxForFrame(arena.children[0])).toBeUndefined();
-    expect(studioCtx.focusedFrame()).toBe(target);
+    expect(studioCtx.focusedFrame()).toBeUndefined();
+    expect(studioCtx.activeCanvasReady).toBe(true);
+    expect(studioCtx.savedViewFrame).toBe(target);
     let toolReady = false;
     const tools = studioCtx.awaitStudioReady().then(() => { toolReady = true; });
     await waitFor(() => expect(vc.awaitSync).toHaveBeenCalledTimes(1));
@@ -295,6 +313,52 @@ it.each([
     );
     expect(fit).not.toHaveBeenCalled();
     expect(JSON.stringify(target.container.vsettings)).toBe(savedProps);
+    const callbacks: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => callbacks.push(cb));
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const visible = [...background].filter(([frame]) => studioCtx.isFrameInViewport(frame, viewport));
+    expect(visible.length).toBeGreaterThan(0);
+    expect(visible.length).toBeLessThan(background.size);
+    for (const [frame, bg] of visible) {
+      expect(callbacks).toHaveLength(0);
+      expect(studioCtx.focusedFrame()).toBeUndefined();
+      studioCtx.recordCanvasFrameRendered(frame);
+      bg.ready.setState(true, true);
+    }
+    expect(callbacks).toHaveLength(1);
+    callbacks.shift()?.(16);
+    expect(studioCtx.focusedFrame()).toBeUndefined();
+    callbacks.shift()?.(32);
+    expect(studioCtx.focusedFrame()).toBeUndefined();
+    expect(studioCtx.inspectorSelection).toBeUndefined();
+    if (panBeforeRestore) {
+      const [newFrame] = ensure([...background].find(([frame]) => !studioCtx.isFrameInViewport(frame, viewport)), "Missing offscreen frame");
+      viewport.setScroll(viewport.canvasPadding().plus(new Pt((newFrame.left ?? 0) * viewport.scale(), 0)));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(studioCtx.focusedFrame()).toBeUndefined();
+      expect(studioCtx.inspectorSelection).toBeUndefined();
+      expect(studioCtx.isFrameInViewport(newFrame, viewport)).toBe(true);
+      for (const [frame, bg] of background) {
+        if (!bg.ready.getState() && studioCtx.isFrameInViewport(frame, viewport)) {
+          studioCtx.recordCanvasFrameRendered(frame);
+          bg.ready.setState(true, true);
+        }
+      }
+      expect(callbacks).toHaveLength(1);
+      callbacks.shift()?.(48);
+      callbacks.shift()?.(64);
+    }
+    const expected = manualSelection ? arena.children[0] : target;
+    if (manualSelection) {
+      studioCtx.setStudioFocusOnFrame({ frame: expected });
+      callbacks.shift()?.(48);
+    }
+    await vi.advanceTimersByTimeAsync(0);
+    expect(studioCtx.focusedFrame()).toBe(expected);
+    expect(studioCtx.inspectorSelection?.viewCtx.arenaFrame()).toBe(expected);
+    expect(studioCtx.isSelectionPending).toBe(false);
+    expect(studioCtx.loadTimings.has("initial-selection-restored", target.uuid)).toBe(!manualSelection);
+    expect(viewport.scale()).toBe(0.5);
   } finally {
     viewport.dispose();
     studioCtx.dispose();
