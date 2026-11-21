@@ -2646,5 +2646,213 @@
         8791
       ]
     }
+  },
+  "immediateCleanupResidual": {
+    "native": {
+      "returned-19": {
+        "renderer": 107.3,
+        "GPU": 391.1,
+        "Browser": 77.0,
+        "Utility": 20.6,
+        "appPrivateMiB": 596.1,
+        "documents": 2,
+        "jsUsedMiB": 26.4,
+        "domNodes": 1352,
+        "rendererMallocMiB": 35.0,
+        "rendererMallocObjectsMiB": 24.9,
+        "compositorImageMiB": null,
+        "gpuTransferCacheMiB": null
+      },
+      "settled-30s": {
+        "renderer": 106.5,
+        "GPU": 135.5,
+        "Browser": 63.1,
+        "Utility": 19.9,
+        "appPrivateMiB": 325.0,
+        "documents": 2,
+        "jsUsedMiB": 26.4,
+        "domNodes": 1352,
+        "rendererMallocMiB": 31.7,
+        "rendererMallocObjectsMiB": 23.8,
+        "compositorImageMiB": null,
+        "gpuTransferCacheMiB": null
+      }
+    },
+    "clear": {
+      "returned-19": {
+        "renderer": 251.6,
+        "GPU": 751.4,
+        "Browser": 104.9,
+        "Utility": 20.3,
+        "appPrivateMiB": 1128.2,
+        "documents": 3,
+        "jsUsedMiB": 35.3,
+        "domNodes": 2903,
+        "rendererMallocMiB": 136.4,
+        "rendererMallocObjectsMiB": 92.3,
+        "compositorImageMiB": 255.5,
+        "gpuTransferCacheMiB": 249.3
+      },
+      "settled-30s": {
+        "renderer": 183.0,
+        "GPU": 158.4,
+        "Browser": 66.1,
+        "Utility": 19.6,
+        "appPrivateMiB": 427.2,
+        "documents": 2,
+        "jsUsedMiB": 35.6,
+        "domNodes": 2882,
+        "rendererMallocMiB": 71.9,
+        "rendererMallocObjectsMiB": 36.9,
+        "compositorImageMiB": 76.5,
+        "gpuTransferCacheMiB": 54.9
+      }
+    },
+    "twice": {
+      "returned-19": {
+        "renderer": 243.8,
+        "GPU": 744.5,
+        "Browser": 80.1,
+        "Utility": 20.2,
+        "appPrivateMiB": 1088.6,
+        "documents": 3,
+        "jsUsedMiB": 35.3,
+        "domNodes": 3162,
+        "rendererMallocMiB": 136.0,
+        "rendererMallocObjectsMiB": 92.1,
+        "compositorImageMiB": 238.1,
+        "gpuTransferCacheMiB": 254.5
+      },
+      "settled-30s": {
+        "renderer": 183.2,
+        "GPU": 104.7,
+        "Browser": 66.5,
+        "Utility": 19.6,
+        "appPrivateMiB": 374.1,
+        "documents": 2,
+        "jsUsedMiB": 34.9,
+        "domNodes": 2881,
+        "rendererMallocMiB": 70.4,
+        "rendererMallocObjectsMiB": 35.7,
+        "compositorImageMiB": 41.5,
+        "gpuTransferCacheMiB": 9.0
+      },
+      "settled-35s": {
+        "renderer": 177.5,
+        "GPU": 106.1,
+        "Browser": 65.1,
+        "Utility": 20.0,
+        "appPrivateMiB": 368.7,
+        "documents": 2,
+        "jsUsedMiB": 34.9,
+        "domNodes": 2881,
+        "rendererMallocMiB": 64.6,
+        "rendererMallocObjectsMiB": 35.8,
+        "compositorImageMiB": 41.5,
+        "gpuTransferCacheMiB": 9.0
+      }
+    },
+    "once": {
+      "returned-19": {
+        "renderer": 245.7,
+        "GPU": 755.3,
+        "Browser": 115.8,
+        "Utility": 19.8,
+        "appPrivateMiB": 1136.7,
+        "documents": 3,
+        "jsUsedMiB": 35.5,
+        "domNodes": 2903,
+        "rendererMallocMiB": 135.8,
+        "rendererMallocObjectsMiB": 91.6,
+        "compositorImageMiB": 232.4,
+        "gpuTransferCacheMiB": 255.2
+      },
+      "settled-30s": {
+        "renderer": 188.4,
+        "GPU": 121.9,
+        "Browser": 66.9,
+        "Utility": 19.5,
+        "appPrivateMiB": 396.7,
+        "documents": 2,
+        "jsUsedMiB": 35.1,
+        "domNodes": 2881,
+        "rendererMallocMiB": 71.1,
+        "rendererMallocObjectsMiB": 35.4,
+        "compositorImageMiB": 42.1,
+        "gpuTransferCacheMiB": 25.0
+      },
+      "settled-35s": {
+        "renderer": 188.4,
+        "GPU": 121.8,
+        "Browser": 64.3,
+        "Utility": 19.9,
+        "appPrivateMiB": 394.4,
+        "documents": 2,
+        "jsUsedMiB": 35.1,
+        "domNodes": 2881,
+        "rendererMallocMiB": 71.2,
+        "rendererMallocObjectsMiB": 35.3,
+        "compositorImageMiB": 42.1,
+        "gpuTransferCacheMiB": 25.0
+      }
+    },
+    "preview": {
+      "returned-19": {
+        "renderer": 242.4,
+        "GPU": 486.9,
+        "Browser": 133.4,
+        "Utility": 19.8,
+        "appPrivateMiB": 882.6,
+        "documents": 3,
+        "jsUsedMiB": 35.5,
+        "domNodes": 3162,
+        "rendererMallocMiB": 135.8,
+        "rendererMallocObjectsMiB": 91.6,
+        "compositorImageMiB": 42.3,
+        "gpuTransferCacheMiB": 40.8
+      },
+      "settled-30s": {
+        "renderer": 189.4,
+        "GPU": 95.7,
+        "Browser": 65.9,
+        "Utility": 19.6,
+        "appPrivateMiB": 370.6,
+        "documents": 2,
+        "jsUsedMiB": 35.1,
+        "domNodes": 2881,
+        "rendererMallocMiB": 71.1,
+        "rendererMallocObjectsMiB": 35.7,
+        "compositorImageMiB": 7.9,
+        "gpuTransferCacheMiB": 1.3
+      },
+      "settled-35s": {
+        "renderer": 183.9,
+        "GPU": 95.8,
+        "Browser": 65.4,
+        "Utility": 20.0,
+        "appPrivateMiB": 365.0,
+        "documents": 2,
+        "jsUsedMiB": 35.1,
+        "domNodes": 2881,
+        "rendererMallocMiB": 69.8,
+        "rendererMallocObjectsMiB": 35.9,
+        "compositorImageMiB": 7.9,
+        "gpuTransferCacheMiB": 1.3
+      }
+    },
+    "previewFilesRequested": {
+      "unique": 1,
+      "uniqueResized": 1,
+      "maxEdgePx": 512,
+      "requests": 60,
+      "sourcePx": [
+        1774,
+        887
+      ],
+      "previewPx": [
+        512,
+        256
+      ]
+    }
   }
 }
