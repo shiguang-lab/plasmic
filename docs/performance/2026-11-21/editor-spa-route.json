@@ -4169,5 +4169,648 @@
         2902
       ]
     }
+  },
+  "pacedRoute10sComparison": {
+    "native": {
+      "openingMs": [
+        {
+          "canvasRevealedMs": 1137,
+          "allFramesRenderedMs": 2443
+        },
+        {
+          "canvasRevealedMs": 1173,
+          "allFramesRenderedMs": 2484
+        },
+        {
+          "canvasRevealedMs": 1184,
+          "allFramesRenderedMs": 2566
+        },
+        {
+          "canvasRevealedMs": 1129,
+          "allFramesRenderedMs": 2446
+        },
+        {
+          "canvasRevealedMs": 1126,
+          "allFramesRenderedMs": 2431
+        },
+        {
+          "canvasRevealedMs": 1106,
+          "allFramesRenderedMs": 2360
+        },
+        {
+          "canvasRevealedMs": 1100,
+          "allFramesRenderedMs": 2388
+        }
+      ],
+      "mediansMs": {
+        "warm": {
+          "canvasRevealedMs": 1128,
+          "allFramesRenderedMs": 2438
+        },
+        "quickReopen": {
+          "canvasRevealedMs": 1128,
+          "allFramesRenderedMs": 2438
+        },
+        "afterListPause": {
+          "canvasRevealedMs": 1145,
+          "allFramesRenderedMs": 2463
+        }
+      },
+      "samplesWithinSession": 255,
+      "observedPeakMiB": 1516,
+      "timeWeightedMeanMiB": 696,
+      "firstClickToEndSec": 521,
+      "pauseGroups": [
+        {
+          "groupEndsOnVisit": 2,
+          "checkpoints": [
+            {
+              "phase": "editor-2-selected",
+              "appMiB": 1110,
+              "foregroundMiB": 621,
+              "gpuMiB": 284
+            },
+            {
+              "phase": "editor-2-30s",
+              "appMiB": 874,
+              "foregroundMiB": 461,
+              "gpuMiB": 232
+            },
+            {
+              "phase": "returned-1",
+              "appMiB": 465,
+              "foregroundMiB": 101,
+              "gpuMiB": 283
+            },
+            {
+              "phase": "list-2-30s",
+              "appMiB": 296,
+              "foregroundMiB": 105,
+              "gpuMiB": 111
+            },
+            {
+              "phase": "list-2-60s",
+              "appMiB": 295,
+              "foregroundMiB": 105,
+              "gpuMiB": 111
+            }
+          ],
+          "osReadingsNearListSeconds": {
+            "8": {
+              "atSeconds": 7.8,
+              "appMiB": 339
+            },
+            "14": {
+              "atSeconds": 13.9,
+              "appMiB": 336
+            },
+            "25": {
+              "atSeconds": 26.0,
+              "appMiB": 336
+            }
+          }
+        },
+        {
+          "groupEndsOnVisit": 5,
+          "checkpoints": [
+            {
+              "phase": "editor-5-selected",
+              "appMiB": 1121,
+              "foregroundMiB": 626,
+              "gpuMiB": 287
+            },
+            {
+              "phase": "editor-5-60s",
+              "appMiB": 838,
+              "foregroundMiB": 452,
+              "gpuMiB": 203
+            },
+            {
+              "phase": "returned-4",
+              "appMiB": 432,
+              "foregroundMiB": 102,
+              "gpuMiB": 247
+            },
+            {
+              "phase": "list-5-30s",
+              "appMiB": 299,
+              "foregroundMiB": 105,
+              "gpuMiB": 114
+            },
+            {
+              "phase": "list-5-60s",
+              "appMiB": 296,
+              "foregroundMiB": 103,
+              "gpuMiB": 113
+            }
+          ],
+          "osReadingsNearListSeconds": {
+            "8": {
+              "atSeconds": 8.7,
+              "appMiB": 343
+            },
+            "14": {
+              "atSeconds": 14.8,
+              "appMiB": 339
+            },
+            "25": {
+              "atSeconds": 25.0,
+              "appMiB": 339
+            }
+          }
+        },
+        {
+          "groupEndsOnVisit": 7,
+          "checkpoints": [
+            {
+              "phase": "editor-7-selected",
+              "appMiB": 1096,
+              "foregroundMiB": 627,
+              "gpuMiB": 284
+            },
+            {
+              "phase": "editor-7-90s",
+              "appMiB": 842,
+              "foregroundMiB": 455,
+              "gpuMiB": 204
+            },
+            {
+              "phase": "returned-6",
+              "appMiB": 428,
+              "foregroundMiB": 103,
+              "gpuMiB": 245
+            },
+            {
+              "phase": "list-7-30s",
+              "appMiB": 300,
+              "foregroundMiB": 106,
+              "gpuMiB": 113
+            },
+            {
+              "phase": "list-7-60s",
+              "appMiB": 299,
+              "foregroundMiB": 106,
+              "gpuMiB": 113
+            },
+            {
+              "phase": "list-7-120s",
+              "appMiB": 299,
+              "foregroundMiB": 106,
+              "gpuMiB": 113
+            }
+          ],
+          "osReadingsNearListSeconds": {
+            "8": {
+              "atSeconds": 8.8,
+              "appMiB": 344
+            },
+            "14": {
+              "atSeconds": 14.8,
+              "appMiB": 339
+            },
+            "25": {
+              "atSeconds": 25.0,
+              "appMiB": 339
+            }
+          }
+        }
+      ],
+      "checkpointsSource": "pacedDesktop.privateFootprintCheckpoints"
+    },
+    "route10s": {
+      "openingMs": [
+        {
+          "canvasRevealedMs": 1022,
+          "allFramesRenderedMs": 2383
+        },
+        {
+          "canvasRevealedMs": 812,
+          "allFramesRenderedMs": 1959
+        },
+        {
+          "canvasRevealedMs": 1072,
+          "allFramesRenderedMs": 2565
+        },
+        {
+          "canvasRevealedMs": 807,
+          "allFramesRenderedMs": 1931
+        },
+        {
+          "canvasRevealedMs": 811,
+          "allFramesRenderedMs": 1902
+        },
+        {
+          "canvasRevealedMs": 1009,
+          "allFramesRenderedMs": 2395
+        },
+        {
+          "canvasRevealedMs": 812,
+          "allFramesRenderedMs": 1942
+        }
+      ],
+      "mediansMs": {
+        "warm": {
+          "canvasRevealedMs": 812,
+          "allFramesRenderedMs": 1951
+        },
+        "quickReopen": {
+          "canvasRevealedMs": 812,
+          "allFramesRenderedMs": 1937
+        },
+        "afterListPause": {
+          "canvasRevealedMs": 1041,
+          "allFramesRenderedMs": 2480
+        }
+      },
+      "samplesWithinSession": 254,
+      "observedPeakMiB": 1545,
+      "timeWeightedMeanMiB": 750,
+      "firstClickToEndSec": 518,
+      "pauseGroups": [
+        {
+          "groupEndsOnVisit": 2,
+          "checkpoints": [
+            {
+              "phase": "editor-2-selected",
+              "appMiB": 1084,
+              "foregroundMiB": 691,
+              "gpuMiB": 290
+            },
+            {
+              "phase": "editor-2-30s",
+              "appMiB": 834,
+              "foregroundMiB": 548,
+              "gpuMiB": 210
+            },
+            {
+              "phase": "returned-1",
+              "appMiB": 888,
+              "foregroundMiB": 500,
+              "gpuMiB": 310
+            },
+            {
+              "phase": "list-2-30s",
+              "appMiB": 422,
+              "foregroundMiB": 259,
+              "gpuMiB": 86
+            },
+            {
+              "phase": "list-2-60s",
+              "appMiB": 422,
+              "foregroundMiB": 260,
+              "gpuMiB": 85
+            }
+          ],
+          "osReadingsNearListSeconds": {
+            "8": {
+              "atSeconds": 8.1,
+              "appMiB": 760
+            },
+            "14": {
+              "atSeconds": 14.2,
+              "appMiB": 495
+            },
+            "25": {
+              "atSeconds": 24.4,
+              "appMiB": 467
+            }
+          }
+        },
+        {
+          "groupEndsOnVisit": 5,
+          "checkpoints": [
+            {
+              "phase": "editor-5-selected",
+              "appMiB": 1207,
+              "foregroundMiB": 705,
+              "gpuMiB": 400
+            },
+            {
+              "phase": "editor-5-60s",
+              "appMiB": 844,
+              "foregroundMiB": 492,
+              "gpuMiB": 276
+            },
+            {
+              "phase": "returned-4",
+              "appMiB": 952,
+              "foregroundMiB": 498,
+              "gpuMiB": 373
+            },
+            {
+              "phase": "list-5-30s",
+              "appMiB": 385,
+              "foregroundMiB": 214,
+              "gpuMiB": 92
+            },
+            {
+              "phase": "list-5-60s",
+              "appMiB": 384,
+              "foregroundMiB": 214,
+              "gpuMiB": 92
+            }
+          ],
+          "osReadingsNearListSeconds": {
+            "8": {
+              "atSeconds": 8.2,
+              "appMiB": 722
+            },
+            "14": {
+              "atSeconds": 14.3,
+              "appMiB": 458
+            },
+            "25": {
+              "atSeconds": 24.5,
+              "appMiB": 425
+            }
+          }
+        },
+        {
+          "groupEndsOnVisit": 7,
+          "checkpoints": [
+            {
+              "phase": "editor-7-selected",
+              "appMiB": 1137,
+              "foregroundMiB": 695,
+              "gpuMiB": 335
+            },
+            {
+              "phase": "editor-7-90s",
+              "appMiB": 800,
+              "foregroundMiB": 488,
+              "gpuMiB": 235
+            },
+            {
+              "phase": "returned-6",
+              "appMiB": 906,
+              "foregroundMiB": 492,
+              "gpuMiB": 331
+            },
+            {
+              "phase": "list-7-30s",
+              "appMiB": 420,
+              "foregroundMiB": 247,
+              "gpuMiB": 94
+            },
+            {
+              "phase": "list-7-60s",
+              "appMiB": 421,
+              "foregroundMiB": 248,
+              "gpuMiB": 93
+            },
+            {
+              "phase": "list-7-120s",
+              "appMiB": 420,
+              "foregroundMiB": 248,
+              "gpuMiB": 93
+            }
+          ],
+          "osReadingsNearListSeconds": {
+            "8": {
+              "atSeconds": 8.8,
+              "appMiB": 719
+            },
+            "14": {
+              "atSeconds": 14.9,
+              "appMiB": 494
+            },
+            "25": {
+              "atSeconds": 25.1,
+              "appMiB": 465
+            }
+          }
+        }
+      ],
+      "idleTimers": [
+        {
+          "result": "cancelled",
+          "elapsedMs": 5527
+        },
+        {
+          "result": "cleared",
+          "elapsedMs": 10002
+        },
+        {
+          "result": "cancelled",
+          "elapsedMs": 5535
+        },
+        {
+          "result": "cancelled",
+          "elapsedMs": 5548
+        },
+        {
+          "result": "cleared",
+          "elapsedMs": 10002
+        },
+        {
+          "result": "cancelled",
+          "elapsedMs": 5550
+        },
+        {
+          "result": "cleared",
+          "elapsedMs": 10003
+        }
+      ],
+      "privateFootprintCheckpoints": [
+        {
+          "phase": "cold-dashboard",
+          "appMiB": 419,
+          "foregroundMiB": 150,
+          "gpuMiB": 166
+        },
+        {
+          "phase": "initial-list-30s",
+          "appMiB": 236,
+          "foregroundMiB": 108,
+          "gpuMiB": 53
+        },
+        {
+          "phase": "canvas-0",
+          "appMiB": 1006,
+          "foregroundMiB": 648,
+          "gpuMiB": 280
+        },
+        {
+          "phase": "returned-0",
+          "appMiB": 1046,
+          "foregroundMiB": 648,
+          "gpuMiB": 319
+        },
+        {
+          "phase": "editor-2-selected",
+          "appMiB": 1084,
+          "foregroundMiB": 691,
+          "gpuMiB": 290
+        },
+        {
+          "phase": "editor-2-30s",
+          "appMiB": 834,
+          "foregroundMiB": 548,
+          "gpuMiB": 210
+        },
+        {
+          "phase": "canvas-1",
+          "appMiB": 838,
+          "foregroundMiB": 548,
+          "gpuMiB": 212
+        },
+        {
+          "phase": "returned-1",
+          "appMiB": 888,
+          "foregroundMiB": 500,
+          "gpuMiB": 310
+        },
+        {
+          "phase": "list-2-30s",
+          "appMiB": 422,
+          "foregroundMiB": 259,
+          "gpuMiB": 86
+        },
+        {
+          "phase": "list-2-60s",
+          "appMiB": 422,
+          "foregroundMiB": 260,
+          "gpuMiB": 85
+        },
+        {
+          "phase": "canvas-2",
+          "appMiB": 866,
+          "foregroundMiB": 501,
+          "gpuMiB": 290
+        },
+        {
+          "phase": "returned-2",
+          "appMiB": 917,
+          "foregroundMiB": 502,
+          "gpuMiB": 335
+        },
+        {
+          "phase": "canvas-3",
+          "appMiB": 1045,
+          "foregroundMiB": 635,
+          "gpuMiB": 335
+        },
+        {
+          "phase": "returned-3",
+          "appMiB": 1047,
+          "foregroundMiB": 633,
+          "gpuMiB": 335
+        },
+        {
+          "phase": "editor-5-selected",
+          "appMiB": 1207,
+          "foregroundMiB": 705,
+          "gpuMiB": 400
+        },
+        {
+          "phase": "editor-5-30s",
+          "appMiB": 843,
+          "foregroundMiB": 491,
+          "gpuMiB": 276
+        },
+        {
+          "phase": "editor-5-60s",
+          "appMiB": 844,
+          "foregroundMiB": 492,
+          "gpuMiB": 276
+        },
+        {
+          "phase": "canvas-4",
+          "appMiB": 848,
+          "foregroundMiB": 492,
+          "gpuMiB": 278
+        },
+        {
+          "phase": "returned-4",
+          "appMiB": 952,
+          "foregroundMiB": 498,
+          "gpuMiB": 373
+        },
+        {
+          "phase": "list-5-30s",
+          "appMiB": 385,
+          "foregroundMiB": 214,
+          "gpuMiB": 92
+        },
+        {
+          "phase": "list-5-60s",
+          "appMiB": 384,
+          "foregroundMiB": 214,
+          "gpuMiB": 92
+        },
+        {
+          "phase": "canvas-5",
+          "appMiB": 875,
+          "foregroundMiB": 506,
+          "gpuMiB": 294
+        },
+        {
+          "phase": "returned-5",
+          "appMiB": 926,
+          "foregroundMiB": 506,
+          "gpuMiB": 340
+        },
+        {
+          "phase": "editor-7-selected",
+          "appMiB": 1137,
+          "foregroundMiB": 695,
+          "gpuMiB": 335
+        },
+        {
+          "phase": "editor-7-30s",
+          "appMiB": 799,
+          "foregroundMiB": 487,
+          "gpuMiB": 235
+        },
+        {
+          "phase": "editor-7-60s",
+          "appMiB": 800,
+          "foregroundMiB": 488,
+          "gpuMiB": 235
+        },
+        {
+          "phase": "editor-7-90s",
+          "appMiB": 800,
+          "foregroundMiB": 488,
+          "gpuMiB": 235
+        },
+        {
+          "phase": "canvas-6",
+          "appMiB": 806,
+          "foregroundMiB": 488,
+          "gpuMiB": 237
+        },
+        {
+          "phase": "returned-6",
+          "appMiB": 906,
+          "foregroundMiB": 492,
+          "gpuMiB": 331
+        },
+        {
+          "phase": "list-7-30s",
+          "appMiB": 420,
+          "foregroundMiB": 247,
+          "gpuMiB": 94
+        },
+        {
+          "phase": "list-7-60s",
+          "appMiB": 421,
+          "foregroundMiB": 248,
+          "gpuMiB": 93
+        },
+        {
+          "phase": "list-7-90s",
+          "appMiB": 419,
+          "foregroundMiB": 248,
+          "gpuMiB": 93
+        },
+        {
+          "phase": "list-7-120s",
+          "appMiB": 420,
+          "foregroundMiB": 248,
+          "gpuMiB": 93
+        }
+      ]
+    }
   }
 }

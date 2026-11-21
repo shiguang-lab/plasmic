@@ -12,7 +12,8 @@ const task = path.resolve(process.argv[2]);
 const mode = process.argv[3] || "timing";
 const buildRoot = process.env.PERF_BUILD_ROOT || path.join(task,"build-installed");
 const routeStudy = process.env.PERF_ROUTE_STUDY === "1";
-const pacedDesktop = mode === "paced-desktop";
+const pacedRoute = mode === "paced-route-10s";
+const pacedVisits = pacedRoute || mode === "paced-desktop";
 // Seconds spent in the last editor of each group, after switching artboards.
 const groupEditorDwell = new Map([[2, 30], [5, 60], [7, 90]]);
 const studyHeap = routeStudy && process.env.PERF_ROUTE_HEAP === "1";
@@ -25,8 +26,9 @@ const routeCpuRate = routeStudy && Number(process.env.PERF_ROUTE_CPU_RATE || 1);
 const opens = Number(process.env.PERF_OPENS || 4);
 const profileKey=process.env.PERF_PROFILE_KEY || mode;
 const debuggerEnabled=process.env.PERF_NO_DEBUG!=="1";
-if (pacedDesktop && (!isolatedSessions || !routeStudy || opens !== 7 || process.env.PERF_ROUTE_MEMORY_DUMP !== "1")) {
-  throw Error("paced-desktop requires seven opens, isolated Desktop sessions, route study and memory dumps");
+if (pacedVisits && (!routeStudy || opens !== 7 || process.env.PERF_ROUTE_MEMORY_DUMP !== "1" ||
+    (pacedRoute ? isolatedSessions || cleanupPolicy !== "idle" : !isolatedSessions))) {
+  throw Error("Paced visits require seven opens with route study and memory dumps. Use isolated sessions for paced-desktop or SPA idle cleanup for paced-route-10s.");
 }
 if (routeStudy && debuggerEnabled) throw Error("Route comparisons require PERF_NO_DEBUG=1");
 const sparePolicy = process.env.PERF_SPARE_POLICY;
@@ -74,6 +76,7 @@ if (routeStudy) {
     route: isolatedSessions ? "desktop" : "spa",
     rendererCpuRate: routeCpuRate,
     cleanupPolicy,
+    cleanupDelayMs: cleanupPolicy ? (pacedRoute ? 10000 : 3000) : undefined,
     counters: process.env.PERF_ROUTE_COUNTERS === "1",
     snapshots: studyHeap,
     settle: process.env.PERF_ROUTE_SETTLE || null,
@@ -243,7 +246,7 @@ async function memoryPoint(label, retiredPid, retiredFramePids = []) {
     }
   }
   if (routeStudy && process.env.PERF_ROUTE_MEMORY_DUMP === "1" &&
-      (pacedDesktop || ["cold-dashboard", "canvas-" + (opens - 1), "returned-" + (opens - 1), "settled-30s"].includes(label))) {
+      (pacedVisits || ["cold-dashboard", "canvas-" + (opens - 1), "returned-" + (opens - 1), "settled-30s"].includes(label))) {
     const debug = win.webContents.debugger;
     const attached = debug.isAttached();
     if (!attached) debug.attach("1.3");
@@ -253,7 +256,7 @@ async function memoryPoint(label, retiredPid, retiredFramePids = []) {
       });
       try {
         const dump = await debug.sendCommand("Tracing.requestMemoryDump", {
-          levelOfDetail: pacedDesktop ? "light" : "detailed", deterministic: false,
+          levelOfDetail: pacedVisits ? "light" : "detailed", deterministic: false,
         });
         if (!dump.success) throw Error("Chromium memory dump failed");
       } finally {
@@ -364,6 +367,7 @@ app.whenReady().then(async () => {
     fs.appendFileSync(preload, `
       const {webFrame} = require("electron");
       let idleTimer;
+      const idleVisits = [];
       const calls = {opened: 0, idle: 0, cancelled: 0};
       contextBridge.exposeInMainWorld("routeCleanupProbe", {
         opened() {
@@ -372,19 +376,24 @@ app.whenReady().then(async () => {
           return performance.timeOrigin + performance.now();
         },
         schedule() {
+          const visit = {scheduledAt: performance.timeOrigin + performance.now()};
+          idleVisits.push(visit);
           idleTimer = setTimeout(() => {
             webFrame.clearCache();
+            visit.clearedAt = performance.timeOrigin + performance.now();
             calls.idle++;
             idleTimer = undefined;
-          }, 3000);
+          }, ${report.routeStudy.cleanupDelayMs});
         },
         cancel() {
           if (idleTimer !== undefined) {
             clearTimeout(idleTimer);
             idleTimer = undefined;
+            idleVisits.at(-1).cancelledAt = performance.timeOrigin + performance.now();
             calls.cancelled++;
           }
         },
+        visits() { return idleVisits; },
         counts() { return {...calls}; }
       });
     `);
@@ -423,7 +432,7 @@ app.whenReady().then(async () => {
     tracing = true;
   }
   if (isolatedSessions || routeStudy) await memoryPoint("cold-dashboard");
-  if (pacedDesktop) {
+  if (pacedVisits) {
     await sleep(30000);
     await memoryPoint("initial-list-30s");
   }
@@ -592,7 +601,7 @@ app.whenReady().then(async () => {
       break;
     }
     if (nativeBridge?.reload) continue;
-    if (pacedDesktop) {
+    if (pacedVisits) {
       await sleep(5000);
       await frame.executeJavaScript(`(async () => {
         const s = studioCtx;
@@ -643,12 +652,12 @@ app.whenReady().then(async () => {
       const top = await win.webContents.executeJavaScript("performance.timeOrigin");
       if (top !== documentOrigin) throw Error("Dashboard top document was replaced");
       if (win.webContents.mainFrame.framesInSubtree.length !== 1) throw Error("Editor frame still attached");
-      if (pacedDesktop) {
+      if (pacedVisits) {
         if (groupEditorDwell.has(i + 1)) {
           const dwell = i + 1 === opens ? 120 : 60;
           for (let seconds = 30; seconds <= dwell; seconds += 30) {
             await sleep(30000);
-            await memoryPoint("list-" + (i + 1) + "-" + seconds + "s", retiredPid);
+            await memoryPoint("list-" + (i + 1) + "-" + seconds + "s", isolatedSessions ? retiredPid : undefined);
           }
         } else {
           await sleep(5000);
@@ -685,6 +694,7 @@ app.whenReady().then(async () => {
       }
     }
   }
+  if (pacedRoute) report.idleVisits = await win.webContents.executeJavaScript("routeCleanupProbe.visits()");
   if (cleanupPolicy) report.cleanupCalls = await win.webContents.executeJavaScript("routeCleanupProbe.counts()");
   if (routeStudy && (report.errors.length || report.blocked.length)) {
     throw Error("Route study recorded renderer errors or blocked requests; inspect the private report");
@@ -696,7 +706,7 @@ app.whenReady().then(async () => {
   for (const w of BrowserWindow.getAllWindows()) w.destroy();
   app.exit(process.exitCode||0);
 });
-const timeoutMs = pacedDesktop ? 720000 : 240000;
+const timeoutMs = pacedVisits ? 720000 : 240000;
 setTimeout(()=>{
   report.timedOut = { timeoutMs, phase, currentStep: report.currentStep };
   report.error ??= "Harness deadline exceeded (" + timeoutMs + " ms); phase=" + phase + "; currentStep=" + JSON.stringify(report.currentStep);
