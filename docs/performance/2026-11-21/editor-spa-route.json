@@ -2234,5 +2234,127 @@
         "allFramesRenderedMs": 6855
       }
     }
+  },
+  "openAndIdleCleanup": {
+    "idle": {
+      "opens": 20,
+      "warmMedianMs": {
+        "canvasRevealedMs": 823,
+        "firstCanvasReadyMs": 865,
+        "allFramesRenderedMs": 2153
+      },
+      "cleanupCalls": {
+        "opened": 0,
+        "idle": 1,
+        "cancelled": 19
+      },
+      "memoryMiB": {
+        "cold-dashboard": {
+          "rendererPrivate": 135,
+          "appPrivateSum": 489,
+          "usedJsHeap": 29,
+          "documents": 2
+        },
+        "canvas-19": {
+          "rendererPrivate": 2208,
+          "appPrivateSum": 3188,
+          "usedJsHeap": 778,
+          "documents": 126
+        },
+        "returned-19": {
+          "rendererPrivate": 2193,
+          "appPrivateSum": 3074,
+          "usedJsHeap": 768,
+          "documents": 126
+        },
+        "settled-30s": {
+          "rendererPrivate": 252,
+          "appPrivateSum": 445,
+          "usedJsHeap": 35,
+          "documents": 2
+        }
+      }
+    },
+    "open-and-idle": {
+      "opens": 20,
+      "warmMedianMs": {
+        "canvasRevealedMs": 1062,
+        "firstCanvasReadyMs": 1095,
+        "allFramesRenderedMs": 2648
+      },
+      "cleanupCalls": {
+        "opened": 20,
+        "idle": 1,
+        "cancelled": 19
+      },
+      "medianClearAfterRevealMs": 53,
+      "memoryMiB": {
+        "cold-dashboard": {
+          "rendererPrivate": 138,
+          "appPrivateSum": 397,
+          "usedJsHeap": 30,
+          "documents": 2
+        },
+        "canvas-19": {
+          "rendererPrivate": 570,
+          "appPrivateSum": 1519,
+          "usedJsHeap": 244,
+          "documents": 29
+        },
+        "returned-19": {
+          "rendererPrivate": 583,
+          "appPrivateSum": 1457,
+          "usedJsHeap": 256,
+          "documents": 31
+        },
+        "settled-30s": {
+          "rendererPrivate": 193,
+          "appPrivateSum": 452,
+          "usedJsHeap": 35,
+          "documents": 2
+        }
+      }
+    },
+    "cpu-idle": {
+      "opens": 4,
+      "warmMedianMs": {
+        "canvasRevealedMs": 3135,
+        "firstCanvasReadyMs": 3743,
+        "allFramesRenderedMs": 8603
+      },
+      "cleanupCalls": {
+        "opened": 0,
+        "idle": 0,
+        "cancelled": 3
+      }
+    },
+    "cpu-open-and-idle": {
+      "opens": 4,
+      "warmMedianMs": {
+        "canvasRevealedMs": 4179,
+        "firstCanvasReadyMs": 4890,
+        "allFramesRenderedMs": 11036
+      },
+      "cleanupCalls": {
+        "opened": 4,
+        "idle": 0,
+        "cancelled": 3
+      },
+      "medianClearAfterRevealMs": 714
+    },
+    "edit": {
+      "opens": 2,
+      "warmMedianMs": {
+        "canvasRevealedMs": 1156,
+        "firstCanvasReadyMs": 1192,
+        "allFramesRenderedMs": 2733
+      },
+      "cleanupCalls": {
+        "opened": 2,
+        "idle": 0,
+        "cancelled": 1
+      },
+      "medianClearAfterRevealMs": 64
+    }
   }
 }

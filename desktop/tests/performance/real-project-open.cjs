@@ -14,6 +14,10 @@ const buildRoot = process.env.PERF_BUILD_ROOT || path.join(task,"build-installed
 const routeStudy = process.env.PERF_ROUTE_STUDY === "1";
 const studyHeap = routeStudy && process.env.PERF_ROUTE_HEAP === "1";
 const studyEdit = routeStudy && process.env.PERF_ROUTE_EDIT === "1";
+const cleanupPolicy = process.env.PERF_ROUTE_CLEANUP;
+if (cleanupPolicy && (!routeStudy || isolatedSessions || !["idle", "open-and-idle"].includes(cleanupPolicy))) {
+  throw Error("PERF_ROUTE_CLEANUP requires an SPA route study and either idle or open-and-idle");
+}
 const routeCpuRate = routeStudy && Number(process.env.PERF_ROUTE_CPU_RATE || 1);
 const opens = Number(process.env.PERF_OPENS || 4);
 const profileKey=process.env.PERF_PROFILE_KEY || mode;
@@ -63,6 +67,7 @@ if (routeStudy) {
   report.routeStudy = {
     route: isolatedSessions ? "desktop" : "spa",
     rendererCpuRate: routeCpuRate,
+    cleanupPolicy,
     counters: process.env.PERF_ROUTE_COUNTERS === "1",
     snapshots: studyHeap,
     settle: process.env.PERF_ROUTE_SETTLE || null,
@@ -349,6 +354,35 @@ app.whenReady().then(async () => {
   const preload = path.join(task,"preview-only-preload.cjs");
   if (process.env.PERF_OPEN_NATIVE) nativeBridge = await require('./open-native-bridge.cjs').install({task,mode,origin,startup,ipcMain,getWindow:()=>win,report});
   fs.writeFileSync(preload,`const {contextBridge,ipcRenderer}=require('electron');${isolatedSessions ? "let active=true;const activeListeners=new Set();ipcRenderer.on('desktop:view-state',(_,state)=>{active=state.active;for(const listener of activeListeners)listener(state);});contextBridge.exposeInMainWorld('desktopNavigation',{navigate:url=>ipcRenderer.invoke('desktop:navigate',url),isActive:()=>active,onActiveChange:listener=>{activeListeners.add(listener);return()=>activeListeners.delete(listener);}});" : ''}${nativeBridge?.preload || ''}`);
+  if (cleanupPolicy) {
+    fs.appendFileSync(preload, `
+      const {webFrame} = require("electron");
+      let idleTimer;
+      const calls = {opened: 0, idle: 0, cancelled: 0};
+      contextBridge.exposeInMainWorld("routeCleanupProbe", {
+        opened() {
+          webFrame.clearCache();
+          calls.opened++;
+          return performance.timeOrigin + performance.now();
+        },
+        schedule() {
+          idleTimer = setTimeout(() => {
+            webFrame.clearCache();
+            calls.idle++;
+            idleTimer = undefined;
+          }, 3000);
+        },
+        cancel() {
+          if (idleTimer !== undefined) {
+            clearTimeout(idleTimer);
+            idleTimer = undefined;
+            calls.cancelled++;
+          }
+        },
+        counts() { return {...calls}; }
+      });
+    `);
+  }
   const webPreferences={session:ses,preload,v8CacheOptions:cachePolicy,contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false,
     ...(sparePolicy && spareArguments === "production" ? {additionalArguments:[`--shiguang-system-languages=${JSON.stringify(app.getPreferredSystemLanguages())}`]} : {})};
   const nativeWindow = new BrowserWindow({width:1512,height:887,show:true,webPreferences:isolatedSessions?{session:ses,...(sparePolicy && spareArguments === "production" ? {additionalArguments:webPreferences.additionalArguments} : {})}:webPreferences});
@@ -391,6 +425,7 @@ app.whenReady().then(async () => {
     setPhase(i===0 ? "first-list-open" : "warm-list-open-"+i);
     const beforeOpenProcesses = sparePolicy ? app.getAppMetrics().map(p=>({pid:p.pid,type:p.type,rssKiB:p.memory.workingSetSize})) : undefined;
     let click;
+    if (cleanupPolicy) await win.webContents.executeJavaScript("routeCleanupProbe.cancel()");
     if (nativeBridge?.reload && i > 0) {
       setPhase("native-document-reload-" + i);
       click = { at: now(), source: "native-document-reload" };
@@ -403,6 +438,10 @@ app.whenReady().then(async () => {
     let frame = await ready();
     const detectedReady = now();
     const atFirstReady = await frame.executeJavaScript("({views:studioCtx.viewCtxs.length,initialFrames:studioCtx.loadTimings.snapshot().frameCount,rendered:studioCtx.viewCtxs.filter(v=>v.initialRenderReady).length})");
+    if (cleanupPolicy === "open-and-idle") {
+      const clearedAt = await win.webContents.executeJavaScript("routeCleanupProbe.opened()");
+      (report.openCleanupMs ??= []).push(clearedAt - click.at);
+    }
     if (process.env.PERF_OPEN_INPUT==='1') {
       // Handle the first-use tour in the same browser task as the hit test,
       // since its lazy-loaded content can appear between input samples.
@@ -542,6 +581,10 @@ app.whenReady().then(async () => {
       await frame.executeJavaScript(`(()=>{const link=document.querySelector('a[href="/projects"][aria-label]');if(!link)throw Error('Missing Dashboard link');link.click();})()`);
     } else await win.webContents.executeJavaScript("history.back()");
     await dashboard();
+    if (cleanupPolicy) {
+      if (win.webContents.mainFrame.framesInSubtree.length !== 1) throw Error("Editor frame still attached at cleanup scheduling");
+      await win.webContents.executeJavaScript("routeCleanupProbe.schedule()");
+    }
     if(process.env.PERF_RETURN_TIMING === "1") {
       const cardAt=now();
       const presented=await win.webContents.executeJavaScript(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve({at:performance.timeOrigin+performance.now(),visibility:document.visibilityState,active:window.desktopNavigation.isActive(),inert:document.documentElement.inert,query:document.querySelector('input[placeholder]')?.value,token:window.__retainedDashboardToken}))))`);
@@ -589,6 +632,7 @@ app.whenReady().then(async () => {
       }
     }
   }
+  if (cleanupPolicy) report.cleanupCalls = await win.webContents.executeJavaScript("routeCleanupProbe.counts()");
   if (routeStudy && (report.errors.length || report.blocked.length)) {
     throw Error("Route study recorded renderer errors or blocked requests; inspect the private report");
   }
