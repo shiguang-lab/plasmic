@@ -27,6 +27,7 @@ import {
   TplNode,
 } from "@/wab/shared/model/classes";
 import keyBy from "lodash/keyBy";
+import once from "lodash/once";
 
 /** Token resolver that returns the value and token. */
 export type TokenResolver = (
@@ -226,58 +227,64 @@ export const componentToUsedTokens = memoizeModelQuery(function componentsToUsed
     component: Component,
   ): ReadonlyArray<StyleToken> {
     const usedTokens = new Set<StyleToken>();
+    const getTokens = once(() => siteFinalStyleTokensAllDepsDict(site));
     for (const tpl of flattenComponent(component)) {
       if (isTplVariantable(tpl)) {
-        xAddAll(usedTokens, tplToUsedTokens(site, tpl));
+        xAddAll(usedTokens, tplToUsedTokens(site, tpl, getTokens));
       }
     }
     return [...usedTokens.keys()];
   });
 
-const tplToUsedTokens = memoizeModelQuery(function tplToUsedTokens(
+function tplToUsedTokens(
   site: Site,
   tpl: TplNode,
+  getTokens: () => ReturnType<typeof siteFinalStyleTokensAllDepsDict>,
 ): ReadonlyArray<StyleToken> {
   const collector = new Set<StyleToken>();
   for (const vs of tpl.vsettings) {
     const rulesets = expandRuleSets([vs.rs]);
     for (const rs of rulesets) {
-      xAddAll(collector, usedTokensForExp(site, rs, tpl));
+      xAddAll(collector, usedTokensForExp(site, rs, tpl, getTokens));
     }
   }
   return [...collector.keys()];
-});
+}
 
-const usedTokensForExp = memoizeModelQuery(function usedTokensForExp(
+function usedTokensForExp(
   site: Site,
   rs: DeepReadonly<RuleSet>,
   tpl: TplNode,
+  getTokens: () => ReturnType<typeof siteFinalStyleTokensAllDepsDict>,
 ): ReadonlyArray<StyleToken> {
   const exp = readonlyRSH(rs, tpl);
-  const allTokensDict = siteFinalStyleTokensAllDepsDict(site);
   const collector = new Set<StyleToken>();
   for (const prop of exp.props()) {
     const val = exp.getRaw(prop);
     if (val) {
       const refTokenIds = extractAllReferencedTokenIds(val);
+      if (!refTokenIds.length) {
+        continue;
+      }
+      const allTokensDict = getTokens();
       const refTokens = withoutNils(refTokenIds.map((x) => allTokensDict[x]));
       xAddAll(
         collector,
         refTokens.map((t) => t.base),
       );
       for (const token of refTokens) {
-        xAddAll(collector, usedTokensForToken(site, allTokensDict[token.uuid]));
+        xAddAll(collector, usedTokensForToken(site, token, allTokensDict));
       }
     }
   }
   return [...collector.keys()];
-});
+}
 
 const usedTokensForToken = memoizeModelQuery(function collectUsedTokensForToken(
-  site: Site,
+  _site: Site,
   token: FinalToken<StyleToken>,
+  allTokensDict: ReturnType<typeof siteFinalStyleTokensAllDepsDict>,
 ): ReadonlyArray<StyleToken> {
-  const allTokensDict = siteFinalStyleTokensAllDepsDict(site);
   const collector = new Set<StyleToken>();
   let sub = tryParseTokenRef(token.value, allTokensDict);
   while (sub && !collector.has(sub.base)) {

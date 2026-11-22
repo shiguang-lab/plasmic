@@ -178,16 +178,6 @@ export const extractComponentVariantSettings = memoizeModelQuery((site: Site, co
     return result;
   });
 
-export const extractImageAssetRefsByAttrs = memoizeModelQuery(function extractImageAssetRefsByAttrs(site: Site, component: Component) {
-    const assets = new Set<ImageAsset>();
-    for (const tpl of flattenComponent(component)) {
-      if (isTplVariantable(tpl)) {
-        xAddAll(assets, tplToUsedImageAssets(site, tpl));
-      }
-    }
-    return assets;
-  });
-
 export const findNonEmptyCombos = memoizeModelQuery(function findNonEmptyCombos(
   component: Component,
 ) {
@@ -693,54 +683,52 @@ const tplToUsedMixins = memoizeModelQuery(function tplToUsedMixins(tpl: TplNode)
   return [...mixins.keys()];
 });
 
-export const componentToUsedImageAssets = memoizeModelQuery(function componentToUsedImageAssets(site: Site, component: Component) {
-    const assets = new Set<ImageAsset>();
-    for (const tpl of flattenComponent(component)) {
-      if (isTplVariantable(tpl)) {
-        xAddAll(assets, tplToUsedImageAssets(site, tpl));
-      }
-    }
-    return [...assets.keys()];
-  });
-
-const tplToUsedImageAssets = memoizeModelQuery(function tplToUsedImageAssets(
+export const extractImageAssetRefsByAttrs = memoizeModelQuery(function usedImageAssets(
   site: Site,
-  tpl: TplNode,
+  component: Component,
 ) {
   const assets = new Set<ImageAsset>();
-  const assetType = isTplIcon(tpl)
-    ? ImageAssetType.Icon
-    : isTplPicture(tpl)
-      ? ImageAssetType.Picture
-      : undefined;
+  let allAssetsDict: ReturnType<typeof siteToAllImageAssetsDict> | undefined;
+  for (const tpl of flattenComponent(component)) {
+    if (!isTplVariantable(tpl)) {
+      continue;
+    }
+    const assetType = isTplIcon(tpl)
+      ? ImageAssetType.Icon
+      : isTplPicture(tpl)
+        ? ImageAssetType.Picture
+        : undefined;
 
-  if (assetType) {
-    for (const vs of tpl.vsettings) {
-      const expr = vs.attrs[getTagAttrForImageAsset(assetType)];
-      if (expr && isKnownImageAssetRef(expr)) {
-        assets.add(expr.asset);
+    if (assetType) {
+      for (const vs of tpl.vsettings) {
+        const expr = vs.attrs[getTagAttrForImageAsset(assetType)];
+        if (expr && isKnownImageAssetRef(expr)) {
+          assets.add(expr.asset);
+        }
       }
     }
-  }
 
-  if (assetType === ImageAssetType.Icon) {
-    return [...assets.keys()];
-  }
+    if (assetType === ImageAssetType.Icon) {
+      continue;
+    }
 
-  const allAssetsDict = siteToAllImageAssetsDict(site);
-  for (const vs of tpl.vsettings) {
-    const rulesets = expandRuleSets([vs.rs]);
-    for (const rs of rulesets) {
-      for (const refId of expToPictureAssetRefs(rs, tpl)) {
-        if (refId in allAssetsDict) {
-          assets.add(allAssetsDict[refId]);
+    for (const vs of tpl.vsettings) {
+      const rulesets = expandRuleSets([vs.rs]);
+      for (const rs of rulesets) {
+        for (const refId of expToPictureAssetRefs(rs, tpl)) {
+          allAssetsDict ??= siteToAllImageAssetsDict(site);
+          if (refId in allAssetsDict) {
+            assets.add(allAssetsDict[refId]);
+          }
         }
       }
     }
   }
-
-  return [...assets.keys()];
+  return assets;
 });
+
+export const componentToUsedImageAssets = memoizeModelQuery((site: Site, component: Component) =>
+  Array.from(extractImageAssetRefsByAttrs(site, component)));
 
 const expToPictureAssetRefs = memoizeModelQuery(function expToPictureAssetRefs(
   rs: DeepReadonly<RuleSet>,
@@ -756,21 +744,9 @@ const expToPictureAssetRefs = memoizeModelQuery(function expToPictureAssetRefs(
 });
 
 export const getComponentsUsingImageAsset = memoizeModelQuery(function getComponentsUsingImageAsset(site: Site, asset: ImageAsset) {
-    return site.components.filter((comp) => {
-      if (isCodeComponent(comp)) {
-        return false;
-      }
-
-      for (const tpl of flattenComponent(comp)) {
-        if (
-          isTplVariantable(tpl) &&
-          tplToUsedImageAssets(site, tpl).includes(asset)
-        ) {
-          return true;
-        }
-      }
-      return false;
-    });
+    return site.components.filter((comp) =>
+      !isCodeComponent(comp) && extractImageAssetRefsByAttrs(site, comp).has(asset)
+    );
   });
 
 export const findAllQueryInvalidationExpr = memoizeModelQuery(function findDataSourceInteractions(site: Site) {
