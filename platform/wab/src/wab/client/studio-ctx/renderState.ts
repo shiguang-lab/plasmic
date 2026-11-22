@@ -371,7 +371,24 @@ class RenderStateImpl {
     return undefined;
   }
 
-  dispose() {
+  dispose({ detachCachedValNodes = true } = {}) {
+    for (const vals of this._fullKey2vals.values()) {
+      for (const val of vals) {
+        val.detachFrame();
+      }
+    }
+    // Unmount can unregister a node before disposal. Undo may still own its
+    // cached copy, which is also reused by a replacement frame of the same uid.
+    if (detachCachedValNodes) {
+      for (const [key, ref] of this.cachedValNodes) {
+        const val = ref.deref();
+        if (val) {
+          val.detachFrame();
+        } else {
+          this.cachedValNodes.delete(key);
+        }
+      }
+    }
     this._tpl2valKeys = new WeakMap();
     this._fullKey2vals.clear();
     this._fullSlotPlaceholderKey2fiber.clear();

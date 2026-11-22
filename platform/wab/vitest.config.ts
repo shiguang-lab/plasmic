@@ -43,7 +43,8 @@ class StyleModuleLoader extends SassModuleLoader {
 // Vite forwards the additional Loader option to postcss-modules.
 const cssModules = { scopeBehaviour: "local" as const, Loader: StyleModuleLoader };
 
-const themeTests = [
+const browserTests = [
+  "src/wab/client/react-global-hook/frame-memory.browser.test.tsx",
   "src/wab/client/components/canvas/CanvasContentEditorControls.test.tsx",
   "src/wab/client/components/top-bar/VariantsComboSelect.test.tsx",
   "src/wab/client/components/ContextMenu.test.tsx",
@@ -221,7 +222,7 @@ export default defineConfig({
         },
         test: {
           name: "studio-theme",
-          include: themeTests,
+          include: browserTests,
           setupFiles: ["./src/wab/client/__testonly__/theme-browser.ts"],
           css: { include: [/.*/], modules: { classNameStrategy: "scoped" } },
           browser: {
@@ -255,7 +256,7 @@ export default defineConfig({
           setupFiles: ["./src/wab/client/__testonly__/setupTests.js"],
           // Server and webpack utility tests use the node project above.
           include: ["src/**/*.{spec,test}.{js,jsx,ts,tsx}"],
-          exclude: ["src/wab/server/**", ...themeTests],
+          exclude: ["src/wab/server/**", ...browserTests],
           environment: "jsdom",
           // DEVFLAGS.hostUrl is http://localhost in tests; keep the document on
           // the same origin so app-hosting URL checks pass.

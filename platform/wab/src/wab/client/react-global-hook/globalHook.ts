@@ -1065,7 +1065,8 @@ function createFrameState(
       }
       isDisposed = true;
 
-      if (frames.get(uid) === state) {
+      const isCurrent = frames.get(uid) === state;
+      if (isCurrent) {
         frames.delete(uid);
       }
 
@@ -1084,10 +1085,12 @@ function createFrameState(
         }
       }
       state.envIdToFullKey.clear();
-      state.renderState.dispose();
-      state.contextData.dispose();
-      state.variantInputs.dispose();
-      state.valRootStore.setState(null, true);
+      deferValRuntimePublication(() => {
+        state.renderState.dispose({ detachCachedValNodes: isCurrent });
+        state.contextData.dispose();
+        state.variantInputs.dispose();
+        state.valRootStore.setState(null, true);
+      });
     },
   };
   frames.set(uid, state);

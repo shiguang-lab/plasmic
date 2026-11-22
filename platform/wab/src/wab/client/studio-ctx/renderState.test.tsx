@@ -187,7 +187,7 @@ it("does not map a resource-only component to a selectable region", () => {
   }
 });
 
-function textCopies() {
+function textCopies(tpl = mkTplTagX("span", { type: TplTagType.Text })) {
   const handles = new Map<string, NonNullable<ValTextTag["handle"]>>();
   function Text({ id }: { id: string }) {
     const [editing, setEditing] = React.useState(false);
@@ -224,7 +224,6 @@ function textCopies() {
       </tbody>
     </table>,
   );
-  const tpl = mkTplTagX("span", { type: TplTagType.Text });
   assert(isTplTextBlock(tpl), "Expected a text template");
   const vals = ["header", "measure"].map(
     (id) =>
@@ -306,5 +305,28 @@ it("retains both genuinely rendered copies and their existing edit behavior", as
     expect(getByTestId("measure").querySelector("input")).not.toBeNull();
   } finally {
     state.dispose();
+  }
+});
+
+it("releases an unmounted text editor retained by selection and rebinds it on reopen", () => {
+  const old = textCopies();
+  const [text] = old.vals;
+  const selected = old.state.registerVal(text);
+  assert(selected instanceof ValTextTag, "Expected the cached text selection");
+  expect(selected.handle).toBe(text.handle);
+  old.state.unregisterVal(text);
+  old.state.dispose();
+  expect(selected.fibers).toEqual([]);
+  expect(selected.handle).toBeUndefined();
+
+  cleanup();
+  const fresh = textCopies(text.tpl);
+  try {
+    expect(fresh.state.registerVal(fresh.vals[0])).toBe(selected);
+    expect(selected.handle).toBe(fresh.vals[0].handle);
+    act(() => { selected.handle?.enterEdit(); });
+    expect(fresh.container.querySelector('[data-testid="header"] input')).not.toBeNull();
+  } finally {
+    fresh.state.dispose();
   }
 });

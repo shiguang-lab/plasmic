@@ -133,6 +133,14 @@ export abstract class ValNode {
     this.copyFrom(other, { merge: false });
   }
 
+  /** Undo keeps the node identity so a recreated frame can repopulate it. */
+  detachFrame() {
+    writeableValNode(this).fibers = [];
+    if (this.runtimeInputs.getState().envs) {
+      this.runtimeInputs.update({ envs: undefined });
+    }
+  }
+
   declare readonly tpl: TplNode;
   declare readonly valOwner: ValComponent | null | undefined;
   declare readonly key: string;
@@ -242,6 +250,12 @@ export class ValComponent extends ValNode {
     }
   }
 
+  override detachFrame() {
+    super.detachFrame();
+    this.slotCanvasEnvs.clear();
+    this.codeComponentProps = undefined;
+  }
+
   get invalidArgs() {
     return this.componentRuntimeInputs.getState().invalidArgs;
   }
@@ -308,6 +322,11 @@ export class ValTextTag extends ValTag {
     writeableValNode(this).handle = other.handle;
     writeableValNode(this).text = other.text;
   }
+  override detachFrame() {
+    super.detachFrame();
+    writeableValNode(this).handle = undefined;
+  }
+
   declare readonly tpl: TplTextTag;
   declare readonly handle:
     | {

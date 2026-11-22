@@ -10,6 +10,8 @@ const hook = vi.hoisted(() => {
 });
 
 import { buildValTree, TEST_GLOBAL_VARIANT } from "@/wab/__testonly__/tpls";
+import { ensureInstance } from "@/wab/shared/common";
+import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
@@ -54,8 +56,18 @@ it("releases the closed frame's tree, context and renderer while preserving the 
 
 it("does not remove a replacement frame with the same uid when the old owner disposes", () => {
   const old = globalHookCtx.createFrameState({ uid: 10, objectPrototype: {} });
+  const component = mkComponent({ name: "Replacement", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  const tpl = mkTplComponent(component, TEST_GLOBAL_VARIANT);
+  const original = buildValTree(tpl);
+  const selected = ensureInstance(old.renderState.registerVal(original), ValComponent);
   const replacement = globalHookCtx.createFrameState({ uid: 10, objectPrototype: {} });
+  const current = buildValTree(tpl);
+  current.codeComponentProps = { title: "New frame" };
+  expect(replacement.renderState.registerVal(current)).toBe(selected);
   old.dispose();
+  expect(original.fibers).toHaveLength(0);
+  expect(selected.fibers).toEqual(current.fibers);
+  expect(selected.codeComponentProps).toEqual({ title: "New frame" });
   expect(globalHookCtx.frames.get(10)).toBe(replacement);
 });
 
