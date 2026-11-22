@@ -304,12 +304,16 @@ export const SliderWrapper = forwardRef(function SliderWrapper_(
         {...props}
         style={{ height: "100%" }}
       >
-        {React.Children.map(children, (child) =>
-          React.cloneElement(child, {
-            className: `keen-slider__slide ${className}`,
-          })
-        )}
-        {children}
+        {React.Children.map(children, (child) => {
+          if (!React.isValidElement<{ className?: string }>(child)) {
+            return child;
+          }
+          return React.cloneElement(child, {
+            className: ["keen-slider__slide", child.props.className]
+              .filter(Boolean)
+              .join(" "),
+          });
+        })}
       </div>
     </div>
   );

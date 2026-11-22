@@ -180,6 +180,19 @@ describe("Variation", () => {
         traits: { utm_source: "google", campaign: "mkt2023" },
       });
     });
+
+    it("round-trips values containing equals signs and delimiters", () => {
+      const traits = {
+        campaign: "source=mail",
+        nested: `a${DELIMITER}b=c`,
+        encoded: "%3D%5F_pm__",
+      };
+      const rewritten = rewriteWithTraits("/home", traits);
+      expect(rewriteWithoutTraits(rewritten)).toEqual({
+        path: "/home",
+        traits,
+      });
+    });
   });
 
   describe("getMiddlewareResponse", () => {

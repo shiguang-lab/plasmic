@@ -40,7 +40,7 @@ it("ships a complete language pack with matching interpolation tokens for every 
     for (const [key, message] of Object.entries(messages[value])) {
       expect(message.trim().length).toBeGreaterThan(0);
       expect((message.match(/\{\w+\}/g) ?? []).sort()).toEqual(
-        (key.match(/\{\w+\}/g) ?? []).sort(),
+        (messages.en[key as keyof typeof messages.en].match(/\{\w+\}/g) ?? []).sort(),
       );
     }
   }

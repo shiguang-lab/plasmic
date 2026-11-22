@@ -169,6 +169,7 @@ it("does not refresh the inspector or restart a pending paint for repeated node 
     await vi.advanceTimersByTimeAsync(100);
     expect(sc.isSelectionPending).toBe(false);
     inspector.mockClear();
+    sync.mockClear();
     select();
     select();
     expect(inspector).not.toHaveBeenCalled();
@@ -201,6 +202,7 @@ it.each(["canvas", "artboard"])(
       clear();
       await vi.advanceTimersByTimeAsync(100);
       inspector.mockClear();
+      sync.mockClear();
       const record = vi.spyOn(sc, "createViewStateUndoRecord");
       const paint = vi.spyOn(window, "requestAnimationFrame");
       clear();

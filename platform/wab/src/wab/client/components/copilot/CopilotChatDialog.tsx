@@ -176,7 +176,7 @@ export function CopilotChatDialog({
         ref={historyRef}
         scrollX={false}
         defer={false}
-        className={styles.history}
+        className={styles.chatHistory}
         events={{
           scroll: (instance) => {
             if (!historyReady) {
@@ -198,7 +198,7 @@ export function CopilotChatDialog({
         }}
       >
         <div
-          className={styles.historyContent}
+          className={styles.chatHistoryContent}
           aria-live="polite"
           onClickCapture={(event) => {
             if (

@@ -5,8 +5,10 @@ import {
   LeafSelection,
   RefSelection,
   RootSelection,
+  denormalizeCmsData,
   makeSelectionTree,
   makeSqlCondition,
+  normalizeCmsData,
   traverseSchemaFields,
   typeToPgType,
 } from "@/wab/server/util/cms-util";
@@ -876,3 +878,94 @@ function getSelection(
   }
   return cur as LeafSelection | RefSelection;
 }
+
+describe("normalizeCmsData", () => {
+  const schemaFields: CmsFieldMeta[] = [
+    createField("localizedObj", CmsMetaType.OBJECT, [], { localized: true }),
+    createField("plainObj", CmsMetaType.OBJECT, [], { localized: false }),
+    createField("localizedText", CmsMetaType.TEXT, [], { localized: true }),
+    createField("plainText", CmsMetaType.TEXT, [], { localized: false }),
+  ];
+  const fieldMetaMap = Object.fromEntries(
+    schemaFields.map((f) => [f.identifier, f]),
+  );
+
+  it("normalizes localized OBJECT fields by locale without nesting locale map into default locale", () => {
+    const input = {
+      localizedObj: {
+        "": { heading: "Hello" },
+        es: { heading: "Hola" },
+      },
+      plainObj: { count: 1, es: { count: 99 } },
+    };
+    const normalized = normalizeCmsData(input as any, fieldMetaMap, ["es"]);
+    expect(normalized).toEqual({
+      "": {
+        localizedObj: { heading: "Hello" },
+        plainObj: { count: 1, es: { count: 99 } },
+      },
+      es: {
+        localizedObj: { heading: "Hola" },
+      },
+    });
+    expect(
+      denormalizeCmsData(normalized, schemaFields.slice(0, 2), ["es"]),
+    ).toEqual({
+      localizedObj: {
+        "": { heading: "Hello" },
+        es: { heading: "Hola" },
+      },
+      plainObj: { count: 1, es: { count: 99 } },
+    });
+  });
+
+  it("handles partial locale updates for localized OBJECT without overwriting default locale", () => {
+    const normalized = normalizeCmsData(
+      { localizedObj: { es: { heading: "Solo ES" } } } as any,
+      fieldMetaMap,
+      ["es"],
+    );
+    expect(normalized).toEqual({
+      "": {},
+      es: { localizedObj: { heading: "Solo ES" } },
+    });
+  });
+
+  it("supports explicit null clearing all locales or a single locale, and shorthand localized text", () => {
+    expect(
+      normalizeCmsData(
+        {
+          localizedObj: null,
+          localizedText: "Default title",
+          plainText: "Plain",
+        } as any,
+        fieldMetaMap,
+        ["es"],
+      ),
+    ).toEqual({
+      "": {
+        localizedObj: null,
+        localizedText: "Default title",
+        plainText: "Plain",
+      },
+      es: {
+        localizedObj: null,
+      },
+    });
+
+    expect(
+      normalizeCmsData(
+        {
+          localizedObj: { es: null },
+        } as any,
+        fieldMetaMap,
+        ["es"],
+      ),
+    ).toEqual({
+      "": {},
+      es: {
+        localizedObj: null,
+      },
+    });
+  });
+});

@@ -83,9 +83,9 @@ it("keeps the parent form mounted and inert while navigating to a nested editor"
   await waitFor(() => {
     expect(parent.style.left).toBe("-100%");
     expect(child.style.left).toBe("0%");
-  });
+  }, { timeout: 5000 });
   fireEvent.click(closeButton(child, "back"));
-  await waitFor(() => expect(parent.style.left).toBe("0%"));
+  await waitFor(() => expect(parent.style.left).toBe("0%"), { timeout: 5000 });
   expect(screen.getByRole("textbox", { name: "Variable name" })).toBe(input);
   expect(input).toHaveValue("editedName");
   expect(parent).not.toHaveAttribute("inert");

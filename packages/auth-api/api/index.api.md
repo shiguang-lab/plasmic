@@ -29,6 +29,15 @@ export function getPlasmicAppUserFromToken(opts: {
 }): Promise<PlasmicUserResult>;
 
 // @public (undocumented)
+export class PlasmicAuthError extends Error {
+    constructor(message: string, status: number, invalidToken: boolean);
+    // (undocumented)
+    readonly invalidToken: boolean;
+    // (undocumented)
+    readonly status: number;
+}
+
+// @public (undocumented)
 export interface PlasmicUser {
     // (undocumented)
     email: string;

@@ -14,12 +14,6 @@ class FakeDeployment(rollout.Deployment):
         self.calls = []
         self.fail = fail
 
-    def compose(self, *args):
-        self.calls.append(args)
-        if args[0] == "run":
-            return "[ ] pending migration" if self.fail == "migration" else "[X] applied migration"
-        return ""
-
     def healthy(self, service):
         return True
 
@@ -35,7 +29,17 @@ class FakeDeployment(rollout.Deployment):
         self.calls.append(("switch", rollout.active_web(config)))
         if self.fail == "switch" and rollout.active_web(config) == "web-next":
             raise RuntimeError("reload rejected")
+        if self.fail == "rollback-failure" and rollout.active_web(config) == "web":
+            raise RuntimeError("rollback reload rejected")
         (self.directory / "edge/default.conf").write_text(config)
+
+    def compose(self, *args):
+        self.calls.append(args)
+        if args[0] == "run":
+            return "[ ] pending migration" if self.fail == "migration" else "[X] applied migration"
+        if args[0] == "exec" and self.fail == "rollback-failure":
+            raise RuntimeError("candidate healthcheck failed")
+        return ""
 
 
 class RolloutTest(unittest.TestCase):
@@ -81,6 +85,14 @@ class RolloutTest(unittest.TestCase):
                 self.assertEqual(self.edge.read_text(), self.original)
                 stops = [c for c in deployment.calls if c[0] == "stop"]
                 self.assertEqual(stops, [("stop", "server-next", "preview-next", "web-next")])
+
+    def test_failed_edge_rollback_keeps_candidate_services_running(self):
+        deployment = FakeDeployment(self.directory, "rollback-failure")
+        with self.assertRaisesRegex(RuntimeError, "rollback reload rejected"):
+            deployment.deploy()
+        self.assertEqual(rollout.active_web(self.edge.read_text()), "web-next")
+        stops = [c for c in deployment.calls if c[0] == "stop"]
+        self.assertEqual(stops, [])
 
     def test_rejects_mixed_origins_and_untrusted_target(self):
         with self.assertRaises(ValueError):

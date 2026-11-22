@@ -1,4 +1,3 @@
 export function getRealClassNames(className: string) {
-  const valClasses = className.split(/\s+/);
-  return valClasses;
+  return className.split(/\s+/).filter(Boolean);
 }

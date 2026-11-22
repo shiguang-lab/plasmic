@@ -23,6 +23,7 @@ test("compiled Slate leaves use their own iframe React and preserve native text"
     const win = dom.window;
     win.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
     win.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+    win.PointerEvent = win.PointerEvent || win.MouseEvent;
     win.eval(host);
     win.eval(canvas);
     const { React, ReactDOM, ReactDOMClient } = win.__Sub;
@@ -93,6 +94,7 @@ test("compiled frames and errors use each iframe's React, context and document",
     const win = dom.window;
     win.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
     win.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+    win.PointerEvent = win.PointerEvent || win.MouseEvent;
     win.eval(host); win.eval(canvas);
     const { React, ReactDOM, ReactDOMClient } = win.__Sub, runtime = win.__CanvasPkgs;
     const lifetime = new win.AbortController();
@@ -193,6 +195,7 @@ test("compiled component fibers share their iframe SDK state engine and publish 
     const win = dom.window;
     win.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
     win.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+    win.PointerEvent = win.PointerEvent || win.MouseEvent;
     win.eval(host); win.eval(sdk);
     const { React, ReactDOM, ReactDOMClient } = win.__Sub;
     const ReactWeb = win.__PlasmicReactWebBundle, Runtime = win.__PlasmicCanvasReactRuntime;
@@ -206,7 +209,7 @@ test("compiled component fibers share their iframe SDK state engine and publish 
       prepare(props, snapshot, values) {
         return { data: { props, values }, stateSpecs: [
           { path: "count", type: "private", variableType: "number", initFunc: ({ $props }) => $props.initial },
-        ], stateEnv: { $props: props, $ctx: values.$ctx, $refs: values.$refs, $queries: values.$queries, $q: values.$q } };
+        ], stateEnv: { $props: props, $ctx: values.$ctx, getRefs: values.getRefs, $queries: values.$queries, $q: values.$q } };
       },
       finish(prepared, commands, state, values) {
         frame.commands = commands; frame.state = state; frame.values = values;
@@ -219,7 +222,7 @@ test("compiled component fibers share their iframe SDK state engine and publish 
           const { $state } = ReactWeb.getStateCommandEnv({ $state: state });
           ReactWeb.set($state, ["count"], $state.count + 1);
           ReactWeb.set($state, ["count"], $state.count + 1);
-        } }, `${state.count}:${values.$refs.counter ? "attached" : "pending"}:${values.evaluatedDataTokens.$dataTokens.token.value}`);
+        } }, `${state.count}:${values.getRefs().counter ? "attached" : "pending"}:${values.evaluatedDataTokens.$dataTokens.token.value}`);
       },
     };
     const renderButton = controller.render;
@@ -229,6 +232,7 @@ test("compiled component fibers share their iframe SDK state engine and publish 
       registrations,
       plan: () => ({ server: queryTree, legacy: [] }),
       environment: (context) => ({ $props: context.props, $ctx: context.values.$ctx, $refs: context.values.$refs, $q: context.values.$q, $queries: context.values.$queries, $state: context.state }),
+      refCommands: (context) => context.values.getRefs,
       specs: () => [{ path: "count", type: "private", variableType: "number", initFunc: ({ $props }) => $props.initial }],
       withQueries: (context, state) => ({ ...context, state }),
       publish() {},
@@ -250,8 +254,8 @@ test("compiled component fibers share their iframe SDK state engine and publish 
     await flush(first, first.render); await flush(second, second.render);
     const button = first.dom.window.document.getElementById("counter"), other = second.dom.window.document.getElementById("counter");
     assert.equal(button.textContent, "1:attached:1"); assert.equal(other.textContent, "5:attached:5");
-    assert.equal(first.values.$refs.counter, button);
-    assert(Object.isFrozen(first.values.$refs));
+    assert.equal(first.values.getRefs().counter, button);
+    assert.equal(first.values.getRefs(), first.values.getRefs());
     assert(first.ReactWeb.getStateCellsInPlasmicProxy(first.commands).some((cell) => cell.path === "count"));
     const previousState = first.state;
     await flush(first, () => button.dispatchEvent(new first.dom.window.MouseEvent("click", { bubbles: true })));
@@ -289,6 +293,7 @@ test("compiled Canvas text editors own Slate hooks, history and selection in eac
     const win = dom.window;
     win.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
     win.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+    win.PointerEvent = win.PointerEvent || win.MouseEvent;
     win.eval(host); win.eval(canvas);
     const { React, ReactDOM, ReactDOMClient } = win.__Sub;
     const runtime = win.__CanvasPkgs;
@@ -344,6 +349,7 @@ test("compiled native triggers and Plume behaviors preserve iframe ownership and
     const win = dom.window;
     win.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
     win.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+    win.PointerEvent = win.PointerEvent || win.MouseEvent;
     win.eval(host); win.eval(sdk);
     const { React, ReactDOM, ReactDOMClient } = win.__Sub;
     const Runtime = win.__PlasmicCanvasReactRuntime;

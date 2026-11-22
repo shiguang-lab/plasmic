@@ -38,17 +38,17 @@ export const MENU_ITEM_TYPE = {
       displayName: "Menu item key",
       description:
         "Key of the menu item; the onClick will receive this as the value to indicate which item was clicked.",
-      hidden: (ps: any, ctx: any, { item }: any) => item.type !== "item",
+      hidden: (_ps: any, _ctx: any, { item }: any) => item.type !== "item",
     },
     label: {
       type: "string",
       description: "Label of the menu item; will use the key if not specified.",
-      hidden: (ps: any, ctx: any, { item }: any) => item.type === "divider",
+      hidden: (_ps: any, _ctx: any, { item }: any) => item.type === "divider",
     },
     children: {
       type: "array",
       displayName: "Menu items",
-      hidden: (ps: any, ctx: any, { item }: any) =>
+      hidden: (_ps: any, _ctx: any, { item }: any) =>
         item.type !== "submenu" && item.type !== "group",
     },
     onClick: {
@@ -56,7 +56,7 @@ export const MENU_ITEM_TYPE = {
       displayName: "Action",
       description: "Action to perform when this item is selected",
       argTypes: [{ name: "info", type: "object" }],
-      hidden: (ps: any, ctx: any, { item }: any) => item.type !== "item",
+      hidden: (_ps: any, _ctx: any, { item }: any) => item.type !== "item",
     },
   },
 };

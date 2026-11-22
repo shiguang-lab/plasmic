@@ -4,7 +4,7 @@ import React from "react";
 import { Form, Input } from "react-aria-components";
 import { BaseButton } from "./registerButton";
 
-export default {
+const meta: Meta<typeof BaseButton> = {
   title: "Components/BaseButton",
   component: BaseButton,
   args: {
@@ -16,7 +16,9 @@ export default {
     onSubmit: fn(),
     onReset: fn(),
   },
-} satisfies Meta<typeof BaseButton>;
+};
+
+export default meta;
 
 type Story = StoryObj<typeof BaseButton>;
 

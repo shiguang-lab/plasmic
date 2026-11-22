@@ -371,6 +371,110 @@ test("native export .plasmic writes formatted json and saves first", async () =>
   }
 });
 
+test("native export .plasmic hydrates dependency model resources and selects active branch", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-plasmic-deps-"));
+  try {
+    const dest = path.join(dir, "BranchProject.plasmic");
+    const errors = [];
+    const requests = [];
+    const depModel = { root: "dep-root", map: { "dep-root": { __type: "Site" } } };
+    const branchModel = { root: "branch-root", map: { "branch-root": { marker: "branch" } } };
+    const state = {
+      ready: true,
+      projectId: "proj-abc",
+      editorContext: { canEdit: true, branchId: "branch-1" },
+    };
+    const menu = fileMenu({
+      controller: {
+        state: async () => state,
+        dispatch: async () => {},
+      },
+      workspace: { origin: "https://studio.test", recent: [] },
+      session: {
+        fetch: async (url) => {
+          requests.push(url);
+          if (url === "https://studio.test/api/v1/projects/proj-abc@branch-1") {
+            return {
+              ok: true,
+              json: async () => ({
+                project: { id: "proj-abc", name: "Branch Project" },
+                rev: { data: JSON.stringify(branchModel) },
+                depPkgs: [
+                  { id: "pkg-v1", modelResourceId: "res-1" },
+                  { id: "pkg-v2", modelResourceId: "res-1" },
+                ],
+              }),
+            };
+          }
+          if (url === "https://studio.test/api/v1/dependency-models/res-1") {
+            return { ok: true, json: async () => depModel };
+          }
+          throw new Error("Unexpected URL: " + url);
+        },
+      },
+      getWindow: () => ({}),
+      dialog: {
+        showSaveDialog: async () => ({ filePath: dest, canceled: false }),
+        showErrorBox: (...args) => errors.push(args),
+      },
+    });
+    await menu.submenu.find((entry) => entry.id === "desktop-export-plasmic").click();
+    assert.deepEqual(errors, []);
+    assert.deepEqual(requests, [
+      "https://studio.test/api/v1/projects/proj-abc@branch-1",
+      "https://studio.test/api/v1/dependency-models/res-1",
+    ]);
+    const written = JSON.parse(fs.readFileSync(dest, "utf8"));
+    assert.deepEqual(written.bundles, [
+      ["pkg-v1", depModel],
+      ["pkg-v2", depModel],
+      ["proj-abc", branchModel],
+    ]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("native export .plasmic fails without overwriting target when dependency resource fails", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-plasmic-fail-"));
+  try {
+    const dest = path.join(dir, "Existing.plasmic");
+    fs.writeFileSync(dest, "keep-existing", "utf8");
+    const errors = [];
+    const state = { ready: true, projectId: "proj-abc", editorContext: { canEdit: false } };
+    const menu = fileMenu({
+      t: (key) => key,
+      controller: { state: async () => state, dispatch: async () => {} },
+      workspace: { origin: "https://studio.test", recent: [] },
+      session: {
+        fetch: async (url) => {
+          if (url.includes("/api/v1/projects/")) {
+            return {
+              ok: true,
+              json: async () => ({
+                project: { id: "proj-abc", name: "Existing" },
+                rev: { data: JSON.stringify({ root: "r", map: {} }) },
+                depPkgs: [{ id: "pkg-v1", modelResourceId: "missing-res" }],
+              }),
+            };
+          }
+          return { ok: false, status: 404 };
+        },
+      },
+      getWindow: () => ({}),
+      dialog: {
+        showSaveDialog: async () => ({ filePath: dest, canceled: false }),
+        showErrorBox: (...args) => errors.push(args),
+      },
+    });
+    await menu.submenu.find((entry) => entry.id === "desktop-export-plasmic").click();
+    assert.equal(errors.length, 1);
+    assert.equal(fs.readFileSync(dest, "utf8"), "keep-existing");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("native import .plasmic calls import api and opens design", async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-plasmic-import-"));
   try {
@@ -492,6 +596,37 @@ test("recent projects discard only confirmed unavailable entries and persist acr
     ["offline", "other"],
   );
   assert.equal(await workspace.refreshRecent(session), false);
+});
+
+test("recent refresh preserves a newly recorded published template sharing an unavailable project id", async (t) => {
+  const { workspace, dir } = startupFixture(t);
+  const projectCheck = Promise.withResolvers();
+  const refresh = workspace.refreshRecent({
+    fetch: async (url) => {
+      const request = new URL(url);
+      if (request.pathname === "/api/auth/session") {
+        return Response.json({ authenticated: true });
+      }
+      const [id] = JSON.parse(request.searchParams.get("projectIds"));
+      if (id === "saved") {
+        return projectCheck.promise;
+      }
+      return Response.json({ projects: [] });
+    },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  const templateUrl = origin + "/projects/saved?publishedTemplate=true";
+  workspace.remember({
+    url: templateUrl,
+    ready: true,
+    editorContext: { projectName: "Template Copy" },
+  });
+  projectCheck.resolve(Response.json({ projects: [] }));
+  assert.equal(await refresh, true);
+  assert.deepEqual(
+    new DesktopWorkspace(dir, origin).recent.map((entry) => entry.url),
+    [templateUrl],
+  );
 });
 for (const status of [401, 503]) {
   test(`recent projects retain history when session cannot be confirmed (${status})`, async (t) => {

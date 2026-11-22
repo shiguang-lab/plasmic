@@ -7,12 +7,16 @@ import {
   wabToTsType,
 } from "@/wab/shared/model/model-util";
 import { readFileSync } from "fs";
+import path from "path";
 
 describe("model-util", () => {
   it("works", () => {
     const bundle = JSON.parse(
       readFileSync(
-        "src/wab/shared/codegen/__testonly__/bundles/todomvc.json",
+        path.resolve(
+          __dirname,
+          "../codegen/__testonly__/bundles/todomvc.json",
+        ),
         "utf8",
       ),
     );

@@ -1,4 +1,5 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { BottomModalsProvider } from "@/wab/client/components/BottomModal";
 import { ComponentDataQueriesSection } from "@/wab/client/components/sidebar-tabs/component-data-queries-section";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import type DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
@@ -21,7 +22,7 @@ import { mock } from "vitest-mock-extended";
 
 type OpenProps = Parameters<ReturnType<typeof useDataSourceOpExprBottomModal>["open"]>[0];
 const calls = vi.hoisted(() => ({ open: vi.fn<(key: string, props: OpenProps) => void>(), row: vi.fn<(label: React.ReactNode) => void>() }));
-vi.mock("@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker", async (original) => ({ ...(await original<typeof import("@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker")>()), useDataSourceOpExprBottomModal: (key: string) => ({ open: (props: OpenProps) => calls.open(key, props), close: vi.fn() }) }));
+vi.mock("@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker", () => ({ DataSourceOpExprSummary: () => null, DataSourceOpValuePreview: () => null, useDataSourceOpExprBottomModal: (key: string) => ({ open: (props: OpenProps) => calls.open(key, props), close: vi.fn() }) }));
 vi.mock("@/wab/client/contexts/AppContexts", async (original) => ({ ...(await original<typeof import("@/wab/client/contexts/AppContexts")>()), useDataSource: () => ({ data: undefined, error: undefined, isLoading: false }) }));
 vi.mock("@/wab/client/components/ContextMenu", async (original) => ({ ...(await original<typeof import("@/wab/client/components/ContextMenu")>()), WithContextMenu: ({ children }: React.PropsWithChildren) => children }));
 vi.mock("@/wab/client/components/sidebar/SidebarSection", async (original) => ({ ...(await original<typeof import("@/wab/client/components/sidebar/SidebarSection")>()), SidebarSection: ({ controls, children }: React.PropsWithChildren<{ controls: React.ReactNode }>) => <section>{controls}{children}</section> }));
@@ -60,7 +61,7 @@ async function setup(name = "Queries", withQueries = true) {
   return { ...data, ...f, studio, view: viewFixture(studio, data.component) };
 }
 const section = (f: Awaited<ReturnType<typeof setup>>) => <ComponentDataQueriesSection component={f.component} viewCtx={f.view} isDeprecated={false} />;
-const wrap = (f: Awaited<ReturnType<typeof setup>>, children: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={f.studio}>{children}</StudioCtxContext.Provider></AppCtxContext.Provider>;
+const wrap = (f: Awaited<ReturnType<typeof setup>>, children: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={f.studio}><BottomModalsProvider>{children}</BottomModalsProvider></StudioCtxContext.Provider></AppCtxContext.Provider>;
 
 it("consumes a pending query before mount, permits repeats and only updates the requested row", async () => {
   const f = await setup(), first = ensure(f.component.dataQueries[0], "First query"), other = ensure(f.component.dataQueries[1], "Other query");

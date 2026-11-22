@@ -297,11 +297,11 @@ class RenderStateImpl {
           ),
       ),
     );
-    if (val.className != null) {
+    if (val.className) {
       const selector = getRealClassNames(val.className)
         .map((cls) => `.${cls}`)
         .join("");
-      if (!$doms.is(selector)) {
+      if (selector && !$doms.is(selector)) {
         const $found = $doms
           .find(selector)
           .filter((_, element) => shouldAcceptAsMappedDomNode(element));

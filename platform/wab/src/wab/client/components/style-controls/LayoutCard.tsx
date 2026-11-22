@@ -665,15 +665,18 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
     };
   }, [openResizeAxis]);
 
+  const isTpl = expsProvider instanceof TplExpsProvider;
+  // Standalone rule-set controls retain their last display after owner closure.
+  const keepDisplay = !isTpl || alive;
   const layoutSnapshot = useStylePanelLayoutSnapshot(
     expsProvider,
-    alive ? LAYOUT_STYLE_KEYS : EMPTY_KEYS,
-    alive ? ["display", "flex-direction"] : EMPTY_KEYS,
+    keepDisplay ? LAYOUT_STYLE_KEYS : EMPTY_KEYS,
+    keepDisplay ? ["display", "flex-direction"] : EMPTY_KEYS,
   );
-  const cells = useStyleCells(expsProvider, alive ? LAYOUT_STYLE_KEYS : EMPTY_KEYS);
+  const cells = useStyleCells(expsProvider, keepDisplay ? LAYOUT_STYLE_KEYS : EMPTY_KEYS);
   const indicators = useStyleIndicators(
     expsProvider,
-    alive ? LAYOUT_STYLE_KEYS : EMPTY_KEYS,
+    keepDisplay ? LAYOUT_STYLE_KEYS : EMPTY_KEYS,
   );
 
   const cellMap = React.useMemo(() => {
@@ -772,7 +775,7 @@ export const LayoutCard = React.memo(function LayoutCard(props: LayoutCardProps)
     ],
   );
 
-  if (!alive || !layoutSnapshot.active || !capabilities.visible) {
+  if (!keepDisplay || !layoutSnapshot.active || !capabilities.visible) {
     return null;
   }
 

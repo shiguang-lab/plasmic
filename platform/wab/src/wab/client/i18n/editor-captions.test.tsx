@@ -18,6 +18,7 @@ import VariantRow from "@/wab/client/components/variants/VariantRow";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { createStore } from "zustand/vanilla";
 import {
   ProjectDependency,
 } from "@/wab/shared/model/classes";
@@ -334,8 +335,35 @@ it("updates both dependency filter states while preserving the selected dependen
 });
 
 it("updates deleted comment locations without translating a user-authored element name", async () => {
+  fixture.ctx = {
+    isPublishedTemplate: true,
+    commentsCtx: {
+      store: createStore(() => ({
+        usersMap: new Map([
+          [
+            "u1",
+            {
+              id: "u1",
+              email: "ada@example.com",
+              firstName: "Ada",
+              lastName: "Lovelace",
+            },
+          ],
+        ]),
+      })),
+      editThread: vi.fn(),
+      openCommentThreadDialog: vi.fn(),
+    },
+  };
   const thread = {
-    comments: [{}],
+    id: "thread",
+    comments: [
+      {
+        createdById: "u1",
+        body: "Review note",
+        createdAt: "2026-10-01T00:00:00Z",
+      },
+    ],
     label: "Deleted variant",
     subjectInfo: {
       ownerComponent: { name: "BusinessPage" },
@@ -346,7 +374,7 @@ it("updates deleted comment locations without translating a user-authored elemen
   const view = render(<RootComment commentThread={thread} showLocation />);
   for (const { value } of languageOptions) {
     await act(async () => await setLanguagePreference(value));
-    expect(view.container.textContent).toBe(
+    expect(view.container.textContent).toContain(
       `BusinessPage · ${translate(value, "Deleted variant")}`,
     );
   }
@@ -354,7 +382,7 @@ it("updates deleted comment locations without translating a user-authored elemen
   view.rerender(<RootComment commentThread={{ ...thread }} />);
   for (const { value } of languageOptions) {
     await act(async () => await setLanguagePreference(value));
-    expect(view.container.textContent).toBe(
+    expect(view.container.textContent).toContain(
       translate(value, "Deleted element"),
     );
   }

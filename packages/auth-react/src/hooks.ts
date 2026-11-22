@@ -113,9 +113,11 @@ async function checkAlreadyLoggedUser(opts: {
   });
 
   if (error) {
-    // If there is an error, we just remove the token
-    // But ideally we should check if the reason is token expired
-    localStorage.removeItem(storageUserKey(appId));
+    // Only clear stored credentials when the server confirms the token is invalid.
+    // Transient errors (429/5xx) preserve the token so subsequent retries can recover.
+    if ((error as { invalidToken?: boolean }).invalidToken) {
+      localStorage.removeItem(storageUserKey(appId));
+    }
     console.error(`Error while checking logged user`);
     return { user: null, token: null };
   }

@@ -1,0 +1,2300 @@
+{
+  "release": "0.9.15",
+  "revision": "ae1dc31dc4e55d26117a088158f09717c7c01740",
+  "electron": "45.2.1",
+  "hardware": "Apple M4",
+  "project": "platform/loader-tests/data/plasmic-kit-website-components_16033.json",
+  "design": {
+    "navigation": "Dashboard card to a fresh editor, local packaged assets and offline project replay, 19281 stored objects, initial arena contains six artboards. External business images are placeholders. Unthrottled Electron main process; renderer and iframe targets set to 1x or 4x using CDP.",
+    "A": "Existing HostFrameViewInitializer loader requests and evaluates Studio.",
+    "B": "In Host Root.loader immediately after loadProjectEntry(), start the same Promise.all of 44 Rspack ensure calls; preserve the original require(818378) at the normal import site. Uses the same private instrumented release renderer as A. The removedRefActions early return is enabled in both.",
+    "warmup": "Two independent ten-open batches per CPU setting; first two per batch excluded; within each later pair, arm order alternates across pairs.",
+    "businessPixels": "First capturePage sample matching at least 37/40 reference pixels in the Home artboard. Sampling and readback add uncertainty.",
+    "savings": "A minus B within each adjacent pair; positive is faster with preload. Per-arm medians and paired savings medians are computed separately."
+  },
+  "chunkGroup": {
+    ".js": {
+      "files": 44,
+      "uncompressedBytes": 10831501
+    },
+    ".css": {
+      "files": 14,
+      "uncompressedBytes": 1921635
+    }
+  },
+  "groups": {
+    "4x": {
+      "summaryMs": {
+        "rootToNormalImport": {
+          "A": {
+            "median": 41.1,
+            "range": [
+              35.5,
+              44.5
+            ]
+          },
+          "B": {
+            "median": 106.45,
+            "range": [
+              101.1,
+              112.2
+            ]
+          },
+          "pairedSavings": {
+            "median": -66.0,
+            "range": [
+              -69.4,
+              -56.8
+            ]
+          },
+          "pairsFaster": 0,
+          "pairedSavingsMs": [
+            -66.3,
+            -69.0,
+            -66.2,
+            -65.3,
+            -56.8,
+            -64.4,
+            -65.8,
+            -69.4
+          ]
+        },
+        "preloadLead": {
+          "A": {
+            "median": 0.0,
+            "range": [
+              0,
+              0
+            ]
+          },
+          "B": {
+            "median": 104.25,
+            "range": [
+              98.0,
+              109.0
+            ]
+          },
+          "pairedSavings": {
+            "median": -104.25,
+            "range": [
+              -109.0,
+              -98.0
+            ]
+          },
+          "pairsFaster": 0,
+          "pairedSavingsMs": [
+            -104.8,
+            -109.0,
+            -98.8,
+            -99.8,
+            -98.0,
+            -103.7,
+            -107.6,
+            -107.8
+          ]
+        },
+        "rootToModuleReady": {
+          "A": {
+            "median": 468.4,
+            "range": [
+              430.7,
+              494.0
+            ]
+          },
+          "B": {
+            "median": 462.8,
+            "range": [
+              438.3,
+              502.6
+            ]
+          },
+          "pairedSavings": {
+            "median": -3.0,
+            "range": [
+              -21.1,
+              22.5
+            ]
+          },
+          "pairsFaster": 4,
+          "pairedSavingsMs": [
+            3.2,
+            22.5,
+            -7.6,
+            1.6,
+            20.8,
+            -11.1,
+            -21.1,
+            -8.6
+          ]
+        },
+        "clickToModuleReady": {
+          "A": {
+            "median": 1930.2,
+            "range": [
+              1830.2,
+              1971.2
+            ]
+          },
+          "B": {
+            "median": 1927.1,
+            "range": [
+              1828.8,
+              1950.3
+            ]
+          },
+          "pairedSavings": {
+            "median": 13.5,
+            "range": [
+              -55.0,
+              66.0
+            ]
+          },
+          "pairsFaster": 6,
+          "pairedSavingsMs": [
+            66.0,
+            29.2,
+            1.4,
+            41.3,
+            3.3,
+            -2.9,
+            -55.0,
+            23.7
+          ]
+        },
+        "moduleImport": {
+          "A": {
+            "median": 425.85,
+            "range": [
+              395.2,
+              453.6
+            ]
+          },
+          "B": {
+            "median": 353.95,
+            "range": [
+              336,
+              392.8
+            ]
+          },
+          "pairedSavings": {
+            "median": 63.85,
+            "range": [
+              44.7,
+              91.3
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            69.5,
+            91.3,
+            59.2,
+            66.9,
+            77.7,
+            53.7,
+            44.7,
+            60.8
+          ]
+        },
+        "waitForChunks": {
+          "A": {
+            "median": 69.15,
+            "range": [
+              57.9,
+              71.2
+            ]
+          },
+          "B": {
+            "median": 0.35,
+            "range": [
+              0.0,
+              0.7
+            ]
+          },
+          "pairedSavings": {
+            "median": 68.75,
+            "range": [
+              57.7,
+              71.1
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            71.1,
+            69.2,
+            57.7,
+            68.3,
+            70.5,
+            63.5,
+            67.8,
+            69.2
+          ]
+        },
+        "evaluateModule": {
+          "A": {
+            "median": 354.6,
+            "range": [
+              337.3,
+              384.3
+            ]
+          },
+          "B": {
+            "median": 353.65,
+            "range": [
+              335.8,
+              392.7
+            ]
+          },
+          "pairedSavings": {
+            "median": -1.5,
+            "range": [
+              -23.1,
+              22.0
+            ]
+          },
+          "pairsFaster": 3,
+          "pairedSavingsMs": [
+            -1.6,
+            22.0,
+            1.5,
+            -1.4,
+            6.7,
+            -10.3,
+            -23.1,
+            -8.4
+          ]
+        },
+        "importBookkeeping": {
+          "A": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.5
+            ]
+          },
+          "B": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ]
+          },
+          "pairedSavings": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.5
+            ]
+          },
+          "pairsFaster": 3,
+          "pairedSavingsMs": [
+            0.0,
+            0.1,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.0,
+            0.0
+          ]
+        },
+        "chunkWaitThroughLastResponse": {
+          "A": {
+            "median": 27.7,
+            "range": [
+              23.9,
+              30.2
+            ]
+          },
+          "B": {
+            "median": 0.0,
+            "range": [
+              0,
+              0
+            ]
+          },
+          "pairedSavings": {
+            "median": 27.7,
+            "range": [
+              23.9,
+              30.2
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            27.2,
+            28.2,
+            29.7,
+            30.0,
+            26.3,
+            24.6,
+            30.2,
+            23.9
+          ]
+        },
+        "chunkWaitAfterLastResponse": {
+          "A": {
+            "median": 40.55,
+            "range": [
+              28.2,
+              45.4
+            ]
+          },
+          "B": {
+            "median": 0.35,
+            "range": [
+              0.0,
+              0.7
+            ]
+          },
+          "pairedSavings": {
+            "median": 39.95,
+            "range": [
+              28.0,
+              45.3
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            43.9,
+            41.0,
+            28.0,
+            38.3,
+            44.2,
+            38.9,
+            37.6,
+            45.3
+          ]
+        },
+        "clickToFirstRender": {
+          "A": {
+            "median": 6958.8,
+            "range": [
+              6856.0,
+              7489.3
+            ]
+          },
+          "B": {
+            "median": 6974.95,
+            "range": [
+              6869.7,
+              7452.8
+            ]
+          },
+          "pairedSavings": {
+            "median": 5.1,
+            "range": [
+              -150.2,
+              160.0
+            ]
+          },
+          "pairsFaster": 4,
+          "pairedSavingsMs": [
+            160.0,
+            -55.6,
+            61.5,
+            -133.7,
+            14.5,
+            -4.3,
+            -150.2,
+            95.3
+          ]
+        },
+        "clickToBusinessPixels": {
+          "A": {
+            "median": 7362.98,
+            "range": [
+              7245.89,
+              7984.71
+            ]
+          },
+          "B": {
+            "median": 7371.44,
+            "range": [
+              7297.31,
+              7932.91
+            ]
+          },
+          "pairedSavings": {
+            "median": 0.38,
+            "range": [
+              -149.93,
+              156.83
+            ]
+          },
+          "pairsFaster": 4,
+          "pairedSavingsMs": [
+            156.83,
+            -120.46,
+            -6.46,
+            -149.93,
+            40.72,
+            7.22,
+            -91.31,
+            76.94
+          ]
+        },
+        "pixelSampleGap": {
+          "A": {
+            "median": 36.87,
+            "range": [
+              20.09,
+              51.72
+            ]
+          },
+          "B": {
+            "median": 41.85,
+            "range": [
+              16.27,
+              47.37
+            ]
+          },
+          "pairedSavings": {
+            "median": 2.38,
+            "range": [
+              -26.75,
+              26.29
+            ]
+          },
+          "pairsFaster": 5,
+          "pairedSavingsMs": [
+            2.32,
+            9.36,
+            -26.75,
+            -19.29,
+            -13.35,
+            26.29,
+            2.44,
+            4.34
+          ]
+        },
+        "lastResponseEndMinusImportStart": {
+          "A": {
+            "median": 27.7,
+            "range": [
+              23.9,
+              30.2
+            ]
+          },
+          "B": {
+            "median": -76.65,
+            "range": [
+              -81.5,
+              -64.6
+            ]
+          },
+          "pairedSavings": {
+            "median": 103.45,
+            "range": [
+              94.6,
+              111.7
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            105.8,
+            107.1,
+            105.2,
+            94.6,
+            96.2,
+            98.6,
+            111.7,
+            101.7
+          ]
+        }
+      },
+      "samplesMs": [
+        {
+          "batch": "four1",
+          "index": 0,
+          "arm": "A",
+          "warmup": true,
+          "rootToNormalImport": 44.2,
+          "preloadLead": 0,
+          "rootToModuleReady": 497.0,
+          "clickToModuleReady": 2015.0,
+          "moduleImport": 452.8,
+          "waitForChunks": 71.6,
+          "evaluateModule": 381.2,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7632,
+          "clickToBusinessPixels": 8085.91,
+          "pixelSampleGap": 42.72,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 29.8,
+          "chunkWaitAfterLastResponse": 41.8,
+          "lastResponseEndMinusImportStart": 29.8,
+          "matchedPoints": 39,
+          "captureRetry": "UnknownVizError"
+        },
+        {
+          "batch": "four1",
+          "index": 1,
+          "arm": "B",
+          "warmup": true,
+          "rootToNormalImport": 106.8,
+          "preloadLead": 103.6,
+          "rootToModuleReady": 464.3,
+          "clickToModuleReady": 1902.6,
+          "moduleImport": 357,
+          "waitForChunks": 0.1,
+          "evaluateModule": 356.9,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7358.9,
+          "clickToBusinessPixels": 7826.07,
+          "pixelSampleGap": 20.18,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.1,
+          "lastResponseEndMinusImportStart": -75.7,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 2,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 40.6,
+          "preloadLead": 0,
+          "rootToModuleReady": 464.2,
+          "clickToModuleReady": 1971.2,
+          "moduleImport": 423.6,
+          "waitForChunks": 71.2,
+          "evaluateModule": 352.4,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7489.3,
+          "clickToBusinessPixels": 7984.71,
+          "pixelSampleGap": 43.66,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 27.2,
+          "chunkWaitAfterLastResponse": 44.0,
+          "lastResponseEndMinusImportStart": 27.2,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 3,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 106.9,
+          "preloadLead": 104.8,
+          "rootToModuleReady": 461.0,
+          "clickToModuleReady": 1905.2,
+          "moduleImport": 354.1,
+          "waitForChunks": 0.1,
+          "evaluateModule": 354.0,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7329.3,
+          "clickToBusinessPixels": 7827.88,
+          "pixelSampleGap": 41.34,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.1,
+          "lastResponseEndMinusImportStart": -78.6,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 4,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 112.2,
+          "preloadLead": 109.0,
+          "rootToModuleReady": 466.0,
+          "clickToModuleReady": 1938.1,
+          "moduleImport": 353.8,
+          "waitForChunks": 0.5,
+          "evaluateModule": 353.3,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7452.8,
+          "clickToBusinessPixels": 7932.91,
+          "pixelSampleGap": 42.36,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.5,
+          "lastResponseEndMinusImportStart": -78.9,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 5,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 43.2,
+          "preloadLead": 0,
+          "rootToModuleReady": 488.5,
+          "clickToModuleReady": 1967.3,
+          "moduleImport": 445.1,
+          "waitForChunks": 69.7,
+          "evaluateModule": 375.3,
+          "importBookkeeping": 0.1,
+          "clickToFirstRender": 7397.2,
+          "clickToBusinessPixels": 7812.45,
+          "pixelSampleGap": 51.72,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 28.2,
+          "chunkWaitAfterLastResponse": 41.5,
+          "lastResponseEndMinusImportStart": 28.2,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 6,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 101.7,
+          "preloadLead": 98.8,
+          "rootToModuleReady": 438.3,
+          "clickToModuleReady": 1828.8,
+          "moduleImport": 336,
+          "waitForChunks": 0.2,
+          "evaluateModule": 335.8,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6869.7,
+          "clickToBusinessPixels": 7297.31,
+          "pixelSampleGap": 46.84,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.2,
+          "lastResponseEndMinusImportStart": -75.5,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 7,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 35.5,
+          "preloadLead": 0,
+          "rootToModuleReady": 430.7,
+          "clickToModuleReady": 1830.2,
+          "moduleImport": 395.2,
+          "waitForChunks": 57.9,
+          "evaluateModule": 337.3,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6931.2,
+          "clickToBusinessPixels": 7290.85,
+          "pixelSampleGap": 20.09,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 29.7,
+          "chunkWaitAfterLastResponse": 28.2,
+          "lastResponseEndMinusImportStart": 29.7,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 8,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 39.3,
+          "preloadLead": 0,
+          "rootToModuleReady": 451.8,
+          "clickToModuleReady": 1890.7,
+          "moduleImport": 412.5,
+          "waitForChunks": 69.0,
+          "evaluateModule": 343.5,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6856.0,
+          "clickToBusinessPixels": 7245.89,
+          "pixelSampleGap": 28.08,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 30.0,
+          "chunkWaitAfterLastResponse": 39.0,
+          "lastResponseEndMinusImportStart": 30.0,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four1",
+          "index": 9,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 104.6,
+          "preloadLead": 99.8,
+          "rootToModuleReady": 450.2,
+          "clickToModuleReady": 1849.4,
+          "moduleImport": 345.6,
+          "waitForChunks": 0.7,
+          "evaluateModule": 344.9,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6989.7,
+          "clickToBusinessPixels": 7395.82,
+          "pixelSampleGap": 47.37,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.7,
+          "lastResponseEndMinusImportStart": -64.6,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 0,
+          "arm": "B",
+          "warmup": true,
+          "rootToNormalImport": 102.5,
+          "preloadLead": 99.5,
+          "rootToModuleReady": 448.5,
+          "clickToModuleReady": 1957.7,
+          "moduleImport": 345.2,
+          "waitForChunks": 0.3,
+          "evaluateModule": 344.9,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7017.5,
+          "clickToBusinessPixels": 7405.27,
+          "pixelSampleGap": 43.62,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.3,
+          "lastResponseEndMinusImportStart": -69.7,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 1,
+          "arm": "A",
+          "warmup": true,
+          "rootToNormalImport": 37.4,
+          "preloadLead": 0,
+          "rootToModuleReady": 458.5,
+          "clickToModuleReady": 1942.6,
+          "moduleImport": 421,
+          "waitForChunks": 69.3,
+          "evaluateModule": 351.7,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6963.8,
+          "clickToBusinessPixels": 7355.92,
+          "pixelSampleGap": 21.4,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 29.6,
+          "chunkWaitAfterLastResponse": 39.7,
+          "lastResponseEndMinusImportStart": 29.6,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 2,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 101.1,
+          "preloadLead": 98.0,
+          "rootToModuleReady": 452.0,
+          "clickToModuleReady": 1930.2,
+          "moduleImport": 350.8,
+          "waitForChunks": 0.7,
+          "evaluateModule": 350.1,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6947.2,
+          "clickToBusinessPixels": 7334.92,
+          "pixelSampleGap": 44.25,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.7,
+          "lastResponseEndMinusImportStart": -69.9,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 3,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 44.3,
+          "preloadLead": 0,
+          "rootToModuleReady": 472.8,
+          "clickToModuleReady": 1933.5,
+          "moduleImport": 428.5,
+          "waitForChunks": 71.2,
+          "evaluateModule": 356.8,
+          "importBookkeeping": 0.5,
+          "clickToFirstRender": 6961.7,
+          "clickToBusinessPixels": 7375.64,
+          "pixelSampleGap": 30.9,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 26.3,
+          "chunkWaitAfterLastResponse": 44.9,
+          "lastResponseEndMinusImportStart": 26.3,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 4,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 41.6,
+          "preloadLead": 0,
+          "rootToModuleReady": 453.5,
+          "clickToModuleReady": 1926.9,
+          "moduleImport": 412.3,
+          "waitForChunks": 64.2,
+          "evaluateModule": 347.6,
+          "importBookkeeping": 0.5,
+          "clickToFirstRender": 6955.9,
+          "clickToBusinessPixels": 7350.32,
+          "pixelSampleGap": 43.08,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 24.6,
+          "chunkWaitAfterLastResponse": 39.6,
+          "lastResponseEndMinusImportStart": 24.6,
+          "matchedPoints": 39,
+          "captureRetry": "UnknownVizError"
+        },
+        {
+          "batch": "four2",
+          "index": 5,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 106.0,
+          "preloadLead": 103.7,
+          "rootToModuleReady": 464.6,
+          "clickToModuleReady": 1929.8,
+          "moduleImport": 358.6,
+          "waitForChunks": 0.7,
+          "evaluateModule": 357.9,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6960.2,
+          "clickToBusinessPixels": 7343.1,
+          "pixelSampleGap": 16.79,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.7,
+          "lastResponseEndMinusImportStart": -74.0,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 6,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 44.5,
+          "preloadLead": 0,
+          "rootToModuleReady": 472.6,
+          "clickToModuleReady": 1895.3,
+          "moduleImport": 428.1,
+          "waitForChunks": 67.8,
+          "evaluateModule": 360.3,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6902.4,
+          "clickToBusinessPixels": 7338.25,
+          "pixelSampleGap": 42.84,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 30.2,
+          "chunkWaitAfterLastResponse": 37.6,
+          "lastResponseEndMinusImportStart": 30.2,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 7,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 110.3,
+          "preloadLead": 107.6,
+          "rootToModuleReady": 493.7,
+          "clickToModuleReady": 1950.3,
+          "moduleImport": 383.4,
+          "waitForChunks": 0.0,
+          "evaluateModule": 383.4,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7052.6,
+          "clickToBusinessPixels": 7429.56,
+          "pixelSampleGap": 40.4,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.0,
+          "lastResponseEndMinusImportStart": -81.5,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 8,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 109.8,
+          "preloadLead": 107.8,
+          "rootToModuleReady": 502.6,
+          "clickToModuleReady": 1924.4,
+          "moduleImport": 392.8,
+          "waitForChunks": 0.1,
+          "evaluateModule": 392.7,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 6940.3,
+          "clickToBusinessPixels": 7347.07,
+          "pixelSampleGap": 16.27,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.1,
+          "lastResponseEndMinusImportStart": -77.8,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "four2",
+          "index": 9,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 40.4,
+          "preloadLead": 0,
+          "rootToModuleReady": 494.0,
+          "clickToModuleReady": 1948.1,
+          "moduleImport": 453.6,
+          "waitForChunks": 69.3,
+          "evaluateModule": 384.3,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 7035.6,
+          "clickToBusinessPixels": 7424.01,
+          "pixelSampleGap": 20.61,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 23.9,
+          "chunkWaitAfterLastResponse": 45.4,
+          "lastResponseEndMinusImportStart": 23.9,
+          "matchedPoints": 39,
+          "captureRetry": null
+        }
+      ]
+    },
+    "1x": {
+      "summaryMs": {
+        "rootToNormalImport": {
+          "A": {
+            "median": 8.9,
+            "range": [
+              8.3,
+              9.7
+            ]
+          },
+          "B": {
+            "median": 25.3,
+            "range": [
+              11.9,
+              28.4
+            ]
+          },
+          "pairedSavings": {
+            "median": -16.55,
+            "range": [
+              -19.6,
+              -3.3
+            ]
+          },
+          "pairsFaster": 0,
+          "pairedSavingsMs": [
+            -15.7,
+            -19.3,
+            -19.2,
+            -19.6,
+            -9.3,
+            -7.1,
+            -3.3,
+            -17.4
+          ]
+        },
+        "preloadLead": {
+          "A": {
+            "median": 0.0,
+            "range": [
+              0,
+              0
+            ]
+          },
+          "B": {
+            "median": 24.75,
+            "range": [
+              11.2,
+              27.9
+            ]
+          },
+          "pairedSavings": {
+            "median": -24.75,
+            "range": [
+              -27.9,
+              -11.2
+            ]
+          },
+          "pairsFaster": 0,
+          "pairedSavingsMs": [
+            -23.5,
+            -27.2,
+            -27.7,
+            -27.9,
+            -18.4,
+            -16.0,
+            -11.2,
+            -26.0
+          ]
+        },
+        "rootToModuleReady": {
+          "A": {
+            "median": 121.25,
+            "range": [
+              119.8,
+              126.4
+            ]
+          },
+          "B": {
+            "median": 117.65,
+            "range": [
+              114.9,
+              120.8
+            ]
+          },
+          "pairedSavings": {
+            "median": 3.15,
+            "range": [
+              0.1,
+              10.1
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            6.5,
+            10.1,
+            2.9,
+            2.2,
+            0.1,
+            3.4,
+            5.6,
+            0.7
+          ]
+        },
+        "clickToModuleReady": {
+          "A": {
+            "median": 595.35,
+            "range": [
+              588.7,
+              604.9
+            ]
+          },
+          "B": {
+            "median": 589.2,
+            "range": [
+              571.6,
+              599.3
+            ]
+          },
+          "pairedSavings": {
+            "median": 8.15,
+            "range": [
+              -7.5,
+              33.3
+            ]
+          },
+          "pairsFaster": 6,
+          "pairedSavingsMs": [
+            11.1,
+            9.0,
+            -1.6,
+            -7.5,
+            21.3,
+            3.2,
+            33.3,
+            7.3
+          ]
+        },
+        "moduleImport": {
+          "A": {
+            "median": 112.45,
+            "range": [
+              110.7,
+              118
+            ]
+          },
+          "B": {
+            "median": 92.35,
+            "range": [
+              88.7,
+              105.5
+            ]
+          },
+          "pairedSavings": {
+            "median": 19.95,
+            "range": [
+              8.9,
+              29.3
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            22.1,
+            29.3,
+            22.0,
+            21.8,
+            9.4,
+            10.5,
+            8.9,
+            18.1
+          ]
+        },
+        "waitForChunks": {
+          "A": {
+            "median": 29.9,
+            "range": [
+              28.4,
+              34.9
+            ]
+          },
+          "B": {
+            "median": 9.8,
+            "range": [
+              6.5,
+              23.1
+            ]
+          },
+          "pairedSavings": {
+            "median": 19.85,
+            "range": [
+              7.7,
+              27.8
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            21.2,
+            27.8,
+            22.6,
+            20.7,
+            10.5,
+            11.2,
+            7.7,
+            19.0
+          ]
+        },
+        "evaluateModule": {
+          "A": {
+            "median": 82.65,
+            "range": [
+              81.6,
+              83.6
+            ]
+          },
+          "B": {
+            "median": 82.25,
+            "range": [
+              81.4,
+              83.3
+            ]
+          },
+          "pairedSavings": {
+            "median": 0.2,
+            "range": [
+              -1.1,
+              1.7
+            ]
+          },
+          "pairsFaster": 4,
+          "pairedSavingsMs": [
+            0.9,
+            1.7,
+            -0.5,
+            1.1,
+            -1.1,
+            -0.7,
+            1.2,
+            -0.8
+          ]
+        },
+        "importBookkeeping": {
+          "A": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.0
+            ]
+          },
+          "B": {
+            "median": 0.0,
+            "range": [
+              0.0,
+              0.2
+            ]
+          },
+          "pairedSavings": {
+            "median": 0.0,
+            "range": [
+              -0.2,
+              0.0
+            ]
+          },
+          "pairsFaster": 0,
+          "pairedSavingsMs": [
+            0.0,
+            -0.2,
+            -0.1,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.1
+          ]
+        },
+        "chunkWaitThroughLastResponse": {
+          "A": {
+            "median": 24.75,
+            "range": [
+              22.6,
+              29.3
+            ]
+          },
+          "B": {
+            "median": 4.25,
+            "range": [
+              2.2,
+              17.4
+            ]
+          },
+          "pairedSavings": {
+            "median": 18.45,
+            "range": [
+              7.7,
+              26.6
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            23.6,
+            26.6,
+            22.2,
+            20.0,
+            10.1,
+            11.2,
+            7.7,
+            16.9
+          ]
+        },
+        "chunkWaitAfterLastResponse": {
+          "A": {
+            "median": 5.15,
+            "range": [
+              4.4,
+              6.9
+            ]
+          },
+          "B": {
+            "median": 4.65,
+            "range": [
+              4.2,
+              6.8
+            ]
+          },
+          "pairedSavings": {
+            "median": 0.4,
+            "range": [
+              -2.4,
+              2.1
+            ]
+          },
+          "pairsFaster": 5,
+          "pairedSavingsMs": [
+            -2.4,
+            1.2,
+            0.4,
+            0.7,
+            0.4,
+            0.0,
+            0.0,
+            2.1
+          ]
+        },
+        "clickToFirstRender": {
+          "A": {
+            "median": 1834.15,
+            "range": [
+              1820.4,
+              1884.1
+            ]
+          },
+          "B": {
+            "median": 1824.15,
+            "range": [
+              1811.5,
+              1843.4
+            ]
+          },
+          "pairedSavings": {
+            "median": 11.7,
+            "range": [
+              -19.6,
+              69.4
+            ]
+          },
+          "pairsFaster": 6,
+          "pairedSavingsMs": [
+            8.9,
+            -2.7,
+            37.4,
+            -19.6,
+            69.4,
+            3.8,
+            14.5,
+            21.7
+          ]
+        },
+        "clickToBusinessPixels": {
+          "A": {
+            "median": 1979.38,
+            "range": [
+              1953.51,
+              2048.0
+            ]
+          },
+          "B": {
+            "median": 1965.34,
+            "range": [
+              1953.44,
+              1984.82
+            ]
+          },
+          "pairedSavings": {
+            "median": 17.05,
+            "range": [
+              -29.71,
+              88.51
+            ]
+          },
+          "pairsFaster": 4,
+          "pairedSavingsMs": [
+            -1.03,
+            -6.08,
+            37.04,
+            -29.71,
+            80.25,
+            -22.66,
+            35.14,
+            88.51
+          ]
+        },
+        "pixelSampleGap": {
+          "A": {
+            "median": 42.08,
+            "range": [
+              20.4,
+              52.83
+            ]
+          },
+          "B": {
+            "median": 34.41,
+            "range": [
+              18.62,
+              45.19
+            ]
+          },
+          "pairedSavings": {
+            "median": 3.88,
+            "range": [
+              -21.19,
+              34.14
+            ]
+          },
+          "pairsFaster": 5,
+          "pairedSavingsMs": [
+            0.12,
+            -0.23,
+            -6.82,
+            18.36,
+            -21.19,
+            19.34,
+            7.64,
+            34.14
+          ]
+        },
+        "lastResponseEndMinusImportStart": {
+          "A": {
+            "median": 24.75,
+            "range": [
+              22.6,
+              29.3
+            ]
+          },
+          "B": {
+            "median": 4.25,
+            "range": [
+              2.2,
+              17.4
+            ]
+          },
+          "pairedSavings": {
+            "median": 18.45,
+            "range": [
+              7.7,
+              26.6
+            ]
+          },
+          "pairsFaster": 8,
+          "pairedSavingsMs": [
+            23.6,
+            26.6,
+            22.2,
+            20.0,
+            10.1,
+            11.2,
+            7.7,
+            16.9
+          ]
+        }
+      },
+      "samplesMs": [
+        {
+          "batch": "one1",
+          "index": 0,
+          "arm": "B",
+          "warmup": true,
+          "rootToNormalImport": 38.6,
+          "preloadLead": 38.0,
+          "rootToModuleReady": 124.8,
+          "clickToModuleReady": 593.1,
+          "moduleImport": 86.2,
+          "waitForChunks": 0.4,
+          "evaluateModule": 85.8,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1885.7,
+          "clickToBusinessPixels": 2047.75,
+          "pixelSampleGap": 22.22,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 0,
+          "chunkWaitAfterLastResponse": 0.4,
+          "lastResponseEndMinusImportStart": -4.7,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 1,
+          "arm": "A",
+          "warmup": true,
+          "rootToNormalImport": 8.8,
+          "preloadLead": 0,
+          "rootToModuleReady": 122.4,
+          "clickToModuleReady": 590.6,
+          "moduleImport": 113.6,
+          "waitForChunks": 31.2,
+          "evaluateModule": 82.4,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1854.3,
+          "clickToBusinessPixels": 1993.54,
+          "pixelSampleGap": 41.75,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 25.4,
+          "chunkWaitAfterLastResponse": 5.8,
+          "lastResponseEndMinusImportStart": 25.4,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 2,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 8.3,
+          "preloadLead": 0,
+          "rootToModuleReady": 121.4,
+          "clickToModuleReady": 593.8,
+          "moduleImport": 113,
+          "waitForChunks": 30.2,
+          "evaluateModule": 82.8,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1820.4,
+          "clickToBusinessPixels": 1953.81,
+          "pixelSampleGap": 42.24,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 25.8,
+          "chunkWaitAfterLastResponse": 4.4,
+          "lastResponseEndMinusImportStart": 25.8,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 3,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 24.0,
+          "preloadLead": 23.5,
+          "rootToModuleReady": 114.9,
+          "clickToModuleReady": 582.7,
+          "moduleImport": 90.9,
+          "waitForChunks": 9.0,
+          "evaluateModule": 81.9,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1811.5,
+          "clickToBusinessPixels": 1954.84,
+          "pixelSampleGap": 42.12,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 2.2,
+          "chunkWaitAfterLastResponse": 6.8,
+          "lastResponseEndMinusImportStart": 2.2,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 4,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 8.4,
+          "preloadLead": 0,
+          "rootToModuleReady": 126.4,
+          "clickToModuleReady": 597.8,
+          "moduleImport": 118,
+          "waitForChunks": 34.9,
+          "evaluateModule": 83.1,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1830.9,
+          "clickToBusinessPixels": 1953.51,
+          "pixelSampleGap": 41.74,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 29.3,
+          "chunkWaitAfterLastResponse": 5.6,
+          "lastResponseEndMinusImportStart": 29.3,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 5,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 27.7,
+          "preloadLead": 27.2,
+          "rootToModuleReady": 116.3,
+          "clickToModuleReady": 588.8,
+          "moduleImport": 88.7,
+          "waitForChunks": 7.1,
+          "evaluateModule": 81.4,
+          "importBookkeeping": 0.2,
+          "clickToFirstRender": 1833.6,
+          "clickToBusinessPixels": 1959.59,
+          "pixelSampleGap": 41.97,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 2.7,
+          "chunkWaitAfterLastResponse": 4.4,
+          "lastResponseEndMinusImportStart": 2.7,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 6,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 28.2,
+          "preloadLead": 27.7,
+          "rootToModuleReady": 116.9,
+          "clickToModuleReady": 590.3,
+          "moduleImport": 88.7,
+          "waitForChunks": 6.5,
+          "evaluateModule": 82.1,
+          "importBookkeeping": 0.1,
+          "clickToFirstRender": 1824.7,
+          "clickToBusinessPixels": 1983.05,
+          "pixelSampleGap": 27.22,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 2.2,
+          "chunkWaitAfterLastResponse": 4.3,
+          "lastResponseEndMinusImportStart": 2.2,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 7,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 9.0,
+          "preloadLead": 0,
+          "rootToModuleReady": 119.8,
+          "clickToModuleReady": 588.7,
+          "moduleImport": 110.7,
+          "waitForChunks": 29.1,
+          "evaluateModule": 81.6,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1862.1,
+          "clickToBusinessPixels": 2020.09,
+          "pixelSampleGap": 20.4,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 24.4,
+          "chunkWaitAfterLastResponse": 4.7,
+          "lastResponseEndMinusImportStart": 24.4,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 8,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 28.4,
+          "preloadLead": 27.9,
+          "rootToModuleReady": 117.9,
+          "clickToModuleReady": 599.3,
+          "moduleImport": 89.5,
+          "waitForChunks": 7.7,
+          "evaluateModule": 81.8,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1843.4,
+          "clickToBusinessPixels": 1984.82,
+          "pixelSampleGap": 24.7,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 2.6,
+          "chunkWaitAfterLastResponse": 5.1,
+          "lastResponseEndMinusImportStart": 2.6,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one1",
+          "index": 9,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 8.8,
+          "preloadLead": 0,
+          "rootToModuleReady": 120.1,
+          "clickToModuleReady": 591.8,
+          "moduleImport": 111.3,
+          "waitForChunks": 28.4,
+          "evaluateModule": 82.9,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1823.8,
+          "clickToBusinessPixels": 1955.11,
+          "pixelSampleGap": 43.06,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 22.6,
+          "chunkWaitAfterLastResponse": 5.8,
+          "lastResponseEndMinusImportStart": 22.6,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 0,
+          "arm": "A",
+          "warmup": true,
+          "rootToNormalImport": 8.9,
+          "preloadLead": 0,
+          "rootToModuleReady": 132.4,
+          "clickToModuleReady": 613.9,
+          "moduleImport": 123.5,
+          "waitForChunks": 36.5,
+          "evaluateModule": 87.0,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1890.3,
+          "clickToBusinessPixels": 2027.09,
+          "pixelSampleGap": 42.33,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 32,
+          "chunkWaitAfterLastResponse": 4.5,
+          "lastResponseEndMinusImportStart": 32,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 1,
+          "arm": "B",
+          "warmup": true,
+          "rootToNormalImport": 27.4,
+          "preloadLead": 26.8,
+          "rootToModuleReady": 119.2,
+          "clickToModuleReady": 584.6,
+          "moduleImport": 91.8,
+          "waitForChunks": 7.4,
+          "evaluateModule": 84.4,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1832.7,
+          "clickToBusinessPixels": 1993.35,
+          "pixelSampleGap": 24.1,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 3,
+          "chunkWaitAfterLastResponse": 4.4,
+          "lastResponseEndMinusImportStart": 3,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 2,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 19.0,
+          "preloadLead": 18.4,
+          "rootToModuleReady": 120.8,
+          "clickToModuleReady": 576.5,
+          "moduleImport": 101.8,
+          "waitForChunks": 18.5,
+          "evaluateModule": 83.3,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1814.7,
+          "clickToBusinessPixels": 1967.75,
+          "pixelSampleGap": 41.61,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 14.3,
+          "chunkWaitAfterLastResponse": 4.2,
+          "lastResponseEndMinusImportStart": 14.3,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 3,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 9.7,
+          "preloadLead": 0,
+          "rootToModuleReady": 120.9,
+          "clickToModuleReady": 597.8,
+          "moduleImport": 111.2,
+          "waitForChunks": 29.0,
+          "evaluateModule": 82.2,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1884.1,
+          "clickToBusinessPixels": 2048.0,
+          "pixelSampleGap": 20.42,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 24.4,
+          "chunkWaitAfterLastResponse": 4.6,
+          "lastResponseEndMinusImportStart": 24.4,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 4,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 16.5,
+          "preloadLead": 16.0,
+          "rootToModuleReady": 119.1,
+          "clickToModuleReady": 590.0,
+          "moduleImport": 102.6,
+          "waitForChunks": 19.4,
+          "evaluateModule": 83.2,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1826.1,
+          "clickToBusinessPixels": 1983.36,
+          "pixelSampleGap": 22.57,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 14.9,
+          "chunkWaitAfterLastResponse": 4.5,
+          "lastResponseEndMinusImportStart": 14.9,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 5,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 9.4,
+          "preloadLead": 0,
+          "rootToModuleReady": 122.5,
+          "clickToModuleReady": 593.2,
+          "moduleImport": 113.1,
+          "waitForChunks": 30.6,
+          "evaluateModule": 82.5,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1829.9,
+          "clickToBusinessPixels": 1960.7,
+          "pixelSampleGap": 41.91,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 26.1,
+          "chunkWaitAfterLastResponse": 4.5,
+          "lastResponseEndMinusImportStart": 26.1,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 6,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 8.6,
+          "preloadLead": 0,
+          "rootToModuleReady": 123.0,
+          "clickToModuleReady": 604.9,
+          "moduleImport": 114.4,
+          "waitForChunks": 30.8,
+          "evaluateModule": 83.6,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1837.4,
+          "clickToBusinessPixels": 1998.06,
+          "pixelSampleGap": 52.83,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 25.1,
+          "chunkWaitAfterLastResponse": 5.7,
+          "lastResponseEndMinusImportStart": 25.1,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 7,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 11.9,
+          "preloadLead": 11.2,
+          "rootToModuleReady": 117.4,
+          "clickToModuleReady": 571.6,
+          "moduleImport": 105.5,
+          "waitForChunks": 23.1,
+          "evaluateModule": 82.4,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1822.9,
+          "clickToBusinessPixels": 1962.92,
+          "pixelSampleGap": 45.19,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 17.4,
+          "chunkWaitAfterLastResponse": 5.7,
+          "lastResponseEndMinusImportStart": 17.4,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 8,
+          "arm": "A",
+          "warmup": false,
+          "rootToNormalImport": 9.2,
+          "preloadLead": 0,
+          "rootToModuleReady": 121.1,
+          "clickToModuleReady": 596.9,
+          "moduleImport": 111.9,
+          "waitForChunks": 29.6,
+          "evaluateModule": 82.3,
+          "importBookkeeping": 0.0,
+          "clickToFirstRender": 1845.3,
+          "clickToBusinessPixels": 2041.95,
+          "pixelSampleGap": 52.76,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 22.7,
+          "chunkWaitAfterLastResponse": 6.9,
+          "lastResponseEndMinusImportStart": 22.7,
+          "matchedPoints": 39,
+          "captureRetry": null
+        },
+        {
+          "batch": "one2",
+          "index": 9,
+          "arm": "B",
+          "warmup": false,
+          "rootToNormalImport": 26.6,
+          "preloadLead": 26.0,
+          "rootToModuleReady": 120.4,
+          "clickToModuleReady": 589.6,
+          "moduleImport": 93.8,
+          "waitForChunks": 10.6,
+          "evaluateModule": 83.1,
+          "importBookkeeping": 0.1,
+          "clickToFirstRender": 1823.6,
+          "clickToBusinessPixels": 1953.44,
+          "pixelSampleGap": 18.62,
+          "resourcesObserved": 58,
+          "chunkWaitThroughLastResponse": 5.8,
+          "chunkWaitAfterLastResponse": 4.8,
+          "lastResponseEndMinusImportStart": 5.8,
+          "matchedPoints": 39,
+          "captureRetry": null
+        }
+      ]
+    }
+  },
+  "priorBaselineMs": 414.6,
+  "closestMeasuredBaselineToPrior": {
+    "batch": "four1",
+    "index": 8,
+    "arm": "A",
+    "warmup": false,
+    "rootToNormalImport": 39.3,
+    "preloadLead": 0,
+    "rootToModuleReady": 451.8,
+    "clickToModuleReady": 1890.7,
+    "moduleImport": 412.5,
+    "waitForChunks": 69.0,
+    "evaluateModule": 343.5,
+    "importBookkeeping": 0.0,
+    "clickToFirstRender": 6856.0,
+    "clickToBusinessPixels": 7245.89,
+    "pixelSampleGap": 28.08,
+    "resourcesObserved": 58,
+    "chunkWaitThroughLastResponse": 30.0,
+    "chunkWaitAfterLastResponse": 39.0,
+    "lastResponseEndMinusImportStart": 30.0,
+    "matchedPoints": 39,
+    "captureRetry": null
+  },
+  "diagnostics4x": {
+    "method": "Three additional 4x baseline opens timed on each uncached module factory during the original synchronous require tree; self time subtracts child factories. A separate single 4x baseline open records Chromium tracing and V8 CPU samples. These diagnostic runs are excluded from A/B timings. Chunk sums and traced timeline event families may use different instruments; timeline names can nest. A source at entry identifies a generated factory, which can contain several concatenated source modules.",
+    "factoryRuns": [
+      {
+        "factoryCount": 1623,
+        "moduleEvaluationMs": 358.2,
+        "timedFactoriesMs": 358.2
+      },
+      {
+        "factoryCount": 1623,
+        "moduleEvaluationMs": 362.3,
+        "timedFactoriesMs": 362.3
+      },
+      {
+        "factoryCount": 1623,
+        "moduleEvaluationMs": 356.7,
+        "timedFactoriesMs": 356.0
+      }
+    ],
+    "firstEvaluationPaths": [
+      {
+        "id": 818378,
+        "observedModule": "StudioInitializer",
+        "firstRequirePath": [
+          818378
+        ],
+        "inclusiveMs": [
+          358.2,
+          362.3,
+          356
+        ],
+        "selfMs": [
+          7.1,
+          6.1,
+          5.1
+        ],
+        "medianInclusiveMs": 358.2,
+        "medianSelfMs": 6.1
+      },
+      {
+        "id": 799058,
+        "observedModule": "client/code-components/code-components.tsx and dependencies",
+        "firstRequirePath": [
+          818378,
+          799058
+        ],
+        "inclusiveMs": [
+          209.5,
+          212.8,
+          209.3
+        ],
+        "selfMs": [
+          0,
+          0,
+          0.2
+        ],
+        "medianInclusiveMs": 209.5,
+        "medianSelfMs": 0
+      },
+      {
+        "id": 30259,
+        "observedModule": "concatenated factory containing DataSourceOpPicker",
+        "firstRequirePath": [
+          818378,
+          799058,
+          368009,
+          273022,
+          693854,
+          173975,
+          653297,
+          594127,
+          122647,
+          464954,
+          402730,
+          403459,
+          647059,
+          30259
+        ],
+        "inclusiveMs": [
+          111.6,
+          117.4,
+          113.4
+        ],
+        "selfMs": [
+          0.6,
+          0.4,
+          0.2
+        ],
+        "medianInclusiveMs": 113.4,
+        "medianSelfMs": 0.4
+      },
+      {
+        "id": 986259,
+        "observedModule": "DocsPreviewCanvas.tsx and dependencies",
+        "firstRequirePath": [
+          818378,
+          986259
+        ],
+        "inclusiveMs": [
+          88.2,
+          88.9,
+          87
+        ],
+        "selfMs": [
+          0,
+          0,
+          0
+        ],
+        "medianInclusiveMs": 88.2,
+        "medianSelfMs": 0
+      },
+      {
+        "id": 826677,
+        "observedModule": "serialize-docs-preview.ts and dependencies",
+        "firstRequirePath": [
+          818378,
+          986259,
+          408854,
+          437470,
+          826677
+        ],
+        "inclusiveMs": [
+          87.5,
+          88.6,
+          86.9
+        ],
+        "selfMs": [
+          0,
+          0.1,
+          0.1
+        ],
+        "medianInclusiveMs": 87.5,
+        "medianSelfMs": 0.1
+      },
+      {
+        "id": 696225,
+        "observedModule": "@babel/generator and dependencies",
+        "firstRequirePath": [
+          818378,
+          986259,
+          408854,
+          437470,
+          826677,
+          696225
+        ],
+        "inclusiveMs": [
+          36.4,
+          36.5,
+          35.2
+        ],
+        "selfMs": [
+          0,
+          0,
+          0
+        ],
+        "medianInclusiveMs": 36.4,
+        "medianSelfMs": 0
+      },
+      {
+        "id": 256341,
+        "observedModule": "prettier/plugins/typescript",
+        "firstRequirePath": [
+          818378,
+          986259,
+          408854,
+          437470,
+          826677,
+          256341
+        ],
+        "inclusiveMs": [
+          23.9,
+          24.3,
+          24.5
+        ],
+        "selfMs": [
+          23.9,
+          24.3,
+          24.5
+        ],
+        "medianInclusiveMs": 24.3,
+        "medianSelfMs": 24.3
+      },
+      {
+        "id": 811938,
+        "observedModule": "@babel/types",
+        "firstRequirePath": [
+          818378,
+          986259,
+          408854,
+          437470,
+          826677,
+          811938
+        ],
+        "inclusiveMs": [
+          15.4,
+          16.3,
+          15.7
+        ],
+        "selfMs": [
+          1.5,
+          1.6,
+          2
+        ],
+        "medianInclusiveMs": 15.7,
+        "medianSelfMs": 1.6
+      },
+      {
+        "id": 717353,
+        "observedModule": "@babel/parser",
+        "firstRequirePath": [
+          818378,
+          986259,
+          408854,
+          437470,
+          826677,
+          717353
+        ],
+        "inclusiveMs": [
+          6.2,
+          5.4,
+          5.5
+        ],
+        "selfMs": [
+          6.2,
+          5.4,
+          5.5
+        ],
+        "medianInclusiveMs": 5.5,
+        "medianSelfMs": 5.5
+      },
+      {
+        "id": 98666,
+        "observedModule": "factory containing emoji-picker-react and flairup styles",
+        "firstRequirePath": [
+          818378,
+          98666
+        ],
+        "inclusiveMs": [
+          19.6,
+          20,
+          20.1
+        ],
+        "selfMs": [
+          19.6,
+          20,
+          20.1
+        ],
+        "medianInclusiveMs": 20,
+        "medianSelfMs": 20
+      },
+      {
+        "id": 435153,
+        "observedModule": "html2canvas",
+        "firstRequirePath": [
+          818378,
+          799058,
+          368009,
+          640330,
+          435153
+        ],
+        "inclusiveMs": [
+          5.8,
+          5.9,
+          5.6
+        ],
+        "selfMs": [
+          5.8,
+          5.9,
+          5.6
+        ],
+        "medianInclusiveMs": 5.8,
+        "medianSelfMs": 5.8
+      }
+    ],
+    "attribution": "First-visit inclusive times include uncached child factories and can move when import order changes. Nested rows are not additive. Labels verified against release factory exports, code signatures and repository imports. Named third-party factories were also checked against local source maps where emitted code matched.",
+    "topFactoryChunks": [
+      {
+        "chunk": "async/4650.738950a6.js",
+        "medianSelfMs": 88.8,
+        "medianFactories": 140
+      },
+      {
+        "chunk": "async/7121.b4bce2e1.js",
+        "medianSelfMs": 40.8,
+        "medianFactories": 98
+      },
+      {
+        "chunk": "async/1724.cedefc72.js",
+        "medianSelfMs": 22.5,
+        "medianFactories": 39
+      },
+      {
+        "chunk": "async/3250.e50230e6.js",
+        "medianSelfMs": 22.1,
+        "medianFactories": 263
+      },
+      {
+        "chunk": "async/8786.0198e7e7.js",
+        "medianSelfMs": 16.4,
+        "medianFactories": 66
+      },
+      {
+        "chunk": "async/9007.d4b1c499.js",
+        "medianSelfMs": 15.7,
+        "medianFactories": 85
+      },
+      {
+        "chunk": "async/4744.9131bc12.js",
+        "medianSelfMs": 14.4,
+        "medianFactories": 95
+      },
+      {
+        "chunk": "async/9359.d9fe026e.js",
+        "medianSelfMs": 13.8,
+        "medianFactories": 19
+      },
+      {
+        "chunk": "async/8119.fb449623.js",
+        "medianSelfMs": 11.7,
+        "medianFactories": 138
+      },
+      {
+        "chunk": "async/9010.400946a8.js",
+        "medianSelfMs": 11.5,
+        "medianFactories": 128
+      }
+    ],
+    "trace": {
+      "scope": "One independent A run with Chromium tracing and V8 profiling. Durations inflated by instrumentation. Sample time under the Rspack runtime includes work V8 attributed to its require/call boundary. Nested timeline event families overlap.",
+      "waitForChunksMs": 110.538,
+      "moduleEvaluationMs": 430.989,
+      "moduleEvaluationSampleCount": 1478,
+      "sampledRequireSelfMs": 209.37,
+      "sampledDefineExportsSelfMs": 7.51,
+      "resourceWindowEvents": [
+        {
+          "name": "EvaluateScript",
+          "wallMs": 35.43,
+          "count": 44
+        },
+        {
+          "name": "v8.compile",
+          "wallMs": 31.94,
+          "count": 44
+        },
+        {
+          "name": "ParseAuthorStyleSheet",
+          "wallMs": 26.61,
+          "count": 14
+        },
+        {
+          "name": "UpdateLayoutTree",
+          "wallMs": 15.4,
+          "count": 2
+        }
+      ],
+      "requireWindowMinorGcMs": 4.13
+    }
+  },
+  "methodNotes": [
+    "The released dependency group includes 44 JS and 14 CSS files. Both arms observed all 58 unique URLs in every measured Host; package byte counts are uncompressed disk sizes.",
+    "The host-to-normal-import interval includes work before the original loader gets control. Chunk readiness includes downloaded script registration and stylesheet handling. Response-end is not a measure of pure network time.",
+    "Both arms opened Home by clicking the dashboard card. Between runs the harness returned via StudioWindow.loadURL to its retained dashboard. All four complete timing batches had zero renderer errors. Incomplete setup pilots were excluded.",
+    "The preload experiment was applied only to a private release renderer. Product routing and module timing are unchanged in the repository."
+  ]
+}

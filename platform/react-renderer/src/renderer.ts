@@ -110,6 +110,14 @@ export async function renderBundle(opts: {
   };
 }
 
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
 async function main(argv = process.argv) {
   console.log = () => {};
   console.warn = () => {};
@@ -121,7 +129,8 @@ async function main(argv = process.argv) {
     NodeSeccomp().load();
   }
 
-  const args = JSON.parse(argv[2]);
+  const rawArgs = argv[2] ?? (await readStdin());
+  const args = JSON.parse(rawArgs);
   const { html } = await renderBundle(args);
   process.stdout.write(html);
 }

@@ -2,7 +2,13 @@
 import React from "react";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { PlasmicQueryDataProvider, useMutablePlasmicQueryData, usePlasmicQueryData } from "./query-data";
+import {
+  PlasmicQueryDataProvider,
+  addLoadingStateListener,
+  useMutablePlasmicQueryData,
+  usePlasmicQueryData,
+  wrapLoadingFetcher,
+} from "./query-data";
 
 afterEach(cleanup);
 function Wrapper({ children, cache = {} }: React.PropsWithChildren<{ cache?: Record<string, unknown> }>) {
@@ -61,4 +67,32 @@ it("reports a rejected mutable fetch and clears loading without retrying", async
   const result = await screen.findByText("query failed");
   expect(result.getAttribute("data-loading")).toBe("false");
   expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
+it("makes unsubscribe idempotent without removing other listeners while keeping duplicate registrations", async () => {
+  const eventsA: boolean[] = [];
+  const eventsB: boolean[] = [];
+  const eventsDup: boolean[] = [];
+  const listenerA = (loading: boolean) => eventsA.push(loading);
+  const listenerB = (loading: boolean) => eventsB.push(loading);
+  const listenerDup = (loading: boolean) => eventsDup.push(loading);
+
+  const unsubA = addLoadingStateListener(listenerA);
+  const unsubDup1 = addLoadingStateListener(listenerDup);
+  const unsubDup2 = addLoadingStateListener(listenerDup);
+  const unsubB = addLoadingStateListener(listenerB);
+
+  unsubA();
+  unsubA();
+  unsubDup1();
+
+  const run = wrapLoadingFetcher(async () => "ok");
+  await run();
+
+  expect(eventsA).toEqual([]);
+  expect(eventsDup).toEqual([true, false]);
+  expect(eventsB).toEqual([true, false]);
+
+  unsubDup2();
+  unsubB();
 });

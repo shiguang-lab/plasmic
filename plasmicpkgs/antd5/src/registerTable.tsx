@@ -140,7 +140,7 @@ export function registerTable(loader?: Registerable) {
       },
       rowKey: {
         type: "choice",
-        options: (ps, ctx: any) => {
+        options: (_ps, ctx: any) => {
           if (ctx.schema) {
             return ctx.schema.fields.map((f: any) => ({
               value: f.id,

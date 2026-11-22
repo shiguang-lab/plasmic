@@ -1,0 +1,7 @@
+{
+  "en": "- Tightened macOS titlebar traffic-light spacing consistently across the Desktop app, Studio, Preview, CMS, Docs, and sign-in screens.\n- Fixed `.plasmic` export to hydrate imported library models and target the active branch, while preserving recent published templates and active sessions during transient API errors.\n- Improved editor panel synchronization, Copilot chat history visibility, component action cleanup, and native desktop dialog scrolling.",
+  "zh-CN": "- 统一收紧 macOS 桌面端在工作室、预览、CMS、文档及登录页顶部红绿灯与品牌栏的间距。\n- 修复导出 `.plasmic` 文件时补齐依赖组件库模型并按当前工作分支导出，同时在接口临时抖动时保留登录态与最近打开的已发布模板。\n- 优化编辑区属性同步、Copilot 对话历史展示、组件动作清理以及更新/MCP 设置弹窗的滚动体验。",
+  "zh-TW": "- 統一收緊 macOS 桌面端在工作室、預覽、CMS、文件與登入頁頂部視窗控制鈕與品牌列的間距。\n- 修正匯出 `.plasmic` 檔案時補齊相依元件庫模型並依目前工作分支匯出，同時在介面暫時異常時保留登入狀態與最近開啟的已發佈範本。\n- 優化編輯區屬性同步、Copilot 對話歷史顯示、元件動作清理以及更新／MCP 設定視窗的捲動體驗。",
+  "ja": "- macOS デスクトップ版の Studio、プレビュー、CMS、ドキュメント、ログイン画面におけるウィンドウボタンとブランド欄の間隔を統一して調整しました。\n- `.plasmic` エクスポートで依存ライブラリモデルと作業ブランチを正しく保持するようにし、一時的な API エラー時にもセッションと最近使った公開テンプレートを維持するようにしました。\n- エディターパネル同期、Copilot 会話履歴の表示、コンポーネントアクション整理、および設定・更新ダイアログのスクロールを改善しました。",
+  "ko": "- macOS 데스크톱 앱의 Studio, 미리보기, CMS, 문서 및 로그인 화면 상단 창 버튼과 브랜드 영역 간격을 일관되게 조정했습니다.\n- `.plasmic` 내보내기 시 라이브러리 모델과 활성 브랜치를 정확히 포함하고, 일시적 API 오류 시에도 로그인 세션과 최근 게시 템플릿을 유지하도록 수정했습니다.\n- 편집기 패널 동기화, Copilot 대화 내역 표시, 컴포넌트 액션 정리 및 업데이트/MCP 설정 창의 스크롤 동작을 개선했습니다."
+}

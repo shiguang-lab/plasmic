@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import { Tooltip } from "antd";
 import { Registerable, registerComponentHelper } from "./utils";
 

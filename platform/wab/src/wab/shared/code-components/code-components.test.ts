@@ -16,24 +16,179 @@ import {
 } from "@/wab/shared/code-components/code-components";
 import { arrayRemove } from "@/wab/shared/collections";
 import { only, uncheckedCast } from "@/wab/shared/common";
-import { PlumeComponent } from "@/wab/shared/core/components";
+import { ComponentType, mkComponent, PlumeComponent } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { syncGlobalContexts } from "@/wab/shared/core/project-deps";
 import { createSite } from "@/wab/shared/core/sites";
-import { deepTrackComponents } from "@/wab/shared/core/tpls";
+import * as tpls from "@/wab/shared/core/tpls";
 import { unbundleSite } from "@/wab/shared/core/tagged-unbundle";
 import {
   Component,
+  EventHandler,
+  Interaction,
+  NameArg,
   ProjectDependency,
   PropParam,
   Site,
   StateChangeHandlerParam,
   StateParam,
+  TplRef,
 } from "@/wab/shared/model/classes";
 import type { GlobalContextMeta } from "@plasmicapp/host";
 import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 
 const { addNewRegisteredComponents, findDuplicateAriaParams } = _testonly;
+
+it.each(["registered", "removed-unused", "removed"] as const)(
+  "checks ref action interactions when the action is %s",
+  async (status) => {
+    const site = createSite();
+    const meta = {
+      name: "Input", importPath: "./Input", props: {},
+      refActions: { focus: { argTypes: [] } },
+    };
+    const input = mkCodeComponent(meta.name, meta, {});
+    const owner = mkComponent({
+      type: ComponentType.Plain,
+      tplTree: (baseVariant) => tpls.mkTplComponent(input, baseVariant),
+    });
+    site.components.push(input, owner);
+    const handler = new EventHandler({ interactions: [] });
+    const actionName = status === "removed-unused" ? "blur" : "focus";
+    const args = [
+      new NameArg({ name: "tplRef", expr: new TplRef({ tpl: owner.tplTree }) }),
+      new NameArg({ name: "action", expr: codeLit(actionName) }),
+    ];
+    const interaction = new Interaction({
+      uuid: "focus-input", interactionName: "Focus input", actionName: "invokeRefAction",
+      args, parent: handler, conditionalMode: "always", condExpr: null,
+    });
+    handler.interactions.push(interaction);
+    only(owner.tplTree.vsettings).attrs.onClick = handler;
+
+    const registeredMeta = status === "registered" ? meta : { ...meta, refActions: undefined };
+    const ctx: Parameters<typeof _testonly.checkCodeComponentRefActions>[0] = {
+      site,
+      codeComponentsRegistry: new CodeComponentsRegistry(uncheckedCast<Window>({
+        __PlasmicComponentRegistry: [{ component: () => null, meta: registeredMeta }],
+      }), {}),
+      change: async (f) => f(),
+      observeComponents: () => true,
+      getRootSubReact: vi.fn(),
+      tplMgr: vi.fn(),
+      getPlumeSite: vi.fn(),
+    };
+    const scan = vi.spyOn(tpls, "getAllEventHandlersForTpl");
+    const change = vi.spyOn(ctx, "change");
+    expect((await _testonly.checkCodeComponentRefActions(ctx)).isOk()).toBe(true);
+    if (status === "registered") {
+      expect(scan).not.toHaveBeenCalled();
+      expect(change).not.toHaveBeenCalled();
+      expect(interaction.args).toEqual(args);
+    } else if (status === "removed-unused") {
+      expect(scan).toHaveBeenCalled();
+      expect(change).not.toHaveBeenCalled();
+      expect(interaction.args).toEqual(args);
+    } else {
+      expect(scan).toHaveBeenCalled();
+      expect(change).toHaveBeenCalledOnce();
+      expect(interaction.args).toEqual([]);
+    }
+  },
+);
+
+it("matches ref action args by NameArg.name, clears when refActions is empty, and observes each owner component once", async () => {
+  const site = createSite();
+  const meta = {
+    name: "Input",
+    importPath: "./Input",
+    props: {},
+    refActions: {
+      focus: { argTypes: [] },
+      blur: { argTypes: [] },
+    },
+  };
+  const input = mkCodeComponent(meta.name, meta, {});
+  let firstChild!: ReturnType<typeof tpls.mkTplComponent>;
+  let secondChild!: ReturnType<typeof tpls.mkTplComponent>;
+  const owner = mkComponent({
+    type: ComponentType.Plain,
+    tplTree: (baseVariant) => {
+      firstChild = tpls.mkTplComponent(input, baseVariant);
+      secondChild = tpls.mkTplComponent(input, baseVariant);
+      return tpls.mkTplTag("div", [firstChild, secondChild], {
+        baseVariant,
+        attrs: {},
+      });
+    },
+  });
+  site.components.push(input, owner);
+
+  const tplRef1 = new NameArg({ name: "tplRef", expr: new TplRef({ tpl: firstChild }) });
+  const action1 = new NameArg({ name: "action", expr: codeLit("focus") });
+  const handler1 = new EventHandler({ interactions: [] });
+  const interaction1 = new Interaction({
+    uuid: "i1",
+    interactionName: "Focus",
+    actionName: "invokeRefAction",
+    args: [action1, tplRef1],
+    parent: handler1,
+    conditionalMode: "always",
+    condExpr: null,
+  });
+  handler1.interactions.push(interaction1);
+  only(firstChild.vsettings).attrs.onClick = handler1;
+
+  const tplRef2 = new NameArg({ name: "tplRef", expr: new TplRef({ tpl: secondChild }) });
+  const action2 = new NameArg({ name: "action", expr: codeLit("focus") });
+  const handler2 = new EventHandler({ interactions: [] });
+  const interaction2 = new Interaction({
+    uuid: "i2",
+    interactionName: "Focus 2",
+    actionName: "invokeRefAction",
+    args: [action2, tplRef2],
+    parent: handler2,
+    conditionalMode: "always",
+    condExpr: null,
+  });
+  handler2.interactions.push(interaction2);
+  only(secondChild.vsettings).attrs.onClick = handler2;
+
+  const observed: Component[][] = [];
+  const makeCtx = (refActions: Record<string, any> | undefined): Parameters<typeof _testonly.checkCodeComponentRefActions>[0] => ({
+    site,
+    codeComponentsRegistry: new CodeComponentsRegistry(
+      uncheckedCast<Window>({
+        __PlasmicComponentRegistry: [
+          { component: () => null, meta: { ...meta, refActions } },
+        ],
+      }),
+      {},
+    ),
+    change: async (f) => f(),
+    observeComponents: (components) => {
+      observed.push(components);
+      return true;
+    },
+    getRootSubReact: vi.fn(),
+    tplMgr: vi.fn(),
+    getPlumeSite: vi.fn(),
+  });
+
+  // 1) Reordered args when another action (`blur`) remains: keeps [tplRef] and observes owner once
+  await _testonly.checkCodeComponentRefActions(makeCtx({ blur: { argTypes: [] } }));
+  expect(observed[0]).toEqual([owner]);
+  expect(interaction1.args).toEqual([tplRef1]);
+  expect(interaction2.args).toEqual([tplRef2]);
+
+  // 2) Restore removed action args, then check empty refActions (`{}`) clears both action and tplRef
+  interaction1.args = [action1, tplRef1];
+  interaction2.args = [action2, tplRef2];
+  await _testonly.checkCodeComponentRefActions(makeCtx({}));
+  expect(observed[1]).toEqual([owner]);
+  expect(interaction1.args).toEqual([]);
+  expect(interaction2.args).toEqual([]);
+});
 
 it("refreshes current params when another refresh finishes during prop confirmation", async () => {
   const site = createSite();
@@ -48,7 +203,7 @@ it("refreshes current params when another refresh finishes during prop confirmat
   const component = mkCodeComponent(meta.name, oldMeta, {});
   component.params = componentMetaToComponentParams(site, oldMeta)._unsafeUnwrap();
   site.components.push(component);
-  deepTrackComponents(site);
+  tpls.deepTrackComponents(site);
   attachRenderableTplSlots(component);
   const registry = new CodeComponentsRegistry(uncheckedCast<Window>({
     __PlasmicComponentRegistry: [{ component: () => null, meta }],

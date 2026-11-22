@@ -52,7 +52,7 @@ export const WithArrow: Story = {
      `,
         }}
       />
-      <BaseOverlayArrow className={"triangle-up"} />
+      <BaseOverlayArrow className={"triangle-up"}>{null}</BaseOverlayArrow>
       {children}
     </BasePopover>
   ),

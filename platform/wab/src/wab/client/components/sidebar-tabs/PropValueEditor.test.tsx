@@ -29,6 +29,7 @@ import { mkParam } from "@/wab/shared/core/lang";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import { vi } from "vitest";
 
@@ -381,7 +382,7 @@ it("uses the semantic header menu for object bindings and keeps the binding when
   fireEvent.click(screen.getByRole("button", { name: "More actions" }));
   expect(await screen.findByText("Use dynamic value")).toBeTruthy();
   expect(screen.getByText("Allow external access")).toBeTruthy();
-  fireEvent.mouseEnter(screen.getByRole("menuitem", { name: /Use data token/ }));
+  await userEvent.hover(screen.getByRole("menuitem", { name: /Use data token/ }));
   const numberToken = await screen.findByRole("menuitem", { name: /Number only/ });
   expect(numberToken.getAttribute("aria-disabled")).toBe("true");
   fireEvent.click(screen.getByRole("menuitem", { name: /Header appearance/ }));

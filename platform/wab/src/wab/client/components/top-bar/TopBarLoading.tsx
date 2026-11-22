@@ -27,7 +27,7 @@ export function TopBarLoading({ projectName }: { projectName?: string }) {
       <EditorBrandGroup>
         <div
           className={layout.left}
-          style={mac ? { paddingLeft: 96 } : undefined}
+          style={mac ? { paddingLeft: "var(--studio-titlebar-left, 84px)" } : undefined}
         >
           <BrandLink brand={appCtx?.appConfig.brands?.[""]} />
           <Button type="text" className="editor-project-title" disabled>

@@ -149,6 +149,11 @@ function createAssetHandler({
           "</head>",
           `<script defer src="${studioOrigin}/static/desktop/renderer-i18n.js"></script></head>`,
         );
+      if (!html.includes("reference-browser-ui.js"))
+        html = html.replace(
+          "</head>",
+          `<script defer src="${studioOrigin}/reference-browser-ui.js"></script></head>`,
+        );
       return updateDialogPath
         ? html.replace(
             "</head>",

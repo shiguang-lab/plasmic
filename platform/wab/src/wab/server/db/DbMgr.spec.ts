@@ -4,7 +4,6 @@ import {
 } from "@/wab/server/__testonly__/backend-util";
 import { withBranch } from "@/wab/server/__testonly__/branching-utils";
 import { createTestUser } from "@/wab/server/__testonly__/shiguang-fixture";
-import { seedTestDb } from "@/wab/server/db/DbInit";
 import {
   ANON_USER,
   DbMgr,
@@ -1772,7 +1771,7 @@ describe("DbMgr", () => {
 
   it("can update UI config if team is on enterprise tier", () =>
     withDb(async (sudo, [user1], [db1], _project, em) => {
-      await seedTestDb(em);
+      await seedTestFeatureTiers(em);
       const { team } = await getTeamAndWorkspace(db1());
 
       // cannot update UI config on free tier
@@ -1825,7 +1824,14 @@ describe("DbMgr", () => {
 
   it("can update UI config if parent team is on enterprise tier", () =>
     withDb(async (sudo, [user1], [db1], _project, em) => {
-      await seedTestDb(em);
+      const { enterpriseFt } = await seedTestFeatureTiers(em);
+      const seededEnterpriseTeam = await db1().createTeam(
+        "Test Enterprise Org",
+      );
+      await sudo.sudoUpdateTeam({
+        id: seededEnterpriseTeam.id,
+        featureTierId: enterpriseFt.id,
+      });
       const { team } = await getTeamAndWorkspace(db1());
 
       // cannot update UI config on free tier

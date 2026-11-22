@@ -491,14 +491,39 @@ export function normalizeCmsData(
             if (field === null) {
               return [key, null];
             }
-            if (locale === "" && conformsToType(field, meta.type)) {
+            if (!meta.localized) {
+              if (locale !== "") {
+                return undefined;
+              }
+              if (conformsToType(field, meta.type)) {
+                return [key, field];
+              }
+              if (
+                typeof field === "object" &&
+                !Array.isArray(field) &&
+                Object.prototype.hasOwnProperty.call(field, "") &&
+                field[""] !== undefined &&
+                conformsToType(field[""], meta.type)
+              ) {
+                return [key, field[""]];
+              }
+              return undefined;
+            }
+            if (
+              meta.type !== CmsMetaType.OBJECT &&
+              locale === "" &&
+              conformsToType(field, meta.type)
+            ) {
               return [key, field];
             }
             if (
               typeof field === "object" &&
-              conformsToType(field![locale], meta.type)
+              !Array.isArray(field) &&
+              Object.prototype.hasOwnProperty.call(field, locale) &&
+              field[locale] !== undefined &&
+              conformsToType(field[locale], meta.type)
             ) {
-              return [key, field![locale]];
+              return [key, field[locale]];
             }
             return undefined;
           }),

@@ -1,8 +1,8 @@
+import { processHttpResult } from "@/wab/server/data-sources/data-utils";
 import { fetchUntrusted, UnsafeUrlError } from "@/wab/server/util/url";
 import { DataSourceError } from "@/wab/shared/data-sources-meta/data-sources";
 import { GraphqlDataSource } from "@/wab/shared/data-sources-meta/graphql-meta";
 import { AxiosResponse } from "axios";
-import { isEmpty, isString } from "lodash";
 
 export function makeGraphqlFetcher(source: GraphqlDataSource) {
   return new GraphqlFetcher(source);
@@ -141,7 +141,7 @@ export class GraphqlFetcher {
         throw e;
       }
     }
-    return processResult(res);
+    return processHttpResult(res);
   }
 
   /** Just an alias for query, needed since we need `write` operations */
@@ -175,27 +175,4 @@ export class GraphqlFetcher {
       query: introspectionQuery,
     });
   }
-}
-
-async function processResult(res: AxiosResponse<string>) {
-  let processedResponse: string | any = res.data;
-  const statusCode = res.status;
-  try {
-    processedResponse = JSON.parse(processedResponse);
-  } catch {}
-  if (statusCode >= 400) {
-    throw new DataSourceError(
-      isString(processedResponse) || !isEmpty(processedResponse)
-        ? processedResponse
-        : undefined,
-      statusCode,
-    );
-  }
-  return {
-    data: {
-      response: processedResponse,
-      statusCode,
-      headers: { ...res.headers },
-    },
-  };
 }

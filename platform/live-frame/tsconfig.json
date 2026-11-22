@@ -6,8 +6,7 @@
     "lib": ["es7", "dom", "esnext", "esnext.asynciterable", "esnext.array"],
     "skipLibCheck": true,
     // Following is for the compiler invoked by webstorm
-    "rootDir": "./src",
-    "outDir": "build",
+    "noEmit": true,
     "sourceMap": true,
     "jsx": "react-jsx",
     "esModuleInterop": true

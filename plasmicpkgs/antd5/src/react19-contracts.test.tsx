@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import "../../antd6/tests/setup";
+import "./test-setup";
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
 import { expect, it, vi } from "vitest";
 import { AntdDropdown } from "./registerDropdown";
 import { AntdDatePicker } from "./registerDatePicker";

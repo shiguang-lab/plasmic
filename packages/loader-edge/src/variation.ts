@@ -14,10 +14,30 @@ const getSeed = (seedRange: number = DEFAULT_PLASMIC_SEED_RANGE) => {
   return `${Math.floor(Math.random() * seedRange)}`;
 };
 
+const ENCODED_DELIMITER = "%5F_pm__";
+
+function encodeTraitPart(value: string) {
+  return encodeURIComponent(value).replaceAll(DELIMITER, ENCODED_DELIMITER);
+}
+
+function decodeTraitPart(value: string) {
+  const restored = value.replaceAll(ENCODED_DELIMITER, DELIMITER);
+  try {
+    return decodeURIComponent(restored);
+  } catch {
+    return restored;
+  }
+}
+
 export const rewriteWithoutTraits = (url: string) => {
   const [path, ...traitssArr] = url.split(DELIMITER);
   const traits = traitssArr.reduce((acc, elem) => {
-    const [key, value] = elem.split("=");
+    const eqIndex = elem.indexOf("=");
+    if (eqIndex < 0) {
+      return acc;
+    }
+    const key = decodeTraitPart(elem.slice(0, eqIndex));
+    const value = decodeTraitPart(elem.slice(eqIndex + 1));
     return {
       ...acc,
       [key]: value,
@@ -40,7 +60,12 @@ const expandTraits = (traits: Traits) => {
   };
   return Object.keys(traits)
     .sort(cmp)
-    .map((key) => `${DELIMITER}${key}=${traits[key]}`)
+    .map(
+      (key) =>
+        `${DELIMITER}${encodeTraitPart(key)}=${encodeTraitPart(
+          String(traits[key])
+        )}`
+    )
     .join("");
 };
 

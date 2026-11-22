@@ -25,7 +25,7 @@ export const getGlobalVariantsFromSplits = (
 ) => {
   const globalVariants: GlobalVariantSpec[] = [];
 
-  Object.keys(variation).map((variationKey: string) => {
+  for (const variationKey of Object.keys(variation)) {
     const [_type, splitId] = variationKey.split(".");
     const sliceId = variation[variationKey];
     const split = splits.find(
@@ -36,16 +36,16 @@ export const getGlobalVariantsFromSplits = (
         split.slices as Array<ExperimentSlice | SegmentSlice>
       ).find((s: any) => s.id === sliceId || s.externalId === sliceId);
       if (slice) {
-        slice.contents.map((x) => {
+        for (const x of slice.contents) {
           globalVariants.push({
             name: x.group,
             value: x.variant,
             projectId: x.projectId,
           });
-        });
+        }
       }
     }
-  });
+  }
 
   return globalVariants;
 };

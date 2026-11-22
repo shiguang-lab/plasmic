@@ -265,8 +265,16 @@ export function addLoadingStateListener(
   if (opts?.immediate) {
     listener(loadingCount > 0);
   }
+  let active = true;
   return () => {
-    listeners.splice(listeners.indexOf(listener), 1);
+    if (!active) {
+      return;
+    }
+    active = false;
+    const index = listeners.indexOf(listener);
+    if (index >= 0) {
+      listeners.splice(index, 1);
+    }
   };
 }
 

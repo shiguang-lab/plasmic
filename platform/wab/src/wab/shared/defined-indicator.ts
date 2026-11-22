@@ -190,8 +190,8 @@ export type DefinedIndicatorType =
       source: "invariantable";
     };
 
-export function isIndicatorExplicitlySet(indicator: DefinedIndicatorType) {
-  return ["set", "setNonVariable"].includes(indicator.source);
+export function isIndicatorExplicitlySet(indicator?: DefinedIndicatorType) {
+  return !!indicator && ["set", "setNonVariable"].includes(indicator.source);
 }
 
 /** Single-ruleset controls use the same indicator formula for persisted and

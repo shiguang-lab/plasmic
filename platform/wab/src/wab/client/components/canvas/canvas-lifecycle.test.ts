@@ -33,7 +33,7 @@ it.each([false, true])("unmounts once and releases frame-owned resources even wh
   const resize = vi.fn(), mutation = vi.fn(), frameInputs = vi.fn(), packages = vi.fn(), listener = vi.fn();
   const canvas: CanvasCtx = Object.assign(Object.create(CanvasCtx.prototype), {
     Sub: sub, _frameState: frame, _name: "Fixture", bodySizeCleanup: resize,
-    pendingBodyWaits: new Set([mutation]), frameInfoOwner: { dispose: frameInputs }, usedPackages: { dispose: packages },
+    pendingBodyWaits: new Set([mutation]), outlineModeListeners: new Set(), frameInfoOwner: { dispose: frameInputs }, usedPackages: { dispose: packages },
     registrations: new CanvasRegistrations(), disposals: [listener],
   });
   const log = vi.spyOn(console, "error").mockImplementation(() => {});

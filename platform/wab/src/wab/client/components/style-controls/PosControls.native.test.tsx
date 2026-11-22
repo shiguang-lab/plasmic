@@ -92,11 +92,12 @@ it("keeps the real background panel's plain position adapter and its original mo
   await f.studio.changeUnsafe(() => f.exp.set("background", `${mkImageAssetRef(f.image)} 20px 30px`));
   const mounted = render(f.wrap(<BackgroundSection expsProvider={f.provider} vsh={helper} />));
   fireEvent.click(screen.getByText("Position picture"));
-  await waitFor(() => expect(trigger("left").textContent).toBe("20px"));
-  fireEvent.click(trigger("left"));
-  const dialog = await screen.findByRole("dialog", { name: "Left" });
-  const input = ensure(dialog.querySelector<HTMLInputElement>('input[data-test-id="Spacing-input"]'), "Actual dimension input");
-  fireEvent.change(input, { target: { value: "35px" } }); fireEvent.keyDown(input, { key: "Enter" });
+  const horizontalInput = (await screen.findByRole("textbox", {
+    name: "Horizontal",
+  })) as HTMLInputElement;
+  await waitFor(() => expect(horizontalInput.value).toBe("20px"));
+  fireEvent.change(horizontalInput, { target: { value: "35px" } });
+  fireEvent.keyDown(horizontalInput, { key: "Enter" });
   await waitFor(() => {
     const layer = parseCss(f.exp.get("background"), { startRule: "background" }).layers[0];
     expect(parseBgPos(ensure(layer.position, "Updated background position")).left).toBe("35px");

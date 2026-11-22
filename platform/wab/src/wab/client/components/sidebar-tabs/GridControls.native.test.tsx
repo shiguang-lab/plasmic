@@ -54,7 +54,7 @@ it("updates actual Grid controls from original base-only mixin/token references,
     const columns = screen.getByDisplayValue("3"); fireEvent.change(columns, { target: { value: "4" } }); fireEvent.keyDown(columns, { key: "Enter" });
     await waitFor(() => expect(exp.getRaw("grid-template-columns")).toBe("repeat(4, minmax(0, 1fr))"));
     expect(token.value).toBe("repeat(3, minmax(0, 1fr))"); expect(new RuleSetHelpers(mixin.rs, "div").getRaw("grid-template-columns")).toBe(mkTokenRef(token));
-    fireEvent.click(screen.getByRole("button", { name: "Filled" }));
+    fireEvent.click(ensure(screen.getByText("Filled").closest("button"), "Filled button"));
     await waitFor(() => expect(exp.getRaw("grid-template-columns")).toBe("repeat(auto-fill, minmax(200px, 1fr))"));
     const width = screen.getByDisplayValue("200px"); fireEvent.change(width, { target: { value: "240px" } }); fireEvent.keyDown(width, { key: "Enter" });
     await waitFor(() => expect(exp.getRaw("grid-template-columns")).toBe("repeat(auto-fill, minmax(240px, 1fr))"));

@@ -7377,18 +7377,11 @@ export class DbMgr implements MigrationDbMgr {
   }
 
   // TODO We are always querying just the default locale.
-  async queryCmsRows(
+  private async makeCmsRowsQueryBuilder(
     tableId: CmsTableId,
-    query: ApiCmsQuery,
+    query: Pick<ApiCmsQuery, "where">,
     opts: { useDraft?: boolean } = {},
   ) {
-    if (query.offset && query.offset < 0) {
-      throw new BadRequestError("offset field cannot be negative");
-    }
-    if (query.limit && query.limit < 0) {
-      throw new BadRequestError("limit field cannot be negative");
-    }
-
     const table = await this.getCmsTableById(tableId);
     await this.checkCmsDatabasePerms(
       table.databaseId,
@@ -7415,7 +7408,24 @@ export class DbMgr implements MigrationDbMgr {
       builder = builder.setParameters(valParams);
     }
 
-    builder = builder.limit(query.limit ?? 100);
+    return { table, builder };
+  }
+
+  async queryCmsRows(
+    tableId: CmsTableId,
+    query: ApiCmsQuery,
+    opts: { useDraft?: boolean } = {},
+  ) {
+    if (query.offset && query.offset < 0) {
+      throw new BadRequestError("offset field cannot be negative");
+    }
+    if (query.limit && query.limit < 0) {
+      throw new BadRequestError("limit field cannot be negative");
+    }
+
+    const { table, builder: baseBuilder } =
+      await this.makeCmsRowsQueryBuilder(tableId, query, opts);
+    let builder = baseBuilder.limit(query.limit ?? 100);
 
     if (query.offset) {
       builder = builder.offset(query.offset);
@@ -7449,31 +7459,7 @@ export class DbMgr implements MigrationDbMgr {
     query: Pick<ApiCmsQuery, "where">,
     opts: { useDraft?: boolean } = {},
   ) {
-    const table = await this.getCmsTableById(tableId);
-    await this.checkCmsDatabasePerms(
-      table.databaseId,
-      opts.useDraft ? "content" : "viewer",
-    );
-    let builder = this.cmsRows()
-      .createQueryBuilder("r")
-      .where("r.tableId = :tableId", { tableId })
-      .andWhere("r.deletedAt IS NULL");
-
-    if (!opts.useDraft) {
-      // only allow published rows
-      builder = builder.andWhere("r.data IS NOT NULL");
-    }
-
-    if (query.where) {
-      const { condition, params: valParams } = makeSqlCondition(
-        table,
-        query.where,
-        opts,
-      );
-      builder = builder.andWhere(condition);
-      builder = builder.setParameters(valParams);
-    }
-
+    const { builder } = await this.makeCmsRowsQueryBuilder(tableId, query, opts);
     return await builder.getCount();
   }
 

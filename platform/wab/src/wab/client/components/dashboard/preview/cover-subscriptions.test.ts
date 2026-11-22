@@ -36,7 +36,8 @@ const decode = vi.fn<() => Promise<void>>();
 const revoke = vi.fn();
 let urlCount = 0;
 
-function card(id: string, account = "user") {
+let accountId = 0;
+function card(id: string, account = "user-" + accountId) {
   const changed = vi.fn();
   const stop = observeCover(
     document.createElement("div"),
@@ -59,6 +60,7 @@ function desktop(active: boolean) {
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 beforeEach(() => {
+  accountId++;
   intersections = [];
   Feed.all = [];
   activity.active = true;
@@ -326,4 +328,118 @@ it("loads a rebuilt missing file even if the publisher already reported that rev
   Feed.all[0].send("p", 7);
   await tick();
   expect(item.changed).toHaveBeenLastCalledWith("blob:1");
+});
+
+
+it("restores a detached cover before visibility or network and replaces it after a newer revision decodes", async () => {
+  let revision = 1;
+  fetcher.mockImplementation(async (url) =>
+    String(url).includes("/revisions?") ? Response.json({ p: revision }) : image(revision),
+  );
+  const first = card("p");
+  first.visible(true);
+  await tick();
+  first.stop();
+  expect(Feed.all[0].close).toHaveBeenCalledOnce();
+
+  const second = card("p");
+  expect(second.changed.mock.calls).toEqual([["blob:1"]]);
+  second.visible(true);
+  Feed.all[1].dispatchEvent(new MessageEvent("ready", { data: JSON.stringify("stream") }));
+  await tick();
+  expect(fetcher.mock.calls.filter(([u]) => String(u).includes("/cover?"))).toHaveLength(1);
+
+  revision = 2;
+  Feed.all[1].send("p", revision);
+  expect(second.changed.mock.calls).toEqual([["blob:1"]]);
+  await tick();
+  expect(second.changed.mock.calls).toEqual([["blob:1"], ["blob:2"]]);
+  expect(revoke).toHaveBeenCalledWith("blob:1");
+});
+
+it("forgets a restored cover when access is revoked and isolates accounts", async () => {
+  const first = card("p");
+  fetcher.mockResolvedValueOnce(image(1));
+  first.visible(true);
+  await tick();
+  first.stop();
+  const second = card("p");
+  second.visible(true);
+  fetcher.mockResolvedValueOnce(Response.json({}));
+  Feed.all[1].dispatchEvent(new MessageEvent("ready", { data: JSON.stringify("stream") }));
+  await tick();
+  expect(second.changed.mock.calls).toEqual([["blob:1"], [undefined]]);
+  second.stop();
+  const third = card("p");
+  expect(third.changed.mock.calls).toEqual([[undefined]]);
+  fetcher.mockResolvedValueOnce(image(2));
+  third.visible(true);
+  await tick();
+  third.stop();
+  expect(card("p", "another-account").changed.mock.calls).toEqual([[undefined]]);
+  expect(revoke).toHaveBeenCalledWith("blob:2");
+});
+
+it("evicts the oldest detached cover while retaining recent projects", async () => {
+  fetcher.mockImplementation(async () => image(1));
+  const cards = Array.from({ length: 49 }, (_, id) => card(String(id)));
+  for (const item of cards) item.visible(true);
+  await tick();
+  for (const item of cards) item.stop();
+  expect(revoke).toHaveBeenCalledWith("blob:1");
+  expect(card("0").changed.mock.calls).toEqual([[undefined]]);
+  expect(card("48").changed.mock.calls).toEqual([["blob:49"]]);
+});
+
+it("rebuilds a missing cover for a restored card when the server reports revision 0", async () => {
+  fetcher.mockResolvedValueOnce(image(5));
+  const first = card("p");
+  first.visible(true);
+  await tick();
+  first.stop();
+
+  const second = card("p");
+  expect(second.changed.mock.calls).toEqual([["blob:1"]]);
+  let revision = 0;
+  let coverReady = false;
+  fetcher.mockImplementation(async (url) =>
+    String(url).includes("/revisions?")
+      ? Response.json({ p: revision })
+      : coverReady
+        ? image(5)
+        : new Response(null, { status: 202 }),
+  );
+  second.visible(true);
+  const feed = Feed.all[1];
+  feed.dispatchEvent(new MessageEvent("ready", { data: JSON.stringify("s1") }));
+  await tick();
+  expect(
+    fetcher.mock.calls.filter(([u]) => String(u).includes("/cover?")),
+  ).toHaveLength(2);
+  expect(second.changed).toHaveBeenLastCalledWith("blob:1");
+
+  // Another ready check returning 0 while awaiting rebuild must not duplicate the GET.
+  feed.dispatchEvent(new MessageEvent("ready", { data: JSON.stringify("s2") }));
+  await tick();
+  expect(
+    fetcher.mock.calls.filter(([u]) => String(u).includes("/cover?")),
+  ).toHaveLength(2);
+
+  coverReady = true;
+  revision = 5;
+  feed.send("p", 5);
+  await tick();
+  expect(
+    fetcher.mock.calls.filter(([u]) => String(u).includes("/cover?")),
+  ).toHaveLength(3);
+  expect(second.changed).toHaveBeenLastCalledWith("blob:2");
+  expect(revoke).toHaveBeenCalledWith("blob:1");
+
+  // Once recovered, subsequent checks/events for revision 5 do not re-fetch.
+  feed.dispatchEvent(new MessageEvent("ready", { data: JSON.stringify("s3") }));
+  feed.send("p", 5);
+  await tick();
+  expect(
+    fetcher.mock.calls.filter(([u]) => String(u).includes("/cover?")),
+  ).toHaveLength(3);
 });

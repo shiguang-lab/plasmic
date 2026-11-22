@@ -1,0 +1,917 @@
+{
+  "sourceCommit": "ae1dc31dc4e55d26117a088158f09717c7c01740",
+  "app": "Plasmic Desktop 0.9.15",
+  "electron": "45.2.1",
+  "hardware": "Apple M4",
+  "sample": {
+    "file": "platform/loader-tests/data/plasmic-kit-website-components_16033.json",
+    "sha256": "26757c68b0ef649e89bd1bf1f87e26ca8e9c4a5a36472ab40aa22cd6b1745deb",
+    "storedObjects": 19281,
+    "pages": 11,
+    "localComponentsBeforeStartup": 61,
+    "initialArena": "Main pages",
+    "artboardsInInitialArena": 6,
+    "firstArtboard": "Home"
+  },
+  "method": {
+    "baseline": "Unchanged ref-action algorithm from the release renderer",
+    "experiment": "Only return ok() when removedRefActions.size === 0; both arms use the same instrumented renderer in a private copy",
+    "navigation": "Actual dashboard card click → fresh editor WebContents. Offline model replay, isolated profiles, fixed window. Auxiliary API replies are fixtures; external project images are placeholders. No production latency or persisted viewport.",
+    "clock": "Inner inclusive time is performance.now() around the awaited ref-action check during ordinary startup. The baseline scan split includes collecting removed actions and checking nodes, before observeComponents and ctx.change.",
+    "cpu": "Chromium Emulation.setCPUThrottlingRate on editor pages/iframes. Main process not throttled.",
+    "visual": "Electron capturePage of the Home artboard region roughly every 33 ms. First matching sample requires ≥37 of 40 points to match the reference image within 12 units in all RGB channels. Time includes readback. The screenshot can trail the first actual rendered pixels.",
+    "design": "Two sequences per CPU setting, ten clicks per sequence. First two are warm-ups. Within each remaining adjacent pair one run per variant. Positive paired savings mean B is faster; no P95 estimated.",
+    "pairing": "Runs are paired within each process, not across batches or CPU settings.",
+    "probe": "Separate counted preflight, timed runs have no per-node counter. 0 or 0.1 ms is at the measurement resolution."
+  },
+  "countedPreflight": {
+    "description": "Counted baseline and short-circuit calls during initial sync, same sample and 4x throttling",
+    "data": [
+      {
+        "changes": 1,
+        "cleaned": 0,
+        "guard": false,
+        "removed": 0,
+        "scanned": 2696
+      },
+      {
+        "changes": 0,
+        "cleaned": 0,
+        "guard": true,
+        "removed": 0,
+        "scanned": 0
+      }
+    ]
+  },
+  "groups": {
+    "1": {
+      "summary": {
+        "checkMs": {
+          "A": {
+            "median": 4.75,
+            "min": 4.4,
+            "max": 5.4
+          },
+          "B": {
+            "median": 0.05,
+            "min": 0,
+            "max": 0.1
+          },
+          "pairedSavingsMs": [
+            4.4,
+            4.4,
+            4.6,
+            5.1,
+            4.9,
+            5.3,
+            5.4,
+            4.3
+          ],
+          "pairedSavingsSummary": {
+            "median": 4.75,
+            "min": 4.3,
+            "max": 5.4
+          },
+          "pairsFaster": 8
+        },
+        "componentSyncMs": {
+          "A": {
+            "median": 136.7,
+            "min": 132.7,
+            "max": 146.6
+          },
+          "B": {
+            "median": 133.05,
+            "min": 127,
+            "max": 140.3
+          },
+          "pairedSavingsMs": [
+            8.8,
+            -6.4,
+            2.7,
+            11.7,
+            4.0,
+            13.7,
+            7.3,
+            1.8
+          ],
+          "pairedSavingsSummary": {
+            "median": 5.65,
+            "min": -6.4,
+            "max": 13.7
+          },
+          "pairsFaster": 7
+        },
+        "firstInternalRenderMs": {
+          "A": {
+            "median": 1789.4,
+            "min": 1757.5,
+            "max": 1838
+          },
+          "B": {
+            "median": 1800.25,
+            "min": 1749.8,
+            "max": 1816.3
+          },
+          "pairedSavingsMs": [
+            35.1,
+            -40.8,
+            -3.4,
+            15.8,
+            -18.0,
+            17.2,
+            21.7,
+            -10.4
+          ],
+          "pairedSavingsSummary": {
+            "median": 6.2,
+            "min": -40.8,
+            "max": 35.1
+          },
+          "pairsFaster": 4
+        },
+        "clickToBusinessPixelsMs": {
+          "A": {
+            "median": 1925.62,
+            "min": 1886.4,
+            "max": 2021.9
+          },
+          "B": {
+            "median": 1926.35,
+            "min": 1879.37,
+            "max": 1964.57
+          },
+          "pairedSavingsMs": [
+            10.318,
+            -41.14,
+            38.051,
+            46.485,
+            -36.08,
+            -32.298,
+            94.268,
+            -1.105
+          ],
+          "pairedSavingsSummary": {
+            "median": 4.61,
+            "min": -41.14,
+            "max": 94.27
+          },
+          "pairsFaster": 4
+        }
+      },
+      "baselineBeforeChangeMs": {
+        "median": 4.4,
+        "min": 4.2,
+        "max": 4.9
+      },
+      "sampleGapMs": {
+        "median": 41.91,
+        "min": 38.25,
+        "max": 56.73
+      },
+      "validPerArm": 8,
+      "trials": [
+        {
+          "batch": "one1retry",
+          "index": 0,
+          "variant": "B",
+          "warmup": true,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 127.5,
+          "firstInternalRenderMs": 1749.6,
+          "clickToBusinessPixelsMs": 1886.406,
+          "visualSampleGapMs": 24.662,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 1,
+          "variant": "A",
+          "warmup": true,
+          "checkMs": 4.9,
+          "beforeChangeMs": 4.3,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 130.6,
+          "firstInternalRenderMs": 1749.6,
+          "clickToBusinessPixelsMs": 1887.173,
+          "visualSampleGapMs": 42.847,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 2,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 4.5,
+          "beforeChangeMs": 4.2,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 135.8,
+          "firstInternalRenderMs": 1784.9,
+          "clickToBusinessPixelsMs": 1927.181,
+          "visualSampleGapMs": 41.904,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 3,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 127,
+          "firstInternalRenderMs": 1749.8,
+          "clickToBusinessPixelsMs": 1916.863,
+          "visualSampleGapMs": 41.676,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 4,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 140.3,
+          "firstInternalRenderMs": 1809.4,
+          "clickToBusinessPixelsMs": 1927.538,
+          "visualSampleGapMs": 38.251,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 5,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 4.5,
+          "beforeChangeMs": 4.2,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 133.9,
+          "firstInternalRenderMs": 1768.6,
+          "clickToBusinessPixelsMs": 1886.398,
+          "visualSampleGapMs": 38.283,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 6,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 4.6,
+          "beforeChangeMs": 4.3,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 132.7,
+          "firstInternalRenderMs": 1757.5,
+          "clickToBusinessPixelsMs": 1917.424,
+          "visualSampleGapMs": 41.337,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 7,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 130,
+          "firstInternalRenderMs": 1760.9,
+          "clickToBusinessPixelsMs": 1879.373,
+          "visualSampleGapMs": 40.888,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 8,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 131.4,
+          "firstInternalRenderMs": 1783.5,
+          "clickToBusinessPixelsMs": 1923.521,
+          "visualSampleGapMs": 43.862,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one1retry",
+          "index": 9,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 5.2,
+          "beforeChangeMs": 4.9,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 143.1,
+          "firstInternalRenderMs": 1799.3,
+          "clickToBusinessPixelsMs": 1970.006,
+          "visualSampleGapMs": 56.731,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 0,
+          "variant": "A",
+          "warmup": true,
+          "checkMs": 4.8,
+          "beforeChangeMs": 4.5,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 138.8,
+          "firstInternalRenderMs": 1848.0,
+          "clickToBusinessPixelsMs": 2046.043,
+          "visualSampleGapMs": 25.388,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 1,
+          "variant": "B",
+          "warmup": true,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 135.2,
+          "firstInternalRenderMs": 1803.7,
+          "clickToBusinessPixelsMs": 1956.835,
+          "visualSampleGapMs": 39.085,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 2,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 133.2,
+          "firstInternalRenderMs": 1806.9,
+          "clickToBusinessPixelsMs": 1958.125,
+          "visualSampleGapMs": 40.25,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 3,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 4.9,
+          "beforeChangeMs": 4.5,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 137.2,
+          "firstInternalRenderMs": 1788.9,
+          "clickToBusinessPixelsMs": 1922.045,
+          "visualSampleGapMs": 43.882,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 4,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 5.3,
+          "beforeChangeMs": 4.9,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 146.6,
+          "firstInternalRenderMs": 1817.4,
+          "clickToBusinessPixelsMs": 1932.268,
+          "visualSampleGapMs": 42.567,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 5,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 132.9,
+          "firstInternalRenderMs": 1800.2,
+          "clickToBusinessPixelsMs": 1964.566,
+          "visualSampleGapMs": 42.007,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 6,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 137.2,
+          "firstInternalRenderMs": 1816.3,
+          "clickToBusinessPixelsMs": 1927.634,
+          "visualSampleGapMs": 42.987,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 7,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 5.4,
+          "beforeChangeMs": 4.8,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 144.5,
+          "firstInternalRenderMs": 1838,
+          "clickToBusinessPixelsMs": 2021.902,
+          "visualSampleGapMs": 40.954,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 8,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 4.4,
+          "beforeChangeMs": 4.2,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 136.2,
+          "firstInternalRenderMs": 1789.9,
+          "clickToBusinessPixelsMs": 1924.054,
+          "visualSampleGapMs": 42.045,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "one2",
+          "index": 9,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 134.4,
+          "firstInternalRenderMs": 1800.3,
+          "clickToBusinessPixelsMs": 1925.159,
+          "visualSampleGapMs": 41.925,
+          "matchedPoints": 39
+        }
+      ],
+      "captureRetriesIncludingWarmups": {
+        "UnknownVizError": 12
+      }
+    },
+    "4": {
+      "summary": {
+        "checkMs": {
+          "A": {
+            "median": 22.4,
+            "min": 19.4,
+            "max": 28.7
+          },
+          "B": {
+            "median": 0.15,
+            "min": 0,
+            "max": 0.9
+          },
+          "pairedSavingsMs": [
+            24.2,
+            24.7,
+            27.8,
+            20.2,
+            19.3,
+            20.4,
+            20.0,
+            24.0
+          ],
+          "pairedSavingsSummary": {
+            "median": 22.2,
+            "min": 19.3,
+            "max": 27.8
+          },
+          "pairsFaster": 8
+        },
+        "componentSyncMs": {
+          "A": {
+            "median": 585.9,
+            "min": 516.9,
+            "max": 638.5
+          },
+          "B": {
+            "median": 556.25,
+            "min": 507.2,
+            "max": 562.9
+          },
+          "pairedSavingsMs": [
+            110.0,
+            122.5,
+            39.1,
+            -21.5,
+            9.7,
+            -28.4,
+            74.9,
+            17.5
+          ],
+          "pairedSavingsSummary": {
+            "median": 28.3,
+            "min": -28.4,
+            "max": 122.5
+          },
+          "pairsFaster": 6
+        },
+        "firstInternalRenderMs": {
+          "A": {
+            "median": 7069.4,
+            "min": 6742.7,
+            "max": 7539.7
+          },
+          "B": {
+            "median": 7010.7,
+            "min": 6707.6,
+            "max": 7452.7
+          },
+          "pairedSavingsMs": [
+            250.5,
+            80.6,
+            426.5,
+            -221.7,
+            35.1,
+            -48.8,
+            -11.8,
+            -0.4
+          ],
+          "pairedSavingsSummary": {
+            "median": 17.35,
+            "min": -221.7,
+            "max": 426.5
+          },
+          "pairsFaster": 4
+        },
+        "clickToBusinessPixelsMs": {
+          "A": {
+            "median": 7532.7,
+            "min": 7164.73,
+            "max": 8010.46
+          },
+          "B": {
+            "median": 7447.72,
+            "min": 7124.76,
+            "max": 7989.12
+          },
+          "pairedSavingsMs": [
+            325.738,
+            105.31,
+            470.402,
+            -281.262,
+            39.976,
+            -103.596,
+            2.466,
+            2.157
+          ],
+          "pairedSavingsSummary": {
+            "median": 21.22,
+            "min": -281.26,
+            "max": 470.4
+          },
+          "pairsFaster": 6
+        }
+      },
+      "baselineBeforeChangeMs": {
+        "median": 20.05,
+        "min": 18.1,
+        "max": 25.9
+      },
+      "sampleGapMs": {
+        "median": 33.16,
+        "min": 16.47,
+        "max": 42.4
+      },
+      "validPerArm": 8,
+      "trials": [
+        {
+          "batch": "four1",
+          "index": 0,
+          "variant": "A",
+          "warmup": true,
+          "checkMs": 21.3,
+          "beforeChangeMs": 18.7,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 560,
+          "firstInternalRenderMs": 7294.4,
+          "clickToBusinessPixelsMs": 7739.258,
+          "visualSampleGapMs": 29.92,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 1,
+          "variant": "B",
+          "warmup": true,
+          "checkMs": 1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 518.2,
+          "firstInternalRenderMs": 7134.1,
+          "clickToBusinessPixelsMs": 7597.666,
+          "visualSampleGapMs": 31.156,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 2,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 24.7,
+          "beforeChangeMs": 22.4,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 638.5,
+          "firstInternalRenderMs": 7451.4,
+          "clickToBusinessPixelsMs": 7965.049,
+          "visualSampleGapMs": 35.818,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 3,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.5,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 528.5,
+          "firstInternalRenderMs": 7200.9,
+          "clickToBusinessPixelsMs": 7639.311,
+          "visualSampleGapMs": 34.336,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 4,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 511.9,
+          "firstInternalRenderMs": 7154.7,
+          "clickToBusinessPixelsMs": 7606.403,
+          "visualSampleGapMs": 28.821,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 5,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 24.7,
+          "beforeChangeMs": 22.3,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 634.4,
+          "firstInternalRenderMs": 7235.3,
+          "clickToBusinessPixelsMs": 7711.713,
+          "visualSampleGapMs": 27.595,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 6,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.9,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 559.8,
+          "firstInternalRenderMs": 7113.2,
+          "clickToBusinessPixelsMs": 7540.056,
+          "visualSampleGapMs": 30.856,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 7,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 28.7,
+          "beforeChangeMs": 25.9,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 598.9,
+          "firstInternalRenderMs": 7539.7,
+          "clickToBusinessPixelsMs": 8010.458,
+          "visualSampleGapMs": 28.217,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 8,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 20.7,
+          "beforeChangeMs": 18.6,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 541.4,
+          "firstInternalRenderMs": 7231,
+          "clickToBusinessPixelsMs": 7707.857,
+          "visualSampleGapMs": 29.344,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four1",
+          "index": 9,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.5,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 562.9,
+          "firstInternalRenderMs": 7452.7,
+          "clickToBusinessPixelsMs": 7989.119,
+          "visualSampleGapMs": 31.983,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 0,
+          "variant": "B",
+          "warmup": true,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 499.5,
+          "firstInternalRenderMs": 6844.3,
+          "clickToBusinessPixelsMs": 7264.726,
+          "visualSampleGapMs": 24.105,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 1,
+          "variant": "A",
+          "warmup": true,
+          "checkMs": 19.4,
+          "beforeChangeMs": 18.2,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 520.3,
+          "firstInternalRenderMs": 7111.3,
+          "clickToBusinessPixelsMs": 7518.848,
+          "visualSampleGapMs": 23.296,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 2,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 507.2,
+          "firstInternalRenderMs": 6707.6,
+          "clickToBusinessPixelsMs": 7124.756,
+          "visualSampleGapMs": 40.126,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 3,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 19.4,
+          "beforeChangeMs": 18.1,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 516.9,
+          "firstInternalRenderMs": 6742.7,
+          "clickToBusinessPixelsMs": 7164.732,
+          "visualSampleGapMs": 40.729,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 4,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 20.6,
+          "beforeChangeMs": 18.7,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 528.7,
+          "firstInternalRenderMs": 6844.5,
+          "clickToBusinessPixelsMs": 7215.607,
+          "visualSampleGapMs": 16.473,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 5,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.2,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 557.1,
+          "firstInternalRenderMs": 6893.3,
+          "clickToBusinessPixelsMs": 7319.203,
+          "visualSampleGapMs": 18.944,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 6,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 20.1,
+          "beforeChangeMs": 18.6,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 637.2,
+          "firstInternalRenderMs": 6855.5,
+          "clickToBusinessPixelsMs": 7294.839,
+          "visualSampleGapMs": 42.395,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 7,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 562.3,
+          "firstInternalRenderMs": 6867.3,
+          "clickToBusinessPixelsMs": 7292.373,
+          "visualSampleGapMs": 41.605,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 8,
+          "variant": "B",
+          "warmup": false,
+          "checkMs": 0.1,
+          "beforeChangeMs": null,
+          "transactionCount": 0,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 555.4,
+          "firstInternalRenderMs": 6908.2,
+          "clickToBusinessPixelsMs": 7355.384,
+          "visualSampleGapMs": 41.023,
+          "matchedPoints": 39
+        },
+        {
+          "batch": "four2",
+          "index": 9,
+          "variant": "A",
+          "warmup": false,
+          "checkMs": 24.1,
+          "beforeChangeMs": 21.4,
+          "transactionCount": 1,
+          "modelChangeCounter": 2,
+          "componentSyncMs": 572.9,
+          "firstInternalRenderMs": 6907.8,
+          "clickToBusinessPixelsMs": 7357.541,
+          "visualSampleGapMs": 40.193,
+          "matchedPoints": 39
+        }
+      ],
+      "captureRetriesIncludingWarmups": {
+        "UnknownVizError": 7
+      }
+    }
+  },
+  "excludedSequence": {
+    "cpu": 1,
+    "sequence": "one1",
+    "reason": "All 10 opens were captured. The harness timed out returning to the dashboard after the last capture. The complete sequence was discarded and repeated with the same order, omitting the final return after all measurements."
+  }
+}

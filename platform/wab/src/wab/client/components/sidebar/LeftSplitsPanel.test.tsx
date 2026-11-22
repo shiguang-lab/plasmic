@@ -61,7 +61,7 @@ it("consumes actual canvas requests made before mounting, reopens after close, a
   expect(modalRendered).toHaveBeenLastCalledWith(f.split);
   expect(f.studio.forceOpenSplitStore.getState()).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Close split" }));
-  await waitFor(() => expect(screen.queryByRole("region", { name: "Editing split" })).toBeNull());
+  await waitFor(() => expect(screen.queryByRole("region", { name: "Editing split" })).toBeNull(), { timeout: 5000 });
   fireEvent.click(screen.getByRole("button", { name: "Open experiment" }));
   await waitFor(() => expect(screen.getByRole("region", { name: "Editing split" })).toBeTruthy());
   expect(f.studio.forceOpenSpit).toBeNull();

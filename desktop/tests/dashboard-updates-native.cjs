@@ -34,7 +34,7 @@ app
     );
     const geometry = () =>
       evaluate(
-        `(()=>{const c=document.getElementById('plasmic-desktop-update');const b=c.querySelector('button');const r=b.getBoundingClientRect();const a=document.getElementById('avatar').getBoundingClientRect();return {height:r.height,width:r.width,right:r.right,avatarLeft:a.left,left:r.left,brandRight:document.getElementById('brand').getBoundingClientRect().right,hidden:c.hidden,iconOpacity:getComputedStyle(c.querySelector('.update-icon')).opacity,buttonText:b.textContent,circles:b.querySelectorAll("circle").length};})()`,
+        `(()=>{const c=document.getElementById('plasmic-desktop-update');const b=c.querySelector('button');const r=b.getBoundingClientRect();const a=document.getElementById('avatar').getBoundingClientRect();const svg=c.querySelector('.update-icon svg');return {height:r.height,width:r.width,right:r.right,avatarLeft:a.left,left:r.left,brandRight:document.getElementById('brand').getBoundingClientRect().right,hidden:c.hidden,phase:c.dataset.phase||'',icon:svg?.dataset.icon||'',iconColor:svg?getComputedStyle(svg).color:'',iconOpacity:getComputedStyle(c.querySelector('.update-icon')).opacity,buttonText:b.textContent};})()`,
       );
     let g = await geometry();
     assert.equal(g.hidden, true);
@@ -58,15 +58,17 @@ app
       assert.equal(g.height, 32);
       assert.equal(g.width, 32);
       assert.equal(g.buttonText, "");
-      if (phase === "downloading") assert.equal(g.circles, 2);
+      assert.equal(g.phase, phase);
+      if (phase === "downloading") {
+        assert.equal(g.icon, "download");
+        assert.equal(g.iconColor, "rgb(2, 133, 255)");
+      }
+      if (phase === "installing") {
+        assert.equal(g.icon, "");
+      }
       assert.equal(g.left - g.brandRight, 12);
       if (phase === "downloaded") {
-        assert.equal(
-          await evaluate(
-            `document.querySelector('.update-icon svg').dataset.icon`,
-          ),
-          "download",
-        );
+        assert.equal(g.icon, "download");
         assert.equal(g.width, 32);
         await evaluate(`document.querySelector('.update-action').click()`);
         assert.equal(await evaluate("commands.at(-1)"), "open");
@@ -114,16 +116,16 @@ app
       assert.deepEqual(
         await evaluate(`(() => {
           const c = document.getElementById('plasmic-desktop-update');
-          return { open: c.querySelector('.update-tooltip').matches(':popover-open'), text: c.querySelector('.update-tooltip').textContent, percent: c.getAttribute('aria-valuenow') };
+          return { open: c.querySelector('.update-tooltip').matches(':popover-open'), text: c.querySelector('.update-tooltip').textContent, phase: c.dataset.phase, label: c.querySelector('.update-action').getAttribute('aria-label') };
         })()`),
-        { open: true, text: "Downloading 0.2.0 · 72%", percent: "72" },
+        { open: true, text: "Downloading 0.2.0 · 72%", phase: "downloading", label: "Downloading 0.2.0 · 72%" },
       );
       await evaluate(
         `document.getElementById('plasmic-desktop-update').dispatchEvent(new Event('mouseleave'))`,
       );
     }
     console.log(
-      "PASS: left brand spacing, conditional visibility, download icon, ring-only progress at all viewport sizes, live percentage tooltips and details-only click",
+      "PASS: left brand spacing, conditional visibility, download icon at all viewport sizes, live percentage tooltips and details-only click",
     );
     win.destroy();
     app.quit();

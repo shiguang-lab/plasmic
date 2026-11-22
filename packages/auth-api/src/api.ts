@@ -23,6 +23,17 @@ export type PlasmicUserResult =
       error?: never;
     };
 
+export class PlasmicAuthError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly invalidToken: boolean
+  ) {
+    super(message);
+    this.name = "PlasmicAuthError";
+  }
+}
+
 export async function getPlasmicAppUserFromToken(opts: {
   host?: string;
   token: string;
@@ -36,10 +47,17 @@ export async function getPlasmicAppUserFromToken(opts: {
   });
 
   if (result.status >= 400) {
+    const invalidToken = result.status === 401 || result.status === 403;
     return {
       user: null,
       token: null,
-      error: new Error("Invalid token"),
+      error: new PlasmicAuthError(
+        invalidToken
+          ? "Invalid token"
+          : `Failed to fetch user info (${result.status})`,
+        result.status,
+        invalidToken
+      ),
     };
   }
 

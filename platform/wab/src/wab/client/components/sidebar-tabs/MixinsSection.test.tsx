@@ -12,6 +12,7 @@ import { TplMgr } from "@/wab/shared/TplMgr";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
+import { mkTplComponent } from "@/wab/shared/core/tpls";
 import { ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
@@ -153,12 +154,35 @@ describe("MixinsSection & Sections tab routing", () => {
           el.key?.toString().includes("private-variants"),
         ),
       ).toBe(true);
-      expect(designElements.some((el) => el.key?.toString().includes("tag"))).toBe(
+      expect(
+        designElements.some((el) => el.key?.toString().includes("tag")),
+      ).toBe(true);
+
+      const childComponent = manager.addComponent({
+        name: "Child Component",
+        type: ComponentType.Plain,
+      });
+      const tplComp = mkTplComponent(childComponent, component.variants[0]);
+      root.children.push(tplComp);
+
+      const compDesignRenders = getOrderedSectionRender(
+        tplComp,
+        viewCtx,
+        new Map(),
+        "design",
         false,
       );
+      const compDesignElements = compDesignRenders
+        .map((r) => r())
+        .filter(Boolean) as React.ReactElement[];
+      expect(
+        compDesignElements.some((el) =>
+          el.key?.toString().includes("component-props"),
+        ),
+      ).toBe(false);
 
       const propsRenders = getOrderedSectionRender(
-        root,
+        tplComp,
         viewCtx,
         new Map(),
         "props",
@@ -167,12 +191,14 @@ describe("MixinsSection & Sections tab routing", () => {
       const propsElements = propsRenders
         .map((r) => r())
         .filter(Boolean) as React.ReactElement[];
-      expect(propsElements.some((el) => el.key?.toString().includes("tag"))).toBe(
-        true,
-      );
-      expect(propsElements.some((el) => el.key?.toString().includes("mixins"))).toBe(
-        false,
-      );
+      expect(
+        propsElements.some((el) =>
+          el.key?.toString().includes("component-props"),
+        ),
+      ).toBe(true);
+      expect(
+        propsElements.some((el) => el.key?.toString().includes("mixins")),
+      ).toBe(false);
     } finally {
       await studioCtx.awaitEval();
       studioCtx.dispose();

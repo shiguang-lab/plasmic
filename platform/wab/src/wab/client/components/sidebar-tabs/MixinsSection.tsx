@@ -231,7 +231,7 @@ export const MixinsSection = React.memo(function (props: {
             arrayInsert(
               targetVs.rs.mixins,
               moved,
-              toIndex < fromIndex ? toIndex : toIndex,
+              toIndex,
             );
           });
         }}

@@ -55,7 +55,9 @@ export async function getCmsDatabaseAndSecretTokenById(
   res: Response,
 ) {
   const databaseId = req.params.dbId;
-  const includeArchived = req.query.includeArchived as boolean | undefined;
+  const includeArchived =
+    req.query.includeArchived === "true" ||
+    (req.query.includeArchived as unknown) === true;
   const mgr = userDbMgr(req);
   const database = await mgr.getCmsDatabaseAndSecretTokenById(
     databaseId as CmsDatabaseId,

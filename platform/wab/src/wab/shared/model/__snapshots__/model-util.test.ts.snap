@@ -380,6 +380,7 @@ exports[`model-util > works 1`] = `
           "width": 438,
         },
       ],
+      "metadata": undefined,
       "name": "Light Mode",
     },
     {
@@ -707,6 +708,7 @@ exports[`model-util > works 1`] = `
           "width": 478,
         },
       ],
+      "metadata": undefined,
       "name": "Dark Mode",
     },
   ],

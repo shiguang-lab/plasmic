@@ -107,24 +107,22 @@ export async function renderBundleSandboxed(
   args: Parameters<typeof renderBundle>[0],
 ) {
   const cmd = `node -r esbuild-register src/renderer.ts`;
+  const input = JSON.stringify(args);
   if (process.env.DISABLE_BWRAP === "1") {
     const { stdout } = await execa(
       "node",
-      [...cmd.split(/\s+/g).slice(1), JSON.stringify(args)],
-      { timeout: 30_000, killSignal: "SIGKILL" },
+      cmd.split(/\s+/g).slice(1),
+      { input, timeout: 30_000, killSignal: "SIGKILL" },
     );
     return { html: stdout };
   } else {
     const bwrapArgs = process.env.BWRAP_ARGS || "";
     const { stdout } = await execa(
       `bwrap`,
-      [
-        ...`--die-with-parent --unshare-user --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup --ro-bind /lib /lib --ro-bind /usr /usr --ro-bind /etc /etc --ro-bind /run /run ${bwrapArgs} --chdir ${process.cwd()} ${cmd}`.split(
-          /\s+/g,
-        ),
-        JSON.stringify(args),
-      ],
-      { timeout: 30_000, killSignal: "SIGKILL" },
+      `--die-with-parent --unshare-user --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup --ro-bind /lib /lib --ro-bind /usr /usr --ro-bind /etc /etc --ro-bind /run /run ${bwrapArgs} --chdir ${process.cwd()} ${cmd}`.split(
+        /\s+/g,
+      ),
+      { input, timeout: 30_000, killSignal: "SIGKILL" },
     );
     return { html: stdout };
   }

@@ -224,41 +224,41 @@ class DesktopWorkspace {
         return false;
       }
       let catalog;
-      const unavailable = await Promise.all(
-        entries.map(async (entry) => {
-          const id = this.projectId(entry.url);
-          if (new URL(entry.url).searchParams.get("publishedTemplate") === "true") {
-            catalog ??= session.fetch(this.origin + "/api/v1/template-center", options)
-              .then(async response => response.ok ? (await response.json()).templates : undefined)
-              .catch(() => undefined);
-            const templates = await catalog;
-            return Array.isArray(templates) && !templates.some(item => item.id === id && item.published) ? id : undefined;
-          }
-          const url = new URL("/api/v1/projects", this.origin);
-          url.searchParams.set("query", JSON.stringify("byIds"));
-          url.searchParams.set("projectIds", JSON.stringify([id]));
-          try {
-            const response = await session.fetch(url.toString(), options);
-            if ([403, 404].includes(response.status)) {
-              return id;
+      const unavailable = new Set(
+        await Promise.all(
+          entries.map(async (entry) => {
+            const id = this.projectId(entry.url);
+            if (new URL(entry.url).searchParams.get("publishedTemplate") === "true") {
+              catalog ??= session.fetch(this.origin + "/api/v1/template-center", options)
+                .then(async response => response.ok ? (await response.json()).templates : undefined)
+                .catch(() => undefined);
+              const templates = await catalog;
+              return Array.isArray(templates) && !templates.some(item => item.id === id && item.published) ? entry : undefined;
             }
-            if (!response.ok) {
+            const url = new URL("/api/v1/projects", this.origin);
+            url.searchParams.set("query", JSON.stringify("byIds"));
+            url.searchParams.set("projectIds", JSON.stringify([id]));
+            try {
+              const response = await session.fetch(url.toString(), options);
+              if ([403, 404].includes(response.status)) {
+                return entry;
+              }
+              if (!response.ok) {
+                return undefined;
+              }
+              const { projects } = await response.json();
+              return Array.isArray(projects) &&
+                !projects.some((project) => project.id === id)
+                ? entry
+                : undefined;
+            } catch {
               return undefined;
             }
-            const { projects } = await response.json();
-            return Array.isArray(projects) &&
-              !projects.some((project) => project.id === id)
-              ? id
-              : undefined;
-          } catch {
-            return undefined;
-          }
-        }),
+          }),
+        ),
       );
       return this.saveRecent(
-        this.recent.filter(
-          (entry) => !unavailable.includes(this.projectId(entry.url)),
-        ),
+        this.recent.filter((entry) => !unavailable.has(entry)),
       );
     } catch (error) {
       console.warn("Cannot refresh recent desktop projects:", error.message);
@@ -283,6 +283,14 @@ function canImportIntoDesign(state) {
     state?.ready &&
     state.editorContext?.canEdit &&
     (!state.editorContext.mode || state.editorContext.mode === "edit")
+  );
+}
+
+function canExportArtboard(state) {
+  return !!(
+    state?.ready &&
+    state.editorContext?.mode === "edit" &&
+    state.editorContext.frameUuid
   );
 }
 
@@ -457,18 +465,10 @@ function fileMenu({
       {
         id: "desktop-export",
         label: t("Export Artboard…"),
-        enabled: !!(
-          menuState?.ready &&
-          menuState.editorContext?.mode === "edit" &&
-          menuState.editorContext.frameUuid
-        ),
+        enabled: canExportArtboard(menuState),
         click: run(async () => {
           const state = await controller.state();
-          if (
-            !state.ready ||
-            state.editorContext?.mode !== "edit" ||
-            !state.editorContext.frameUuid
-          ) {
+          if (!canExportArtboard(state)) {
             refresh();
             return;
           }
@@ -526,14 +526,52 @@ function fileMenu({
             cache: "no-store",
             signal: AbortSignal.timeout(30000),
           };
+          const branchId = state.editorContext?.branchId;
+          const projectRef =
+            branchId && branchId !== "main"
+              ? `${state.projectId}@${branchId}`
+              : state.projectId;
           const res = await session.fetch(
-            `${workspace.origin}/api/v1/projects/${state.projectId}`,
+            `${workspace.origin}/api/v1/projects/${projectRef}`,
             options,
           );
           if (!res.ok) {
             throw new Error(t("Failed to export .plasmic file"));
           }
           const { project, rev, depPkgs } = await res.json();
+          const modelReads = new Map();
+          const depBundles = await Promise.all(
+            (depPkgs || []).map(async (info) => {
+              let model = info.model;
+              if (model === undefined && info.modelResourceId) {
+                let read = modelReads.get(info.modelResourceId);
+                if (!read) {
+                  const headers = project?.publishedTemplateVersion
+                    ? { "X-Plasmic-Published-Template": project.id }
+                    : undefined;
+                  read = session
+                    .fetch(
+                      `${workspace.origin}/api/v1/dependency-models/${encodeURIComponent(info.modelResourceId)}`,
+                      headers ? { ...options, headers } : options,
+                    )
+                    .then(async (depRes) => {
+                      if (!depRes.ok) {
+                        throw new Error(t("Failed to export .plasmic file"));
+                      }
+                      return depRes.json();
+                    });
+                  modelReads.set(info.modelResourceId, read);
+                }
+                model = await read;
+              }
+              const parsedModel =
+                typeof model === "string" ? JSON.parse(model) : model;
+              if (!parsedModel) {
+                throw new Error(t("Failed to export .plasmic file"));
+              }
+              return [info.id, parsedModel];
+            }),
+          );
           const projectName = project?.name || "project";
           const output = await dialog.showSaveDialog(getWindow(), {
             title: t("Export .plasmic"),
@@ -552,10 +590,7 @@ function fileMenu({
             projectId: project?.id || state.projectId,
             exportedAt: new Date().toISOString(),
             bundles: [
-              ...(depPkgs || []).map((info) => [
-                info.id,
-                typeof info.model === "string" ? JSON.parse(info.model) : info.model,
-              ]),
+              ...depBundles,
               [
                 project?.id || state.projectId,
                 rev?.data
@@ -566,7 +601,20 @@ function fileMenu({
               ],
             ],
           };
-          fs.writeFileSync(output.filePath, JSON.stringify(exportData, null, 2), "utf-8");
+          const temporary = path.join(
+            path.dirname(output.filePath),
+            `.${path.basename(output.filePath)}.${randomUUID()}.plasmic`,
+          );
+          try {
+            fs.writeFileSync(
+              temporary,
+              JSON.stringify(exportData, null, 2),
+              "utf-8",
+            );
+            fs.renameSync(temporary, output.filePath);
+          } finally {
+            fs.rmSync(temporary, { force: true });
+          }
         }),
       },
       { type: "separator" },
@@ -587,11 +635,7 @@ function updateFileMenuContext(menu, state) {
   if (importPen) {
     importPen.enabled = canImportDesign;
   }
-  menu.getMenuItemById("desktop-export").enabled = !!(
-    state?.ready &&
-    state.editorContext?.mode === "edit" &&
-    state.editorContext.frameUuid
-  );
+  menu.getMenuItemById("desktop-export").enabled = canExportArtboard(state);
   const exportPlasmic = menu.getMenuItemById("desktop-export-plasmic");
   if (exportPlasmic) {
     exportPlasmic.enabled = !!(state?.ready && state.projectId);

@@ -1,4 +1,8 @@
 const { t, subscribe } = window.desktopUiI18n;
+const scrollHost = document.getElementById("settings-scroll");
+if (scrollHost) {
+  window.referenceBrowserUi?.mountScrollArea(scrollHost, false);
+}
 let latestItems = [];
 let loadState = "loading";
 let noticeKey = "";

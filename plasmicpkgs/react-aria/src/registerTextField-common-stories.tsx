@@ -209,10 +209,16 @@ const ControlledInputWrapper = (props: { children: React.ReactNode }) => {
   const { children } = props;
   const [value, setValue] = useState("");
 
-  return React.cloneElement(children as React.ReactElement, {
-    value,
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-      setValue(e.target.value);
-    },
-  });
+  return React.cloneElement(
+    children as React.ReactElement<{
+      value?: string;
+      onChange?: React.ChangeEventHandler<HTMLInputElement>;
+    }>,
+    {
+      value,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+        setValue(e.target.value);
+      },
+    }
+  );
 };

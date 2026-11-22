@@ -22,13 +22,13 @@ class VisualEvidenceTests(unittest.TestCase):
         source.write_text('Reviewed requirement fixture')
         self.manifest['source'] = {'path': str(source), 'sha256': hashlib.sha256(source.read_bytes()).hexdigest()}
         models = {'results': [dict(uuid=str(i), type='page', pageMeta={'path': path},
-                      baseVariantTplTree='<div></div>', props=[], states=[], variants=[], variantGroups=[], interactions=[])
+                      baseVariantTplTree='<div></div>', props=[], states=[], variants=[], variantGroups=[], variantSettings=[], interactions=[])
                   for i, path in enumerate(['/req-075/groups', '/req-075/regular', '/req-075/onetime', '/req-075/detail'])]}
         self.current = self.root / 'current'
         for directory in [self.root / 'original', self.current]:
             directory.mkdir()
             write_json(directory / 'pages.json', models)
-            write_json(directory / 'overview.json', {'results': [{'__type': 'Project', 'id': self.manifest['projectId'], 'components': models['results']}]})
+            write_json(directory / 'overview.json', {'results': [{'__type': 'Project', 'id': self.manifest['projectId'], 'globalVariantGroups': [], 'screenBreakpoints': [], 'components': models['results']}]})
             write_json(directory / 'layouts.json', {})
             identity = dict(projectId=self.manifest['projectId'], branchId=None, sessionId=directory.name, revision=164, changeCounter=0)
             write_json(directory / 'capture.json', dict(projectId=self.manifest['projectId'], before=identity, after=identity,

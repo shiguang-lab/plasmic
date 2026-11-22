@@ -27,6 +27,14 @@ app
       path.join(__dirname, "../src/update-dialog.js"),
       "utf8",
     );
+    const referenceBrowserJs = await fs.readFile(
+      path.join(__dirname, "../renderer/reference-browser-ui.js"),
+      "utf8",
+    );
+    const referenceBrowserCss = await fs.readFile(
+      path.join(__dirname, "../renderer/reference-browser-ui.css"),
+      "utf8",
+    );
     const studioOrigin = "https://studio.update.test";
     const canvasOrigin = "https://canvas.update.test";
     window.webContents.session.protocol.handle("https", (request) => {
@@ -34,6 +42,16 @@ app
       if (url.pathname === "/renderer-i18n.js") {
         return new Response(rendererI18n, {
           headers: { "Content-Type": "application/javascript; charset=utf-8" },
+        });
+      }
+      if (url.pathname === "/reference-browser-ui.js") {
+        return new Response(referenceBrowserJs, {
+          headers: { "Content-Type": "application/javascript; charset=utf-8" },
+        });
+      }
+      if (url.pathname === "/reference-browser-ui.css") {
+        return new Response(referenceBrowserCss, {
+          headers: { "Content-Type": "text/css; charset=utf-8" },
         });
       }
       if (url.pathname === "/update-ui.js") {
@@ -84,7 +102,7 @@ app
             return window.fixtureStatus;
           },
         };
-      </script><script defer src="${studioOrigin}/renderer-i18n.js"></script><script defer src="${studioOrigin}/update-dialog.js"></script>`
+      </script><script defer src="${studioOrigin}/renderer-i18n.js"></script><script defer src="${studioOrigin}/reference-browser-ui.js"></script><script defer src="${studioOrigin}/update-dialog.js"></script>`
           : ""
       }
       ${!isStudio ? `<script defer src="${studioOrigin}/renderer-i18n.js"></script>` : ""}
@@ -277,6 +295,34 @@ app
     console.log(
       "PASS: Native update notes follow all five languages; failed checks show no error indicator",
     );
+    window.setSize(640, 360);
+    await evaluate(`window.updateOpen({ phase: "downloaded", version: "0.0.7", currentVersion: "0.0.6", releaseNotes: Array.from({ length: 40 }, (_, i) => "- Note " + i).join("\\n") })`);
+    const scrollMetrics = await evaluate(`(() => {
+      const root = document.getElementById("plasmic-desktop-update-dialog").shadowRoot;
+      const main = root.querySelector("main");
+      const viewport = root.querySelector("[data-overlayscrollbars-viewport]");
+      const footer = root.querySelector("footer");
+      viewport.focus();
+      const before = viewport.scrollTop;
+      viewport.scrollTop = 120;
+      return {
+        hasOs: !!root.querySelector("[data-overlayscrollbars]"),
+        mainOverflowY: getComputedStyle(main).overflowY,
+        scrollHeight: viewport.scrollHeight,
+        clientHeight: viewport.clientHeight,
+        before,
+        after: viewport.scrollTop,
+        footerBottom: footer.getBoundingClientRect().bottom,
+        innerHeight,
+      };
+    })()`);
+    assert.equal(scrollMetrics.hasOs, true);
+    assert.equal(scrollMetrics.mainOverflowY, "hidden");
+    assert.ok(scrollMetrics.scrollHeight > scrollMetrics.clientHeight, `Expected scrollable viewport: ${JSON.stringify(scrollMetrics)}`);
+    assert.ok(scrollMetrics.after > scrollMetrics.before);
+    assert.ok(scrollMetrics.footerBottom <= scrollMetrics.innerHeight);
+    await evaluate(`document.getElementById("plasmic-desktop-update-dialog").shadowRoot.getElementById("secondary").click()`);
+    window.setSize(800, 600);
     await focusWindow();
     await evaluate(
       `document.querySelector(".update-action").blur(); document.querySelector(".update-action").focus()`,

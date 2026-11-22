@@ -13,7 +13,7 @@ import { createSite } from "@/wab/shared/core/sites";
 import { cloneTheme } from "@/wab/shared/core/styles";
 import { CONTENT_LAYOUT_STANDARD_WIDTH_PROP } from "@/wab/shared/core/style-props";
 import { RuleSet, ThemeLayoutSettings } from "@/wab/shared/model/classes";
-import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -41,14 +41,15 @@ it("updates actual document-layout fields, replaces layout/RS and keeps the real
 
 it("keeps selected initial element across theme changes and rebinds real model fields on world replacement", async () => {
   const f = await setup(), mounted = render(f.wrap(<ThemeInitialStylesPanel />));
-  fireEvent.change(ensure(mounted.container.querySelector("select"), "Original native select input"), { target: { value: AddItemKey.box } });
-  expect(dimension(mounted.container, "123px")).toBeTruthy();
-  await act(async () => { await f.studio.changeUnsafe(() => { ensure(f.theme.addItemPrefs[AddItemKey.box], "Box prefs").values.width = "124px"; }); }); expect(dimension(mounted.container, "124px")).toBeTruthy();
-  await act(async () => { await f.studio.changeUnsafe(() => { f.site.activeTheme = f.second; }); }); expect(dimension(mounted.container, "456px")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Pick an element type to configure" }));
+  fireEvent.click(await screen.findByRole("option", { name: "Free container" }));
+  expect(dimension(mounted.container, "123")).toBeTruthy();
+  await act(async () => { await f.studio.changeUnsafe(() => { ensure(f.theme.addItemPrefs[AddItemKey.box], "Box prefs").values.width = "124px"; }); }); expect(dimension(mounted.container, "124")).toBeTruthy();
+  await act(async () => { await f.studio.changeUnsafe(() => { f.site.activeTheme = f.second; }); }); expect(dimension(mounted.container, "456")).toBeTruthy();
   const release = mock<PkgVersionInfoMeta>({ id: "theme-panels-world", pkgId: "theme-panels-pkg", version: "1.0.0", branchId: null });
   f.api.getPkgVersion.mockResolvedValueOnce({ pkg: { ...release, model: f.studio.bundleSite().site }, depPkgs: [], etag: "theme-panels-etag" });
-  await act(async () => { await f.studio["loadVersion"](release, true); }); expect(dimension(mounted.container, "456px")).toBeTruthy();
+  await act(async () => { await f.studio["loadVersion"](release, true); }); expect(dimension(mounted.container, "456")).toBeTruthy();
   const fields = vi.spyOn(f.studio.modelSnapshots, "declaredField"); mounted.rerender(f.wrap(<ThemeInitialStylesPanel />)); expect(fields.mock.calls.some(([model]) => model === f.theme || model === f.second)).toBe(false);
   await act(async () => { await f.studio.awaitEval(); f.studio.dispose(); });
-  fields.mockClear(); mounted.rerender(f.wrap(<ThemeInitialStylesPanel />)); expect(dimension(mounted.container, "456px")).toBeTruthy(); expect(fields).not.toHaveBeenCalled(); mounted.unmount();
+  fields.mockClear(); mounted.rerender(f.wrap(<ThemeInitialStylesPanel />)); expect(dimension(mounted.container, "456")).toBeTruthy(); expect(fields).not.toHaveBeenCalled(); mounted.unmount();
 });

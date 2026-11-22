@@ -452,7 +452,7 @@ function TopBarContent({ preview }: TopBarProps) {
           ),
           props: {
             style: isMacDesktop
-              ? { paddingLeft: 96 }
+              ? { paddingLeft: "var(--studio-titlebar-left, 84px)" }
               : undefined,
           },
           wrapChildren: (children) => publishedTemplate ? children : (

@@ -153,11 +153,11 @@ it.each([false, true])("shows synchronization failures inside the assistant with
   vi.mocked(showError).mockClear();
   const session = ensure(state.session, "Missing test AI session");
   session.userId = "user";
-  session.setThreadDraft(session.activeThreadId, {prompt: "Keep my draft", attachments: []});
   session.syncError = new NetworkError({method: "GET", url: "/ai/chat/events?afterSeq=0"});
   if (running) {
     session.tasks = [{id: "running", threadId: session.activeThreadId, status: "running", parts: [], messages: [], records: [], operations: [], files: [], prompt: "Edit", phase: "Thinking", binding: {projectId: "project", branchId: null, sessionId: "session", changeCounter: 0, componentUuid: null, elementUuids: []}, authorId: "user", createdAt: "2026-10-29T00:00:00Z"}];
   }
+  session.setThreadDraft(session.activeThreadId, {prompt: "Keep my draft", attachments: []});
   mount();
   expect(screen.getByRole("status").textContent).toContain(running
     ? "AI task status is temporarily unavailable. Retrying…"

@@ -59,6 +59,7 @@ function setup(extraInfo?: () => Promise<unknown>) {
     renderPolicy: { value: policy },
     isDevMode: { get: () => policy.devMode },
     isInteractiveMode: { get: () => policy.interactive },
+    isPublishedTemplate: { value: false, configurable: true },
     arenaState: { value: { store: arena, lifetime: () => lifetime.signal } },
   });
   const setInteractive = (value: boolean) =>
@@ -261,4 +262,14 @@ it("cleans a failed move and allows the same insertable to start a new drag", as
   fireEvent.mouseUp(document, { clientX: 420, clientY: 120 });
   await waitFor(() => expect(f.ended).toHaveBeenCalledTimes(2));
   expect(f.manager.endDrag).toHaveBeenCalledExactlyOnceWith(f.spec, undefined);
+});
+
+it("does not start insertion drag when viewing a published template", () => {
+  const f = setup();
+  Object.defineProperty(f.sc, "isPublishedTemplate", { value: true });
+  f.start();
+  fireEvent.mouseUp(document, { clientX: 420, clientY: 120 });
+  expect(f.manager.drag).not.toHaveBeenCalled();
+  expect(f.manager.endDrag).not.toHaveBeenCalled();
+  expect(f.ended).not.toHaveBeenCalled();
 });

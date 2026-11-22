@@ -11,12 +11,13 @@ export function AiSyncNotice({ session }: { session: AiSessionView }) {
     return null;
   }
   return (
-    <Alert
-      type="warning"
-      role="status"
-      message={t(view.activeRun
-        ? "AI task status is temporarily unavailable. Retrying…"
-        : "AI conversation sync was interrupted. Retrying…")}
-    />
+    <div role="status">
+      <Alert
+        type="warning"
+        title={t(view.activeRun
+          ? "AI task status is temporarily unavailable. Retrying…"
+          : "AI conversation sync was interrupted. Retrying…")}
+      />
+    </div>
   );
 }

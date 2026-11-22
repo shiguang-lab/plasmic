@@ -516,10 +516,19 @@ export function renameFileBuffered(oldPath: string, newPath: string) {
 
     if (action) {
       switch (action.type) {
-        case "create":
+        case "create": {
           buffer.set(newPath, action);
           buffer.delete(oldPath);
-          break;
+          const renamedSource = renamedFiles.get(oldPath);
+          if (renamedSource !== undefined) {
+            renamedFiles.delete(oldPath);
+            buffer.set(renamedSource, { type: "delete" });
+            // eslint-disable-next-line no-restricted-syntax
+          } else if (fs.existsSync(oldPath)) {
+            buffer.set(oldPath, { type: "delete" });
+          }
+          return;
+        }
         case "rename":
           throw new HandledError("File does not exists");
         case "delete":
@@ -529,6 +538,7 @@ export function renameFileBuffered(oldPath: string, newPath: string) {
 
     const renamedFile = renamedFiles.get(oldPath);
     if (renamedFile !== undefined) {
+      renamedFiles.delete(oldPath);
       oldPath = renamedFile;
     }
     buffer.set(oldPath, { type: "rename", newPath });

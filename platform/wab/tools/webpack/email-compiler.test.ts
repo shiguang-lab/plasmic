@@ -40,7 +40,6 @@ it.each(["development", "production"])("executes compiled email SSR through the 
       assert(!html.includes("Switched to client rendering"));
       assert(!html.includes("data-msg="));
       verifyEmailHtml(html);
-      fs.writeFileSync(${JSON.stringify(path.join("/tmp/plasmic-react19-release-20261108", "email-ssr-"))} + ${JSON.stringify(mode)} + ".html", html);
       console.log(JSON.stringify({htmlBytes:html.length, canonicalReact:ownerPath, realServerText:true}));
     })().catch(error=>{console.error(error); process.exitCode=1;});
   `;

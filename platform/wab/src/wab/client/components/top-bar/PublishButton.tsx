@@ -8,6 +8,7 @@ import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions"
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { useAppCtx, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { DefaultPublishButtonProps } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicPublishButton";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { MainBranchId } from "@/wab/shared/ApiSchema";
@@ -188,11 +189,7 @@ export function PublishButton(props: PublishButtonProps) {
                   void message.success(t("Template published"));
                 }
               } catch (error) {
-                void message.error(
-                  error instanceof Error
-                    ? error.message
-                    : t("Template operation failed"),
-                );
+                showError(error, { title: "Template operation failed" });
               }
               setPublishingTemplate(false);
               return;

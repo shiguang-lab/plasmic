@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import "../../../antd6/tests/setup";
+import "../test-setup";
 import { PlasmicCanvasContext } from "@plasmicapp/host";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Form, Input } from "antd";

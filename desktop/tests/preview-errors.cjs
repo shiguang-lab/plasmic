@@ -22,10 +22,19 @@ app.on("window-all-closed", () => {}); // finish() controls the regression proce
 const watchdog = setTimeout(() => app.exit(1), 20000);
 app.whenReady().then(async () => {
   app.dock?.hide();
+  const wabModules = path.join(__dirname, "../../platform/wab/node_modules");
   const bundle = await require("esbuild").build({
     entryPoints: [path.join(__dirname, "fixtures/preview-runtime-errors.tsx")],
     bundle: true, write: false, platform: "browser", format: "iife",
-    nodePaths: [path.join(__dirname, "../../platform/wab/node_modules")],
+    nodePaths: [wabModules],
+    plugins: [{
+      name: "single-react",
+      setup(build) {
+        build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => ({
+          path: require.resolve(args.path, { paths: [wabModules] }),
+        }));
+      },
+    }],
     define: { "process.env.NODE_ENV": '"production"' },
   });
   server = http.createServer((req, res) => {
@@ -127,7 +136,10 @@ app.whenReady().then(async () => {
     }
     failures.push(payload);
   }
-  await frame.executeJavaScript("window.resetPreview(true)");
+  await assert.rejects(
+    frame.executeJavaScript("window.resetPreview(true)"),
+    /page initialization failed/,
+  );
   const failedState = JSON.parse((await preview({ action: "state" })).content[0].text);
   assert.equal(failedState.ready, false);
   assert.equal(failedState.runtime.status, "failed");

@@ -1340,8 +1340,6 @@ async function fixCodeComponentsVariants(
   return safeTry<void, never>(async function* () {
     const removedSelectorsByComponent: [Component, string[]][] = [];
 
-    const componentsToObserve: Component[] = [];
-
     ctx.site.components.forEach((c) => {
       // We ignore the hostless code components roots here, to let this be handled by the server upgrade
       if (
@@ -1356,7 +1354,6 @@ async function fixCodeComponentsVariants(
 
         if (unregisterdKeys.length > 0) {
           removedSelectorsByComponent.push([c, unregisterdKeys]);
-          componentsToObserve.push(c);
         }
       }
     });
@@ -1367,11 +1364,11 @@ async function fixCodeComponentsVariants(
       );
     }
 
-    ctx.observeComponents(componentsToObserve);
+    ctx.observeComponents(removedSelectorsByComponent.map(([c]) => c));
 
     yield* await ctx.change(
       () => {
-        componentsToObserve.forEach((c) => {
+        removedSelectorsByComponent.forEach(([c]) => {
           ensureOnlyValidCodeComponentVariantsInComponent(ctx.site, c);
         });
         return ok();
@@ -1404,18 +1401,20 @@ async function checkCodeComponentRefActions(ctx: SiteCtx) {
       }
     }
   });
+  if (removedRefActions.size === 0) {
+    return ok();
+  }
+
   const componentsToClear: ComponentInteractionToClear[] = [];
   // Clean up interactions that reference removed ref actions
   for (const component of ctx.site.components) {
+    const componentInteractions: ComponentInteractionToClear["interactions"] =
+      [];
     for (const tpl of flattenTpls(component.tplTree)) {
       for (const { expr } of getAllEventHandlersForTpl(component, tpl)) {
         if (!isKnownEventHandler(expr)) {
           continue;
         }
-        const componentToClear: ComponentInteractionToClear = {
-          component,
-          interactions: [],
-        };
         for (const interaction of expr.interactions) {
           if (
             interaction.actionName !== "invokeRefAction" ||
@@ -1423,35 +1422,48 @@ async function checkCodeComponentRefActions(ctx: SiteCtx) {
           ) {
             continue;
           }
-          const [firstArg, secondArg] = interaction.args;
+          const tplRefArg = interaction.args.find(
+            (arg) => arg.name === "tplRef",
+          );
+          const actionArg = interaction.args.find(
+            (arg) => arg.name === "action",
+          );
           if (
-            !isKnownTplRef(firstArg.expr) ||
-            !isTplComponent(firstArg.expr.tpl) ||
-            !isKnownCustomCode(secondArg.expr) ||
-            !isCodeComponent(firstArg.expr.tpl.component)
+            !tplRefArg ||
+            !actionArg ||
+            !isKnownTplRef(tplRefArg.expr) ||
+            !isTplComponent(tplRefArg.expr.tpl) ||
+            !isKnownCustomCode(actionArg.expr) ||
+            !isCodeComponent(tplRefArg.expr.tpl.component)
           ) {
             continue;
           }
           const componentRemovedRefActions = removedRefActions.get(
-            firstArg.expr.tpl.component,
+            tplRefArg.expr.tpl.component,
           );
-          const actionName = tryExtractString(secondArg.expr);
+          const actionName = tryExtractString(actionArg.expr);
           if (
             componentRemovedRefActions &&
             actionName &&
             componentRemovedRefActions.includes(actionName)
           ) {
-            componentToClear.interactions.push({
+            componentInteractions.push({
               interaction,
-              codeComponent: firstArg.expr.tpl.component,
+              codeComponent: tplRefArg.expr.tpl.component,
             });
           }
         }
-        if (componentToClear.interactions.length > 0) {
-          componentsToClear.push(componentToClear);
-        }
       }
     }
+    if (componentInteractions.length > 0) {
+      componentsToClear.push({
+        component,
+        interactions: componentInteractions,
+      });
+    }
+  }
+  if (componentsToClear.length === 0) {
+    return ok();
   }
   ctx.observeComponents(componentsToClear.map(({ component }) => component));
   return ctx.change<never>(
@@ -1462,10 +1474,17 @@ async function checkCodeComponentRefActions(ctx: SiteCtx) {
             .getRegisteredComponentsAndContextsMap()
             .get(removedInteraction.codeComponent.name)?.meta;
           const interaction = removedInteraction.interaction;
+          const tplRefArg = interaction.args.find(
+            (arg) => arg.name === "tplRef",
+          );
 
           // Keep the action element if other refActions exist in the new meta; otherwise, remove both action and element
-          if (meta?.refActions) {
-            interaction.args = [interaction.args[0]];
+          if (
+            meta?.refActions &&
+            Object.keys(meta.refActions).length > 0 &&
+            tplRefArg
+          ) {
+            interaction.args = [tplRefArg];
           } else {
             interaction.args = [];
           }
@@ -5366,6 +5385,7 @@ export function appendCodeComponentMetaToModel(
 
 export const _testonly = {
   addNewRegisteredComponents,
+  checkCodeComponentRefActions,
   checkComponentPropsAndStates,
   findDuplicateAriaParams,
   typeCheckRegistrations,

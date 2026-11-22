@@ -1260,38 +1260,8 @@ export async function getModelUpdates(req: Request, res: Response) {
     }
   } else {
     // Merge partial changes since that revision
-    let data = getBundle(partialChanges[0], latestVersion);
-    const deletedIids = new Set(
-      JSON.parse(partialChanges[0].deletedIids) as string[],
-    );
-    const modifiedComponentIids = new Set(
-      partialChanges[0].modifiedComponentIids ?? [],
-    );
-    for (const change of partialChanges.slice(1)) {
-      const changeBundle = getBundle(change, latestVersion);
-      const newDeletedIids = JSON.parse(change.deletedIids) as string[];
-      Object.keys(changeBundle.map).forEach((iid) => deletedIids.delete(iid));
-      newDeletedIids.forEach((iid) => deletedIids.add(iid));
-      change.modifiedComponentIids?.forEach((c) =>
-        modifiedComponentIids.add(c),
-      );
-      const newMap = { ...data.map };
-      Object.entries(changeBundle.map).forEach(([iid, json]) => {
-        if (newMap[iid]) {
-          assert(
-            newMap[iid].__type === json.__type,
-            `newMap[${iid}] has type ${newMap[iid].__type} but json.__type is ${json.__type}`,
-          );
-          Object.assign(newMap[iid], json);
-        } else {
-          newMap[iid] = json;
-        }
-      });
-      data = {
-        ...omit(changeBundle, ["map"]),
-        map: newMap,
-      };
-    }
+    const { data, deletedIids, modifiedComponentIids } =
+      mergePartialChangesBundles(partialChanges, latestVersion);
     const deps = await getDeps(data);
 
     res.json({
@@ -1299,10 +1269,70 @@ export async function getModelUpdates(req: Request, res: Response) {
       revision: ensure(last(partialChanges), "Couldn't find last partialChange")
         .revision,
       depPkgs: deps.filter((dep) => !installedDeps.has(dep.id)),
-      deletedIids: Array.from(deletedIids),
-      modifiedComponentIids: Array.from(modifiedComponentIids),
+      deletedIids,
+      modifiedComponentIids,
     });
   }
+}
+
+/**
+ * Merge sequential partial revision bundles into a single response bundle without
+ * copying the accumulated map on every revision or mutating cached input objects.
+ */
+export function mergePartialChangesBundles(
+  partialChanges: Array<{
+    data: string | null;
+    deletedIids: string;
+    modifiedComponentIids?: string[] | null;
+  }>,
+  latestVersion: string,
+) {
+  const firstBundle = getBundle(partialChanges[0] as any, latestVersion);
+  const deletedIids = new Set(
+    JSON.parse(partialChanges[0].deletedIids) as string[],
+  );
+  const modifiedComponentIids = new Set(
+    partialChanges[0].modifiedComponentIids ?? [],
+  );
+  if (partialChanges.length === 1) {
+    return {
+      data: firstBundle,
+      deletedIids: Array.from(deletedIids),
+      modifiedComponentIids: Array.from(modifiedComponentIids),
+    };
+  }
+  let lastBundle = firstBundle;
+  const mergedMap: Record<string, any> = { ...firstBundle.map };
+  for (const change of partialChanges.slice(1)) {
+    const changeBundle = getBundle(change as any, latestVersion);
+    lastBundle = changeBundle;
+    const newDeletedIids = JSON.parse(change.deletedIids) as string[];
+    Object.keys(changeBundle.map).forEach((iid) => deletedIids.delete(iid));
+    newDeletedIids.forEach((iid) => deletedIids.add(iid));
+    change.modifiedComponentIids?.forEach((c) =>
+      modifiedComponentIids.add(c),
+    );
+    Object.entries(changeBundle.map).forEach(([iid, json]) => {
+      if (mergedMap[iid]) {
+        assert(
+          mergedMap[iid].__type === json.__type,
+          `newMap[${iid}] has type ${mergedMap[iid].__type} but json.__type is ${json.__type}`,
+        );
+        mergedMap[iid] = { ...mergedMap[iid], ...json };
+      } else {
+        mergedMap[iid] = json;
+      }
+    });
+  }
+  const data = {
+    ...omit(lastBundle, ["map"]),
+    map: mergedMap,
+  } as Bundle;
+  return {
+    data,
+    deletedIids: Array.from(deletedIids),
+    modifiedComponentIids: Array.from(modifiedComponentIids),
+  };
 }
 
 async function readSaveBundle(req: Request) {

@@ -16,6 +16,16 @@ export class SupabaseFetcher {
     );
   }
 
+  private unwrapResult<T>(res: { data: T; error: any }): T {
+    if (res.error) {
+      throw new DataSourceError(
+        res.error.message,
+        (res.error as any).statusCode,
+      );
+    }
+    return res.data;
+  }
+
   async uploadFile(opts: {
     bucket: string;
     path: string;
@@ -29,13 +39,7 @@ export class SupabaseFetcher {
         contentType: opts.contentType,
         upsert: opts.upsert,
       });
-    if (res.error) {
-      throw new DataSourceError(
-        res.error.message,
-        (res.error as any).statusCode,
-      );
-    }
-    return res.data;
+    return this.unwrapResult(res);
   }
 
   async getSignedFileUrl(opts: {
@@ -49,6 +53,6 @@ export class SupabaseFetcher {
       .createSignedUrl(opts.path, opts.expiresIn, {
         download: opts.download,
       });
-    return res.data;
+    return this.unwrapResult(res);
   }
 }

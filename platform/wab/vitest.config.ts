@@ -48,6 +48,7 @@ const browserTests = [
   "src/wab/client/components/canvas/CanvasContentEditorControls.test.tsx",
   "src/wab/client/components/top-bar/VariantsComboSelect.test.tsx",
   "src/wab/client/components/ContextMenu.test.tsx",
+  "src/wab/client/components/widgets/IFrameAwareDropdownMenu.test.tsx",
   "src/wab/client/antd-theme.test.tsx",
   "src/wab/client/product-ui-theme.test.tsx",
   "src/wab/client/components/QueryBuilder/FilterQueryBuilder.theme.test.tsx",

@@ -90,7 +90,7 @@ async function fixture(label: string, content?: (sub: SubDeps, page: React.React
       subscribeModelChanges: () => () => undefined, hasPendingModelChanges: () => false },
     selectionStore: selection.store, variantStore: variants.store,
     arenaFrame: () => arena, componentArgsContainer: () => arena.container,
-    currentComponent: () => component, valComponentStack: () => [],
+    currentComponent: () => component, componentStackFrames: () => [], valComponentStack: () => [],
     focusedSelectable: () => true,
     trackCanvasObserver: () => undefined, commitCanvasObserver: () => undefined, disposeCanvasObserver: () => undefined,
     addRerenderObserver: (callback: () => void) => { rerenders.add(callback); },

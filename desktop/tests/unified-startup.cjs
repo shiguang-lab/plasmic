@@ -134,7 +134,7 @@ app
         left: 8,
         top: 8,
         height: 42,
-        paddingLeft: "96px",
+        paddingLeft: "84px",
       });
       const settings = await studioContents(win).executeJavaScript(`(() => {
         const bar = document.querySelector('.auth-settings').getBoundingClientRect();

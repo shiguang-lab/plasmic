@@ -25,6 +25,7 @@ const source = require("../../platform/wab/node_modules/lodash/template")(fs.rea
   staticUrl: origin,
   previewLoadingCss: fs.readFileSync(path.join(__dirname, "../../platform/wab/src/wab/client/components/live/PreviewLoading.css"), "utf8"),
   brand: require("../../platform/wab/src/wab/shared/branding.json"),
+  construction: require("../../platform/wab/src/wab/shared/brand-loading.json"),
   brandLoadingAnimation: require("../../platform/wab/src/wab/client/components/widgets/brand-loading-animation.js").animateBrandLoading.toString(),
 });
 let scriptNumber = 0;
@@ -153,7 +154,8 @@ app
         pages: loading.querySelectorAll(".studio-loading__artboard").length,
         scaffold: logo.querySelectorAll("[data-scaffold] [clip-path] path").length,
         backgroundGrid: !!logo.querySelector("[data-grid]"),
-        lights: logo.querySelector("[data-lights]").children.length,
+        construction: !!loading.querySelector("[data-construction]"),
+        sheen: !!loading.querySelector("[data-sheen]"),
         gradientStops: logo.querySelectorAll("linearGradient")[0].querySelectorAll("stop").length,
         spinner: !!loading.querySelector(".studio-loading__spinner, .ant-spin"),
       };
@@ -171,9 +173,10 @@ app
       );
       assert.equal(computed.placeholders, 0);
       assert.equal(computed.pages, 0);
-      assert.equal(computed.scaffold, 40);
+      assert.equal(computed.scaffold, 44);
       assert.equal(computed.backgroundGrid, false);
-      assert.equal(computed.lights, 112);
+      assert.equal(computed.construction, true);
+      assert.equal(computed.sheen, true);
       assert.equal(computed.gradientStops, 4);
       assert.equal(computed.spinner, false);
       activeWindow.destroy();

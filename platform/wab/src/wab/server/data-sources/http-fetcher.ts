@@ -1,9 +1,12 @@
-import { base64StringToBuffer } from "@/wab/server/data-sources/data-utils";
+import {
+  base64StringToBuffer,
+  processHttpResult,
+} from "@/wab/server/data-sources/data-utils";
 import { fetchUntrusted, UnsafeUrlError } from "@/wab/server/util/url";
 import { DataSourceError } from "@/wab/shared/data-sources-meta/data-sources";
 import { HttpDataSource } from "@/wab/shared/data-sources-meta/http-meta";
 import { AxiosResponse } from "axios";
-import { isEmpty, isNil, isString } from "lodash";
+import { isNil } from "lodash";
 
 const DEFAULT_TIMEOUT = 175000;
 
@@ -89,7 +92,7 @@ export class HttpFetcher {
         throw e;
       }
     }
-    return processResult(res);
+    return processHttpResult(res);
   }
 
   private makeUrl(path?: string, params?: Record<string, string>) {
@@ -115,29 +118,6 @@ export class HttpFetcher {
       ...headers,
     };
   }
-}
-
-async function processResult(res: AxiosResponse<string>) {
-  let processedResponse: string | any = res.data;
-  const statusCode = res.status;
-  try {
-    processedResponse = JSON.parse(processedResponse);
-  } catch {}
-  if (statusCode >= 400) {
-    throw new DataSourceError(
-      isString(processedResponse) || !isEmpty(processedResponse)
-        ? processedResponse
-        : undefined,
-      statusCode,
-    );
-  }
-  return {
-    data: {
-      response: processedResponse,
-      statusCode,
-      headers: { ...res.headers },
-    },
-  };
 }
 
 function bodyToFetchBody(body?: string | object) {

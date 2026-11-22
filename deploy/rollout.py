@@ -105,10 +105,8 @@ class Deployment:
             promoted = True
         finally:
             if not promoted:
-                try:
-                    self.install_edge(previous)
-                finally:
-                    self.compose("stop", *services)
+                self.install_edge(previous)
+                self.compose("stop", *services)
         # The worker always broadcasts through the stable edge to the active
         # server. Do not stop the previous runtime until traffic has switched.
         content = env_file.read_text()

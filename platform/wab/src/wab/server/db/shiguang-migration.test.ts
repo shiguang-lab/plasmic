@@ -139,7 +139,7 @@ it("refuses missing mappings before deleting accounts, then transfers business r
       `ALTER TABLE oauth_token ADD UNIQUE ("userId", provider)`,
     );
     await runner.query(
-      `INSERT INTO "user" VALUES ('old-admin','admin@example.com','{"admin":true}','2020-01-01')`,
+      `INSERT INTO "user" VALUES ('old-admin','admin@example.com','{"admin":true}','2020-01-01T00:00:00Z')`,
     );
     await runner.query(
       `INSERT INTO team VALUES ('admin-team','old-admin'),('personal-team','old-user')`,

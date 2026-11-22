@@ -39,8 +39,8 @@ export class PlasmicRemoteChangeWatcher {
     }
   }
 
-  private async connectSocket() {
-    const socket = socketio(this.host, {
+  private connectSocket() {
+    return socketio(this.host, {
       path: `/api/v1/socket`,
       transportOptions: {
         polling: {
@@ -48,7 +48,6 @@ export class PlasmicRemoteChangeWatcher {
         },
       },
     });
-    return socket;
   }
 
   private makeAuthHeaders() {
@@ -60,7 +59,7 @@ export class PlasmicRemoteChangeWatcher {
     };
   }
 
-  private async ensureWatch() {
+  private ensureWatch() {
     if (this.socket) {
       return;
     }
@@ -69,7 +68,7 @@ export class PlasmicRemoteChangeWatcher {
       return;
     }
 
-    const socket = (this.socket = await this.connectSocket());
+    const socket = (this.socket = this.connectSocket());
     socket.on("initServerInfo", () => {
       socket.emit("subscribe", {
         namespace: "projects",

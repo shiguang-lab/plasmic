@@ -92,6 +92,9 @@ it("opens the created entry when refreshing the list fails", async () => {
       "/cms/db1/content/models/table1/entries/newrow",
     ),
   );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Add new entry" })).toBeEnabled(),
+  );
   expect(screen.queryByText("Failed to create content entry")).toBeNull();
   expect(mocks.create).toHaveBeenCalledTimes(1);
 });
@@ -115,6 +118,9 @@ it("shows creation failure without discarding the list and retries the real crea
     expect(mocks.navigate).toHaveBeenCalledWith(
       "/cms/db1/content/models/table1/entries/newrow",
     ),
+  );
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Add new entry" })).toBeEnabled(),
   );
   expect(mocks.create).toHaveBeenLastCalledWith("table1", {
     identifier: undefined,

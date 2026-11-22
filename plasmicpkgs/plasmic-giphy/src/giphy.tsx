@@ -17,6 +17,7 @@ const modulePath = "@plasmicpkgs/plasmic-giphy";
 
 interface GiphyProps {
   searchTerm: string;
+  apiKey?: string;
   className: string;
   noLayout?: boolean;
 }
@@ -35,15 +36,24 @@ export const GiphyMeta: CodeComponentMeta<GiphyProps> = {
       description: "Search term for fetching gif ",
       defaultValue: "Cat",
     },
+    apiKey: {
+      type: "string",
+      displayName: "API Key",
+      description: "Giphy API key (or set NEXT_PUBLIC_GIPHY_API_KEY).",
+    },
   },
 };
 
-export function Giphy({ searchTerm, className }: GiphyProps) {
-  const id = useFetch({ keyword: searchTerm });
+export function Giphy({
+  searchTerm,
+  apiKey = process.env.NEXT_PUBLIC_GIPHY_API_KEY ?? "",
+  className,
+}: GiphyProps) {
+  const id = useFetch({ keyword: searchTerm, apiKey });
   const [gif, setGif] = useState<IGif | null>(null);
 
   useEffect(() => {
-    const gf = new GiphyFetch("X1q3afkDR9WHSZJhLS6H9yYTQMPIWOTK");
+    const gf = new GiphyFetch(apiKey);
     let active = true;
     const fetchGif = async () => {
       if (!id) {
@@ -55,7 +65,7 @@ export function Giphy({ searchTerm, className }: GiphyProps) {
     };
     void fetchGif().catch((error) => { if (active) { console.error(error); } });
     return () => { active = false; };
-  }, [id]);
+  }, [id, apiKey]);
 
   return (
     <img

@@ -660,9 +660,11 @@ export const BoxGeometryCard = React.memo(function BoxGeometryCard(
   );
   const readAlive = React.useCallback(() => !lifetime.aborted, [lifetime]);
   const alive = React.useSyncExternalStore(subscribeLifetime, readAlive, readAlive);
+  // Standalone rule-set controls retain their last display after owner closure.
+  const keepDisplay = !(expsProvider instanceof TplExpsProvider) || alive;
 
-  const cells = useStyleCells(expsProvider, alive ? BOX_STYLE_KEYS : EMPTY_KEYS);
-  const indicators = useStyleIndicators(expsProvider, alive ? BOX_STYLE_KEYS : EMPTY_KEYS);
+  const cells = useStyleCells(expsProvider, keepDisplay ? BOX_STYLE_KEYS : EMPTY_KEYS);
+  const indicators = useStyleIndicators(expsProvider, keepDisplay ? BOX_STYLE_KEYS : EMPTY_KEYS);
 
   const cellValueMap = React.useMemo(() => {
     const map = new Map<string, string>();
@@ -824,7 +826,7 @@ export const BoxGeometryCard = React.memo(function BoxGeometryCard(
     );
   }, []);
 
-  if (!alive || !resolvedCapabilities.visible || cells.length < BOX_STYLE_KEYS.length) {
+  if (!keepDisplay || !resolvedCapabilities.visible || cells.length < BOX_STYLE_KEYS.length) {
     return null;
   }
 

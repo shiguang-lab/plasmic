@@ -19,7 +19,7 @@ const getVendors = async (config: SwellConfig) => {
   const vendors: [string] =
     (await config.fetch("attributes", "get", ["brand"]))?.values ?? [];
 
-  return [...new Set(vendors)].map((v) => ({
+  return Array.from(new Set(vendors)).map((v) => ({
     node: {
       entityId: v,
       name: v,

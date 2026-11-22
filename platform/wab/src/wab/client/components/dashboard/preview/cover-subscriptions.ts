@@ -18,6 +18,7 @@ class ProjectCover {
   read?: AbortController;
   retry?: number;
   needsCheck = true;
+  recovery: "none" | "fetch" | "waiting" = "none";
 
   get visible() {
     return Array.from(this.cards.values()).some(Boolean);
@@ -28,6 +29,7 @@ class ProjectCover {
     this.read = undefined;
     window.clearTimeout(this.retry);
     this.retry = undefined;
+    this.recovery = "none";
   }
 
   setImage(url: string | undefined, revision: number) {
@@ -41,13 +43,15 @@ class ProjectCover {
 
 class CoverSubscriptions {
   private projects = new Map<string, ProjectCover>();
+  // Detached cards keep their decoded cover URL for a return to the list.
+  private recent = new Map<string, { url: string; revision: number }>();
   private source?: EventSource;
   private checks?: { stream: string; controller: AbortController };
   private checkScheduled = false;
   private checkRetry?: number;
   private reconnect?: number;
   private pageHidden = false;
-  private stopDesktop: () => void;
+  private stopDesktop?: () => void;
   private elements = new Map<Element, (visible: boolean) => void>();
   private observer = new IntersectionObserver((entries) => {
     for (const entry of entries)
@@ -55,7 +59,10 @@ class CoverSubscriptions {
     this.scheduleCheck();
   });
 
-  constructor(readonly account: string) {
+  constructor(readonly account: string) {}
+
+  private start() {
+    this.pageHidden = false;
     document.addEventListener("visibilitychange", this.updateActivity);
     window.addEventListener("pagehide", this.hide);
     window.addEventListener("pageshow", this.show);
@@ -101,12 +108,20 @@ class CoverSubscriptions {
       if (source !== this.source) return;
       const event: PublishedCover = JSON.parse(message.data);
       const project = this.projects.get(event.projectId);
+      const recoversDisplayedRevision =
+        !!project &&
+        project.recovery !== "none" &&
+        event.publishedRevision === project.displayed;
       if (
         !project ||
         event.publishedRevision < project.published ||
-        event.publishedRevision <= project.displayed
+        (event.publishedRevision <= project.displayed &&
+          !recoversDisplayedRevision)
       )
         return;
+      if (project.recovery === "waiting") {
+        project.recovery = "fetch";
+      }
       project.published = event.publishedRevision;
       void this.fetchImage(event.projectId, project);
     });
@@ -183,20 +198,39 @@ class CoverSubscriptions {
       if (signal.aborted) return;
       if (denied) {
         this.disconnect();
+        this.clearRecent();
         for (const project of this.projects.values())
           project.setImage(undefined, 0);
         return;
       }
       for (const [id, project] of entries) {
-        if (this.projects.get(id) !== project) continue;
-        if (!Object.prototype.hasOwnProperty.call(revisions, id)) {
+        const allowed = Object.prototype.hasOwnProperty.call(revisions, id);
+        if (this.projects.get(id) !== project) {
+          if (!allowed && !this.projects.has(id)) this.forgetRecent(id);
+          continue;
+        }
+        if (!allowed) {
           project.cancel();
           project.published = 0;
           project.setImage(undefined, 0);
         } else {
           project.published = Math.max(project.published, revisions[id]);
-          if (project.published > project.displayed)
+          if (revisions[id] === 0 && project.url && project.displayed > 0) {
+            if (project.recovery === "none") {
+              project.recovery = "fetch";
+              void this.fetchImage(id, project);
+            }
+          } else if (
+            project.published > project.displayed ||
+            (project.recovery === "waiting" &&
+              revisions[id] > 0 &&
+              revisions[id] >= project.displayed)
+          ) {
+            if (project.recovery === "waiting") {
+              project.recovery = "fetch";
+            }
             void this.fetchImage(id, project);
+          }
         }
       }
     } catch {
@@ -212,7 +246,9 @@ class CoverSubscriptions {
       !this.source ||
       !project.visible ||
       project.read ||
-      (project.url && project.displayed >= project.published)
+      (project.url &&
+        project.displayed >= project.published &&
+        project.recovery !== "fetch")
     )
       return;
     window.clearTimeout(project.retry);
@@ -233,11 +269,15 @@ class CoverSubscriptions {
       );
       if (read.signal.aborted) return;
       if ([401, 403, 404].includes(res.status)) {
+        project.recovery = "none";
         project.published = 0;
         project.setImage(undefined, 0);
         return;
       }
-      if (res.status === 202) return; // Missing cover queued; wait for publication.
+      if (res.status === 202) {
+        project.recovery = "waiting";
+        return; // Missing cover queued; wait for publication.
+      }
       if (!res.ok) throw new Error("Cover unavailable");
       const revision = Number(res.headers.get(coverRevisionHeader));
       const blob = await res.blob();
@@ -254,6 +294,7 @@ class CoverSubscriptions {
       image.src = candidate;
       await image.decode();
       if (read.signal.aborted || revision < project.published) return;
+      project.recovery = "none";
       project.published = revision;
       project.setImage(candidate, revision);
       candidate = undefined;
@@ -270,15 +311,27 @@ class CoverSubscriptions {
         project.read = undefined;
         if (
           project.published > requested &&
-          project.published > project.displayed
-        )
+          (project.published > project.displayed ||
+            (project.recovery !== "none" &&
+              project.published === project.displayed))
+        ) {
+          if (project.recovery === "waiting") {
+            project.recovery = "fetch";
+          }
           void this.fetchImage(id, project);
+        }
       }
     }
   }
 
   observe(element: Element, id: string, listener: Listener) {
+    if (!this.projects.size) this.start();
     const project = this.projects.get(id) ?? new ProjectCover();
+    const cached = this.recent.get(id);
+    if (cached) {
+      this.recent.delete(id);
+      project.setImage(cached.url, cached.revision);
+    }
     this.projects.set(id, project);
     project.cards.set(listener, false);
     listener(project.url);
@@ -294,21 +347,45 @@ class CoverSubscriptions {
       this.observer.unobserve(element);
       if (!project.cards.size) {
         project.cancel();
-        project.setImage(undefined, 0);
+        if (project.url) {
+          this.recent.set(id, { url: project.url, revision: project.displayed });
+          if (this.recent.size > 48) {
+            const oldest = this.recent.keys().next();
+            if (!oldest.done) this.forgetRecent(oldest.value);
+          }
+        }
         this.projects.delete(id);
       }
-      if (!this.projects.size) this.dispose();
+      if (!this.projects.size) this.stop();
     };
   }
 
-  dispose() {
+  private forgetRecent(id: string) {
+    const cached = this.recent.get(id);
+    if (cached) {
+      URL.revokeObjectURL(cached.url);
+      this.recent.delete(id);
+    }
+  }
+
+  private clearRecent() {
+    for (const id of this.recent.keys()) this.forgetRecent(id);
+  }
+
+  private stop() {
     this.disconnect();
     document.removeEventListener("visibilitychange", this.updateActivity);
     window.removeEventListener("pagehide", this.hide);
     window.removeEventListener("pageshow", this.show);
-    this.stopDesktop();
+    this.stopDesktop?.();
+    this.stopDesktop = undefined;
     this.observer.disconnect();
     this.elements.clear();
+  }
+
+  dispose() {
+    this.stop();
+    this.clearRecent();
     for (const project of this.projects.values()) {
       project.setImage(undefined, 0);
       project.cards.clear();

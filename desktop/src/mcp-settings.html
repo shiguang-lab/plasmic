@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self'"
+      content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'"
     />
     <title data-ui-message="MCP">MCP</title>
+    <link rel="stylesheet" href="../renderer/reference-browser-ui.css" />
     <style>
       :root {
         color-scheme: dark;
@@ -75,8 +76,21 @@
       main {
         flex: 1;
         min-height: 0;
-        overflow-y: auto;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      #settings-scroll {
+        flex: 1;
+        min-height: 0;
+      }
+      #settings-scroll .scroll-content {
         padding: 0 24px 24px;
+      }
+      [data-overlayscrollbars] {
+        --os-handle-bg: var(--ui-border);
+        --os-handle-bg-hover: var(--ui-muted);
+        --os-handle-bg-active: var(--ui-muted);
       }
       button {
         font: inherit;
@@ -258,6 +272,7 @@
         data-ui-attribute="aria-label"
         aria-label="MCP settings"
       >
+        <div id="settings-scroll">
         <div
           id="clients"
           data-ui-message="MCP clients"
@@ -302,10 +317,12 @@
           </p>
         </section>
         <p id="notice" role="status" aria-live="polite"></p>
+        </div>
       </main>
     </div>
     <script src="renderer-appearance.js"></script>
     <script src="renderer-i18n.js"></script>
+    <script src="../renderer/reference-browser-ui.js"></script>
     <script src="mcp-settings-renderer.js"></script>
   </body>
 </html>

@@ -3,10 +3,15 @@
     return;
   }
   const { t, apply, subscribe, snapshot } = window.desktopUiI18n;
+  const scriptUrl = document.currentScript?.src;
+  const scrollCssLink =
+    scriptUrl && /^(https?|file):/.test(scriptUrl)
+      ? `<link rel="stylesheet" href="${new URL("/reference-browser-ui.css", scriptUrl).href}">`
+      : "";
   const host = document.createElement("div");
   host.id = "plasmic-desktop-update-dialog";
   const root = host.attachShadow({ mode: "open" });
-  root.innerHTML = `<style>
+  root.innerHTML = `${scrollCssLink}<style>
 dialog { color-scheme: light; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --text: #252a38; --bg: #fff; --muted: #70778b; --surface: #eceef3; --border: #d7dbe5; --primary: #7955d9; color: var(--text); background: var(--bg); }
 :host([data-ui-appearance="dark"]) dialog { color-scheme: dark; --text: #edeef5; --bg: #202128; --muted: #9295a7; --surface: #272831; --border: #373842; --primary: #9474ff; }
 * { box-sizing: border-box; }
@@ -18,8 +23,12 @@ dialog::backdrop { background: #18233b4d; }
 header { position: relative; padding: 20px 56px 12px 24px; flex: none; }
 h1 { font-size: 18px; line-height: 1.4; font-weight: 600; margin: 0; letter-spacing: -.2px; }
 #description { margin: 0; color: var(--muted); }
-main { min-height: 0; flex: 0 1 auto; overflow-y: auto; padding: 0 24px 20px; display: flex; flex-direction: column; gap: 16px; overflow-wrap: anywhere; }
-main > * { flex: none; }
+main { min-height: 0; flex: 0 1 auto; overflow: hidden; display: flex; flex-direction: column; }
+#main-scroll { flex: 0 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column; }
+#main-scroll > [data-overlayscrollbars] { flex: 0 1 auto; min-height: 0; height: auto !important; max-height: 100%; }
+#main-scroll .scroll-content { padding: 0 24px 20px; display: flex; flex-direction: column; gap: 16px; overflow-wrap: anywhere; }
+#main-scroll .scroll-content > * { flex: none; }
+[data-overlayscrollbars] { --os-handle-bg: var(--border); --os-handle-bg-hover: var(--muted); --os-handle-bg-active: var(--muted); }
 .versions { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 10px 12px; border-radius: 6px; background: var(--surface); }
 .versions > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 dt { flex: none; font-size: 12px; color: var(--muted); }
@@ -48,12 +57,12 @@ button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 button:disabled { opacity: .55; cursor: default; }
 </style><dialog data-ui-message="Software Update" data-ui-attribute="aria-label" aria-label="Software Update">
 <header><h1 id="status" role="status" aria-live="polite">Checking for updates…</h1><button id="dismiss" type="button" data-ui-message="Close software update" data-ui-attribute="aria-label" aria-label="Close software update"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
-<main>
+<main><div id="main-scroll">
 <p id="description">Looking for the latest version of Plasmic.</p>
 <dl class="versions"><div><dt data-ui-message="Installed version">Installed version</dt><dd id="current-version">—</dd></div><div id="latest" hidden><dt data-ui-message="New version">New version</dt><dd id="latest-version"></dd></div></dl>
 <section id="notes-section" hidden aria-labelledby="notes-heading"><h2 id="notes-heading" data-ui-message="What's new">What's new</h2><div id="notes"></div></section>
 <section id="download" hidden><div class="progress-heading"><span data-ui-message="Downloading update">Downloading update</span><span id="percent">0%</span></div><progress id="progress" max="100" value="0" data-ui-message="Download progress" data-ui-attribute="aria-label" aria-label="Download progress"></progress></section>
-</main>
+</div></main>
 <footer><button id="secondary">Close</button><button id="primary" disabled>Checking…</button></footer>
 </dialog>`;
   const syncAppearance = () => {
@@ -66,6 +75,10 @@ button:disabled { opacity: .55; cursor: default; }
     attributeFilter: ["data-ui-appearance"],
   });
   document.body.append(host);
+  const mainScroll = root.getElementById("main-scroll");
+  if (mainScroll) {
+    window.referenceBrowserUi?.mountScrollArea(mainScroll, false);
+  }
   const dialog = root.querySelector("dialog");
   const byId = (id) => root.getElementById(id);
   let state = {};

@@ -13,7 +13,10 @@ import {
 import { Menu } from "antd";
 import * as React from "react";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  setAppearancePreference("light");
+});
 
 it("limits a side-aligned menu to the space beside its trigger and updates on resize and scroll", async () => {
   let viewportHeight = 720;
@@ -155,7 +158,7 @@ it("uses themed Scrollbars and shortcut labels in the dropdown and its separatel
     ).toBe("visible");
     expect(
       getComputedStyle(item.closest(".studio-scrollbar") as Element).maxHeight,
-    ).toBe("80vh");
+    ).toBe(`${window.innerHeight * 0.8}px`);
     const badge = item.querySelector(".shortcut-combo");
     expect(badge).toBeTruthy();
     expect(getComputedStyle(badge as Element).backgroundColor).toBe(

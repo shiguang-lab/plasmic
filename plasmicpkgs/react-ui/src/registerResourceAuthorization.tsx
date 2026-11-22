@@ -7,7 +7,11 @@ import {
   ResourceAuthorizationRecordProps as ReactUIResourceAuthorizationRecordProps,
 } from "@react/ui";
 import { ResourceAuthorizationCanvasContext } from "@react/ui/esm/resource-authorization/canvas-context.js";
-import type { PlasmicCanvasProps } from "@plasmicapp/host";
+import {
+  type PlasmicCanvasProps,
+  usePlasmicCanvasComponentInfo,
+  usePlasmicCanvasContext,
+} from "@plasmicapp/host";
 import {
   useCanvasOverlay,
 } from "@shiguang-lab/plasmic-antd6/skinny/canvas-overlay";
@@ -31,8 +35,14 @@ const canvasOverlay = { triggerSlot: "trigger" };
 
 function useAuthorizationOverlay<P extends OverlayProps & { onSuccess?: () => void }>(props: P) {
   const [localOpen, setLocalOpen] = React.useState(false);
+  const canvas = usePlasmicCanvasContext();
+  const selection = usePlasmicCanvasComponentInfo(props);
+  const effectiveProps =
+    canvas && canvas.interactive && !selection?.getState && props.__canvas
+      ? { ...props, open: props.open ?? localOpen, __canvas: { ...props.__canvas, selected: false } }
+      : { ...props, open: props.open ?? localOpen };
   const { props: rest, open, isEditing } = useCanvasOverlay(
-    { ...props, open: props.open ?? localOpen },
+    effectiveProps,
     canvasOverlay.triggerSlot,
   );
   const { trigger, onClose, onSuccess, onOpenChange, ...businessProps } = rest;

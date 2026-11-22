@@ -240,9 +240,8 @@ export function checkValidName(name?: string): boolean {
   return true;
 }
 
-const PROJECT_URL_REGEXP =
-  /studio\.plasmic\.app\/projects\/([a-z0-9]{5,})(\/|$)/i;
-const PROJECT_ID_REGEXP = /([a-z0-9]{5,})/i;
+const PROJECT_URL_PATH_REGEXP = /^\/projects\/([a-z0-9]{5,})(?:\/|$)/i;
+const PROJECT_ID_REGEXP = /^[a-z0-9]{5,}$/i;
 
 export function checkProjectInput(input: string): boolean {
   try {
@@ -256,14 +255,30 @@ export function checkProjectInput(input: string): boolean {
 
 /** Gets a project ID from an ID itself or a URL. */
 export function extractProjectId(input: string): string {
-  const matchUrl = input.match(PROJECT_URL_REGEXP);
-  if (matchUrl) {
-    return matchUrl[1];
+  const trimmed = input.trim();
+  if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmed) || trimmed.includes("/")) {
+    let url: URL;
+    try {
+      url = new URL(
+        /^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)
+          ? trimmed
+          : `https://${trimmed}`
+      );
+    } catch {
+      throw new Error("run checkProjectInput before extractProjectId");
+    }
+    const matchPath =
+      url.hostname.toLowerCase() === "studio.plasmic.app"
+        ? url.pathname.match(PROJECT_URL_PATH_REGEXP)
+        : null;
+    if (matchPath) {
+      return matchPath[1];
+    }
+    throw new Error("run checkProjectInput before extractProjectId");
   }
 
-  const matchId = input.match(PROJECT_ID_REGEXP);
-  if (matchId) {
-    return matchId[1];
+  if (PROJECT_ID_REGEXP.test(trimmed)) {
+    return trimmed;
   }
 
   throw new Error("run checkProjectInput before extractProjectId");

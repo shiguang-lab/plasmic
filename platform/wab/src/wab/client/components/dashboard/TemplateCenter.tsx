@@ -6,6 +6,7 @@ import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { ProjectCardsSkeleton } from "@/wab/client/components/widgets/ContentSkeletons";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
+import { showError } from "@/wab/client/ErrorNotifications";
 import { useI18n } from "@/wab/client/i18n";
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES, SEARCH_PARAM_PUBLISHED_TEMPLATE } from "@/wab/shared/route/app-routes";
@@ -109,9 +110,7 @@ export default function TemplateCenter() {
     try {
       await action();
     } catch (err) {
-      void message.error(
-        err instanceof Error ? err.message : t("Template operation failed"),
-      );
+      showError(err, { title: "Template operation failed" });
     }
     setBusy(false);
   }
