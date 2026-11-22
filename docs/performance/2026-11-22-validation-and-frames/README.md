@@ -14,7 +14,7 @@
 
 依次在 8 个同源 iframe 中挂载 React 按钮、记录模型编辑和选区，再卸载 React、取消节点注册、销毁画板状态并移除 iframe。撤销历史在整个实验中保持存活。通过 Chromium DevTools Protocol 触发三次垃圾回收，检查各文档的弱引用。基线残留 8 个文档，修复版残留 0 个。重建已逐出的画板时，撤销选区重新绑定到新文档，重做恢复编辑后的值。
 
-实验覆盖真实 Chromium 文档、React Fiber、画板运行时和撤销记录。Electron 整个进程的常驻内存及长时间人工编辑未纳入测量。
+实验覆盖真实 Chromium 文档、React Fiber、画板运行时和撤销记录。Electron 客户端在大项目中反复切换画板时的进程树内存、撤销重做及保存重开结果见[桌面端实测](./electron-artboard-soak.md)。
 
 ## 复跑
 
