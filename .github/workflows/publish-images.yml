@@ -191,13 +191,11 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org/
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: plasmic-cli
           path: dist/plasmic-cli
       - name: Mirror the active Plasmic archive to npm
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
         run: node packages/plasmic-cli/scripts/publish.mjs --mirror --execute --tag "$RELEASE_TAG"
