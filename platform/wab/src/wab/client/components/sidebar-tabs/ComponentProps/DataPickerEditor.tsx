@@ -7,15 +7,15 @@ import DataPicker, {
   DataPickerTypesSchema,
   InitialMode,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { DataPickerPopover } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerPopover";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { zIndex } from "@/wab/client/z-index";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { isNonNil, mkShortId, spawn, uniqueName } from "@/wab/shared/common";
 import { ComponentDataQuery } from "@/wab/shared/model/classes";
-import { Popover, Tooltip } from "antd";
+import { Tooltip } from "antd";
 import { default as classNames } from "classnames";
 import { ok } from "neverthrow";
 import React from "react";
@@ -120,8 +120,7 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
     // }
 
     return (
-      <Popover
-        zIndex={zIndex.dataPicker}
+      <DataPickerPopover
         content={inspecting ? <pre>{codeExpr ?? "—"}</pre> :
           <DataPicker
             value={displayValue}
@@ -181,7 +180,6 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
             isRunCodeInteraction={isRunCodeInteraction}
           />
         }
-        trigger="click"
         open={(inspecting || !isDisabled) && visible}
         onOpenChange={(_visible) => {
           // Don't close if a context menu is open (e.g. the data inspector's
@@ -192,8 +190,6 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
           }
           setVisible(_visible);
         }}
-        destroyOnHidden={true}
-        overlayClassName="data-picker-popover-overlay"
       >
         <div
           ref={autoFocus ? autoFocusCallback : undefined}
@@ -229,7 +225,7 @@ const InternalDataPickerContent = React.memo(function InternalDataPickerContent(
             </span>
           </Tooltip>
         </div>
-      </Popover>
+      </DataPickerPopover>
     );
   },
 );

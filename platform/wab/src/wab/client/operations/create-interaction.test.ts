@@ -14,7 +14,10 @@ import {
   TplTag,
   isKnownEventHandler,
   isKnownFunctionExpr,
+  isKnownPageHref,
 } from "@/wab/shared/model/classes";
+import { ComponentType } from "@/wab/shared/core/components";
+import { ensure } from "@/wab/shared/common";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { err } from "neverthrow";
@@ -381,5 +384,43 @@ describe("createInteraction", () => {
           'The "onClick" handler of this element is a custom expression, not an interaction list; edit it in Studio instead.',
       }),
     );
+  });
+
+  it("creates a structured PageHref destination when matching a local page route and falls back otherwise", () => {
+    const { tplMgr, page, root } = setup();
+    const detail = tplMgr.addComponent({ name: "MobileDetail", type: ComponentType.Page });
+    ensure(detail.pageMeta, "detail pageMeta").path = "/m/work-orders/detail/[id]/[mode]";
+
+    const matched = createInteraction({
+      component: page,
+      tpl: root,
+      eventName: "onClick",
+      name: "OpenDetail",
+      action: {
+        actionName: "navigation",
+        destination: '/m/work-orders/detail/{{ "BPM-1" }}/{{ $state.tab }}',
+      },
+    });
+    assert(matched.isOk(), "expected navigation to resolve local page");
+    const destArg = matched.value.args.find((a) => a.name === "destination");
+    assert(destArg && isKnownPageHref(destArg.expr), "expected PageHref destination");
+    expect(destArg.expr.page).toBe(detail);
+    expect(asCode(destArg.expr, { component: page, inStudio: false, projectFlags: DEVFLAGS }).code)
+      .toContain("/m/work-orders/detail/");
+
+    const unmatched = createInteraction({
+      component: page,
+      tpl: root,
+      eventName: "onClick",
+      name: "Fallback",
+      action: {
+        actionName: "navigation",
+        destination: "/unregistered/{{ $state.id }}",
+      },
+    });
+    assert(unmatched.isOk(), "expected unmatched local path to fall back cleanly");
+    const fallbackArg = unmatched.value.args.find((a) => a.name === "destination");
+    assert(fallbackArg, "expected fallback arg");
+    expect(isKnownPageHref(fallbackArg.expr)).toBe(false);
   });
 });

@@ -85,7 +85,7 @@ const EditableTextbox = React.forwardRef(
     const getValue = () => getInput().value;
     const isMounted = useMountedState();
     const focus = () => {
-      getInput().focus();
+      getInput().focus({ preventScroll: true });
       if (selectAllOnFocus) {
         getInput().select();
       }

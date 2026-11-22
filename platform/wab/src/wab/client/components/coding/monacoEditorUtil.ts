@@ -577,9 +577,41 @@ const allModCombos = [
 export function makeMonacoAutoFocus(
   codeEditor: monaco.editor.IStandaloneCodeEditor,
 ) {
-  codeEditor.focus();
+  focusEditorWithoutScroll(codeEditor);
   const didScrollChangeDisposable = codeEditor.onDidScrollChange(() => {
     didScrollChangeDisposable.dispose();
-    codeEditor.focus();
+    focusEditorWithoutScroll(codeEditor);
   });
+}
+
+/** Prevents focus scroll-into-view from shifting outer Studio or portal ancestors. */
+function focusEditorWithoutScroll(
+  codeEditor: monaco.editor.IStandaloneCodeEditor,
+) {
+  const domNode = codeEditor.getDomNode();
+  if (domNode && !domNode.isConnected) {
+    return;
+  }
+  const ancestors: Array<[Element, number, number]> = [];
+  for (let el = domNode?.parentElement ?? null; el; el = el.parentElement) {
+    ancestors.push([el, el.scrollLeft, el.scrollTop]);
+  }
+  const winX = typeof window !== "undefined" ? window.scrollX : 0;
+  const winY = typeof window !== "undefined" ? window.scrollY : 0;
+  codeEditor.focus();
+  for (const [el, left, top] of ancestors) {
+    if (el.scrollLeft !== left) {
+      el.scrollLeft = left;
+    }
+    if (el.scrollTop !== top) {
+      el.scrollTop = top;
+    }
+  }
+  if (
+    typeof window !== "undefined" &&
+    typeof window.scrollTo === "function" &&
+    (window.scrollX !== winX || window.scrollY !== winY)
+  ) {
+    window.scrollTo(winX, winY);
+  }
 }

@@ -1,0 +1,7 @@
+{
+  "en": "- Added static matching for dynamic route expressions and structured `PageHref` conversion so prototype navigation connectors resolve parameterized pages cleanly.\n- Anchored canvas navigation connectors for repeated cards, table rows, and compound component parts to their first visible control instead of averaging across repeated instances.\n- Fixed DataPicker and code editor popovers shifting the Studio viewport when opening or focusing inputs.",
+  "zh-CN": "- 新增对动态路由拼接/模板表达式的静态匹配，并在匹配本地页面时优先生成结构化 `PageHref`，使原型画布连线可以直接识别参数化页面。\n- 修复列表卡片、表格行及复合组件中重复按钮的画布连线起点，从原本跨实例居中错位改为直接锚定在首个可见按钮上。\n- 修复数据选择器与代码编辑器弹窗在打开或聚焦输入时推动整个 Studio 视口上移的问题。",
+  "zh-TW": "- 新增對動態路由拼接／範本運算式的靜態比對，並在符合本地頁面時優先產生結構化 `PageHref`，讓原型畫布連線可直接識別參數化頁面。\n- 修正清單卡片、表格列及複合元件中重複按鈕的畫布連線起點，從原本跨實例居中錯位改為直接錨定於首個可見按鈕。\n- 修正資料選擇器與程式碼編輯器彈窗在開啟或聚焦輸入時推動整個 Studio 視窗上移的問題。",
+  "ja": "- 動的ルート結合・テンプレート式の静的マッチングと構造化 `PageHref` への優先変換に対応し、プロトタイプのナビゲーション線がパラメーター付きページを正しく解決できるようになりました。\n- 繰り返しカード・テーブル行・複合コンポーネント内のボタンにおけるキャンバス接続線の起点を、複数インスタンスの中間ではなく最初に表示されているコントロールに固定しました。\n- データピッカーおよびコードエディターのポップオーバーを開いた際やフォーカス時に Studio のビューポートが押し上げられる問題を修正しました。",
+  "ko": "- 동적 라우트 결합 및 템플릿 표현식에 대한 정적 매칭과 구조화된 `PageHref` 변환을 추가해 프로토타입 내비게이션 연결선이 파라미터 페이지를 정확히 인식하도록 개선했습니다.\n- 반복 카드, 테이블 행, 복합 컴포넌트 내 버튼의 캔버스 연결선 시작점을 여러 인스턴스의 중간이 아닌 첫 번째로 보이는 컨트롤에 고정했습니다.\n- 데이터 피커 및 코드 편집기 팝오버가 열리거나 포커스될 때 Studio 뷰포트 전체가 밀려 올라가는 문제를 수정했습니다."
+}

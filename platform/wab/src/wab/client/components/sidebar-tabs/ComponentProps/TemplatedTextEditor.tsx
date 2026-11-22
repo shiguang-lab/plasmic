@@ -9,12 +9,12 @@ import styles from "@/wab/client/components/sidebar-tabs/ComponentProps/Template
 import DataPicker, {
   DataPickerTypesSchema,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { DataPickerPopover } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerPopover";
 import { useDataTokenSuggestionsMenu } from "@/wab/client/components/sidebar-tabs/DataBinding/useDataTokenSuggestionsMenu";
 import { PropEditorRef } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { zIndex } from "@/wab/client/z-index";
 import { useSignalListener } from "@/wab/commons/components/use-signal-listener";
 import { DropFirst } from "@/wab/commons/types";
 import {
@@ -50,7 +50,7 @@ import {
   isKnownObjectPath,
 } from "@/wab/shared/model/classes";
 import { DataSourceSchema } from "@plasmicapp/data-sources";
-import { Popover, Tooltip } from "antd";
+import { Tooltip } from "antd";
 import { debounce } from "lodash";
 import isEqual from "lodash/isEqual";
 import memoizeOne from "memoize-one";
@@ -790,8 +790,7 @@ function CodeTag({
   };
 
   return (
-    <Popover
-      zIndex={zIndex.dataPicker}
+    <DataPickerPopover
       content={
         <DataPicker
           value={value}
@@ -843,7 +842,6 @@ function CodeTag({
       }}
       // We want this only so that the popover dismisses on click outside,
       // and doesn't dismiss on pointer leave.
-      trigger={"click"}
       onOpenChange={(newOpen) => {
         if (!newOpen && preventPopoverClosingRef.current) {
           setOpen(false);
@@ -851,8 +849,6 @@ function CodeTag({
           preventAccidentalPopoverClosing();
         }
       }}
-      destroyOnHidden={true}
-      overlayClassName="data-picker-popover-overlay"
     >
       <div
         {...attributes}
@@ -877,7 +873,7 @@ function CodeTag({
         {children}
         {previewValue}
       </div>
-    </Popover>
+    </DataPickerPopover>
   );
 }
 

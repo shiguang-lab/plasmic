@@ -21,6 +21,7 @@ import {
   interpolatedStringFormatDescription,
   interpolatedStringToCodeExpr,
   interpolatedStringToExpr,
+  interpolatedStringToHrefExpr,
 } from "@/wab/shared/copilot/dynamic-value-input";
 import {
   getComponentDisplayName,
@@ -48,6 +49,7 @@ import * as Tpls from "@/wab/shared/core/tpls";
 import { isTplComponent } from "@/wab/shared/core/tpls";
 import { DevFlagsType } from "@/wab/shared/devflags";
 import {
+  EvaluationError,
   parseExpr,
   tryCodeWritesToGlobalVariable,
 } from "@/wab/shared/eval/expression-parser";
@@ -1527,7 +1529,10 @@ export function isInteractionActionName(
  * The opts each kind of interaction action needs.
  */
 interface BuildInteractionArgsOptsByAction {
-  navigation: {};
+  navigation: {
+    /** Owning component used to resolve matching local PageHref targets. */
+    component?: Component;
+  };
   goBack: {};
   customFunction: {
     /** Event-arg names to keep in scope for the code body. */
@@ -1560,7 +1565,10 @@ export function buildInteractionArgs(
     case "navigation":
       try {
         return ok({
-          destination: interpolatedStringToExpr(action.destination),
+          destination: buildNavigationDestinationExpr(
+            action.destination,
+            opts.component,
+          ),
           ...(action.transition !== undefined && { transition: codeLit(action.transition) }),
         });
       } catch (e) {
@@ -1573,6 +1581,24 @@ export function buildInteractionArgs(
     case "updateVariant":
       return buildUpdateVariantArgs(action, opts);
   }
+}
+
+function buildNavigationDestinationExpr(
+  destination: string,
+  component?: Component,
+): Expr {
+  const site = component ? Tpls.tryGetOwnerSite(component) : undefined;
+  if (site && destination.startsWith("/") && !destination.startsWith("//")) {
+    try {
+      return interpolatedStringToHrefExpr(site, destination);
+    } catch (e) {
+      // Fall back to string/code expr when no local Page matches; syntax errors rethrow below.
+      if (!(e instanceof EvaluationError)) {
+        throw e;
+      }
+    }
+  }
+  return interpolatedStringToExpr(destination);
 }
 
 function buildRunCodeArgs(

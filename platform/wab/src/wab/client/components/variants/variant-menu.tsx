@@ -2,13 +2,13 @@ import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { DataPickerPopover } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerPopover";
 import { ClickStopper } from "@/wab/client/components/widgets";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { zIndex } from "@/wab/client/z-index";
 import {
   PRIVATE_STYLE_VARIANTS_CAP,
   VARIANT_GROUP_LOWER,
@@ -47,7 +47,7 @@ import {
   isKnownComponentVariantGroup,
   isKnownObjectPath,
 } from "@/wab/shared/model/classes";
-import { Menu, Popover } from "antd";
+import { Menu } from "antd";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -438,8 +438,7 @@ export function VariantDataPicker(props: {
   const canvasEnv = viewCtx?.getCanvasEnvForTpl(component.tplTree);
   return (
     <ClickStopper>
-      <Popover
-        zIndex={zIndex.dataPicker}
+      <DataPickerPopover
         content={
           <DataPicker
             value={extractValueSavedFromDataPicker(
@@ -493,14 +492,11 @@ export function VariantDataPicker(props: {
             expectedValues={getExpectedValuesForVariantGroup(group)}
           />
         }
-        trigger="click"
         open={visibleDataPicker}
         onOpenChange={(v) => setVisibleDataPicker(v)}
-        destroyOnHidden={true}
-        overlayClassName="data-picker-popover-overlay"
       >
         <TriggerTarget>{children}</TriggerTarget>
-      </Popover>
+      </DataPickerPopover>
     </ClickStopper>
   );
 }

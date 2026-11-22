@@ -144,3 +144,57 @@ it("follows element scroll and frame movement, updates navigation, removes one a
     expect(document.querySelector('path[role="button"]')).toBeNull();
   } finally { mounted.unmount(); scaler.remove(); await studio.awaitEval(); studio.dispose(); }
 });
+
+it("anchors repeated source elements to the first visible control instead of their merged midpoint", async () => {
+  vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
+  vi.spyOn(ViewCtx.prototype, "scheduleSync").mockImplementation(() => undefined);
+  vi.spyOn(ViewCtx.prototype, "awaitSync").mockResolvedValue(undefined);
+  const site = createSite(), manager = new TplMgr({ site });
+  const source = manager.addComponent({ name: "Cards", type: ComponentType.Page });
+  const target = manager.addComponent({ name: "Detail", type: ComponentType.Page });
+  ensure(target.pageMeta, "Target page metadata").path = "/detail";
+  const tpl = ensureKnownTplTag(source.tplTree);
+  const handler = new EventHandler({ interactions: [] });
+  handler.interactions.push(mkInteraction(handler, "navigation", "Open", { destination: codeLit("/detail") }));
+  tpl.vsettings[0].attrs.onClick = handler;
+  const frames = [source, target].map((component, index) => mkArenaFrame({ site, component, name: component.name, width: 400, height: 700, left: index * 640, top: 0 }));
+  site.arenas.push(mkMixedArena("RepeatedNavigation", frames));
+  const { studioCtx: studio } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=RepeatedNavigation" });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  const scaler = document.body.appendChild(document.createElement("div"));
+  scaler.className = "canvas-editor__scaler";
+  const views = frames.map((frame) => {
+    const view = ensure(studio.tryGetViewCtxForFrame(frame), "Navigation artboard view");
+    vi.spyOn(view.initialRenderReadyStore, "getState").mockReturnValue(true);
+    ensure(view.csEvaluator, "Canvas evaluator").renderStatusStore.setState({ renderCount: 1 });
+    const container = scaler.appendChild(document.createElement("div"));
+    const iframe = container.appendChild(document.createElement("iframe"));
+    vi.spyOn(iframe, "getBoundingClientRect").mockImplementation(() => new DOMRect(frame.left ?? 0, frame.top ?? 0, frame.width, frame.height));
+    view.canvasCtx.$viewport = () => $(iframe);
+    view.canvasCtx.$doc = () => $(ensure(iframe.contentDocument, "Artboard document"));
+    return view;
+  });
+  const view = views[0], doc = view.canvasCtx.$doc()[0];
+  studio.viewportCtx = view.viewportCtx;
+  vi.spyOn(studio.viewportCtx, "canvasPadding").mockReturnValue(Pt.zero());
+  const firstCard = doc.body.appendChild(doc.createElement("div"));
+  const secondCard = doc.body.appendChild(doc.createElement("div"));
+  const firstButton = firstCard.appendChild(doc.createElement("button"));
+  const secondButton = secondCard.appendChild(doc.createElement("button"));
+  Object.defineProperty(firstButton, "offsetWidth", { value: 80, configurable: true });
+  Object.defineProperty(secondButton, "offsetWidth", { value: 80, configurable: true });
+  vi.spyOn(firstButton, "getBoundingClientRect").mockReturnValue(new DOMRect(300, 120, 80, 40));
+  vi.spyOn(secondButton, "getBoundingClientRect").mockReturnValue(new DOMRect(300, 420, 80, 40));
+  vi.spyOn(view, "maybeDomsForTpl").mockReturnValue([null, [firstButton, secondButton]]);
+  const mounted = render(<CanvasNavigationLinks studioCtx={studio} />);
+  const path = () => screen.getByRole("button", { name: "Click → Detail" });
+  try {
+    await waitFor(() => expect(path().getAttribute("d")).toContain("M 380 140"));
+    expect(path().getAttribute("d")).not.toContain("M 380 290");
+    // When the first instance has no visible layout box, fall back to the next visible button.
+    Object.defineProperty(firstButton, "offsetWidth", { value: 0, configurable: true });
+    vi.spyOn(firstButton, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 0, 0));
+    fireEvent.scroll(doc);
+    await waitFor(() => expect(path().getAttribute("d")).toContain("M 380 440"));
+  } finally { mounted.unmount(); scaler.remove(); await studio.awaitEval(); studio.dispose(); }
+});

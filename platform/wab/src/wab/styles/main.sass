@@ -294,6 +294,8 @@ $panel-col-gutter: 10px
 html, body
   height: 100%
   overscroll-behavior: none
+html:has(.studio), body:has(.studio)
+  overflow: clip
 body
   background-color: var(--studio-loading-layout, #{$bg})
 
@@ -3896,6 +3898,7 @@ $color-stops-width: 100%
 .studio
   display: flex
   height: 100vh
+  overflow: clip
 .studio__nav-menu
   text-align: center
 .studio__nav-menu-item
@@ -4248,6 +4251,8 @@ $color-stops-width: 100%
 
 .app-container, .app
   height: 100%
+.app-container:has(.studio), .app:has(.studio)
+  overflow: clip
 
 .root
   width: 100%
@@ -5769,7 +5774,14 @@ a, button.link-like
 .ql-container.ql-snow
   background-color: var(--ui-surface, white)
 
+.data-picker-popover-host
+  position: fixed
+  inset: 0
+  pointer-events: none
+  overflow: clip
+
 .ant-popover.data-picker-popover-overlay
+  pointer-events: auto
   & .ant-popover-arrow
     display: none
   & .ant-popover-inner

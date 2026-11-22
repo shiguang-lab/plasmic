@@ -7,7 +7,9 @@ import {
   isKnownPageHref, isKnownTemplatedString, isKnownTplComponent, isKnownTplSlot,
   isKnownTplTag, isKnownRenderExpr,
 } from "@/wab/shared/model/classes";
+import { parseJsCode } from "@/wab/shared/parser-utils";
 import { getMatchingPagePathParams } from "@/wab/shared/utils/url-utils";
+import type * as ast from "estree";
 
 export interface PageNavigation {
   id: string;
@@ -24,27 +26,163 @@ export interface PageNavigation {
 
 type Declare = (model: ObjInst, ...fields: string[]) => void;
 
+type RoutePart = string | { dynamic: true };
+
+function flattenCodeUrlParts(
+  node: ast.Expression | ast.PrivateIdentifier | ast.SpreadElement | null | undefined,
+): RoutePart[] {
+  if (!node) {
+    return [{ dynamic: true }];
+  }
+  switch (node.type) {
+    case "Literal":
+      return typeof node.value === "string" ? [node.value] : [{ dynamic: true }];
+    case "BinaryExpression":
+      return node.operator === "+"
+        ? [...flattenCodeUrlParts(node.left), ...flattenCodeUrlParts(node.right)]
+        : [{ dynamic: true }];
+    case "TemplateLiteral": {
+      const parts: RoutePart[] = [];
+      node.quasis.forEach((quasi, i) => {
+        const text = quasi.value.cooked ?? quasi.value.raw;
+        if (text) {
+          parts.push(text);
+        }
+        if (i < node.expressions.length) {
+          parts.push({ dynamic: true });
+        }
+      });
+      return parts;
+    }
+    default:
+      return [{ dynamic: true }];
+  }
+}
+
+function extractRouteParts(expr: Expr): RoutePart[] | undefined {
+  if (isKnownTemplatedString(expr)) {
+    return expr.text.map((part) => (typeof part === "string" ? part : { dynamic: true }));
+  }
+  if (isKnownCustomCode(expr)) {
+    try {
+      const parsed = parseJsCode(`(${expr.code})`);
+      if (parsed.body.length === 1 && parsed.body[0].type === "ExpressionStatement") {
+        return flattenCodeUrlParts(parsed.body[0].expression);
+      }
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+function matchPathPattern(path: string, pages: Component[]): Component | undefined {
+  const normalized = path.replace(/\/$/, "") || "/";
+  const exact = pages.find((page) => (page.pageMeta?.path.replace(/\/$/, "") || "/") === normalized);
+  if (exact) {
+    return exact;
+  }
+  // A concrete path can identify a parameterized page. Ambiguous matches stay unresolved.
+  const matches = pages.filter((page) => page.pageMeta && getMatchingPagePathParams(page.pageMeta.path, normalized) !== false);
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
+function extractStaticPrefix(parts: RoutePart[]): string {
+  let prefix = "";
+  for (const part of parts) {
+    if (typeof part !== "string") {
+      break;
+    }
+    prefix += part;
+  }
+  return prefix.trimStart();
+}
+
+function collectPathnameParts(parts: RoutePart[]): RoutePart[] {
+  const pathParts: RoutePart[] = [];
+  for (const part of parts) {
+    if (typeof part !== "string") {
+      if (typeof pathParts.at(-1) === "string") {
+        pathParts.push(part);
+      }
+      continue;
+    }
+    const text = pathParts.length === 0 ? part.trimStart() : part;
+    const stop = text.search(/[?#]/);
+    if (stop >= 0) {
+      if (stop > 0) {
+        pathParts.push(text.slice(0, stop));
+      }
+      break;
+    }
+    if (text) {
+      pathParts.push(text);
+    }
+  }
+  return pathParts;
+}
+
+function resolveDynamicRouteParts(pathParts: RoutePart[], leading: string, pages: Component[]): Pick<PageNavigation, "kind" | "target"> {
+  let dynIndex = 0;
+  const syntheticPath = pathParts
+    .map((part) => (typeof part === "string" ? part : `\uE000${dynIndex++}\uE001`))
+    .join("")
+    .replace(/\/$/, "") || "/";
+  if (!syntheticPath.startsWith("/")) {
+    return { kind: "dynamic" };
+  }
+  const structural = pages.filter(
+    (page) => page.pageMeta && getMatchingPagePathParams(page.pageMeta.path, syntheticPath) !== false,
+  );
+  if (structural.length === 1) {
+    return { kind: "page", target: structural[0] };
+  }
+  // When a multi-segment tail is packed into one trailing expression (e.g. "/orders/detail/" + rest),
+  // resolve only if a single parameterized page owns that exact static prefix before its first param.
+  if (structural.length === 0 && typeof pathParts.at(-1) !== "string" && leading.startsWith("/")) {
+    const prefix = leading.split(/[?#]/)[0];
+    const prefixedPages = pages.filter((page) => page.pageMeta?.path.startsWith(prefix));
+    const exactPrefixMatches = prefixedPages.filter((page) => {
+      const pagePath = page.pageMeta?.path;
+      if (!pagePath) {
+        return false;
+      }
+      const paramStart = pagePath.indexOf("[");
+      return paramStart > 0 && pagePath.slice(0, paramStart) === prefix;
+    });
+    if (exactPrefixMatches.length === 1 && prefixedPages.length === 1) {
+      return { kind: "page", target: exactPrefixMatches[0] };
+    }
+  }
+  return { kind: "dynamic" };
+}
+
 /** Never evaluate user code to guess a navigation destination. */
 export function resolveNavigationTarget(expr: Expr, pages: Component[]): Pick<PageNavigation, "kind" | "target"> {
   if (isKnownPageHref(expr)) {
     return pages.includes(expr.page) ? { kind: "page", target: expr.page } : { kind: "dynamic" };
   }
-  let href = tryExtractString(expr)?.trim();
-  if (!href && isKnownTemplatedString(expr)) {
-    let prefix = "";
-    for (const part of expr.text) { if (typeof part !== "string") { break; } prefix += part; }
-    // Dynamic query values do not make a fixed page path dynamic.
-    if (/[?#]/.test(prefix)) { href = prefix.split(/[?#]/)[0]; }
+  const literalHref = tryExtractString(expr)?.trim();
+  const parts: RoutePart[] | undefined = literalHref ? [literalHref] : extractRouteParts(expr);
+  if (!parts?.length) {
+    return { kind: "dynamic" };
   }
-  if (!href) { return { kind: "dynamic" }; }
-  if (href.startsWith("#")) { return { kind: "anchor" }; }
-  if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(href)) { return { kind: "external" }; }
-  const path = href.split(/[?#]/)[0].replace(/\/$/, "") || "/";
-  const exact = pages.find((page) => (page.pageMeta?.path.replace(/\/$/, "") || "/") === path);
-  if (exact) { return { kind: "page", target: exact }; }
-  // A concrete path can identify a parameterized page. Ambiguous matches stay unresolved.
-  const matches = pages.filter((page) => page.pageMeta && getMatchingPagePathParams(page.pageMeta.path, path) !== false);
-  return matches.length === 1 ? { kind: "page", target: matches[0] } : { kind: "dynamic" };
+  const leading = extractStaticPrefix(parts);
+  if (!leading) {
+    return { kind: "dynamic" };
+  }
+  if (leading.startsWith("#")) {
+    return { kind: "anchor" };
+  }
+  if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(leading)) {
+    return { kind: "external" };
+  }
+  const pathParts = collectPathnameParts(parts);
+  if (!pathParts.some((part) => typeof part !== "string")) {
+    const target = matchPathPattern(pathParts.join(""), pages);
+    return target ? { kind: "page", target } : { kind: "dynamic" };
+  }
+  return resolveDynamicRouteParts(pathParts, leading, pages);
 }
 
 /** Both the model subscription and the derived links walk the same active props. */

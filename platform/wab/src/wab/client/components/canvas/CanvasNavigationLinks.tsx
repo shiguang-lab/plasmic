@@ -47,21 +47,39 @@ function frameHeaderBounds(studio: StudioCtx, target: FrameTarget): Rect[] {
   return bounds.width > 0 && bounds.height > 0 ? [studio.viewportCtx.clientToScaler(Box.fromRect(bounds)).rect()] : [];
 }
 
+function measureElement(element: HTMLElement): Box | undefined {
+  if (!element.isConnected) { return undefined; }
+  const bounds = Box.mergeBBs([element.getBoundingClientRect()]);
+  return bounds ? computeElementVisibility($(element), bounds).visible : undefined;
+}
+
 function measureSource(view: ViewCtx, link: PageNavigation, frame: Rect): Rect | undefined {
-  const [, doms] = view.maybeDomsForTpl(link.tpl, { ignoreFocusedCloneKey: true });
-  let elements = doms ?? [];
+  const [val, doms] = view.maybeDomsForTpl(link.tpl, { ignoreFocusedCloneKey: true });
+  let elements = (doms ?? []).filter((element) => element.isConnected);
+  let matchedPart = false;
   // Registered component parts can locate an action inside a compound widget.
   if (isKnownTplComponent(link.tpl) && isCodeComponent(link.tpl.component)) {
     const parts = view.getCodeComponentMeta(link.tpl.component)?.canvasParts;
     const part = Object.values(parts ?? {}).find((candidate) => candidate.props.includes(link.prop));
     if (part) {
-      const matches = elements.flatMap((element) => Array.from(element.querySelectorAll<HTMLElement>(part.selector)));
-      if (matches.length) { elements = matches; }
+      const matches = elements.flatMap((element) => Array.from(element.querySelectorAll<HTMLElement>(part.selector))).filter((element) => element.isConnected);
+      if (matches.length) { elements = matches; matchedPart = true; }
     }
   }
-  const bounds = Box.mergeBBs(elements.filter((element) => element.isConnected).map((element) => element.getBoundingClientRect()));
-  if (!bounds) { return undefined; }
-  const visible = computeElementVisibility($(elements), bounds).visible;
+  if (!elements.length) { return undefined; }
+  // Repeated templates and compound part matches render multiple instances for one tpl;
+  // anchor on the first visible instance instead of averaging across rows/cards.
+  const repeated = matchedPart || (val?.fibers.length ?? 0) > 1 || !val || elements.some((element) => element.parentElement !== elements[0].parentElement);
+  let visible: Box | undefined;
+  if (repeated && elements.length > 1) {
+    for (const element of elements) {
+      visible = measureElement(element);
+      if (visible) { break; }
+    }
+  } else {
+    const bounds = Box.mergeBBs(elements.map((element) => element.getBoundingClientRect()));
+    visible = bounds ? computeElementVisibility($(elements), bounds).visible : undefined;
+  }
   if (!visible) { return undefined; }
   return { left: frame.left + visible.left(), top: frame.top + visible.top(), width: visible.width(), height: visible.height() };
 }

@@ -114,3 +114,44 @@ it("clears nested handlers without deleting their containing data", () => {
   expect(list.exprs).toHaveLength(2);
   expect(read()).toEqual([]);
 });
+
+it("resolves parameterized TemplatedString and CustomCode route concatenations without executing code", () => {
+  const site = createSite(), mgr = new TplMgr({ site });
+  const mobileList = mgr.addComponent({ name: "MobileList", type: ComponentType.Page });
+  ensure(mobileList.pageMeta, "MobileList pageMeta").path = "/m/work-orders";
+  const mobileDetail = mgr.addComponent({ name: "MobileDetail", type: ComponentType.Page });
+  ensure(mobileDetail.pageMeta, "MobileDetail pageMeta").path = "/m/work-orders/detail/[id]/[mode]";
+  const instances = mgr.addComponent({ name: "Instances", type: ComponentType.Page });
+  ensure(instances.pageMeta, "Instances pageMeta").path = "/bpm/instances";
+  const pages = [mobileList, mobileDetail, instances];
+
+  expect(resolveNavigationTarget(
+    new TemplatedString({ text: ["/m/work-orders/detail/", code("item.id"), "/", code("mode")] }),
+    pages,
+  )).toEqual({ kind: "page", target: mobileDetail });
+
+  expect(resolveNavigationTarget(
+    code('"/m/work-orders/detail/" + currentItem.id + "/" + ($state.activeTab === "pending" ? "handle" : "view")'),
+    pages,
+  )).toEqual({ kind: "page", target: mobileDetail });
+
+  expect(resolveNavigationTarget(
+    code("`/m/work-orders/detail/${currentItem.id}/${mode}`"),
+    pages,
+  )).toEqual({ kind: "page", target: mobileDetail });
+
+  expect(resolveNavigationTarget(
+    code('"/m/work-orders/detail/" + rest'),
+    pages,
+  )).toEqual({ kind: "page", target: mobileDetail });
+
+  expect(resolveNavigationTarget(
+    code('"/bpm/instances?status=RUNNING" + ($state.selectedFlow ? "&flow=" + $state.selectedFlow : "")'),
+    pages,
+  )).toEqual({ kind: "page", target: instances });
+
+  expect(resolveNavigationTarget(code('"/m/" + section'), pages)).toEqual({ kind: "dynamic" });
+  expect(resolveNavigationTarget(code('$ctx.params?.mode === "admin" ? "/bpm/instances" : "/m/work-orders"'), pages)).toEqual({ kind: "dynamic" });
+  expect(resolveNavigationTarget(code('"https://example.com/" + slug'), pages)).toEqual({ kind: "external" });
+  expect(resolveNavigationTarget(code('"#step-" + index'), pages)).toEqual({ kind: "anchor" });
+});

@@ -2,12 +2,12 @@ import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/C
 import DataPicker, {
   DataPickerTypesSchema,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { DataPickerPopover } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerPopover";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
-import { zIndex } from "@/wab/client/z-index";
 import { cx } from "@/wab/shared/common";
 import {
   ExprCtx,
@@ -23,7 +23,7 @@ import {
   isKnownObjectPath,
   isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
-import { Menu, Popover } from "antd";
+import { Menu } from "antd";
 import * as React from "react";
 
 export interface DataPickerWidgetFactoryProps {
@@ -173,8 +173,8 @@ export function DynamicValueWidget({
   const textValue = extractValueSavedFromDataPicker(value, exprCtx);
 
   return (
-    <Popover
-      zIndex={zIndex.dataPicker}
+    <DataPickerPopover
+      placement="bottomLeft"
       content={
         <DataPicker
           value={textValue}
@@ -199,8 +199,6 @@ export function DynamicValueWidget({
           setPopoverVisible(_visible);
         }
       }}
-      destroyOnHidden={true}
-      overlayClassName="data-picker-popover-overlay"
     >
       <div
         contentEditable={false}
@@ -235,6 +233,6 @@ export function DynamicValueWidget({
         )}
       </div>
       {/*{evaluated && <ValuePreview val={evaluated.val} err={evaluated.err} />}*/}
-    </Popover>
+    </DataPickerPopover>
   );
 }
