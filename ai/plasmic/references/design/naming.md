@@ -6,7 +6,7 @@ Default prototype Page names, task-owned canvas/group names and business UI copy
 
 Project-directory names are separate from editable internal node names. Declare each Page's native `name` alongside its route in the source inventory before creation, e.g. `{"path":"/orders","name":"订单列表"}`. Give each requested business group its own name in the directory.
 
-Create Pages through `createComponent.name` and use `canvasName` for explicit placement in a business group. Use `renameComponent` with the Page UUID to change a directory name while preserving links and routes. Use `updateCanvas` for group names and descriptions. The fixed Pages overview lists visible project Pages automatically.
+Create Pages through `createComponent.name` and use `canvasName` for explicit placement in a business group. When a project includes both PC and Mobile Pages, place every scoped Page into clear terminal/business groups (such as separate PC and Mobile canvas groups) with one artboard per Page rather than leaving one side ungrouped or duplicating one mobile Page across two phone sizes. Use `renameComponent` with the Page UUID to change a directory name while preserving links and routes. Use `updateCanvas` for group names and descriptions. The fixed Pages overview lists visible project Pages automatically.
 
 For page layout verification, specify `overviewName` only when the source requires a particular group to contain the complete set of Pages. Save/reopen and check directory labels.
 

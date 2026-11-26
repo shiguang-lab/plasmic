@@ -5419,6 +5419,28 @@ export class StudioCtx extends WithDbCtx {
     };
   }
 
+  /**
+   * Returns the union bounds of frames in a mixed arena so fitting ignores
+   * empty space between world origin (0, 0) and min(left/top), falling back
+   * to the scaler box for empty or grid-laid-out arenas.
+   */
+  private getArenaZoomBounds(arena: AnyArena, viewportCtx: ViewportCtx) {
+    if (isMixedArena(arena) && arena.children.length > 0) {
+      const bounds = Box.mergeBBs(
+        arena.children.map((frame) => ({
+          top: frame.top ?? 0,
+          left: frame.left ?? 0,
+          width: frame.width,
+          height: getFrameHeight(frame),
+        })),
+      );
+      if (bounds) {
+        return bounds;
+      }
+    }
+    return Box.zero().withSizeOfPt(viewportCtx.arenaScalerSize());
+  }
+
   tryZoomToFitArena() {
     if (this.hasInitialEditorView) {
       return;
@@ -5437,7 +5459,7 @@ export class StudioCtx extends WithDbCtx {
 
     const padding = this.canvasZoomPadding();
     viewportCtx.zoomToScalerBox(
-      Box.zero().withSizeOfPt(viewportCtx.arenaScalerSize()),
+      this.getArenaZoomBounds(arena, viewportCtx),
       {
         maxScale: 1,
         minPadding: {

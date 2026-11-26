@@ -1,0 +1,7 @@
+{
+  "en": "- Fixed `Zoom to fit all` centering for freeform/mixed canvas arenas so artboard groups shifted away from world origin `(0, 0)` center properly without blank left space.\n- Updated Plasmic skill design & naming references to enforce single artboard sizing per mobile page, separate PC and Mobile canvas groups for mixed-platform projects, and native `DeviceFrame` status-bar omission plus top/bottom safe-area clearance.",
+  "zh-CN": "- 修复自由画板组点击“显示全部”未按画板实际联合外接矩形居中、左侧留出大片空白的问题。\n- 更新 Plasmic Skill 设计与命名规范：要求同一移动端页面只保留单一尺寸画板、双端项目按端拆分 PC/移动端画板组、禁止在已有原生设备外壳下重绘系统状态栏，并明确顶部/底部/圆角安全区留白标准。",
+  "zh-TW": "- 修正自由畫板群組點擊「縮放以顯示全部」時未依畫板實際聯合邊界置中、左側留出空白的問題。\n- 更新 Plasmic Skill 設計與命名規範：要求同一行動端頁面僅保留單一尺寸畫板、雙端專案依端拆分為 PC 與行動端畫板群組、禁止於已有原生裝置外殼時重繪系統狀態列，並明訂頂部、底部與圓角安全區域留白標準。",
+  "ja": "- フリーフォームキャンバスの「全体に合わせる」で、ワールド原点 `(0, 0)` から離れたアートボード群が正しく中央配置されず左側に余白が残る問題を修正しました。\n- Plasmic Skill のデザイン／命名ルールを更新し、モバイルページの単一アートボードサイズ運用、PC／モバイル別のキャンバスグループ整理、ネイティブ `DeviceFrame` 利用時の重複ステータスバー禁止および上下・角丸セーフエリア基準を明記しました。",
+  "ko": "- 자유형 캔버스에서 '전체에 맞추기' 실행 시 원점 `(0, 0)`에서 떨어진 아트보드 그룹이 가운데 정렬되지 않고 왼쪽에 빈 공간이 남던 문제를 수정했습니다.\n- Plasmic Skill 설계 및 명명 규칙을 업데이트해 모바일 페이지당 단일 아트보드 크기 유지, PC/모바일 캔버스 그룹 분리, 기본 `DeviceFrame` 사용 시 중복 상태 표시줄 금지 및 상·하단/모서리 안전 영역 여백 기준을 명시했습니다."
+}

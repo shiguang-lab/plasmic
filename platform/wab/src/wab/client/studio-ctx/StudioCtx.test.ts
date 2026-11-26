@@ -8,17 +8,19 @@ import {
   TeamId,
   UserId,
 } from "@/wab/shared/ApiSchema";
-import { getArenaFrames } from "@/wab/shared/Arenas";
+import { FrameViewMode, getArenaFrames, mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { generateSiteFromBundle } from "@/wab/shared/__testonly__/site-tests-utils";
 import { Bundle } from "@/wab/shared/bundler";
 import { assert, ensure, withoutNils } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { ParamExportType, mkParam } from "@/wab/shared/core/lang";
-import { getDedicatedArena } from "@/wab/shared/core/sites";
+import { createSite, getDedicatedArena } from "@/wab/shared/core/sites";
 import { isTplTag, mkSlot, mkTplTag } from "@/wab/shared/core/tpls";
 import { DEVFLAGS } from "@/wab/shared/devflags";
+import { Box, Pt } from "@/wab/shared/geom";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { SEARCH_PARAM_COMMENT } from "@/wab/shared/route/app-routes";
+import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { waitFor } from "@testing-library/react";
 import { ok } from "neverthrow";
 import { mock } from "vitest-mock-extended";
@@ -423,4 +425,113 @@ it("cancels the actual pending initial-route producer when its Studio is dispose
     resolvePreferences(null);
     reopened?.dispose();
   }
+});
+
+describe("tryZoomToFitArena", () => {
+  it("centers and fits the union bounds of mixed-arena frames instead of starting from (0, 0)", async () => {
+    const site = createSite();
+    const component = mkComponent({
+      name: "Banner",
+      type: ComponentType.Plain,
+      tplTree: mkTplTag("div"),
+    });
+    site.components.push(component);
+    const leftFrame = mkArenaFrame({
+      site,
+      component,
+      name: "Banner 390",
+      viewMode: FrameViewMode.Centered,
+      width: 390,
+      height: 844,
+      left: 1000,
+      top: 200,
+    });
+    const rightFrame = mkArenaFrame({
+      site,
+      component,
+      name: "Banner 430",
+      viewMode: FrameViewMode.Centered,
+      width: 430,
+      height: 932,
+      left: 1450,
+      top: 200,
+    });
+    const arena = mkMixedArena("Canvas", [leftFrame, rightFrame]);
+    site.arenas.push(arena);
+
+    const { studioCtx } = fakeStudioCtx({
+      site,
+      initialUrl: "/projects/test?arena_type=custom&arena=Canvas",
+    });
+    const dom = mock<DomActions>();
+    const viewport = new ViewportCtx({
+      dom,
+      initialArena: arena,
+      initialClipperBox: new Box(0, 0, 1440, 900),
+      initialClipperScroll: Pt.zero(),
+    });
+    dom.scrollTo.mockImplementation((scroll) => viewport.setScroll(scroll));
+    dom.scaleTo.mockImplementation(() => undefined);
+    viewport.setArenaScalerSize(new Pt(1880, 1132));
+    studioCtx.viewportCtx = viewport;
+
+    try {
+      await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+      studioCtx.tryZoomToFitArena();
+
+      const expectedBounds = Box.fromRect({
+        left: 1000,
+        top: 200,
+        width: 880,
+        height: 932,
+      });
+      const expectedScale = Math.min(
+        (1440 - 40 - 40) / 880,
+        (900 - 40 - 80) / 932,
+        1,
+      );
+      await waitFor(() => {
+        expect(viewport.scale()).toBeCloseTo(expectedScale, 5);
+        const renderedCenter = viewport.scalerToClient(expectedBounds.midpt());
+        expect(renderedCenter.x).toBeCloseTo(1440 / 2, 3);
+        expect(renderedCenter.y).toBeCloseTo(40 + (900 - 40 - 80) / 2, 3);
+      });
+    } finally {
+      viewport.dispose();
+      studioCtx.dispose();
+    }
+  });
+
+  it("falls back to arenaScalerSize for an empty mixed arena", async () => {
+    const site = createSite();
+    const arena = mkMixedArena("Empty", []);
+    site.arenas.push(arena);
+
+    const { studioCtx } = fakeStudioCtx({
+      site,
+      initialUrl: "/projects/test?arena_type=custom&arena=Empty",
+    });
+    const dom = mock<DomActions>();
+    const viewport = new ViewportCtx({
+      dom,
+      initialArena: arena,
+      initialClipperBox: new Box(0, 0, 1000, 800),
+      initialClipperScroll: Pt.zero(),
+    });
+    viewport.setArenaScalerSize(new Pt(1600, 1000));
+    studioCtx.viewportCtx = viewport;
+    const zoom = vi.spyOn(viewport, "zoomToScalerBox");
+
+    try {
+      await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+      studioCtx.tryZoomToFitArena();
+      expect(zoom).toHaveBeenCalledWith(
+        Box.fromRect({ left: 0, top: 0, width: 1600, height: 1000 }),
+        expect.objectContaining({ maxScale: 1 }),
+      );
+    } finally {
+      viewport.dispose();
+      studioCtx.dispose();
+    }
+  });
 });
