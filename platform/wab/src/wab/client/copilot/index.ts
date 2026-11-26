@@ -429,6 +429,13 @@ function findPageArtboard(studio: StudioCtx, page: Component) {
   throw new Error(`Multiple shared artboards match Page ${page.name}. Specify canvasName and frameUuid with navigateCanvas. Candidates: ${JSON.stringify(choices)}`);
 }
 
+function resolveDevicePreset(preset: string) {
+  return ensure(
+    frameSizeGroups.flatMap((g) => g.sizes).find((s) => s.name === preset),
+    "Unknown Studio device preset",
+  );
+}
+
 function emptyCanvasSpace(
   studio: StudioCtx,
   input: {
@@ -970,6 +977,11 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
       arena.children.find((f) => f.uuid === input.frameUuid),
       "Artboard not found",
     );
+    assert(
+      !(input.preset !== undefined && (input.width !== undefined || input.height !== undefined)),
+      "Provide either preset or width/height, not both",
+    );
+    const presetSize = input.preset !== undefined ? resolveDevicePreset(input.preset) : undefined;
     return {
       components: [frame.container.component],
       apply: () => {
@@ -982,8 +994,13 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           studio.siteOps().removeMixedArenaFrame(arena, frame, { pruneUnnamedComponent: false });
           studio.tplMgr().addExistingArenaFrame(destination, frame, new Pt(0, 0));
         }
-        if (input.width !== undefined) {frame.width = input.width;}
-        if (input.height !== undefined) {frame.height = input.height;}
+        if (presetSize) {
+          frame.width = presetSize.width;
+          frame.height = presetSize.height;
+        } else {
+          if (input.width !== undefined) {frame.width = input.width;}
+          if (input.height !== undefined) {frame.height = input.height;}
+        }
         if (input.x !== undefined) {frame.left = input.x;}
         if (input.y !== undefined) {frame.top = input.y;}
         if (input.viewMode !== undefined) {
@@ -1022,12 +1039,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
       !operation.input.componentUuid || arenas.length === 1,
       "Page arena not found",
     );
-    const size = ensure(
-      frameSizeGroups
-        .flatMap((g) => g.sizes)
-        .find((s) => s.name === operation.input.preset),
-      "Unknown Studio device preset",
-    );
+    const size = resolveDevicePreset(operation.input.preset);
     return {
       components: arenas.map((a) => a.component),
       apply: () => {
@@ -1100,6 +1112,20 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
       (input.x === undefined) === (input.y === undefined),
       "Provide both x and y, or neither",
     );
+    assert(
+      !(input.preset !== undefined && (input.width !== undefined || input.height !== undefined)),
+      "Provide either preset or width and height, not both",
+    );
+    assert(
+      input.preset !== undefined || (input.width !== undefined && input.height !== undefined),
+      "Provide preset, or both width and height",
+    );
+    const size = input.preset !== undefined
+      ? resolveDevicePreset(input.preset)
+      : {
+          width: ensure(input.width, "width missing"),
+          height: ensure(input.height, "height missing"),
+        };
     return {
       components: [component],
       apply: () => {
@@ -1112,6 +1138,8 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
           input.x === undefined
             ? emptyCanvasSpace(studio, {
                 ...input,
+                width: size.width,
+                height: size.height,
                 direction: "right",
                 padding: DEFAULT_MARGIN_FOR_NEW_FRAMES,
               })
@@ -1119,11 +1147,11 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
         const frame = studio
           .tplMgr()
           .addNewMixedArenaFrame(arena, component.name, component, {
-            width: input.width,
-            height: input.height,
+            width: size.width,
+            height: size.height,
             insertPt: new Pt(
-              position.x + input.width / 2,
-              position.y + input.height / 2,
+              position.x + size.width / 2,
+              position.y + size.height / 2,
             ),
           });
         frame.left = position.x;
@@ -1191,7 +1219,7 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
         );
         if (input.type === "page") {
           const arena = ensure(getPageArena(studio.site, created), "Page arena missing");
-          const size = ensure(frameSizeGroups.flatMap((g) => g.sizes).find((s) => s.name === input.preset), "Unknown Studio device preset");
+          const size = resolveDevicePreset(input.preset);
           for (const row of arena.matrix.rows) {
             row.cols.splice(1);
             for (const { frame } of row.cols) {

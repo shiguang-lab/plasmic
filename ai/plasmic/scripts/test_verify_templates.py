@@ -69,6 +69,11 @@ class TemplateTests(unittest.TestCase):
         self.assertTrue(result['passed'])
         self.assertEqual(result['status'], 'not_applicable')
         self.assertIn('correctness of the no-template-fit decision', result['notChecked'])
+        reviewed = [{'componentName': 'Mobile Feed', 'missing': 'Requires custom interactive canvas rather than feed cards'}]
+        list_result = check_page({'templates': [], 'templatesNotApplicable': reviewed}, overseas=False)
+        self.assertTrue(list_result['passed'], list_result)
+        self.assertEqual(list_result['reviewedCandidates'], reviewed)
+        self.assertFalse(check_page({'templates': [], 'templatesNotApplicable': []}, overseas=False)['passed'])
 
     def test_live_source_reference_passes_without_installing_a_template(self):
         result = check_page(self.plan())
@@ -153,6 +158,39 @@ class TemplateTests(unittest.TestCase):
             del self.data['screenshots'][name + '-uuid']
             self.assertFalse(check_page(self.plan(), overseas=True)['passed'])
 
+    def test_any_published_template_center_canvas_supports_descriptions_and_screenshots(self):
+        template_id = 'mobileTemplate123'
+        desktop = SourceDesktop(template_id)
+        desktop.state['editorContext'].update(publishedTemplateVersion='4.2', canEdit=False)
+        pages = [{'uuid': 'p1', 'name': 'HomeFeed', 'type': 'page', 'pageMeta': {'path': '/', 'description': 'Feed cards'}},
+                 {'uuid': 'c1', 'name': 'FilterBar', 'type': 'component', 'description': 'Reusable filter bar'}]
+        with patch.object(desktop, 'execute', return_value={'results': [{'id': template_id, 'components': pages}], 'nextOffset': None}):
+            inventory = capture(desktop, template_id)
+        self.assertEqual(inventory['sourceVersion'], '4.2')
+        self.assertEqual(inventory['pages'][0]['name'], 'HomeFeed')
+        self.assertEqual(inventory['sections'][0]['name'], 'FilterBar')
+        self.item.update(sourceProjectId=template_id, componentName='HomeFeed')
+        self.data = capture(desktop, template_id, ['HomeFeed'])
+        result = check_page(self.plan(), overseas=False)
+        self.assertTrue(result['passed'], result)
+        self.assertEqual(result['sources'][0]['sourceVersion'], '4.2')
+        del self.data['screenshots']['HomeFeed-uuid']
+        self.assertFalse(check_page(self.plan(), overseas=False)['passed'])
+
+        # Non-Overseas section (type: 'component') template is also supported.
+        execute = desktop.execute
+        with patch.object(desktop, 'execute', side_effect=lambda n, v: (
+            {'results': [{'id': template_id, 'components': [{
+                'uuid': 'FilterBar-uuid', 'name': 'FilterBar', 'type': 'component', 'baseVariantTplTree': '<div>Filter</div>',
+                **{key: [] for key in FULL_FIELDS - {'baseVariantTplTree'}}}]}],
+             'read': {'itemFields': list(FULL_FIELDS), 'itemDepth': 'all'}}
+            if n == 'read' and 'nameContains' in v else execute(n, v)
+        )):
+            self.item.update(sourceProjectId=template_id, componentName='FilterBar')
+            self.data = capture(desktop, template_id, ['FilterBar'])
+        section_result = check_page(self.plan(), overseas=False)
+        self.assertTrue(section_result['passed'], section_result)
+
     def test_description_inventory_pages_without_screenshots_or_model_reads(self):
         desktop = SourceDesktop(OVERSEAS_TEMPLATE_ID)
         desktop.state['editorContext'].update(publishedTemplateVersion='1.0', canEdit=False)
@@ -162,7 +200,7 @@ class TemplateTests(unittest.TestCase):
         def inventory(name, values):
             self.assertEqual(name, 'read')
             self.assertEqual(values['collection'], 'components')
-            self.assertEqual(set(values['fields']), {'uuid', 'name', 'type', 'pageMeta'})
+            self.assertEqual(set(values['fields']), {'uuid', 'name', 'type', 'pageMeta', 'description'})
             offset = values['offset']
             items = [pages[0], {'type': 'code'}] if offset == 0 else [pages[1]]
             return {'results': [{'id': OVERSEAS_TEMPLATE_ID, 'components': items}],

@@ -129,6 +129,8 @@ app
     assert(state.running);
     const projects = JSON.parse((await call("list_projects")).content[0].text);
     assert(JSON.stringify(projects).includes(projectId));
+    const templates = JSON.parse((await call("list_templates")).content[0].text);
+    assert(Array.isArray(templates.templates));
     await call("open_design", { projectId: projectId });
     const ready = JSON.parse((await call("get_app_state", { toolNames: ["createComponent"] })).content[0].text);
     assert(ready.ready && ready.editorTools.createComponent.inputSchema);

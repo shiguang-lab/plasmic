@@ -8,6 +8,7 @@ import { translate } from "@/wab/client/i18n/locales";
 import { handleError, normalizeError } from "@/wab/client/ErrorNotifications";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
 import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
+import { observeFullHeightExpansion } from "@/wab/client/components/canvas/canvas-full-height";
 import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
 import { CanvasHostlessInputs } from "@/wab/client/components/canvas/canvas-hostless-inputs";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
@@ -482,10 +483,16 @@ export class CanvasCtx {
         }
       });
     });
+    const fullHeightObserver = observeFullHeightExpansion(userBody);
+    this.fullHeightScheduleSync = fullHeightObserver.scheduleSync;
     const dispose = () => {
       if (closed) { return; }
       closed = true;
       observer.disconnect();
+      fullHeightObserver.dispose();
+      if (this.fullHeightScheduleSync === fullHeightObserver.scheduleSync) {
+        this.fullHeightScheduleSync = undefined;
+      }
       if (pendingFrame !== undefined) { window.cancelAnimationFrame(pendingFrame); pendingFrame = undefined; }
       if (this.bodySizeCleanup === dispose) { this.bodySizeCleanup = undefined; }
     };
@@ -761,6 +768,7 @@ export class CanvasCtx {
   }
 
   private frameInfoOwner: CanvasFrameInfoOwner | undefined;
+  private fullHeightScheduleSync: (() => void) | undefined;
 
   syncFrameInfo(viewCtx: ViewCtx) {
     if (this._isDisposed || !this.frameInfoOwner) {
@@ -802,6 +810,7 @@ export class CanvasCtx {
     );
 
     this.Sub.hostUtils.setPlasmicRootNode(node);
+    this.fullHeightScheduleSync?.();
   }
 
   private _isDisposed = false;

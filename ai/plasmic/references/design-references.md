@@ -18,7 +18,7 @@ For prototype work reading Pen through Desktop, select `--require-capability des
 
 Use design_reference's own paging schema: index/read limit is at most 50 and read depth is at most 3; continue with returned nextOffset and discovered child IDs. Native model read and snapshot_layout have separate limits, so their page sizes do not define Pen parameters.
 
-Retain the actual MCP layout responses and source images in the local working directory, with source-file and image hashes. Reuse evidence only while the source identity is unchanged. Native Desktop remains the design device even for narrower references. Inspect image pixels with an image-capable reviewer; delivery of an image block does not prove perception. Without such review leave visual acceptance incomplete. Pen discovery/configuration follows the live design_reference contract.
+Retain the actual MCP layout responses and source images in the local working directory, with source-file and image hashes. Reuse evidence only while the source identity is unchanged. Select the target Studio device preset from the task (`Desktop` for PC tasks, or a matching `Phone`/`Tablet` preset from `devicePresets` for mobile tasks) rather than keeping `Desktop` or falling back to `Custom` merely because a reference frame has different dimensions. Inspect image pixels with an image-capable reviewer; delivery of an image block does not prove perception. Without such review leave visual acceptance incomplete. Pen discovery/configuration follows the live design_reference contract.
 
 
 ## Local evidence input

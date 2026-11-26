@@ -48,7 +48,7 @@ Component-internal spacing stays native unless its owning rule explicitly overri
 
 | Element | Default | Owner |
 | --- | --- | --- |
-| Desktop viewport | The live device preset (currently 1440×1024) | [Layout](layout.md) |
+| Desktop viewport | The live `Desktop` device preset (currently 1440×1024; mobile tasks choose a Phone or Tablet preset in Layout) | [Layout](layout.md#viewport-and-scroll-ownership) |
 | Page content | Fills the shell content area; no centered max-width for list, detail or form Pages | This document |
 | Modal | 520 one column; 720 two columns; 640–720 long content; 800 crowded two columns | [Modal form layout](../libraries/antd_v6/compositions/form-layout.md#width-and-columns) |
 | Drawer | 480 short help or compact confirm; 640 record detail, Form or Table; 720 code or long values | [Overlays](../libraries/antd_v6/compositions/modal-drawer.md#overlay-width) |

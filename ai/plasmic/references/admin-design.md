@@ -18,7 +18,7 @@ Use [library and API selection](libraries/index.md) and [native component select
 | Library icons | [Icon selection](design/icons.md), then the actual icon-library scope |
 | Keyboard, focus, accessible names or readable feedback | [Shared accessibility](design/accessibility.md), then the affected component contracts |
 
-For Overseas/Antd6 admin design, select references from the [published template canvas](admin-templates.md). Keep one shell per standalone page and bind business behavior in the destination project.
+For Overseas/Antd6 admin design, select references from the [published template canvas](template-center.md). Keep one shell per standalone page and bind business behavior in the destination project.
 
 Apply [source precedence and explicit project-policy exceptions](requirement-alignment.md#source-and-scope); live component contracts define available capabilities. Business language remains configured; persisted registrations/Props/Slots retain their identities. Read only affected rules. Run only gates applicable to the selected library/API scope and independently reviewed inventory, then check real Preview behavior under [evidence integrity](verification.md#evidence-integrity). Save/reopen and reread after edits; read-only reviews do not mutate designs. Keep inventories/evidence outside the product UI.
 

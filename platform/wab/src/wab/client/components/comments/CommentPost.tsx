@@ -13,7 +13,7 @@ import {
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { ApiComment } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
-import { ensure, ensureString, maybe } from "@/wab/shared/common";
+import { cx, ensure, ensureString, maybe } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Menu, Typography } from "antd";
@@ -32,6 +32,7 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
   const {
     comment,
     commentThread,
+    className,
     ...rest
   } = props;
 
@@ -69,7 +70,7 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
 
   return (
     <PlasmicCommentPost
-      className="CommentPost"
+      className={cx("CommentPost", className)}
       root={{
         ref: popoverTargetRef,
         "data-test-id": `comment-post-${commentThread.id}`,

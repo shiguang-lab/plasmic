@@ -45,21 +45,18 @@ function createAssetHandler({
       const families = url.searchParams
         .getAll("family")
         .flatMap((value) => value.split("|"))
-        .map((value) => value.split(":")[0]);
+        .map((value) => value.split(/[:@]/)[0].trim().toLowerCase())
+        .filter(Boolean);
+      const faceFamily = (face) =>
+        face.match(/font-family:\s*['"]([^'"]+)['"]/)?.[1]?.toLowerCase();
       const faces = bundledFontCss.match(/@font-face\s*\{[^}]+\}/g) || [];
-      const available = new Set(
-        faces.map((face) => face.match(/font-family:\s*['"]([^'"]+)['"]/)?.[1]),
-      );
+      const available = new Set(faces.map(faceFamily).filter(Boolean));
       if (
         families.length &&
         families.every((family) => available.has(family))
       ) {
         const css = faces
-          .filter((face) =>
-            families.includes(
-              face.match(/font-family:\s*['"]([^'"]+)['"]/)?.[1],
-            ),
-          )
+          .filter((face) => families.includes(faceFamily(face)))
           .join("\n");
         return new Response(request.method === "HEAD" ? null : css, {
           headers: {

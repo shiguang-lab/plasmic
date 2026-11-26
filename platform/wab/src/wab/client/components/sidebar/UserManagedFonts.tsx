@@ -92,7 +92,8 @@ export function UserManagedFontsPanel() {
           {!(
             isFontFamilyKeyword(font) ||
             localFonts.has(font) ||
-            hostFonts.has(font)
+            hostFonts.has(font) ||
+            sc.fontManager.hasBundledFallback(font)
           ) && (
             <Tooltip
               title={uiT("This font is not available on this computer.")}

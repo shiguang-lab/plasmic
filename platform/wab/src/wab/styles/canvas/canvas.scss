@@ -70,6 +70,18 @@ body {
   height: auto;
 }
 
+.__wab_root.__wab_root--full-height {
+  [data-wab-full-expand] {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  [data-wab-full-expand="column-item"] {
+    flex-basis: auto !important;
+  }
+}
+
 .__wab_root--live {
   align-items: center;
   justify-items: center;

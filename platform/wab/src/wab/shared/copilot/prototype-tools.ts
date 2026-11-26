@@ -281,12 +281,13 @@ const EDIT_TOOL_META = {
     toolName: "updateArtboard",
     title: "Resize and arrange a preview artboard",
     description:
-      "Update viewport dimensions, position, or view mode (stretch to fill the canvas or centered with default padding) of an existing mixed-canvas frame, preserving its component reference.",
+      "Update viewport dimensions, position, or view mode (stretch to fill the canvas or centered with default padding) of an existing mixed-canvas frame, preserving its component reference. Prefer preset from devicePresets for standard Desktop, Phone, or Tablet devices instead of arbitrary dimensions.",
     inputSchema: z
       .object({
         canvasName: uuid,
         frameUuid: uuid,
         targetCanvasName: uuid.optional().describe("Move this existing frame to another mixed canvas."),
+        preset: uuid.optional().describe("Native Studio device preset name from devicePresets. Applies that preset's width and height; cannot be combined with width or height."),
         width: z.number().int().min(320).max(4096).optional(),
         height: z.number().int().min(1).max(16384).optional(),
         x: z.number().min(0).max(100000).optional(),
@@ -300,7 +301,7 @@ const EDIT_TOOL_META = {
     toolName: "setPageViewport",
     title: "Set page preview device preset",
     description:
-      "Set Page arena columns to a single Studio device preset (Desktop by default), removing other device columns. Supply componentUuid to change only that page; omission changes all pages. Keeps page definitions and variant rows. Custom variant frames use the same size. Does not change page CSS; update fixed root constraints separately.",
+      "Set Page arena columns to a single Studio device preset (Desktop by default; choose a Phone or Tablet preset from devicePresets for mobile designs), removing other device columns. Supply componentUuid to change only that page; omission changes all pages. Keeps page definitions and variant rows. Custom variant frames use the same size. Does not change page CSS; update fixed root constraints separately.",
     inputSchema: z
       .object({
         preset: uuid.default("Desktop"),
@@ -322,13 +323,14 @@ const EDIT_TOOL_META = {
     toolName: "createArtboard",
     title: "Place an artboard on a freeform canvas",
     description:
-      "Add an existing local page/component at a viewport size. Defaults to non-overlapping placement; x/y supply explicit canvas coordinates. Studio normalizes all artboards to a nonnegative origin; read returned canvas positions after insertion.",
+      "Add an existing local page/component at a Studio device preset or explicit viewport size. Prefer preset from devicePresets for standard Desktop, Phone, or Tablet devices instead of arbitrary dimensions. Defaults to non-overlapping placement; x/y supply explicit canvas coordinates. Studio normalizes all artboards to a nonnegative origin; read returned canvas positions after insertion.",
     inputSchema: z
       .object({
         canvasName: uuid,
         componentUuid: uuid,
-        width: z.number().int().min(320).max(4096),
-        height: z.number().int().min(1).max(16384),
+        preset: uuid.optional().describe("Native Studio device preset name from devicePresets. Sets width and height to that preset when width and height are omitted."),
+        width: z.number().int().min(320).max(4096).optional(),
+        height: z.number().int().min(1).max(16384).optional(),
         x: z.number().min(-100000).max(100000).optional(),
         y: z.number().min(-100000).max(100000).optional(),
       })
@@ -390,13 +392,13 @@ const EDIT_TOOL_META = {
     toolName: "createComponent",
     title: "Create page or reusable component",
     description:
-      "Create an editable empty page/component. A page starts with one device column using the live Studio preset (Desktop by default) and is listed in the read-only project page overview. Specify canvasName to place a frame in a business canvas. Then insertHtml into its root. Names and page paths must be unique.",
+      "Create an editable empty page/component. A page starts with one device column using the live Studio preset (Desktop by default; choose a Phone or Tablet preset from devicePresets for mobile designs) and is listed in the read-only project page overview. Specify canvasName to place a frame in a business canvas. Then insertHtml into its root. Names and page paths must be unique.",
     inputSchema: z
       .object({
         name: uuid,
         type: z.enum(["page", "component"]).default("page"),
         canvasName: uuid.optional(),
-        preset: uuid.default("Desktop").describe("Native device preset for a new page; ignored for reusable components"),
+        preset: uuid.default("Desktop").describe("Native device preset for a new page (choose a Phone or Tablet preset from devicePresets for mobile designs); ignored for reusable components"),
         path: z
           .string()
           .regex(/^\/(?!\/)/)

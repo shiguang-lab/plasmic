@@ -2,7 +2,7 @@
 
 ## Read and target
 
-Resolve the [project](desktop-management.md); identify with actual model/client and skill plasmic. Edits require canEdit. Run workflow preflight before content writes. get_build_info gives provenance.
+Resolve the [project](desktop-management.md); identify with actual model/client and skill plasmic. Edits require canEdit. Check Template Center with `list_templates` (and `open_template` for matching published templates, mandatory `pDf4kvKBxRRLAHnjbGRwGu` for Overseas/Antd6 admin pages) under [template center](template-center.md); Desktop MCP enforces this check before `createComponent` or `insertHtml`. Run workflow preflight before content writes. get_build_info gives provenance.
 
 Call top-level tools directly using tools/list schemas. get_app_state({view:"tools"}) lists availableEditorTools; only these belong in toolNames. Request their contracts, then execute {name,input}. Native executeBatch points to MCP execute_batch. get_screenshot, snapshot_layout and get_app_state are MCP tools, not operation names. schemaView:full adds output schemas. Status omits contracts; ready means model availability. Unknown names are not loading delays. See [routing](desktop-transports.md) and [examples](desktop-examples.md).
 
@@ -24,7 +24,7 @@ Use the [interactive canvas workflow](desktop-inspection.md#interactive-canvas-f
 
 execute_batch is atomic/undoable. as binds earlier creations in identity fields only; see examples above. Receipts contain name/created and optional componentUuid/elementUuid/messages; batches return ordered operations. Inspect messages/IDs; read changed descendants separately. Navigation returns identities only.
 
-Generate [markup](desktop-examples.md#component-instances) from each component's types: slot uses named `<slot>`, other values use data-props. Same-named props can have different types. Pass `canvasName` to `createComponent` to place a page in that artboard group. Without it the page appears in Pages overview and has its dedicated canvas. Verify [page layout](desktop-examples.md#dependency-discovery-and-page-layout).
+Generate [markup](desktop-examples.md#component-instances) from each component's types: slot uses named `<slot>`, other values use data-props. Same-named props can have different types. Pass `preset` (discovered via `read` `collection:"devicePresets"`, choosing a `Phone` or `Tablet` preset for mobile designs instead of Custom dimensions or the `Desktop` default) to `createComponent`, `setPageViewport`, `createArtboard` or `updateArtboard`. Pass `canvasName` to `createComponent` to place a page in that artboard group. Without it the page appears in Pages overview and has its dedicated canvas. Verify [page layout](desktop-examples.md#dependency-discovery-and-page-layout).
 
 save returns projectId/revision/saved; reopen/reread proves persistence. Batches do not save. Imports are read-only; library changes mutate. validate checks invariants only, not pixels/behavior. Failed validation/project changes block save; after failure/session change reread identity and identify.
 

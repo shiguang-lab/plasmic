@@ -8,7 +8,7 @@ import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { providesStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { createSite } from "@/wab/shared/core/sites";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryHistory } from "history";
 import React from "react";
 import { mock } from "vitest-mock-extended";
@@ -41,13 +41,26 @@ function expectNoTopRightLegacyMenus(container: HTMLElement) {
 }
 
 it("omits top-right undo/redo and view controls while keeping remaining dividers in TopBarLoading", () => {
-  const history = createMemoryHistory();
-  const { container } = render(
-    <HistoryProvider history={history}>
-      <TopBarLoading projectName="Test Project" />
-    </HistoryProvider>,
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+    "PlasmicDesktop/darwin",
   );
-  expectNoTopRightLegacyMenus(container);
+  const history = createMemoryHistory();
+  try {
+    const { container } = render(
+      <HistoryProvider history={history}>
+        <TopBarLoading projectName="Test Project" />
+      </HistoryProvider>,
+    );
+    expectNoTopRightLegacyMenus(container);
+    const importButton = container.querySelector(
+      '[data-test-id="import-from-web-button"]',
+    );
+    const publishButton = screen.getByRole("button", { name: "Publish" });
+    expect(importButton).toBeTruthy();
+    expect(importButton?.nextElementSibling).toBe(publishButton);
+  } finally {
+    vi.restoreAllMocks();
+  }
 });
 
 function createTopFrameApi() {
@@ -144,8 +157,24 @@ it("places Desktop web import immediately before Publish and triggers openDeskto
       '[data-test-id="import-from-web-button"]',
     );
     expect(button).toBeTruthy();
+    expect(button?.classList.contains("editor-icon-action")).toBe(true);
+    fireEvent.focus(button!);
+    await waitFor(() =>
+      expect(button?.classList.contains("ant-tooltip-open")).toBe(true),
+    );
+    expect(button?.classList.contains("editor-icon-action")).toBe(true);
+    expect(button?.querySelector("svg")).toBeTruthy();
+
+    const publishButton = screen.getByRole("button", { name: "Publish" });
+    fireEvent.focus(publishButton);
+    await waitFor(() =>
+      expect(publishButton.classList.contains("ant-tooltip-open")).toBe(true),
+    );
+    expect(publishButton.classList.contains("editor-publish-action")).toBe(true);
+    expect(publishButton.classList.contains("editor-icon-action")).toBe(false);
+
     expect(button?.nextElementSibling).toBe(
-      screen.getByRole("button", { name: "Publish" }).closest(".editor-publish-wrapper"),
+      publishButton.closest(".editor-publish-wrapper"),
     );
     fireEvent.click(
       screen.getByRole("button", { name: "Import from the web" }),

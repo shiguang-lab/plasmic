@@ -16,7 +16,7 @@ The worker holds up to 64 project manifests in memory. Reuse is bounded by five 
 
 ## First deployment
 
-Install the Compose file under the existing NAS Studio deployment's `canvas-snapshot/`. Create private writable `jobs/` and `covers/` directories for UID 1000. Provision `secrets/key` (32 random bytes encoded as 64 lowercase hex digits) and `secrets/db`; restrict access to the service owner. Run `reader.sql` as database owner with its psql variable `password` set to the database secret. The released Linux amd64 cover worker image includes the Go executable, libwebp and checksum-pinned Chrome for Testing Headless Shell. Compose mounts the NAS fonts.
+Install the Compose file under the existing NAS Studio deployment's `canvas-snapshot/`. Create private writable `jobs/` and `covers/` directories for UID 1000. Provision `secrets/key` (32 random bytes encoded as 64 lowercase hex digits) and `secrets/db`; restrict access to the service owner. Run `reader.sql` as database owner with its psql variable `password` set to the database secret. The released Linux amd64 cover worker image includes the Go executable, libwebp, built-in open-source Latin/CJK fonts, and checksum-pinned Chrome for Testing Headless Shell. Compose also mounts NAS host fonts without shadowing the worker's built-in font configuration.
 
 ## Upgrade and verification
 

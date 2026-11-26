@@ -15,6 +15,8 @@ const { BackgroundWorker } = require("./background-worker.cjs");
 const { uiError } = require("./ui-error.cjs");
 const { performance } = require("node:perf_hooks");
 const metadataStage = /^\[Desktop metadata\] ([a-f0-9-]{36}) (preload-received|page-received|context-requested|context-returned|page-replied|preload-replied)$/;
+const OVERSEAS_TEMPLATE_ID = "pDf4kvKBxRRLAHnjbGRwGu";
+const TEMPLATE_GATED_MUTATIONS = new Set(["createComponent", "insertHtml"]);
 const buildIdentity = (build) => createHash("sha256").update(JSON.stringify(build)).digest("hex");
 function validateResourceId(value, label) {
   if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
@@ -47,6 +49,7 @@ class DesktopController {
     this.cancellableReads = new Map();
     this.operations = this.activity.operations;
     this.pending = new Map();
+    this.templateGates = new Map();
     this.queue = Promise.resolve();
     this.references = new DesignReference(app.getPath("userData"));
     this.receive = (event, id, result) => {
@@ -83,7 +86,65 @@ class DesktopController {
       request.trace.stages[match[2]] ??= Math.round(performance.now() - request.trace.start);
     }
   }
+  templateState(caller = this.callerContext.getStore()) {
+    const key = caller?.id || "default";
+    let state = this.templateGates.get(key);
+    if (!state) {
+      state = { listed: false, publishedIds: new Set(), openedIds: new Set(), overseasProjectIds: new Set() };
+      this.templateGates.set(key, state);
+    }
+    return state;
+  }
+  recordPublishedTemplates(entries) {
+    const gate = this.templateState();
+    gate.listed = true;
+    for (const entry of entries) {
+      if (entry && entry.published && entry.id) gate.publishedIds.add(entry.id);
+    }
+    return gate;
+  }
+  recordTemplateRead(raw, projectId) {
+    if (!Array.isArray(raw?.results)) return;
+    const gate = this.templateState();
+    for (const item of raw.results) {
+      if (!item || typeof item !== "object") continue;
+      const targetId = typeof item.id === "string" ? item.id : projectId;
+      if (!targetId) continue;
+      const importsOverseas = Array.isArray(item.importedProjects) && item.importedProjects.some((imp) =>
+        /overseas|海外/i.test(String(imp?.name || "")) || /plasmic-overseas/i.test(String(imp?.packageName || "")) || /plasmic-overseas/i.test(String(imp?.id || "")));
+      const usesOverseas = (typeof item.name === "string" && item.name.startsWith("plasmic-overseas-"))
+        || (typeof item.baseVariantTplTree === "string" && item.baseVariantTplTree.includes("plasmic-overseas-"))
+        || (Array.isArray(item.components) && item.components.some((c) =>
+          (typeof c?.name === "string" && c.name.startsWith("plasmic-overseas-"))
+          || (typeof c?.baseVariantTplTree === "string" && c.baseVariantTplTree.includes("plasmic-overseas-"))));
+      if (importsOverseas || usesOverseas) {
+        gate.overseasProjectIds.add(targetId);
+      }
+    }
+  }
+  assertTemplateGate(operations, projectId) {
+    const gated = operations.filter((op) => op && TEMPLATE_GATED_MUTATIONS.has(op.name));
+    if (!gated.length) return;
+    const gate = this.templateState();
+    if (!gate.listed && gate.openedIds.size === 0) {
+      throw Object.assign(
+        new Error("Check Template Center first with list_templates before creating components/pages or inserting markup (see references/template-center.md). The requested operation was not executed."),
+        { context: { code: "TEMPLATE_CHECK_REQUIRED", operationExecuted: false, recovery: [{ tool: "list_templates", arguments: {} }] } },
+      );
+    }
+    const insertsOverseas = gated.some((op) =>
+      op.name === "insertHtml" && typeof op.input?.html === "string" && op.input.html.includes("plasmic-overseas-"));
+    const createsOverseasPage = Boolean(projectId && gate.overseasProjectIds.has(projectId))
+      && gated.some((op) => op.name === "createComponent" && (op.input?.type === undefined || op.input.type === "page"));
+    if ((insertsOverseas || createsOverseasPage) && gate.publishedIds.has(OVERSEAS_TEMPLATE_ID) && !gate.openedIds.has(OVERSEAS_TEMPLATE_ID)) {
+      throw Object.assign(
+        new Error(`Inspect the published 海外 O 端 Template Center canvas (${OVERSEAS_TEMPLATE_ID}) with open_template before creating Overseas admin pages or inserting Overseas layout components (see references/template-center.md). The requested operation was not executed.`),
+        { context: { code: "OVERSEAS_TEMPLATE_REQUIRED", operationExecuted: false, recovery: [{ tool: "open_template", arguments: { templateId: OVERSEAS_TEMPLATE_ID } }] } },
+      );
+    }
+  }
   clearCallerActivity(callerId) {
+    this.templateGates.delete(callerId);
     const window = this.getStudio();
     if (window && !window.window.isDestroyed()) {
       window.webContents.send("desktop:caller-disconnected", { callerId });
@@ -328,9 +389,10 @@ class DesktopController {
         if (["get_app_state", "get_build_info", "get_image_service_status"].includes(method)) return await this.execute(method, input);
         await this.prepareSession();
         if (!["list_projects", "search_stock_images", "generate_image", "browser", "reference_browser", "import_reference", "design_reference", "capture_browser", "make_vector", "vectorize_image"].includes(method)) await this.waitForStartup();
-        this.activity.bind(id, await this.checkContext(method, input), this.getStudio()?.webContents?.getURL?.());
+        const context = await this.checkContext(method, input);
+        this.activity.bind(id, context, this.getStudio()?.webContents?.getURL?.());
         signal?.throwIfAborted();
-        return await this.execute(method, input);
+        return await this.execute(method, input, context);
       } catch (error) {
         failure = error;
         if (method === "preview" || (method === "execute" && input?.name === "preview")) {
@@ -355,6 +417,7 @@ class DesktopController {
         "list_orgs",
         "list_workspaces",
         "list_projects",
+        "list_templates",
         "search_stock_images",
         "generate_image",
       ].includes(method) ||
@@ -389,11 +452,11 @@ class DesktopController {
       await this.saveBeforeNavigation(state);
     } catch (error) { this.updating = false; throw error; }
   }
-  async execute(method, input) {
+  async execute(method, input, context) {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       throw new Error("Arguments must be an object");
     }
-    if (["get_org", "list_orgs", "create_org", "create_workspace", "get_workspace", "list_workspaces", "create_project", "get_project", "list_projects", "rename_project", "move_project", "clone_project"].includes(method)
+    if (["get_org", "list_orgs", "create_org", "create_workspace", "get_workspace", "list_workspaces", "create_project", "get_project", "list_projects", "list_templates", "rename_project", "move_project", "clone_project"].includes(method)
       && Object.hasOwn(input, "view")) {
       throw new Error("Management tools return resource identities only; view is not supported");
     }
@@ -678,11 +741,68 @@ class DesktopController {
       }
       return managementResult(await this.requestStudio(url.pathname + url.search));
     }
+    if (method === "list_templates") {
+      const query =
+        input.query === undefined
+          ? undefined
+          : resourceName(input.query).toLowerCase();
+      const category =
+        input.category === undefined
+          ? undefined
+          : resourceName(input.category).toLowerCase();
+      if (input.kind !== undefined && !["page", "section"].includes(input.kind)) {
+        throw new Error("Invalid template kind");
+      }
+      if (
+        input.device !== undefined &&
+        !["mobile", "desktop", "responsive"].includes(input.device)
+      ) {
+        throw new Error("Invalid template device");
+      }
+      const catalog = await this.requestStudio("/api/v1/template-center");
+      const allEntries = Array.isArray(catalog?.templates) ? catalog.templates : [];
+      this.recordPublishedTemplates(allEntries);
+      const templates = allEntries
+        .filter((entry) => entry && entry.published)
+        .filter((entry) => {
+          const meta = entry.metadata || {};
+          if (input.kind && meta.kind !== input.kind) return false;
+          if (input.device && meta.device !== input.device) return false;
+          if (category !== undefined && String(meta.category || "").toLowerCase() !== category) return false;
+          if (query !== undefined) {
+            const haystack = [
+              entry.id,
+              meta.name,
+              meta.description,
+              meta.category,
+              ...(Array.isArray(entry.published?.libraries) ? entry.published.libraries : []),
+            ]
+              .filter(Boolean)
+              .join("\n")
+              .toLowerCase();
+            if (!haystack.includes(query)) return false;
+          }
+          return true;
+        })
+        .map((entry) => ({
+          templateId: entry.id,
+          name: entry.metadata?.name ?? null,
+          description: entry.metadata?.description ?? "",
+          kind: entry.metadata?.kind ?? null,
+          device: entry.metadata?.device ?? null,
+          category: entry.metadata?.category ?? "",
+          version: entry.published?.version ?? null,
+          publishedAt: entry.published?.publishedAt ?? null,
+          libraries: Array.isArray(entry.published?.libraries) ? entry.published.libraries : [],
+        }));
+      return { templates };
+    }
     if (method === "open_template") {
       const { templateId } = input;
       validateResourceId(templateId, "templateId");
       const catalog = await this.requestStudio("/api/v1/template-center");
-      if (!catalog.templates.some((entry) => entry.id === templateId && entry.published)) {
+      const allEntries = Array.isArray(catalog?.templates) ? catalog.templates : [];
+      if (!allEntries.some((entry) => entry && entry.id === templateId && entry.published)) {
         throw new Error("No published template available: " + templateId);
       }
       await this.saveBeforeNavigation(await this.state());
@@ -693,6 +813,9 @@ class DesktopController {
       if (editorContext?.projectId !== templateId || !editorContext.publishedTemplateVersion || editorContext.canEdit !== false) {
         throw new Error("The requested read-only template publication did not open");
       }
+      const gate = this.recordPublishedTemplates(allEntries);
+      gate.publishedIds.add(templateId);
+      gate.openedIds.add(templateId);
       return { opened: true, templateId, name: editorContext.projectName, version: editorContext.publishedTemplateVersion };
     }
     if (method === "open_design") {
@@ -703,7 +826,7 @@ class DesktopController {
         throw new Error("Invalid projectId");
       }
       const state = await this.state([]);
-      if (state.projectId !== input.projectId || input.reopen === true) {
+      if (state.projectId !== input.projectId || input.reopen === true || Boolean(state.editorContext?.publishedTemplateVersion)) {
         await this.saveBeforeNavigation(state);
         await win.loadURL(
           this.config.studioOrigin + "/projects/" + input.projectId,
@@ -725,11 +848,17 @@ class DesktopController {
     }
     if (method === "execute_batch") {
       if (input.operations.some((op) => ["preview", "executeBatch"].includes(op.name))) throw new Error("Use top-level preview for runtime operations and execute_batch for one native mutation batch");
+      this.assertTemplateGate(input.operations, context?.projectId);
       return this.editor("executeBatch", { operations: input.operations, reviewContext: input.reviewContext });
     }
     if (method === "execute") {
       if (["preview", "executeBatch"].includes(input.name)) throw new Error("Use top-level preview or execute_batch so operation context is checked");
-      try { return editorOutput(input.name, await this.editor(input.name, input.input)); }
+      this.assertTemplateGate([{ name: input.name, input: input.input }], context?.projectId);
+      try {
+        const raw = await this.editor(input.name, input.input);
+        if (input.name === "read") this.recordTemplateRead(raw, context?.projectId);
+        return editorOutput(input.name, raw);
+      }
       catch (error) {
         if (["insertHtml", "changeElement", "updateState"].includes(input.name)) error.message += ". Read the affected registered component contract (view:contract) and owning state/event context (view:context); correct this operation without changing the source expectations.";
         throw error;

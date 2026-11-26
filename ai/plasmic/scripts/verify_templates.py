@@ -47,11 +47,11 @@ def full_model(response, project_id, name):
 
 
 def page_descriptions(desktop, project_id):
-    pages = []
+    pages, sections = [], []
     offset = 0
     while True:
         result = desktop.execute('read', {'fromProject': project_id, 'collection': 'components',
-            'fields': ['uuid', 'name', 'type', 'pageMeta'], 'offset': offset, 'limit': 100})
+            'fields': ['uuid', 'name', 'type', 'pageMeta', 'description'], 'offset': offset, 'limit': 100})
         source, = result['results']
         if source.get('id') != project_id:
             raise ValueError('Page descriptions came from another project')
@@ -60,9 +60,12 @@ def page_descriptions(desktop, project_id):
                 meta = item['pageMeta']
                 pages.append({'uuid': item['uuid'], 'name': item['name'], 'path': meta.get('path'),
                               'description': meta.get('description')})
+            elif project_id != OVERSEAS_TEMPLATE_ID and item.get('type') == 'component':
+                sections.append({'uuid': item['uuid'], 'name': item['name'], 'type': 'component',
+                                 'description': item.get('description')})
         following = result.get('nextOffset')
         if following is None:
-            return pages
+            return (pages, sections)
         if not isinstance(following, int) or following <= offset:
             raise ValueError('Page inventory pagination did not advance')
         offset = following
@@ -71,14 +74,19 @@ def page_descriptions(desktop, project_id):
 def capture(desktop, project_id, names=()):
     before = desktop.call('get_app_state', {})
     identity = context(before)
-    published = project_id == OVERSEAS_TEMPLATE_ID
-    if published and (identity['projectId'] != project_id or not identity.get('publishedTemplateVersion')
-                      or identity.get('canEdit') is not False):
+    is_published_canvas = (
+        identity['projectId'] == project_id
+        and bool(identity.get('publishedTemplateVersion'))
+        and identity.get('canEdit') is False
+    )
+    published = project_id == OVERSEAS_TEMPLATE_ID or is_published_canvas
+    if published and not is_published_canvas:
         raise ValueError('Open the current read-only publication with open_template first')
     if names:
         data = capture_models(desktop, project_id, list(dict.fromkeys(names)), published)
     elif published:
-        data = {'pages': page_descriptions(desktop, project_id)}
+        pages, sections = page_descriptions(desktop, project_id)
+        data = {'pages': pages, **({'sections': sections} if sections else {})}
     else:
         raise ValueError('Specify component names for an imported template source')
 
@@ -107,8 +115,9 @@ def capture_models(desktop, project_id, names, published):
         model = full_model(result, project_id, name)
         models.append(model)
         if published:
-            if model.get('type') != 'page':
-                raise ValueError('Select an actual published Page: ' + name)
+            valid_types = ('page',) if project_id == OVERSEAS_TEMPLATE_ID else ('page', 'component')
+            if model.get('type') not in valid_types:
+                raise ValueError('Select an actual published Page' + (' or component' if project_id != OVERSEAS_TEMPLATE_ID else '') + ': ' + name)
             page_uuid = model['uuid']
             target = desktop.execute('navigate', {'componentUuid': page_uuid})
             frame = target.get('frameUuid')
@@ -147,10 +156,21 @@ def check_page(plan, *, overseas=False):
                     'reviewedCandidates': reason,
                     'notChecked': ['correctness of the no-template-fit decision']}
     elif not selections:
-        valid = isinstance(reason, str) and bool(reason.strip())
+        candidate_list = (
+            isinstance(reason, list)
+            and bool(reason)
+            and all(
+                isinstance(candidate, dict)
+                and all(isinstance(candidate.get(key), str) and candidate[key].strip()
+                        for key in ('componentName', 'missing'))
+                for candidate in reason
+            )
+        )
+        valid = (isinstance(reason, str) and bool(reason.strip())) or candidate_list
         return {'passed': valid, 'errors': [] if valid else ['Empty templates requires a source-reviewed scenario mismatch reason'],
                 'sources': [], 'status': 'not_applicable' if valid else 'unverified',
-                'reason': reason, 'notChecked': ['correctness of the no-template-fit decision']}
+                **({'reviewedCandidates': reason} if candidate_list else {'reason': reason}),
+                'notChecked': ['correctness of the no-template-fit decision']}
     if not overseas and reason is not None:
         errors.append('Selected templates cannot also declare templatesNotApplicable')
     seen = set()
@@ -190,9 +210,11 @@ def check_page(plan, *, overseas=False):
             contract = contracts.get(model['uuid'], {})
             if contract.get('name') != name or not isinstance(contract.get('props'), list):
                 raise ValueError('Live template contract missing or mismatched: ' + name)
-            if item['sourceProjectId'] == OVERSEAS_TEMPLATE_ID:
-                if (item['mode'] != 'reference' or model.get('type') != 'page'
-                        or before['projectId'] != OVERSEAS_TEMPLATE_ID or before.get('canEdit') is not False
+            published_read = item['sourceProjectId'] == OVERSEAS_TEMPLATE_ID or bool(before.get('publishedTemplateVersion'))
+            if published_read:
+                valid_types = ('page',) if (overseas or item['sourceProjectId'] == OVERSEAS_TEMPLATE_ID) else ('page', 'component')
+                if (item['mode'] != 'reference' or model.get('type') not in valid_types
+                        or before['projectId'] != item['sourceProjectId'] or before.get('canEdit') is not False
                         or not data.get('sourceVersion') or before.get('publishedTemplateVersion') != data['sourceVersion']):
                     raise ValueError('A Page from the read-only template publication is required')
                 image = data.get('screenshots', {}).get(model['uuid'], {})

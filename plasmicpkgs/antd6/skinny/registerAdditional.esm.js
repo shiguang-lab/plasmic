@@ -1,5 +1,5 @@
 import { jsx } from 'react/jsx-runtime';
-import { usePlasmicCanvasContext } from '@plasmicapp/host';
+import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
@@ -223,10 +223,15 @@ function AntdListItem({
 }
 const AntdListItemMeta = Ant.List.Item.Meta;
 function AntdListy(props) {
+  const canvas = usePlasmicCanvasContext();
+  const info = usePlasmicCanvasComponentInfo(props);
+  const { __canvas: _canvas, ...rest } = props;
+  const fullContentView = !!canvas && !canvas.interactive && info?.fullContent === true;
   return /* @__PURE__ */ jsx(
     Ant.Listy,
     {
-      ...props,
+      ...rest,
+      ...fullContentView ? { height: void 0, virtual: false, sticky: false } : {},
       rowKey: "key",
       itemRender: (item) => /* @__PURE__ */ jsx("div", { children: item.content })
     }

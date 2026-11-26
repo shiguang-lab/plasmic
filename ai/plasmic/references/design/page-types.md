@@ -2,7 +2,7 @@
 
 Choose `pageType` from the Page's primary user task during [structure design](page-structure.md), before templates or components. For admin work, it routes starting skeletons and composition guidance within the supported Overseas/Antd6 suite; for a public website, editorial or other non-admin experience, use `non-admin` and derive the arrangement from `pageStructure.intent` and `source`. A component library does not determine page purpose. Put the type in the minimal plan. Explicit spatial constraints take precedence; otherwise decide arrangement through `pageStructure` reasoning without overriding protected component defaults. Only the supported admin suite uses the [design scale](scale.md) and linked compositions for region internals. Other libraries retain the task's page classification but use their own component contracts and task-derived layout.
 
-For visual examples in the Overseas/Antd6 suite, follow the [published template workflow](../admin-templates.md). Choose actual Pages and regions from the current publication by business scenario and published description, using rendered structure to resolve ambiguity and guide composition.
+For live Template Center examples across libraries and devices (and mandatory Overseas/Antd6 admin references), follow the [published template workflow](../template-center.md): call `list_templates` first and inspect matching published Pages with `open_template`. Choose actual Pages and regions from the current publication by business scenario and published description, using rendered structure to resolve ambiguity and guide composition. The ASCII skeletons below are structural indices only and never replace checking Template Center.
 
 **Hard constraints** (always delivered with any section):
 
@@ -37,7 +37,7 @@ A create/edit flow that keeps list context uses a Drawer or Modal on the list Pa
 
 Use `pageType: "non-admin"` with the same source-backed `pageStructure`, components, nodes, copy and behavior declarations. The shared project/Page cards and selection preflight still apply, as do live component contracts, source coverage, accessibility, saved-model review and required Preview/persistence checks. Page-wide admin recipes, shell assumptions and the no-standalone-header rule do not apply; component-owned defaults still do. Design a website heading or hero from the actual task and review its copy normally.
 
-Select relevant templates by purpose. When the Overseas reference canvas is outside the task, use the existing `templates: []` and a specific `templatesNotApplicable` reason grounded in the Page's source; no live admin template read is needed merely because an Antd6 control is present. A matching admin region still follows its component/composition rules.
+Select relevant templates by purpose after checking `list_templates`. When no Template Center template matches the task (and the Overseas reference canvas is outside the task), use `templates: []` and record the `list_templates` check and reviewed candidates/gap in `templatesNotApplicable`; no live Overseas admin template read is needed merely because an Antd6 control is present. A matching admin region still follows its component/composition rules.
 
 Use applicable focused checks under [verification](../verification.md), and report their coverage limits. Do not run admin-only page/shell layout checks against a website or report a focused pass as full-suite acceptance. Design review must confirm the declared purpose against the source; the enum alone cannot prove it.
 

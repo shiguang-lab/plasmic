@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const os = require("node:os");
+const { pathToFileURL } = require("node:url");
 const { createAssetHandler } = require("../src/asset-handler.cjs");
 const config = require("../desktop.config.json");
 let root, handler;
@@ -347,6 +348,11 @@ test("Project requests reuse bundled Google font faces; other families remain re
   );
   assert.equal(response.headers.get("X-Plasmic-Desktop-Asset"), "local");
   assert.match(await response.text(), /roboto.ttf/);
+  const lowercase = await fonts(
+    new Request("https://fonts.googleapis.com/css2?family=roboto@400"),
+  );
+  assert.equal(lowercase.headers.get("X-Plasmic-Desktop-Asset"), "local");
+  assert.match(await lowercase.text(), /roboto.ttf/);
   assert.equal(fetched, 0);
   await fonts(
     new Request("https://fonts.googleapis.com/css2?family=Unbundled+Font"),
@@ -391,5 +397,54 @@ test("managed library requests preserve exact remote versions and never use bund
     assert.equal(await response.text(), "remote");
     assert.equal(requests.at(-1), url);
     assert.equal(response.headers.get("X-Plasmic-Desktop-Asset"), null);
+  }
+});
+test("bundleStudioFonts bundles built-in canvas fonts, metric fallbacks, and embeds the manifest", async () => {
+  const { bundleStudioFonts } = await import(
+    pathToFileURL(path.resolve(__dirname, "../../scripts/bundle-studio-fonts.mjs")).href
+  );
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-fonts-"));
+  try {
+    await fs.writeFile(
+      path.join(temp, "index.html"),
+      '<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">',
+    );
+    await fs.writeFile(
+      path.join(temp, "snapshot.js"),
+      'const RAW="__PLASMIC_BUNDLED_FONTS__";',
+    );
+    await bundleStudioFonts(temp, "http://plasmic-origin.invalid", {
+      download: (url) => {
+        if (url.startsWith("https://fonts.googleapis.com/")) {
+          const family = new URL(url).searchParams.get("family")?.split(":")[0] ?? "Font";
+          return Buffer.from(
+            `@font-face { font-family: '${family}'; font-weight: 400; src: url(https://fonts.gstatic.com/s/${encodeURIComponent(family)}/regular.woff2) format('woff2'); }`,
+          );
+        }
+        return Buffer.from(`asset:${url}`);
+      },
+    });
+    const manifest = JSON.parse(
+      await fs.readFile(path.join(temp, "static/desktop-fonts/manifest.json"), "utf8"),
+    );
+    assert.ok(manifest.families.Inter);
+    assert.ok(manifest.families.Roboto);
+    assert.ok(manifest.families.Arimo);
+    assert.equal(manifest.fallbacks.Arial, "aliases/arial.css");
+    const arialCss = await fs.readFile(
+      path.join(temp, "static/desktop-fonts/aliases/arial.css"),
+      "utf8",
+    );
+    assert.match(arialCss, /font-family: 'Arial'/);
+    assert.match(arialCss, /src: local\('Arial'\), url\(http:\/\/plasmic-origin\.invalid\/static\/desktop-fonts\//);
+    const snapshotJs = await fs.readFile(path.join(temp, "snapshot.js"), "utf8");
+    assert.ok(!snapshotJs.includes("__PLASMIC_BUNDLED_FONTS__"));
+    const encoded = snapshotJs.match(/const RAW="([^"]+)"/)?.[1];
+    assert.deepEqual(
+      JSON.parse(Buffer.from(encoded, "base64").toString("utf8")),
+      manifest,
+    );
+  } finally {
+    await fs.rm(temp, { recursive: true, force: true });
   }
 });

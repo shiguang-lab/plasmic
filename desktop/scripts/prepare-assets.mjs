@@ -84,7 +84,16 @@ try {
     recursive: true,
     filter: (file) => !file.endsWith(".map"),
   });
-  await bundleStudioFonts(target, config.studioOrigin);
+  let hasBundledFonts = false;
+  try {
+    await stat(path.join(target, "static/desktop-fonts/manifest.json"));
+    hasBundledFonts = true;
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
+  if (!hasBundledFonts) {
+    await bundleStudioFonts(target, config.studioOrigin);
+  }
   if (fromIndex >= 0) await buildReferenceBrowserUi(target);
   else await readFile(path.join(target, "reference-browser-ui.js"));
   const localeSource = path.join(

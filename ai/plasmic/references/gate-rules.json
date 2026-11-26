@@ -54,7 +54,7 @@
     "selectionPlan": "references/libraries/antd_v6/selection.md#existing-inventory-independent-expectations",
     "shell": "references/design/layout.md#standalone-appshell-golden-boilerplate",
     "structurePlan": "references/requirement-alignment.md#structural-gate",
-    "templateSource": "references/admin-templates.md#source-evidence-before-composition",
+    "templateSource": "references/template-center.md#source-evidence-before-composition",
     "uiCopy": "references/design/content-review.md#saved-model-acceptance",
     "recordContext": "references/design/record-context.md#detection",
     "recordPage": "references/design/record-context.md#detection",
@@ -63,7 +63,7 @@
   "pageDecisions": {
     "name": "references/design/naming.md#project-directory-names",
     "pageHeader": "references/design/layout.md#admin-content-entry",
-    "templates": "references/admin-templates.md#source-evidence-before-composition",
+    "templates": "references/template-center.md#source-evidence-before-composition",
     "wireframe": "references/design/text-wireframes.md#inventory",
     "pageType": "references/design/page-types.md#choosing-the-type",
     "pageStructure": "references/design/page-structure.md#plan-decision",
@@ -79,6 +79,7 @@
   },
   "projectRules": [
     "references/libraries/index.md",
+    "references/template-center.md",
     "references/design/page-structure.md",
     "references/design/layout.md",
     "references/design/naming.md",

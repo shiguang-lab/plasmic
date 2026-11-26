@@ -884,7 +884,7 @@ def required_reads(plan, stage='compose', root=None):
     # libraries retain their component-owned rules without borrowing a v6 page contract.
     if 'components' in plan and admin_page(plan):
         add(SCALE, None)
-        add('references/admin-templates.md', None)
+        add('references/template-center.md', None)
         page_types = PAGE_TYPE_RULE.split('#', 1)[0]
         kind = plan.get('pageType')
         add(page_types, {kind, 'regions-inside-any-type'} if kind in PAGE_TYPES else {'choosing-the-type'})

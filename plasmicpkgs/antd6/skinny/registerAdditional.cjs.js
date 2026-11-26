@@ -249,10 +249,15 @@ function AntdListItem({
 }
 const AntdListItemMeta = Ant__namespace.List.Item.Meta;
 function AntdListy(props) {
+  const canvas = host.usePlasmicCanvasContext();
+  const info = host.usePlasmicCanvasComponentInfo(props);
+  const { __canvas: _canvas, ...rest } = props;
+  const fullContentView = !!canvas && !canvas.interactive && info?.fullContent === true;
   return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Listy,
     {
-      ...props,
+      ...rest,
+      ...fullContentView ? { height: void 0, virtual: false, sticky: false } : {},
       rowKey: "key",
       itemRender: (item) => /* @__PURE__ */ jsxRuntime.jsx("div", { children: item.content })
     }

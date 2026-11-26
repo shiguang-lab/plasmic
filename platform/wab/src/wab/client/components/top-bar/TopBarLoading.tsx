@@ -57,6 +57,15 @@ export function TopBarLoading({ projectName }: { projectName?: string }) {
         <EditorIconAction action="Preview" disabled />
         <EditorIconAction action="Present" disabled />
         <span className="editor-action-divider" />
+        {navigator.userAgent.includes("PlasmicDesktop/") && (
+          <Tooltip trigger={["hover", "focus"]} title={t("Import from the web")}>
+            <EditorIconAction
+              action="Import from the web"
+              data-test-id="import-from-web-button"
+              onClick={() => spawn(openDesktopBrowser())}
+            />
+          </Tooltip>
+        )}
         <EditorIconAction
           action="Publish"
           type="primary"
@@ -71,15 +80,6 @@ export function TopBarLoading({ projectName }: { projectName?: string }) {
             <AnonymousAvatar />
           )}
         </AntAvatar.Group>
-        {navigator.userAgent.includes("PlasmicDesktop/") && (
-          <Tooltip trigger={["hover", "focus"]} title={t("Import from the web")}>
-            <EditorIconAction
-              action="Import from the web"
-              data-test-id="import-from-web-button"
-              onClick={() => spawn(openDesktopBrowser())}
-            />
-          </Tooltip>
-        )}
       </div>
     </div>
   );

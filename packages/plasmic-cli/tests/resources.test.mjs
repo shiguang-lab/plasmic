@@ -396,7 +396,7 @@ test("explicit resource resolution rereads the feed and switches modes to change
   const first = await resolveContext("prototype", options);
   assert.equal(first.updated, true);
   assert.deepEqual(first.mustRead.map((filename) => path.relative(first.resourceRoot, filename)), [
-    "references/guide.md", "references/desktop-mcp.md", "references/prototype.md", "references/planning.md",
+    "references/guide.md", "references/desktop-mcp.md", "references/prototype.md", "references/planning.md", "references/template-center.md",
   ]);
   assert.ok(first.mustRead.every(path.isAbsolute));
   assert.match(

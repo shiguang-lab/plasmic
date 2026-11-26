@@ -46,8 +46,9 @@ class RuleRoutingTests(unittest.TestCase):
                         self.assertEqual('acceptance-checks' in reads[mui + 'components/' + group + '.md'], stage == 'accept')
                     self.assertFalse(any('/antd_v6/' in path or '/overseas/' in path or '/react_ui/' in path
                                          for path in [*project, *reads]))
+                    self.assertIn('references/template-center.md', project)
                     self.assertNotIn('references/design/scale.md', reads)
-                    self.assertNotIn('references/admin-templates.md', reads)
+                    self.assertNotIn('references/template-center.md', reads)
 
     def test_material_ui_and_antd_keep_component_and_page_scopes(self):
         mui = 'references/libraries/material_ui/'

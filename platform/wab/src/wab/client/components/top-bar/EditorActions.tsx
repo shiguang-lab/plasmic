@@ -20,13 +20,25 @@ export const EditorIconAction = React.forwardRef<
       | "Published versions"
       | "Import from the web";
   }
->(function EditorIconAction({ action, ...props }, ref) {
+>(function EditorIconAction({ action, className, ...props }, ref) {
   const { t } = useI18n();
+  const baseClassName =
+    action === "Publish"
+      ? "editor-publish-action"
+      : action === "Published versions"
+        ? "editor-history-action"
+        : "editor-icon-action";
+  const mergedClassName = Array.from(
+    new Set([
+      baseClassName,
+      ...(className ? className.split(/\s+/).filter(Boolean) : []),
+    ]),
+  ).join(" ");
   return (
     <Button
       ref={ref}
       type="text"
-      className="editor-icon-action"
+      className={mergedClassName}
       aria-label={t(action)}
       icon={
         action === "Published versions" ? (

@@ -511,6 +511,11 @@ interface StudioCtxArgs {
    * since they never persist anything. Defaults to true.
    */
   autoSave?: boolean;
+  /**
+   * Whether FontManager may emit UI warning notifications for missing local fonts.
+   * Disabled in headless cover snapshot rendering. Defaults to true.
+   */
+  warnMissingFonts?: boolean;
 }
 
 interface ZoomState {
@@ -906,7 +911,9 @@ export class StudioCtx extends WithDbCtx {
     // will perform
     this.styleMgr = new StyleMgr(this);
 
-    this.fontManager = new FontManager(this.site);
+    this.fontManager = new FontManager(this.site, {
+      warnMissingFonts: args.warnMissingFonts,
+    });
     this.fontManager.installAllUsedFonts([$(document.head)]);
     this.disposals.push(this.fontManager.observeHostFonts(getHostWindow()));
 

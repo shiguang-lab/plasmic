@@ -26,7 +26,7 @@ ai/plasmic/references/libraries/antd_icons/  Ant Design Icons 组件库规范
 ai/plasmic/references/libraries/material_ui/  MUI 按用途分组的轻量组件说明，不附带 PC 后台模板或尺寸约束
 ai/plasmic/references/engineering/         仅平台/组件实现任务使用的通用验证规则
 ai/plasmic/references/                     设计规范与 MCP 契约
-ai/plasmic/references/admin-templates.md    管理后台模板选择、组合与绑定规范
+ai/plasmic/references/template-center.md   模板中心发现、选择、组合与绑定规范
 ai/plasmic/scripts/                        结构、Slot、模型比较检查
 scripts/build-plasmic-resources.mjs        构建资源与独立版本的 CLI 安装包
 .github/workflows/publish-images.yml       统一 tag，按需发布或全发布，并汇总 GitHub Release
@@ -130,9 +130,9 @@ plasmickit context resolve --mode codegen
 
 缓存默认位于 `~/.cache/plasmic/`：`releases/<releaseId>/` 保存版本，`current.json` 原子切换当前版本。`PLASMIC_RESOURCE_HOME` / `--home` 设置缓存目录；`PLASMIC_RESOURCE_URL` / `--feed` 设置资源源（HTTPS；loopback 测试允许 HTTP）。`path` 仅供显式离线检查，不能证明缓存最新。公开资源服务不可达或校验失败时停止依赖任务。更新以目录锁防止交叉写入；异常退出留下 `.update-lock` 时，确认没有更新进程后删除锁再执行。
 
-## 管理后台模板规范
+## 模板中心与规范
 
-海外 O 端原型通过 Desktop MCP 的 open_template 进入模板中心「海外 O 端」的发布画布。先按发布页描述匹配场景和结构；明确命中只截选中画板，难以区分才截候选对比，明确不匹配就返回业务项目用组件库设计。见[模板规范](references/admin-templates.md)。
+设计前通过 Desktop MCP 的 `list_templates` 检索模板中心已发布模板，并通过 `open_template` 进入对应发布画布（海外 O 端原型使用 `pDf4kvKBxRRLAHnjbGRwGu`「海外 O 端」）。先按发布页描述匹配场景和结构；明确命中只截选中画板，难以区分才截候选对比，明确不匹配就返回业务项目用组件库设计。见[模板中心规范](references/template-center.md)。
 
 模板规范随 skill 发布。模板示例页在模板中心维护，发布新画布后供后续任务读取。
 
@@ -146,7 +146,7 @@ plasmickit context resolve --mode codegen
 node scripts/build-plasmic-resources.mjs --version 0.0.59 --output /tmp/plasmic-resources-0.0.59
 ```
 
-版本号是示例，发布前检查 npm 和 GitHub Release 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换公开清单，也不替代正式发布的 Plasmic 安装包比较。检查 manifest 包含 `references/admin-templates.md`。
+版本号是示例，发布前检查 npm 和 GitHub Release 当前版本，选择更大的未发布版本。本地构建会运行验收脚本单测并验证资源 manifest、文件哈希和安装包；CLI 使用源码 package.json 的独立版本。它不会发布或切换公开清单，也不替代正式发布的 Plasmic 安装包比较。检查 manifest 包含 `references/template-center.md`。
 
 统一发布按 tag 打包一次 CLI。资源任务直接使用这一份 tarball，GitHub Release 发布并切换 Plasmic 清单后，npm 任务读取公开清单、下载对应 tarball，与构建产物逐字节比对，通过后才发布同一文件到 npm。仅规则变化的补丁版本复用 Plasmic 当前生效的 CLI 原包。npm 失败时可单独重跑失败任务。
 

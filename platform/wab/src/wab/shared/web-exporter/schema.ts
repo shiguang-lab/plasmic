@@ -188,11 +188,16 @@ export function projectSchema() {
       .describe("Native Page arena viewports, including variant previews."),
     devicePresets: z
       .array(
-        z.object({ name: z.string(), width: z.number(), height: z.number() }),
+        z.object({
+          name: z.string(),
+          groupName: z.string(),
+          width: z.number(),
+          height: z.number(),
+        }),
       )
       .optional()
       .describe(
-        "Studio device size presets; use Desktop unless another viewport is requested.",
+        "Studio device size presets grouped by Phone, Tablet, Desktop, and TVs; choose a matching built-in preset for the target device (Desktop for PC; Phone or Tablet for mobile) instead of custom dimensions unless explicitly specified.",
       ),
     screenBreakpoints: z
       .array(screenBreakpointSchema())

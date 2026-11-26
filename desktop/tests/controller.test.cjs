@@ -275,6 +275,238 @@ test("project and dashboard navigation retain save, access and target checks", a
   await assert.rejects(controller.dispatch("open_design", { projectId: "invalid/project" }), /Invalid projectId/);
 });
 
+test("list_templates returns published templates with metadata and filters without saving or navigating", async (t) => {
+  const calls = [];
+  const controller = new DesktopController(() => studioFixture({
+    isDestroyed: () => false,
+    webContents: { getURL: () => "https://studio.example/projects/current" },
+  }), { studioOrigin: "https://studio.example" });
+  t.after(() => controller.close());
+  controller.state = async () => { throw new Error("list_templates must not read or save the editor"); };
+  controller.requestStudio = async (path) => {
+    calls.push(path);
+    return {
+      templates: [
+        {
+          id: "pDf4kvKBxRRLAHnjbGRwGu",
+          metadata: { name: "海外 O 端", description: "Overseas admin pages", kind: "page", device: "desktop", category: "Admin", thumbnailUrl: "https://example.com/1.png" },
+          published: { version: "3", publishedAt: "2026-11-20T00:00:00Z", previewUrl: "https://example.com/preview", libraries: ["@shiguang-lab/plasmic-overseas", "@shiguang-lab/plasmic-antd6"] },
+        },
+        {
+          id: "muiTemplate",
+          metadata: { name: "Mobile Feed", description: "Material UI mobile card list", kind: "page", device: "mobile", category: "Consumer", thumbnailUrl: "" },
+          published: { version: "1", publishedAt: "2026-11-21T00:00:00Z", previewUrl: "", libraries: ["@shiguang-lab/plasmic-material-ui"] },
+        },
+        {
+          id: "draftTemplate",
+          metadata: { name: "Unpublished Draft", description: "Should be excluded", kind: "page", device: "desktop", category: "Admin", thumbnailUrl: "" },
+          published: null,
+        },
+      ],
+    };
+  };
+  const all = await controller.dispatch("list_templates", {});
+  assert.deepEqual(all, {
+    templates: [
+      {
+        templateId: "pDf4kvKBxRRLAHnjbGRwGu",
+        name: "海外 O 端",
+        description: "Overseas admin pages",
+        kind: "page",
+        device: "desktop",
+        category: "Admin",
+        version: "3",
+        publishedAt: "2026-11-20T00:00:00Z",
+        libraries: ["@shiguang-lab/plasmic-overseas", "@shiguang-lab/plasmic-antd6"],
+      },
+      {
+        templateId: "muiTemplate",
+        name: "Mobile Feed",
+        description: "Material UI mobile card list",
+        kind: "page",
+        device: "mobile",
+        category: "Consumer",
+        version: "1",
+        publishedAt: "2026-11-21T00:00:00Z",
+        libraries: ["@shiguang-lab/plasmic-material-ui"],
+      },
+    ],
+  });
+  assert.deepEqual(
+    (await controller.dispatch("list_templates", { query: "material-ui", device: "mobile", kind: "page", category: "consumer" })).templates.map((t) => t.templateId),
+    ["muiTemplate"],
+  );
+  assert.deepEqual(calls, ["/api/v1/template-center", "/api/v1/template-center"]);
+});
+
+test("template write gate blocks createComponent and insertHtml before list_templates and enforces Overseas template inspection", async (t) => {
+  const origin = "https://studio.example";
+  const overseasId = "pDf4kvKBxRRLAHnjbGRwGu";
+  let currentProject = "biz";
+  let url = origin + "/projects/" + currentProject;
+  const editorCalls = [];
+  const controller = new DesktopController(() => studioFixture({
+    isDestroyed: () => false,
+    webContents: { getURL: () => url, send: () => {} },
+    loadURL: async (target) => {
+      url = target;
+      const match = new URL(target).pathname.match(/^\/projects\/([^/]+)/);
+      if (match) currentProject = match[1];
+    },
+  }), { studioOrigin: origin });
+  t.after(() => controller.close());
+  controller.state = async () => ({
+    ready: true,
+    projectId: currentProject,
+    url,
+    editorContext: {
+      projectId: currentProject,
+      mode: "edit",
+      canEdit: currentProject !== overseasId,
+      ...(currentProject === overseasId ? { publishedTemplateVersion: "5" } : {}),
+    },
+  });
+  controller.ready = async () => ({
+    editorContext: {
+      projectId: currentProject,
+      projectName: "海外 O 端",
+      ...(currentProject === overseasId ? { publishedTemplateVersion: "5", canEdit: false } : { canEdit: true }),
+    },
+  });
+  controller.requestStudio = async (path) => {
+    assert.equal(path, "/api/v1/template-center");
+    return {
+      templates: [{
+        id: overseasId,
+        metadata: { name: "海外 O 端", description: "Admin", kind: "page", device: "desktop", category: "Admin" },
+        published: { version: "5", publishedAt: "2026-11-20T00:00:00Z", libraries: ["@shiguang-lab/plasmic-overseas"] },
+      }],
+    };
+  };
+  controller.editor = async (name, input) => {
+    editorCalls.push({ name, input });
+    if (name === "identify") return { projectId: currentProject, projectName: "Biz", canEdit: currentProject !== overseasId };
+    if (name === "read") {
+      return { results: [{ id: "biz", importedProjects: [{ __type: "ImportedProject", id: "overseas-lib", name: "Overseas", version: "1.0.0" }] }] };
+    }
+    return { ok: true };
+  };
+
+  const callerA = { id: "caller-a", name: "Agent A" };
+  const callerB = { id: "caller-b", name: "Agent B" };
+  // Unchecked session cannot create components/pages or insert markup.
+  await assert.rejects(
+    controller.dispatch("execute", { name: "createComponent", input: { name: "Orders", type: "page" } }, callerA),
+    (err) => err.context?.code === "TEMPLATE_CHECK_REQUIRED" && err.context?.operationExecuted === false && err.context?.recovery?.[0]?.tool === "list_templates",
+  );
+  await assert.rejects(
+    controller.dispatch("execute_batch", { operations: [{ name: "insertHtml", input: { componentUuid: "p", html: "<div/>" } }], reviewContext: { purpose: "Add box" } }, callerA),
+    (err) => err.context?.code === "TEMPLATE_CHECK_REQUIRED" && err.context?.operationExecuted === false,
+  );
+  // Non-creation edits such as changeElement or save remain allowed without template discovery.
+  await controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "p", elementUuid: "e" } }, callerA);
+  await controller.dispatch("execute", { name: "save" }, callerA);
+
+  // Caller A lists templates and reads the Overseas project.
+  await controller.dispatch("list_templates", {}, callerA);
+  // Another caller (Caller B) stays isolated and still blocked until it checks Template Center.
+  await assert.rejects(
+    controller.dispatch("execute", { name: "createComponent", input: { name: "Orders", type: "page" } }, callerB),
+    (err) => err.context?.code === "TEMPLATE_CHECK_REQUIRED",
+  );
+
+  // Non-Overseas component/html passes after list_templates alone.
+  await controller.dispatch("execute", { name: "insertHtml", input: { componentUuid: "p", html: "<div/>" } }, callerA);
+  // Reading an Overseas project or inserting plasmic-overseas-* requires opening the Overseas template first.
+  await controller.dispatch("execute", { name: "read", input: { collection: "importedProjects" } }, callerA);
+  await assert.rejects(
+    controller.dispatch("execute", { name: "createComponent", input: { name: "Orders", type: "page" } }, callerA),
+    (err) => err.context?.code === "OVERSEAS_TEMPLATE_REQUIRED" && err.context?.recovery?.[0]?.arguments?.templateId === overseasId,
+  );
+  // Omitting type defaults to creating a page in Studio and must still require opening the Overseas template.
+  await assert.rejects(
+    controller.dispatch("execute", { name: "createComponent", input: { name: "OrdersDefaultType" } }, callerA),
+    (err) => err.context?.code === "OVERSEAS_TEMPLATE_REQUIRED" && err.context?.recovery?.[0]?.arguments?.templateId === overseasId,
+  );
+  await assert.rejects(
+    controller.dispatch("execute", { name: "insertHtml", input: { componentUuid: "p", html: '<plasmic-component data-plasmic-component="plasmic-overseas-app-shell"></plasmic-component>' } }, callerA),
+    (err) => err.context?.code === "OVERSEAS_TEMPLATE_REQUIRED",
+  );
+
+  // Opening the Overseas template and returning to the business project unblocks Overseas authoring.
+  await controller.dispatch("open_template", { templateId: overseasId }, callerA);
+  await controller.dispatch("open_design", { projectId: "biz" }, callerA);
+  await controller.dispatch("execute", { name: "createComponent", input: { name: "Orders", type: "page" } }, callerA);
+  await controller.dispatch("execute_batch", { operations: [{ name: "insertHtml", input: { componentUuid: "p", html: '<plasmic-component data-plasmic-component="plasmic-overseas-app-shell"></plasmic-component>' } }], reviewContext: { purpose: "Add shell" } }, callerA);
+  assert.ok(editorCalls.some((call) => call.name === "createComponent"));
+  assert.ok(editorCalls.some((call) => call.name === "executeBatch"));
+
+  // Disconnecting clears Caller A's gate state.
+  controller.clearCallerActivity(callerA.id);
+  await assert.rejects(
+    controller.dispatch("execute", { name: "createComponent", input: { name: "Other", type: "page" } }, callerA),
+    (err) => err.context?.code === "TEMPLATE_CHECK_REQUIRED",
+  );
+});
+
+test("open_template records all published templates so opening another template enforces Overseas check", async (t) => {
+  const origin = "https://studio.example";
+  const overseasId = "pDf4kvKBxRRLAHnjbGRwGu";
+  const otherTemplateId = "otherTemplate1";
+  let currentProject = "biz";
+  let url = origin + "/projects/" + currentProject;
+  const controller = new DesktopController(() => studioFixture({
+    isDestroyed: () => false,
+    webContents: { getURL: () => url, send: () => {} },
+    loadURL: async (target) => {
+      url = target;
+      const match = new URL(target).pathname.match(/^\/projects\/([^/]+)/);
+      if (match) currentProject = match[1];
+    },
+  }), { studioOrigin: origin });
+  t.after(() => controller.close());
+  controller.state = async () => ({
+    ready: true,
+    projectId: currentProject,
+    url,
+    editorContext: {
+      projectId: currentProject,
+      mode: "edit",
+      canEdit: currentProject === "biz",
+      ...(currentProject !== "biz" ? { publishedTemplateVersion: "2" } : {}),
+    },
+  });
+  controller.ready = async () => ({
+    editorContext: {
+      projectId: currentProject,
+      projectName: currentProject === overseasId ? "海外 O 端" : "Other",
+      ...(currentProject !== "biz" ? { publishedTemplateVersion: "2", canEdit: false } : { canEdit: true }),
+    },
+  });
+  controller.requestStudio = async () => ({
+    templates: [
+      { id: otherTemplateId, published: { version: "2" } },
+      { id: overseasId, published: { version: "5" } },
+    ],
+  });
+  controller.editor = async (name) => {
+    if (name === "identify") return { projectId: currentProject, projectName: "Biz", canEdit: currentProject === "biz" };
+    if (name === "read") {
+      return { results: [{ id: "biz", importedProjects: [{ __type: "ImportedProject", id: "overseas-lib", name: "Overseas", version: "1.0.0" }] }] };
+    }
+    return { ok: true };
+  };
+
+  const caller = { id: "caller-open-other" };
+  await controller.dispatch("open_template", { templateId: otherTemplateId }, caller);
+  await controller.dispatch("open_design", { projectId: "biz" }, caller);
+  await controller.dispatch("execute", { name: "read", input: { collection: "importedProjects" } }, caller);
+  await assert.rejects(
+    controller.dispatch("execute", { name: "createComponent", input: { name: "Orders", type: "page" } }, caller),
+    (err) => err.context?.code === "OVERSEAS_TEMPLATE_REQUIRED" && err.context?.recovery?.[0]?.arguments?.templateId === overseasId,
+  );
+});
+
 test("open_template loads the published canvas even from its own draft", async (t) => {
   const templateId = "template";
   const origin = "https://studio.example";

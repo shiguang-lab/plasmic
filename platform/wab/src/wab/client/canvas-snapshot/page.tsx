@@ -153,7 +153,11 @@ async function render() {
   performance.mark("snapshot:contexts");
   await initRootCanvasPkgs();
   performance.mark("snapshot:root-packages");
-  const studio = new StudioCtx({ dbCtx, autoSave: false });
+  const studio = new StudioCtx({
+    dbCtx,
+    autoSave: false,
+    warnMissingFonts: false,
+  });
   studio.setBlockChanges(true);
   initBuiltinActions({
     projectId: project.id,

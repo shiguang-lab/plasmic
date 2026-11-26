@@ -67,7 +67,6 @@ export function CanvasFrame({ children, frameInfo, currentUser, lifetime, DataSo
   const root = <div className={className} style={{
     minHeight: `${viewportHeight}px`,
     "--viewport-height": `${viewportHeight}px`,
-    ...(showFullHeight ? { "--canvas-content-height": "auto" } : {}),
   } as React.CSSProperties}>{children}</div>;
   const { appUser } = appUserCtx;
   return <DataSourceProvider value={{

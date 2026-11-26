@@ -236,8 +236,19 @@ const tools = [
     inputSchema: { ...object({ projectId: resourceId, name: resourceName, workspaceId: resourceId }), required: ["projectId"] },
   },
   {
+    name: "list_templates",
+    description:
+      "List published Template Center templates with their templateId, name, description, kind, device, category, published version and libraries. Filter optionally by query, kind, device or category. Does not open, navigate or save.",
+    inputSchema: object({
+      query: { ...resourceName, maxLength: 200 },
+      kind: { type: "string", enum: ["page", "section"] },
+      device: { type: "string", enum: ["mobile", "desktop", "responsive"] },
+      category: { ...resourceName, maxLength: 80 },
+    }),
+  },
+  {
     name: "open_template",
-    description: "Open the latest published version of a Template Center template in its read-only Studio canvas. Saves the current editable project before navigation. Returns the loaded template ID, name and version. Use execute read and get_screenshot to inspect its current Pages.",
+    description: "Open the latest published version of a Template Center template in its read-only Studio canvas. Use list_templates to discover templateId values. Saves the current editable project before navigation. Returns the loaded template ID, name and version. Use execute read and get_screenshot to inspect its current Pages.",
     inputSchema: { ...object({ templateId: resourceId }), required: ["templateId"] },
   },
   {
@@ -566,11 +577,11 @@ const batchTool = tools.find(tool => tool.name === "execute_batch");
 const reviewedMutations = [...batchTool.inputSchema.properties.operations.items.properties.name.enum, "installLibrary", "upgradeLibrary", "importWebPage"];
 batchTool.inputSchema.properties.reviewContext = reviewContextSchema;
 batchTool.inputSchema.required.push("reviewContext");
-batchTool.description += " Supply one reviewContext with purpose describing the whole batch and customOnly:true ONLY when the user explicitly requires implementing all affected functionality without existing registered components; otherwise always pass false. The editor derives affected regions; do not repeat reviewContext inside operations. Component suggestions are advisory; custom UI remains allowed.";
+batchTool.description += " Supply one reviewContext with purpose describing the whole batch and customOnly:true ONLY when the user explicitly requires implementing all affected functionality without existing registered components; otherwise always pass false. The editor derives affected regions; do not repeat reviewContext inside operations. Component suggestions are advisory; custom UI remains allowed. Batches containing createComponent or insertHtml require checking Template Center (list_templates, and open_template for Overseas admin pages/layout) first in this session.";
 const executeTool = tools.find(tool => tool.name === "execute");
 executeTool.inputSchema.properties.input = { type: "object", properties: { reviewContext: reviewContextSchema }, additionalProperties: true };
 executeTool.inputSchema.allOf = [{ if: { properties: { name: { enum: reviewedMutations } }, required: ["name"] }, then: { required: ["input"], properties: { input: { required: ["reviewContext"] } } } }];
-executeTool.description += " Design mutations require input.reviewContext:{purpose:<functional description>}, with customOnly:true ONLY when the user explicitly requires implementing the affected functionality without existing registered components; otherwise always pass false. Describe behavior and explicit constraints naturally. Read the native input contract; ordinary feature requests are not exemptions. Styles/text and existing registered components are programmatically checked before model retrieval.";
+executeTool.description += " Design mutations require input.reviewContext:{purpose:<functional description>}, with customOnly:true ONLY when the user explicitly requires implementing the affected functionality without existing registered components; otherwise always pass false. Describe behavior and explicit constraints naturally. Read the native input contract; ordinary feature requests are not exemptions. Styles/text and existing registered components are programmatically checked before model retrieval. createComponent and insertHtml require checking Template Center (list_templates, and open_template for Overseas admin pages/layout) first in this session.";
 const toolNames = new Set(tools.map((tool) => tool.name));
 function assertToolRouting(method, input = {}) {
   let message, recovery;

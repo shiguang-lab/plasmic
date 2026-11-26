@@ -83,6 +83,8 @@ test("management tools expose strict MCP schemas and forward valid calls through
     assert.equal(retired.isError, true);
     assert.match(retired.content[0].text, /Unknown desktop tool/);
     const valid = [
+      ["list_templates", {}],
+      ["list_templates", { query: "海外", kind: "page", device: "desktop", category: "Admin" }],
       ["open_template", { templateId: "published" }],
       ["preview", { action: "back" }],
       ["preview", { action: "forward" }],
@@ -190,6 +192,11 @@ test("management tools expose strict MCP schemas and forward valid calls through
       ["get_workspace", { workspaceId: "../workspace" }],
       ["get_project", {}],
       ["get_project", { projectId: "project?private" }],
+      ["list_templates", { query: "   " }],
+      ["list_templates", { category: "" }],
+      ["list_templates", { kind: "component" }],
+      ["list_templates", { device: "tablet" }],
+      ["list_templates", { view: "full" }],
       ["open_template", { templateId: "../draft" }],
       ["open_template", { projectId: "wrong-parameter" }],
       ["get_project", { projectId: "project", view: "full" }],
@@ -208,7 +215,7 @@ test("management tools expose strict MCP schemas and forward valid calls through
       const result = await client.callTool({ name, arguments: input });
       assert.equal(result.isError, true, name);
     }
-    for (const name of ["list_orgs", "list_projects", "create_project", "get_workspace", "get_project", "rename_project", "move_project", "clone_project", "open_design", "open_template"]) {
+    for (const name of ["list_orgs", "list_projects", "create_project", "get_workspace", "get_project", "rename_project", "move_project", "clone_project", "open_design", "list_templates", "open_template"]) {
       const input = { name: "Draft", projectId: "project" };
       const result = await client.callTool({ name: "execute", arguments: { name, input } });
       assert.equal(result.isError, true);
@@ -630,6 +637,8 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
           };
           projects.push(project);
           result = { project, rev: { revision: 1 } };
+        } else if (url.pathname === "/api/v1/template-center") {
+          result = { templates: [] };
         } else if (url.pathname === "/api/v1/projects") {
           assert.equal(
             JSON.parse(url.searchParams.get("query")),
@@ -733,6 +742,7 @@ test("MCP can reuse or create the selected hierarchy and enter its Project befor
         });
         assert.equal(identity.projectId, project.id);
         assert.equal(identity.canEdit, true);
+        await call("list_templates", {});
         await call("execute", { name: "read", input: {} });
         await call("execute", {
           name: "createComponent",

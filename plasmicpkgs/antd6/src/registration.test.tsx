@@ -731,6 +731,42 @@ test("full page height view renders every row in Studio, keeping horizontal scro
   assert.equal(props.virtual, true);
 });
 
+test("full page height view expands virtual AntdListy in Studio while keeping saved props", () => {
+  const listy = components.get("plasmic-antd6-listy")!;
+  const items = Array.from({ length: 40 }, (_, i) => ({
+    key: String(i + 1),
+    content: `Row ${i + 1}`,
+  }));
+  const props = {
+    items,
+    height: 200,
+    virtual: true,
+    sticky: true,
+    __canvas: { fullContent: true },
+  };
+  const render = (interactive: boolean, extra: object = {}) =>
+    renderToStaticMarkup(
+      React.createElement(
+        PlasmicCanvasContext.Provider,
+        { value: { componentName: "Test", globalVariants: {}, interactive } },
+        React.createElement(listy.component, { ...props, ...extra }),
+      ),
+    );
+  const full = render(false);
+  assert.match(full, /Row 40/);
+  assert.doesNotMatch(full, /rc-virtual-list/);
+  assert.doesNotMatch(full, /__canvas/);
+
+  assert.match(render(true), /rc-virtual-list/);
+  assert.match(
+    render(false, { __canvas: { fullContent: false } }),
+    /rc-virtual-list/,
+  );
+  assert.equal(props.height, 200);
+  assert.equal(props.virtual, true);
+  assert.equal(props.sticky, true);
+});
+
 test("Card and Select register semantic fields and forward native appearance props", () => {
   const card = components.get("plasmic-antd6-card")!;
   const select = components.get("plasmic-antd6-select")!;

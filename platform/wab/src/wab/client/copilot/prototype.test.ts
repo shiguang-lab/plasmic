@@ -357,6 +357,39 @@ describe("AI prototype editor tools", () => {
     expect([first.width, first.height, second.width, second.height]).toEqual([414, 736, 1440, 1024]);
   });
 
+  it("exposes grouped devicePresets and applies mobile and tablet presets across pages and artboards", async () => {
+    const { call, studioCtx } = fixture();
+    const presetsRead = await call("read", { collection: "devicePresets", limit: 50 });
+    const presets = presetsRead.results[0].devicePresets;
+    expect(presets).toContainEqual({ name: "iPhone 13 & 14", groupName: "Phone", width: 390, height: 844 });
+    expect(presets).toContainEqual({ name: 'iPad Pro 11"', groupName: "Tablet", width: 834, height: 1194 });
+    expect(presets).toContainEqual({ name: "Desktop", groupName: "Desktop", width: 1440, height: 1024 });
+
+    await call("createCanvas", { name: "MobileFlow" });
+    const created = await call("createComponent", {
+      name: "MobileHome", type: "page", path: "/mobile-home", preset: "iPhone 13 & 14", canvasName: "MobileFlow",
+    });
+    const pageUuid = created.created.find((item: { kind: string }) => item.kind === "Component").uuid;
+    const arena = ensure(studioCtx.site.arenas.find((a) => a.name === "MobileFlow"), "MobileFlow canvas");
+    expect([arena.children[0].width, arena.children[0].height]).toEqual([390, 844]);
+    const pageArena = ensure(studioCtx.site.pageArenas.find((a) => a.component.uuid === pageUuid), "MobileHome page arena");
+    expect([pageArena.matrix.rows[0].cols[0].frame.width, pageArena.matrix.rows[0].cols[0].frame.height]).toEqual([390, 844]);
+
+    const tabletArtboard = await call("createArtboard", {
+      canvasName: "MobileFlow", componentUuid: pageUuid, preset: 'iPad Pro 11"',
+    });
+    const tabletFrameUuid = tabletArtboard.created[0].uuid;
+    const tabletFrame = ensure(arena.children.find((f) => f.uuid === tabletFrameUuid), "Tablet artboard");
+    expect([tabletFrame.width, tabletFrame.height]).toEqual([834, 1194]);
+
+    await call("updateArtboard", { canvasName: "MobileFlow", frameUuid: tabletFrameUuid, preset: "Android Large" });
+    expect([tabletFrame.width, tabletFrame.height]).toEqual([360, 800]);
+
+    await expect(call("createArtboard", { canvasName: "MobileFlow", componentUuid: pageUuid })).rejects.toThrow("Provide preset, or both width and height");
+    await expect(call("createArtboard", { canvasName: "MobileFlow", componentUuid: pageUuid, preset: "iPhone 13 & 14", width: 390, height: 844 })).rejects.toThrow("Provide either preset or width and height, not both");
+    await expect(call("updateArtboard", { canvasName: "MobileFlow", frameUuid: tabletFrameUuid, preset: "iPhone 13 & 14", width: 390 })).rejects.toThrow("Provide either preset or width/height, not both");
+  });
+
   it("audits group entrances by frame and reorders existing artboards as one undoable edit", async () => {
     const { call, createPage, studioCtx } = fixture();
     const start = await createPage("Courses");

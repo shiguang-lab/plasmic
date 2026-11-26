@@ -815,7 +815,7 @@ function postProcessStyles(
   });
 
   if (opts.isStudio) {
-    ["height", "min-height"].forEach((prop) => {
+    ["height", "min-height", "max-height"].forEach((prop) => {
       if (m.has(prop)) {
         const val = m.get(prop)!;
         const resolvedVal = opts.tokenRefResolver(val) ?? val;

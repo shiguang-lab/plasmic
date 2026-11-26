@@ -168,10 +168,13 @@ Use `execute` with these exact envelopes:
 ```
 
 ```json
-{"name":"setPageViewport","input":{"componentUuid":"PAGE_UUID","preset":"Desktop"}}
+{"name":"read","input":{"collection":"devicePresets","limit":50}}
+{"name":"createComponent","input":{"name":"首页","type":"page","path":"/","preset":"iPhone 13 & 14","canvasName":"移动端总览"}}
+{"name":"setPageViewport","input":{"componentUuid":"PAGE_UUID","preset":"iPhone 13 & 14"}}
+{"name":"createArtboard","input":{"canvasName":"移动端总览","componentUuid":"PAGE_UUID","preset":"iPad Pro 11\""}}
 ```
 
-Component collections with `view:"contract"` return real contracts. `fromProject` can also scope `componentUuids` or `elements` and verifies their owner; omit it when UUIDs already identify the target. New Pages default to one Desktop device column. Pass `canvasName` at creation for an explicit group placement. Verify `pageFrames`, `devicePresets` and `canvases`; shorter Preview tests do not add devices. Slot-typed content uses `<slot>`; fix failed required bindings rather than deleting them.
+Component collections with `view:"contract"` return real contracts. `fromProject` can also scope `componentUuids` or `elements` and verifies their owner; omit it when UUIDs already identify the target. New Pages default to one `Desktop` device column; for mobile or tablet designs, read `devicePresets` (grouped by `groupName`: `Phone`, `Tablet`, `Desktop`, `TVs`) and pass a matching built-in `preset` to `createComponent`, `setPageViewport`, `createArtboard` or `updateArtboard` instead of arbitrary `width`/`height` so Studio does not fall back to `Custom`. Pass `canvasName` at creation for an explicit group placement. Verify `pageFrames`, `devicePresets` and `canvases`; shorter Preview tests do not add devices. Slot-typed content uses `<slot>`; fix failed required bindings rather than deleting them.
 
 ## Interaction conditions and method contracts
 

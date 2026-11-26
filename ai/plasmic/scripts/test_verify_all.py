@@ -245,7 +245,7 @@ class SuiteTests(unittest.TestCase):
         diagnostics = [e for e in structure["report"]["errors"] if isinstance(e, dict)]
         self.assertTrue(diagnostics)
         self.assertTrue(all(e.get("rule") for e in diagnostics), diagnostics)
-        self.assertIn("references/admin-templates.md#source-evidence-before-composition", {e["rule"] for e in diagnostics})
+        self.assertIn("references/template-center.md#source-evidence-before-composition", {e["rule"] for e in diagnostics})
 
     def test_missing_template_source_plan_cannot_pass_the_structure_gate(self):
         expected = read_json(self.root / 'structure.json')

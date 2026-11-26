@@ -242,7 +242,7 @@
     }
   ],
   "aiWorkflow": [
-    "本目录用于选型；获取、导入、组合和验收流程统一遵循 references/admin-templates.md。",
+    "本目录用于选型；获取、导入、组合和验收流程统一遵循 references/template-center.md。",
     "目录中的库版本、Slots 和配置状态是编制时记录，通过公开 MCP 核对目标实时契约；普通设计组件名不能直接当作 insertHtml 的注册 key。",
     "原型业务范围来自当前需求；模板示例不提供业务保存接口，也不自动完成状态、事件和路由绑定。"
   ],

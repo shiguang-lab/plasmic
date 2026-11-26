@@ -59,6 +59,7 @@ Creation returns `project` identity and creates an empty private Project.
 Creation and query tools do not navigate or save the active design.
 
 Call `open_design({projectId: project.id})` only after the full target is resolved.
+For prototype design and structural changes, first check Template Center via `list_templates` (and inspect matching published templates with `open_template` under [template center](template-center.md)) before opening or mutating the destination project whenever its library scope is already known from the task; if you need to open the destination project first to inspect its installed libraries or existing pages, record its identity and return to it after template inspection.
 Team and Workspace selection does not require intermediate dashboard navigation.
 Inspect the result, then read `get_app_state`: `projectId` must match and `ready`
 must be true. Read its actual editor schemas and call `execute` → `identify`

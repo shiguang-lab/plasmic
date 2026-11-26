@@ -33,7 +33,11 @@ import type { CalendarSemanticType } from "antd/es/calendar/generateCalendar";
 import type { TimePickerSemanticType } from "antd/es/time-picker/index";
 import type { TourSemanticType } from "antd/es/tour/interface";
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
-import { PropType, usePlasmicCanvasContext } from "@plasmicapp/host";
+import {
+  PropType,
+  usePlasmicCanvasComponentInfo,
+  usePlasmicCanvasContext,
+} from "@plasmicapp/host";
 import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import * as Ant from "antd";
 import type { AlertSemanticType } from "antd/es/alert/Alert";
@@ -323,11 +327,21 @@ export function AntdListy(
   props: Omit<
     Ant.ListyProps<{ key: string; content: string }>,
     "itemRender" | "rowKey"
-  >,
+  > & {
+    __canvas?: PlasmicCanvasProps["__canvas"];
+  },
 ) {
+  const canvas = usePlasmicCanvasContext();
+  const info = usePlasmicCanvasComponentInfo(props);
+  const { __canvas: _canvas, ...rest } = props;
+  const fullContentView =
+    !!canvas && !canvas.interactive && info?.fullContent === true;
   return (
     <Ant.Listy
-      {...props}
+      {...rest}
+      {...(fullContentView
+        ? { height: undefined, virtual: false, sticky: false }
+        : {})}
       rowKey="key"
       itemRender={(item) => <div>{item.content}</div>}
     />

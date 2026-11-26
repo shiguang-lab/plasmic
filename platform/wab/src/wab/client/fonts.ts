@@ -1,3 +1,8 @@
+import {
+  BundledFontsManifest,
+  getBundledFontsManifest,
+  resolveBundledFontUrl,
+} from "@/wab/client/bundled-fonts";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -153,6 +158,7 @@ function missingFonts(
   used: readonly FontInstallSpec[],
   local: ReadonlySet<string>,
   host: ReadonlySet<string>,
+  hasFallback: (family: string) => boolean,
 ) {
   return used
     .filter(
@@ -160,9 +166,53 @@ function missingFonts(
         font.fontType === "local" &&
         !isFontFamilyKeyword(font.fontFamily) &&
         !local.has(font.fontFamily) &&
-        !host.has(font.fontFamily),
+        !host.has(font.fontFamily) &&
+        !hasFallback(font.fontFamily),
     )
     .map((font) => font.fontFamily);
+}
+
+export interface FontManagerOptions {
+  warnMissingFonts?: boolean;
+  bundledFonts?: BundledFontsManifest;
+}
+
+function buildLowerCaseMap(record: Readonly<Record<string, string>>) {
+  return new Map(
+    Object.entries(record).map(([family, relativePath]) => [
+      family.toLowerCase(),
+      relativePath,
+    ]),
+  );
+}
+
+function appendStylesheetLink(
+  htmlHeads: Array<JQuery>,
+  href: string,
+  bundledFallbackFamily?: string,
+) {
+  htmlHeads.forEach(($head) => {
+    const exists = $head
+      .find('link[rel="stylesheet"]')
+      .toArray()
+      .some((el) => el.getAttribute("href") === href);
+    if (exists) {
+      return;
+    }
+    $head.append(
+      $("<link />", {
+        rel: "stylesheet",
+        href,
+        crossOrigin: "anonymous",
+        ...(bundledFallbackFamily
+          ? {
+              "data-plasmic-bundled-fallback":
+                bundledFallbackFamily.toLowerCase(),
+            }
+          : {}),
+      }),
+    );
+  });
 }
 
 export class FontManager {
@@ -171,6 +221,10 @@ export class FontManager {
     StoreApi<FontState>,
     "getState" | "getInitialState" | "subscribe"
   >;
+  private readonly warnMissingFonts: boolean;
+  private readonly bundledFonts: BundledFontsManifest;
+  private readonly bundledFamilyPaths: ReadonlyMap<string, string>;
+  private readonly bundledFallbackPaths: ReadonlyMap<string, string>;
   private _loaded = false;
   private stopped = false;
   private pendingLocalFonts = new Set<string>();
@@ -178,7 +232,11 @@ export class FontManager {
   private notifiers = new Map<string, ThrottledNotification>();
   private hostObservers = new Set<() => void>();
 
-  constructor(private site: Site) {
+  constructor(private site: Site, opts: FontManagerOptions = {}) {
+    this.warnMissingFonts = opts.warnMissingFonts ?? true;
+    this.bundledFonts = opts.bundledFonts ?? getBundledFontsManifest();
+    this.bundledFamilyPaths = buildLowerCaseMap(this.bundledFonts.families);
+    this.bundledFallbackPaths = buildLowerCaseMap(this.bundledFonts.fallbacks);
     const usedFonts = [
       ...extractUsedFontsFromComponents(site, site.components),
       ...walkDependencyTree(site, "all").flatMap((dep) =>
@@ -198,7 +256,12 @@ export class FontManager {
       localFonts,
       hostFonts,
       availableFonts: availableFonts(managedFonts, fontLists.all),
-      missingUsedFonts: missingFonts(usedFonts, localFonts, hostFonts),
+      missingUsedFonts: missingFonts(
+        usedFonts,
+        localFonts,
+        hostFonts,
+        this.hasBundledFallback,
+      ),
     }));
     this.store = {
       getState: this.state.getState,
@@ -223,7 +286,9 @@ export class FontManager {
           managedFonts: [
             ...managedFonts,
             ...commonLocalFonts
-              .filter((font) => avails.includes(font))
+              .filter(
+                (font) => avails.includes(font) || this.hasBundledFallback(font),
+              )
               .map((fontFamily) => ({
                 fontType: "local" as const,
                 fontFamily,
@@ -312,6 +377,7 @@ export class FontManager {
           next.usedFonts,
           next.localFonts,
           next.hostFonts,
+          this.hasBundledFallback,
         );
         next.missingUsedFonts = shallow(missing, previous.missingUsedFonts)
           ? previous.missingUsedFonts
@@ -321,12 +387,28 @@ export class FontManager {
     });
   }
 
+  hasBundledFallback = (family: string) =>
+    this.bundledFallbackPaths.has(family.toLowerCase());
+
+  private getBundledFontUrl(family: string) {
+    return resolveBundledFontUrl(
+      this.bundledFamilyPaths.get(family.toLowerCase()),
+    );
+  }
+
+  private getBundledFallbackUrl(family: string) {
+    return resolveBundledFontUrl(
+      this.bundledFallbackPaths.get(family.toLowerCase()),
+    );
+  }
+
   isUserManagedFontInstalled = (family: string) => {
     const state = this.store.getState();
     return (
       isFontFamilyKeyword(family) ||
       state.localFonts.has(family) ||
-      state.hostFonts.has(family)
+      state.hostFonts.has(family) ||
+      this.hasBundledFallback(family)
     );
   };
 
@@ -443,6 +525,9 @@ export class FontManager {
   availFonts = () => this.store.getState().availableFonts;
 
   private tryWarnMissingPlasmicManagedFont = (fontFamily: string) => {
+    if (!this.warnMissingFonts) {
+      return;
+    }
     // The picker lists common fonts only; availability also includes detected
     // local fonts and fonts supplied by the host. Wait for pending probes.
     if (
@@ -498,7 +583,17 @@ export class FontManager {
     fontSpec: FontInstallSpec,
   ) => {
     if (fontSpec.fontType === "local") {
-      if (!this.site.userManagedFonts.includes(fontSpec.fontFamily)) {
+      const fallbackUrl = this.getBundledFallbackUrl(fontSpec.fontFamily);
+      if (
+        fallbackUrl &&
+        !this.store.getState().localFonts.has(fontSpec.fontFamily)
+      ) {
+        appendStylesheetLink(htmlHeads, fallbackUrl, fontSpec.fontFamily);
+      }
+      if (
+        !this.site.userManagedFonts.includes(fontSpec.fontFamily) &&
+        !this.hasBundledFallback(fontSpec.fontFamily)
+      ) {
         // We only warn missing fonts that is not in user managed fonts. This
         // means, when user has deleted the font from userManagedFonts, they
         // will be warned too.
@@ -510,15 +605,10 @@ export class FontManager {
       }
       return;
     } else if (fontSpec.fontType === "google-font") {
-      const url = makeGoogleFontApiUrl(fontSpec.fontFamily);
-      htmlHeads.forEach(($head) => {
-        const $link = $("<link />", {
-          rel: "stylesheet",
-          href: url,
-          crossOrigin: "anonymous",
-        });
-        $head.append($link);
-      });
+      const url =
+        this.getBundledFontUrl(fontSpec.fontFamily) ??
+        makeGoogleFontApiUrl(fontSpec.fontFamily);
+      appendStylesheetLink(htmlHeads, url);
       return;
     } else {
       assertNever(fontSpec);
@@ -614,13 +704,49 @@ const isLocalFontAvailable = (localFont: string) => {
   if (isFontFamilyKeyword(localFont)) {
     return true;
   }
-  const $fontTester = $(".fontTester");
-  const initialWidth = $fontTester.width();
+  let $fontTester = $(".fontTester");
+  if ($fontTester.length === 0 && document.body) {
+    $fontTester = $(
+      '<span class="fontTester" aria-hidden="true">Plasmic</span>',
+    )
+      .css({
+        fontFamily: plasmicTestFont,
+        display: "block",
+        position: "absolute",
+        left: "0px",
+        top: "-1000px",
+        visibility: "hidden",
+        pointerEvents: "none",
+      })
+      .appendTo(document.body);
+  }
+  // Disable host-injected bundled fallback stylesheets while probing so
+  // Studio's document probe reflects true OS local font availability.
+  const familyKey = localFont.toLowerCase();
+  const activeFallbackLinks = Array.from(
+    document.querySelectorAll<HTMLLinkElement>(
+      "link[data-plasmic-bundled-fallback]",
+    ),
+  ).filter(
+    (link) =>
+      link.getAttribute("data-plasmic-bundled-fallback") === familyKey &&
+      !link.disabled,
+  );
+  activeFallbackLinks.forEach((link) => {
+    link.disabled = true;
+  });
+  try {
+    const initialWidth = $fontTester.width();
 
-  $fontTester.css("font-family", `"${localFont}", "${plasmicTestFont}"`);
-  const newWidth = $fontTester.width();
-  $fontTester.css("font-family", `"${plasmicTestFont}"`);
+    $fontTester.css("font-family", `"${localFont}", "${plasmicTestFont}"`);
+    const newWidth = $fontTester.width();
+    $fontTester.css("font-family", `"${plasmicTestFont}"`);
 
-  const r = newWidth !== initialWidth;
-  return r;
+    const r = newWidth !== initialWidth;
+    return r;
+  } finally {
+    activeFallbackLinks.forEach((link) => {
+      link.disabled = false;
+    });
+  }
 };

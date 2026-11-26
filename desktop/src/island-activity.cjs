@@ -3,7 +3,7 @@ const passive = new Set(["identify", "getEditorContext", "endCanvasInspection"])
 const operationLabels = {
   create_project: "Creating project", create_workspace: "Creating workspace", create_org: "Creating organization",
   rename_project: "Renaming project", move_project: "Moving project", clone_project: "Copying project",
-  open_template: "Opening template", open_design: "Opening project", open_workspace: "Opening workspace", open_org: "Opening organization",
+  open_template: "Opening template", list_templates: "Reading templates", open_design: "Opening project", open_workspace: "Opening workspace", open_org: "Opening organization",
   list_projects: "Reading projects", get_project: "Reading projects", list_workspaces: "Reading workspaces", get_workspace: "Reading workspaces", list_orgs: "Reading organizations", get_org: "Reading organizations",
   generate_image: "Generating image", search_stock_images: "Searching images", export_code: "Exporting code",
 };

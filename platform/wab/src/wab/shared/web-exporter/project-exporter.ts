@@ -188,7 +188,9 @@ export function buildProjectResource(
         })))
       )
     ),
-    devicePresets: frameSizeGroups.flatMap(group => group.sizes),
+    devicePresets: frameSizeGroups.flatMap((group) =>
+      group.sizes.map((size) => ({ ...size, groupName: group.groupName })),
+    ),
     ...(screenBreakpoints ? { screenBreakpoints } : {}),
     ...buildSections(),
     ...(customFunctions ? { dataQueryFunctions: customFunctions } : {}),
